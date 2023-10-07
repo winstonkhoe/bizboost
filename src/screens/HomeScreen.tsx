@@ -1,14 +1,13 @@
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import InfluencerCard from '../components/atoms/InfluencerCard';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
+import {SearchBar} from '../components/atoms/SearchBar';
 const HomeScreen = () => {
   return (
     <SafeAreaContainer>
       <View className="container h-full flex-col text-center">
-        <View className="w-full h-10 flex justify-center items-center">
-          <Text>Influencers</Text>
-        </View>
+        <SearchBar />
         <View className="h-full w-full">
           <ScrollView className="w-full">
             <View className="flex flex-row flex-wrap justify-around p-4 gap-4">
