@@ -4,6 +4,7 @@ import {RootStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {useState} from 'react';
 import {Button} from 'react-native-elements';
+import auth from '@react-native-firebase/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 const SignUpScreen = ({}: Props) => {
@@ -20,8 +21,22 @@ const SignUpScreen = ({}: Props) => {
       return;
     }
 
-    // If validation passes, you can perform the login logic here
-    // navigation.navigate('Home');
+    auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        console.log('User account created & signed in!');
+      })
+      .catch(error => {
+        if (error.code === 'auth/email-already-in-use') {
+          console.log('That email address is already in use!');
+        }
+
+        if (error.code === 'auth/invalid-email') {
+          console.log('That email address is invalid!');
+        }
+
+        console.error(error);
+      });
   };
 
   const handleSignupWithGoogle = () => {};
