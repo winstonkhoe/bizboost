@@ -12,22 +12,24 @@ const HomeScreen = () => {
         <SearchBar />
         <View className="h-full w-full">
           <ScrollView className="w-full">
-            <View className="mt-4 w-full flex flex-col items-center">
+            <View className="mt-6 w-full flex flex-col items-center">
               <View className="relative w-11/12 flex flex-col">
                 <View className="w-full flex flex-row items-center justify-between">
                   <Text className="text-lg font-bold">Recent Negotiations</Text>
                   <InternalLink text="See All" />
                 </View>
-                <View className="flex flex-row">
-                  <ScrollView
-                    className="w-full"
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}>
+              </View>
+              <View className="mt-3 w-full flex flex-row">
+                <ScrollView
+                  className="pl-4 pb-1"
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}>
+                  <View className="flex flex-row pr-4">
                     {[...Array(10)].map((_item: any, index: number) => (
                       <RecentNegotiationCard key={index} />
                     ))}
-                  </ScrollView>
-                </View>
+                  </View>
+                </ScrollView>
               </View>
             </View>
             <View className="flex flex-row flex-wrap justify-around p-4 gap-4">

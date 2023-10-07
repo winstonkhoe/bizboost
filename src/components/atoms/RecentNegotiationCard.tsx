@@ -4,9 +4,9 @@ import {currencyFormat} from '../../utils/currency';
 
 const RecentNegotiationCard = () => {
   return (
-    <View className="relative w-64 h-40 flex flex-col p-4 mr-4 rounded-xl bg-black/20">
+    <View className="relative w-64 h-40 flex flex-col p-4 mr-4 rounded-xl bg-white shadow-sm">
       <View className="w-full flex flex-row">
-        <View className="w-16 h-16 bg-red-500 rounded-full overflow-hidden">
+        <View className="w-16 h-16 rounded-full overflow-hidden">
           <Image
             className="w-full h-full object-cover"
             source={require('../../assets/images/kopi-nako-logo.jpeg')}
