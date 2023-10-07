@@ -1,15 +1,132 @@
-import {Text, View} from 'react-native';
+import {Text, TextInput, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation';
+import SafeAreaContainer from '../containers/SafeAreaContainer';
+import {useState} from 'react';
+import {Button} from 'react-native-elements';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 const SignUpScreen = ({}: Props) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullname, setFullname] = useState('');
+  const [phone, setPhone] = useState('');
+  const [emailError, setEmailError] = useState('');
+
+  const handleSignup = () => {
+    // Perform validation
+    if (email.trim() === '' || password.trim() === '') {
+      return;
+    }
+
+    // If validation passes, you can perform the login logic here
+    // navigation.navigate('Home');
+  };
+
+  const handleSignupWithGoogle = () => {};
   return (
-    <View className="h-full">
-      <View className="container h-full justify-center items-center text-center">
-        <Text>This is SignUpScreen</Text>
+    <SafeAreaContainer>
+      <View className="h-full flex justify-between items-center px-4">
+        {/* App Bar */}
+        <View className="p-4">
+          <Text className="text-2xl text-black text-center font-bold">
+            Sign Up
+          </Text>
+        </View>
+
+        {/* Content */}
+        <View className="flex flex-col justify-start gap-y-10 mx-5 mt-5 w-full">
+          <View className="flex flex-col justify-start">
+            <Text className="text-black">Full Name</Text>
+            <TextInput
+              placeholder="fullname"
+              value={fullname}
+              onChangeText={text => setFullname(text)}
+              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            />
+            {emailError !== '' && (
+              <Text className="text-red-500">{emailError}</Text>
+            )}
+          </View>
+          <View className="flex flex-col justify-start">
+            <Text className="text-black">Phone Number</Text>
+            <TextInput
+              placeholder="phone"
+              value={phone}
+              onChangeText={text => setPhone(text)}
+              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            />
+            {emailError !== '' && (
+              <Text className="text-red-500">{emailError}</Text>
+            )}
+          </View>
+          <View className="flex flex-col justify-start">
+            <Text className="text-black">Email</Text>
+            <TextInput
+              placeholder="Email"
+              value={email}
+              onChangeText={text => setEmail(text)}
+              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            />
+            {emailError !== '' && (
+              <Text className="text-red-500">{emailError}</Text>
+            )}
+          </View>
+
+          <View className="flex flex-col justify-start">
+            <Text className="text-black">Password</Text>
+            <TextInput
+              placeholder="Password"
+              value={password}
+              onChangeText={text => setPassword(text)}
+              secureTextEntry={true}
+              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            />
+          </View>
+
+          <View className="flex flex-col justify-start">
+            <Text className="text-black">Confirm Password</Text>
+            <TextInput
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChangeText={text => setConfirmPassword(text)}
+              secureTextEntry={true}
+              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            />
+          </View>
+        </View>
+
+        {/* Login Button */}
+        <View className="w-full">
+          <Button
+            title="SIGN UP"
+            buttonStyle={{
+              backgroundColor: 'black',
+              borderWidth: 2,
+              borderColor: 'white',
+              borderRadius: 30,
+              paddingVertical: 20,
+              width: '100%',
+            }}
+            titleStyle={{fontWeight: 'bold'}}
+            onPress={handleSignup}
+          />
+
+          <Button
+            title="CONTINUE WITH GOOGLE"
+            buttonStyle={{
+              borderWidth: 2,
+              borderColor: 'white',
+              borderRadius: 30,
+              paddingVertical: 20,
+            }}
+            titleStyle={{fontWeight: 'bold'}}
+            onPress={handleSignupWithGoogle}
+          />
+        </View>
       </View>
-    </View>
+    </SafeAreaContainer>
   );
 };
 
