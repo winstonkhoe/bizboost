@@ -11,7 +11,7 @@ const WelcomeScreen = ({navigation}: Props) => {
         <Button
           title="Home"
           onPress={() => {
-            navigation.navigate('Authenticated');
+            navigation.navigate('Login');
           }}
         />
       </View>
