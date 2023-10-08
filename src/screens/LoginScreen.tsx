@@ -1,48 +1,36 @@
-import React, {useState} from 'react';
-import {Text, View, TextInput} from 'react-native';
+import React from 'react';
+import {Text, View, TextInput, Alert} from 'react-native';
 import {Button} from 'react-native-elements'; // You can use a UI library like 'react-native-elements'
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
-import auth from '@react-native-firebase/auth';
 import {User} from '../model/User';
+import {useForm, Controller} from 'react-hook-form';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-const LoginScreen = ({navigation}: Props) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+type FormData = {
+  email: string;
+  password: string;
+};
+const LoginScreen = ({}: Props) => {
+  const {
+    control,
+    handleSubmit,
+    formState: {errors},
+  } = useForm<FormData>({mode: 'all'});
 
-  // Function to handle email input change
-  const handleEmailChange = (text: string) => {
-    setEmail(text);
-    validateFields(text, password);
-  };
-
-  // Function to handle password input change
-  const handlePasswordChange = (text: string) => {
-    setPassword(text);
-    validateFields(email, text);
-  };
-
-  // Function to validate fields
-  const validateFields = (emailValue: string, passwordValue: string) => {
-    if (emailValue.trim() === '') {
-      setEmailError('Email is required');
-    } else {
-      setEmailError('');
-    }
-
-    if (passwordValue.trim() === '') {
-      setPasswordError('Password is required');
-    } else {
-      setPasswordError('');
-    }
-  };
-
-  const handleLogin = () => {
-    User.login(email, password);
+  const onSubmit = (data: FormData) => {
+    console.log(data);
+    User.login(data.email, data.password).catch(error => {
+      Alert.alert('Error!', error.message, [
+        {
+          text: 'OK',
+          onPress: () => console.log('OK Pressed'),
+          style: 'cancel',
+        },
+      ]);
+    });
   };
 
   const handleLoginWithGoogle = () => {
@@ -63,28 +51,46 @@ const LoginScreen = ({navigation}: Props) => {
         <View className="flex flex-col justify-start gap-y-10 mx-5 mt-5 w-full">
           <View className="flex flex-col justify-start">
             <Text className="text-black">Email</Text>
-            <TextInput
-              placeholder="Email"
-              value={email}
-              onChangeText={handleEmailChange}
-              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  className="w-full border border-x-0 border-t-0 border-b-black px-1"
+                />
+              )}
+              name="email"
             />
-            {emailError !== '' && (
-              <Text className="text-red-500">{emailError}</Text>
+            {errors.email && (
+              <Text className="text-red-500">Email is required.</Text>
             )}
           </View>
 
           <View className="flex flex-col justify-start">
             <Text className="text-black">Password</Text>
-            <TextInput
-              placeholder="Password"
-              value={password}
-              onChangeText={handlePasswordChange}
-              secureTextEntry={true}
-              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  secureTextEntry={true}
+                  className="w-full border border-x-0 border-t-0 border-b-black px-1"
+                />
+              )}
+              name="password"
             />
-            {passwordError !== '' && (
-              <Text className="text-red-500">{passwordError}</Text>
+            {errors.password && (
+              <Text className="text-red-500">Password is required.</Text>
             )}
           </View>
         </View>
@@ -102,8 +108,7 @@ const LoginScreen = ({navigation}: Props) => {
               width: '100%',
             }}
             titleStyle={{fontWeight: 'bold'}}
-            onPress={handleLogin}
-            disabled={email.trim() === '' || password.trim() === ''}
+            onPress={handleSubmit(onSubmit)}
           />
 
           <Button

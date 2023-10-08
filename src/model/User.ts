@@ -1,7 +1,6 @@
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-
 export class User {
   static async signUp(email: string, password: string) {
     if (email.trim() === '' || password.trim() === '') {
@@ -73,6 +72,7 @@ export class User {
 
       return true;
     } catch (error: any) {
+      console.log('err: ' + error);
       if (error.code === 'auth/user-not-found') {
         throw Error('User not found!');
       }
@@ -81,7 +81,8 @@ export class User {
         throw Error('Invalid password!');
       }
 
-      return false;
+      throw Error('Login failed!');
+      //   return false
     }
   }
 
