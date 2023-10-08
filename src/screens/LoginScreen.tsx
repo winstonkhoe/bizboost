@@ -5,6 +5,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import auth from '@react-native-firebase/auth';
+import {User} from '../model/User';
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 const LoginScreen = ({navigation}: Props) => {
@@ -40,20 +41,12 @@ const LoginScreen = ({navigation}: Props) => {
     }
   };
 
-  // Function to handle the login button press
   const handleLogin = () => {
-    // Perform validation
-    if (email.trim() === '' || password.trim() === '') {
-      return;
-    }
-
-    // If validation passes, you can perform the login logic here
-    // navigation.navigate('Home');
+    User.login(email, password);
   };
 
   const handleLoginWithGoogle = () => {
-    // If validation passes, you can perform the login logic here
-    // navigation.navigate('Home');
+    User.loginWithGoogle();
   };
 
   return (

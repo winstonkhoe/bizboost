@@ -22,7 +22,7 @@ const SignUpScreen = ({}: Props) => {
   };
 
   const handleSignupWithGoogle = () => {
-    User.signupWithGoogle();
+    User.signUpWithGoogle();
   };
   return (
     <SafeAreaContainer>
