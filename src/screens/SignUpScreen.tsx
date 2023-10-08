@@ -5,6 +5,7 @@ import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {useState} from 'react';
 import {Button} from 'react-native-elements';
 import auth from '@react-native-firebase/auth';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 const SignUpScreen = ({}: Props) => {
@@ -39,7 +40,19 @@ const SignUpScreen = ({}: Props) => {
       });
   };
 
-  const handleSignupWithGoogle = () => {};
+  const handleSignupWithGoogle = async () => {
+    const {idToken} = await GoogleSignin.signIn();
+
+    // Create a Google credential with the token
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+    // Sign-in the user with the credential
+    auth()
+      .signInWithCredential(googleCredential)
+      .then(() => {
+        console.log('Signed with google');
+      });
+  };
   return (
     <SafeAreaContainer>
       <View className="h-full flex justify-between items-center px-4">
