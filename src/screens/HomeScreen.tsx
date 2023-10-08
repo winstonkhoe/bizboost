@@ -1,45 +1,49 @@
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import InfluencerCard from '../components/atoms/InfluencerCard';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
-import {SearchBar} from '../components/atoms/SearchBar';
-import {InternalLink} from '../components/atoms/Link';
-import {RecentNegotiationCard} from '../components/atoms/RecentNegotiationCard';
+import {SearchBar} from '../components/organisms/SearchBar';
+import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
+import {HorizontalPadding} from '../components/atoms/ViewPadding';
+import {HomeSectionHeader} from '../components/molecules/SectionHeader';
+import {HorizontalScrollView} from '../components/molecules/HorizontalScrollView';
+import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
+import {flex} from '../styles/Flex';
+import {gap} from '../styles/Gap';
 const HomeScreen = () => {
   return (
     <SafeAreaContainer>
-      <View className="container h-full flex flex-col text-center">
-        <SearchBar />
+      <View className="h-full text-center" style={[flex.flexCol]}>
+        <HorizontalPadding>
+          <SearchBar />
+        </HorizontalPadding>
         <View className="h-full w-full">
-          <ScrollView className="w-full">
+          <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
             <View className="mt-6 w-full flex flex-col items-center">
-              <View className="relative w-11/12 flex flex-col">
-                <View className="w-full flex flex-row items-center justify-between">
-                  <Text className="text-lg font-bold">Recent Negotiations</Text>
-                  <InternalLink text="See All" />
-                </View>
-              </View>
-              <View className="mt-3 w-full flex flex-row">
-                <ScrollView
-                  className="pl-4 pb-1"
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}>
-                  <View className="flex flex-row pr-4">
-                    {[...Array(10)].map((_item: any, index: number) => (
-                      <RecentNegotiationCard key={index} />
-                    ))}
-                  </View>
-                </ScrollView>
-              </View>
-            </View>
-            <View className="flex flex-row flex-wrap justify-around p-4 gap-4">
-              {[...Array(10)].map((_item: any, index: number) => (
-                <InfluencerCard
-                  key={index}
-                  index={index}
-                  image={require('../assets/images/sample-influencer.jpeg')}
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header="Recent Negotiations"
+                  link="See All"
                 />
-              ))}
+              </HorizontalPadding>
+              <View className="mt-3 w-full"></View>
+              <HorizontalScrollView>
+                {[...Array(10)].map((_item: any, index: number) => (
+                  <RecentNegotiationCard key={index} />
+                ))}
+              </HorizontalScrollView>
+            </View>
+            <View className="mt-6 w-full items-center" style={[flex.flexCol]}>
+              <HorizontalPadding>
+                <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
+              </HorizontalPadding>
+              <View className="mt-3 w-full"></View>
+              <HorizontalPadding>
+                <View style={[flex.flexCol, gap.default]}>
+                  {[...Array(10)].map((_item: any, index: number) => (
+                    <OngoingCampaignCard key={index} />
+                  ))}
+                </View>
+              </HorizontalPadding>
             </View>
           </ScrollView>
         </View>
