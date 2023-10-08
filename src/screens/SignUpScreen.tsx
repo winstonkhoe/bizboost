@@ -1,4 +1,4 @@
-import {Text, TextInput, View} from 'react-native';
+import {Alert, Text, TextInput, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
@@ -7,18 +7,38 @@ import {Button} from 'react-native-elements';
 import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {User} from '../model/User';
+import {useForm, Controller} from 'react-hook-form';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
+type FormData = {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullname: string;
+  phone: string;
+  profilePicture: string;
+  role: 'CC' | 'BP' | 'Admin';
+};
 const SignUpScreen = ({}: Props) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullname, setFullname] = useState('');
-  const [phone, setPhone] = useState('');
-  const [emailError, setEmailError] = useState('');
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: {errors},
+  } = useForm<FormData>({mode: 'all'});
 
-  const handleSignup = () => {
-    User.signUp(email, password);
+  const onSubmit = (data: FormData) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {confirmPassword, ...rest} = data;
+    User.signUp(rest).catch(error => {
+      Alert.alert('Error!', error.message, [
+        {
+          text: 'OK',
+          onPress: () => console.log('OK Pressed'),
+          style: 'cancel',
+        },
+      ]);
+    });
   };
 
   const handleSignupWithGoogle = () => {
@@ -38,61 +58,113 @@ const SignUpScreen = ({}: Props) => {
         <View className="flex flex-col justify-start gap-y-10 mx-5 mt-5 w-full">
           <View className="flex flex-col justify-start">
             <Text className="text-black">Full Name</Text>
-            <TextInput
-              placeholder="fullname"
-              value={fullname}
-              onChangeText={text => setFullname(text)}
-              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  className="w-full border border-x-0 border-t-0 border-b-black px-1"
+                />
+              )}
+              name="fullname"
             />
-            {emailError !== '' && (
-              <Text className="text-red-500">{emailError}</Text>
+            {errors.fullname && (
+              <Text className="text-red-500">fullname is required.</Text>
             )}
           </View>
           <View className="flex flex-col justify-start">
             <Text className="text-black">Phone Number</Text>
-            <TextInput
-              placeholder="phone"
-              value={phone}
-              onChangeText={text => setPhone(text)}
-              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  className="w-full border border-x-0 border-t-0 border-b-black px-1"
+                />
+              )}
+              name="phone"
             />
-            {emailError !== '' && (
-              <Text className="text-red-500">{emailError}</Text>
+            {errors.phone && (
+              <Text className="text-red-500">Phone Number is required.</Text>
             )}
           </View>
           <View className="flex flex-col justify-start">
             <Text className="text-black">Email</Text>
-            <TextInput
-              placeholder="Email"
-              value={email}
-              onChangeText={text => setEmail(text)}
-              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  className="w-full border border-x-0 border-t-0 border-b-black px-1"
+                />
+              )}
+              name="email"
             />
-            {emailError !== '' && (
-              <Text className="text-red-500">{emailError}</Text>
+            {errors.email && (
+              <Text className="text-red-500">Email is required.</Text>
             )}
           </View>
 
           <View className="flex flex-col justify-start">
             <Text className="text-black">Password</Text>
-            <TextInput
-              placeholder="Password"
-              value={password}
-              onChangeText={text => setPassword(text)}
-              secureTextEntry={true}
-              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  secureTextEntry={true}
+                  className="w-full border border-x-0 border-t-0 border-b-black px-1"
+                />
+              )}
+              name="password"
             />
+            {errors.password && (
+              <Text className="text-red-500">password is required.</Text>
+            )}
           </View>
 
           <View className="flex flex-col justify-start">
             <Text className="text-black">Confirm Password</Text>
-            <TextInput
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChangeText={text => setConfirmPassword(text)}
-              secureTextEntry={true}
-              className="w-full border border-x-0 border-t-0 border-b-black px-1"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+                validate: value => value === watch('password'),
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  secureTextEntry={true}
+                  className="w-full border border-x-0 border-t-0 border-b-black px-1"
+                />
+              )}
+              name="confirmPassword"
             />
+            {errors.confirmPassword && (
+              <Text className="text-red-500">The passwords do not match</Text>
+            )}
           </View>
         </View>
 
@@ -109,7 +181,7 @@ const SignUpScreen = ({}: Props) => {
               width: '100%',
             }}
             titleStyle={{fontWeight: 'bold'}}
-            onPress={handleSignup}
+            onPress={handleSubmit(onSubmit)}
           />
 
           <Button

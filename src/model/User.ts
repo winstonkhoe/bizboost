@@ -2,27 +2,40 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 export class User {
-  static async signUp(email: string, password: string) {
-    if (email.trim() === '' || password.trim() === '') {
-      return;
-    }
+  email: string = '';
+  password: string = '';
+  fullname: string = '';
+  phone: string = '';
+  profilePicture: string = '';
+  role: 'CC' | 'BP' | 'Admin' | undefined;
 
+  static async signUp({
+    email,
+    password,
+    fullname,
+    phone,
+    profilePicture,
+    role,
+  }: User) {
     try {
       const userCredential = await auth().createUserWithEmailAndPassword(
         email,
         password,
       );
-
-      await firestore().collection('users').doc(userCredential.user.uid).set({
-        fullname: 'fullname',
-        phone: 'phone',
-        profilePicture: 'pic',
-        email: email.toLowerCase(),
-        role: 'CC',
-      });
+      await firestore()
+        .collection('users')
+        .doc(userCredential.user.uid)
+        .set({
+          fullname: fullname,
+          phone: phone,
+          profilePicture: profilePicture ?? '',
+          email: email.toLowerCase(),
+          role: role ?? '',
+        });
 
       return true;
     } catch (error: any) {
+      console.log(error);
       if (error.code === 'auth/email-already-in-use') {
         throw Error('Email address is already in use!');
       }
