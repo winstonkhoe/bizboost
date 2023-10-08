@@ -6,6 +6,7 @@ import {useState} from 'react';
 import {Button} from 'react-native-elements';
 import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {User} from '../model/User';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 const SignUpScreen = ({}: Props) => {
@@ -18,26 +19,28 @@ const SignUpScreen = ({}: Props) => {
 
   const handleSignup = () => {
     // Perform validation
-    if (email.trim() === '' || password.trim() === '') {
-      return;
-    }
+    // if (email.trim() === '' || password.trim() === '') {
+    //   return;
+    // }
 
-    auth()
-      .createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        console.log('User account created & signed in!');
-      })
-      .catch(error => {
-        if (error.code === 'auth/email-already-in-use') {
-          console.log('That email address is already in use!');
-        }
+    // auth()
+    //   .createUserWithEmailAndPassword(email, password)
+    //   .then(() => {
+    //     console.log('User account created & signed in!');
+    //   })
+    //   .catch(error => {
+    //     if (error.code === 'auth/email-already-in-use') {
+    //       console.log('That email address is already in use!');
+    //     }
 
-        if (error.code === 'auth/invalid-email') {
-          console.log('That email address is invalid!');
-        }
+    //     if (error.code === 'auth/invalid-email') {
+    //       console.log('That email address is invalid!');
+    //     }
 
-        console.error(error);
-      });
+    //     console.error(error);
+    //   });
+
+    User.signUp(email, password);
   };
 
   const handleSignupWithGoogle = async () => {
