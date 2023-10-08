@@ -31,6 +31,7 @@ export class User {
           profilePicture: profilePicture ?? '',
           email: email.toLowerCase(),
           role: role ?? '',
+          joinedAt: firestore.Timestamp.now(),
         });
 
       return true;
@@ -68,6 +69,7 @@ export class User {
           profilePicture: userCredential.user.photoURL,
           email: userCredential.user.email,
           role: 'CC',
+          joinedAt: firestore.Timestamp.now(),
         });
       }
 
