@@ -54,7 +54,11 @@ const LoginScreen = ({}: Props) => {
             <Controller
               control={control}
               rules={{
-                required: true,
+                required: 'Email is required',
+                pattern: {
+                  value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                  message: 'Email address must be a valid address',
+                },
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
@@ -67,7 +71,7 @@ const LoginScreen = ({}: Props) => {
               name="email"
             />
             {errors.email && (
-              <Text className="text-red-500">Email is required.</Text>
+              <Text className="text-red-500">{errors.email.message}</Text>
             )}
           </View>
 
@@ -76,7 +80,11 @@ const LoginScreen = ({}: Props) => {
             <Controller
               control={control}
               rules={{
-                required: true,
+                required: 'Password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
+                },
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
@@ -90,7 +98,7 @@ const LoginScreen = ({}: Props) => {
               name="password"
             />
             {errors.password && (
-              <Text className="text-red-500">Password is required.</Text>
+              <Text className="text-red-500">{errors.password.message}</Text>
             )}
           </View>
         </View>
