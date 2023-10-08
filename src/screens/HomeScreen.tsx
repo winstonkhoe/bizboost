@@ -4,7 +4,6 @@ import InfluencerCard from '../components/atoms/InfluencerCard';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {Button} from 'react-native-elements';
 import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 
 const HomeScreen = () => {
   return (

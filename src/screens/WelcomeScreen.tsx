@@ -1,4 +1,4 @@
-import {Button, Pressable, Text, View} from 'react-native';
+import {Button, Text, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';

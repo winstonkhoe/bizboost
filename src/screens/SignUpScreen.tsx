@@ -2,10 +2,7 @@ import {Alert, Text, TextInput, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
-import {useState} from 'react';
 import {Button} from 'react-native-elements';
-import auth from '@react-native-firebase/auth';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {User} from '../model/User';
 import {useForm, Controller} from 'react-hook-form';
 
@@ -25,11 +22,20 @@ const SignUpScreen = ({}: Props) => {
     handleSubmit,
     watch,
     formState: {errors},
-  } = useForm<FormData>({mode: 'all'});
+  } = useForm<FormData>({
+    mode: 'all',
+    defaultValues: {
+      profilePicture: 'a',
+      role: 'CC',
+    },
+  });
 
   const onSubmit = (data: FormData) => {
+    console.log('data' + data);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {confirmPassword, ...rest} = data;
+
+    console.log(rest);
     User.signUp(rest).catch(error => {
       Alert.alert('Error!', error.message, [
         {
@@ -61,7 +67,7 @@ const SignUpScreen = ({}: Props) => {
             <Controller
               control={control}
               rules={{
-                required: true,
+                required: 'Fullname is required',
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
@@ -74,7 +80,7 @@ const SignUpScreen = ({}: Props) => {
               name="fullname"
             />
             {errors.fullname && (
-              <Text className="text-red-500">fullname is required.</Text>
+              <Text className="text-red-500">{errors.fullname.message}</Text>
             )}
           </View>
           <View className="flex flex-col justify-start">
@@ -82,10 +88,15 @@ const SignUpScreen = ({}: Props) => {
             <Controller
               control={control}
               rules={{
-                required: true,
+                required: 'Phone number is required',
+                pattern: {
+                  value: /^(^\+62|62|^08)(\d{3,4}-?){2}\d{3,4}$/g,
+                  message: 'Phone number is invalid',
+                },
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
+                  keyboardType="phone-pad"
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -95,7 +106,7 @@ const SignUpScreen = ({}: Props) => {
               name="phone"
             />
             {errors.phone && (
-              <Text className="text-red-500">Phone Number is required.</Text>
+              <Text className="text-red-500">{errors.phone.message}</Text>
             )}
           </View>
           <View className="flex flex-col justify-start">
@@ -103,7 +114,11 @@ const SignUpScreen = ({}: Props) => {
             <Controller
               control={control}
               rules={{
-                required: true,
+                required: 'Email is required',
+                pattern: {
+                  value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                  message: 'Email address must be a valid address',
+                },
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
@@ -116,7 +131,7 @@ const SignUpScreen = ({}: Props) => {
               name="email"
             />
             {errors.email && (
-              <Text className="text-red-500">Email is required.</Text>
+              <Text className="text-red-500">{errors.email.message}</Text>
             )}
           </View>
 
@@ -125,7 +140,11 @@ const SignUpScreen = ({}: Props) => {
             <Controller
               control={control}
               rules={{
-                required: true,
+                required: 'Password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
+                },
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
@@ -139,7 +158,7 @@ const SignUpScreen = ({}: Props) => {
               name="password"
             />
             {errors.password && (
-              <Text className="text-red-500">password is required.</Text>
+              <Text className="text-red-500">{errors.password.message}</Text>
             )}
           </View>
 
@@ -148,8 +167,10 @@ const SignUpScreen = ({}: Props) => {
             <Controller
               control={control}
               rules={{
-                required: true,
-                validate: value => value === watch('password'),
+                required: 'Confirm Password must be filled',
+                validate: value =>
+                  value === watch('password') ||
+                  'Confirm password must be the same as password',
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
@@ -163,7 +184,9 @@ const SignUpScreen = ({}: Props) => {
               name="confirmPassword"
             />
             {errors.confirmPassword && (
-              <Text className="text-red-500">The passwords do not match</Text>
+              <Text className="text-red-500">
+                {errors.confirmPassword.message}
+              </Text>
             )}
           </View>
         </View>
