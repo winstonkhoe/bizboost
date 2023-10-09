@@ -16,9 +16,10 @@ const HomeScreen = () => {
         <HorizontalPadding>
           <SearchBar />
         </HorizontalPadding>
+        <View className="mb-6" />
         <View className="h-full w-full">
           <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
-            <View className="mt-6 w-full flex flex-col items-center">
+            <View className="w-full flex flex-col items-center">
               <HorizontalPadding>
                 <HomeSectionHeader
                   header="Recent Negotiations"
