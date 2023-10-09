@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "403012009031",
+    "project_id": "endorse-aafdb",
+    "storage_bucket": "endorse-aafdb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:403012009031:android:cc76b4c25f72dc0af10562",
+        "android_client_info": {
+          "package_name": "com.bizboost"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "403012009031-2kp18gemd64cs0s4psdjhtu7b72nd0bk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaZE_ZhscCoXKPi_kDKru9GYadXjV0dVY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "403012009031-2kp18gemd64cs0s4psdjhtu7b72nd0bk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
