@@ -8,6 +8,7 @@ const SafeAreaContainer = ({children}: Props) => {
   const insets = useSafeAreaInsets();
   return (
     <View
+      className="bg-white/50"
       style={{
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
