@@ -1,11 +1,19 @@
 import {Image, Pressable, Text, View} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
+import {borderRadius, radiusSize} from '../../styles/BorderRadius';
 
 const OngoingCampaignCard = () => {
   return (
     <View className="relative w-full h-40 rounded-xl overflow-hidden bg-white shadow-sm">
-      <View className="absolute top-0 right-0 px-3 py-1 bg-black rounded-bl-3xl">
+      <View
+        className="absolute top-0 right-0 px-5 py-1 bg-black overflow-hidden"
+        style={[
+          borderRadius({
+            bottomLeft: radiusSize.large,
+            topRight: radiusSize.large,
+          }),
+        ]}>
         <Text className="font-bold text-white text-xs">
           1 Sept 2023 - 31 Sept 2023
         </Text>
