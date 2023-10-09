@@ -1,6 +1,6 @@
 import React from 'react';
 import {Text, View, TextInput, Alert} from 'react-native';
-import {Button} from 'react-native-elements'; // You can use a UI library like 'react-native-elements'
+import {Button} from 'react-native-elements';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
@@ -39,16 +39,14 @@ const LoginScreen = ({}: Props) => {
 
   return (
     <SafeAreaContainer>
-      <View className="h-full flex justify-between items-center px-4">
+      <View className="h-full bg-white flex justify-between items-center px-4 py-36">
         {/* App Bar */}
         <View className="p-4">
-          <Text className="text-2xl text-black text-center font-bold">
-            Login
-          </Text>
+          <Text className="text-2xl text-black text-left font-bold">Login</Text>
         </View>
 
         {/* Content */}
-        <View className="flex flex-col justify-start gap-y-10 mx-5 mt-5 w-full">
+        <View className="flex flex-col justify-start gap-y-10 w-full">
           <View className="flex flex-col justify-start">
             <Text className="text-black">Email</Text>
             <Controller
@@ -103,33 +101,36 @@ const LoginScreen = ({}: Props) => {
           </View>
         </View>
 
-        {/* Login Button */}
-        <View className="w-full">
-          <Button
-            title="LOG IN"
-            buttonStyle={{
-              backgroundColor: 'black',
-              borderWidth: 2,
-              borderColor: 'white',
-              borderRadius: 30,
-              paddingVertical: 20,
-              width: '100%',
-            }}
-            titleStyle={{fontWeight: 'bold'}}
-            onPress={handleSubmit(onSubmit)}
-          />
+        <View className="flex flex-col justify-start w-full">
+          {/* Login Button */}
+          <View className="w-full">
+            <Button
+              title="LOG IN"
+              buttonStyle={{
+                backgroundColor: '#258842',
+                borderWidth: 2,
+                borderColor: 'white',
+                borderRadius: 30,
+                paddingVertical: 20,
+                width: '100%',
+              }}
+              titleStyle={{fontWeight: 'bold'}}
+              onPress={handleSubmit(onSubmit)}
+            />
 
-          <Button
-            title="CONTINUE WITH GOOGLE"
-            buttonStyle={{
-              borderWidth: 2,
-              borderColor: 'white',
-              borderRadius: 30,
-              paddingVertical: 20,
-            }}
-            titleStyle={{fontWeight: 'bold'}}
-            onPress={handleLoginWithGoogle}
-          />
+            <Button
+              title="CONTINUE WITH GOOGLE"
+              buttonStyle={{
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderColor: '#258842',
+                borderRadius: 30,
+                paddingVertical: 20,
+              }}
+              titleStyle={{fontWeight: 'bold', color: 'black'}}
+              onPress={handleLoginWithGoogle}
+            />
+          </View>
         </View>
       </View>
     </SafeAreaContainer>

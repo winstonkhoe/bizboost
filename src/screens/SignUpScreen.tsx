@@ -52,16 +52,16 @@ const SignUpScreen = ({}: Props) => {
   };
   return (
     <SafeAreaContainer>
-      <View className="h-full flex justify-between items-center px-4">
+      <View className="h-full bg-white flex justify-between items-center px-4 py-10">
         {/* App Bar */}
-        <View className="p-4">
+        <View>
           <Text className="text-2xl text-black text-center font-bold">
             Sign Up
           </Text>
         </View>
 
         {/* Content */}
-        <View className="flex flex-col justify-start gap-y-10 mx-5 mt-5 w-full">
+        <View className="flex flex-col justify-start gap-y-10 w-full">
           <View className="flex flex-col justify-start">
             <Text className="text-black">Full Name</Text>
             <Controller
@@ -196,7 +196,7 @@ const SignUpScreen = ({}: Props) => {
           <Button
             title="SIGN UP"
             buttonStyle={{
-              backgroundColor: 'black',
+              backgroundColor: '#258842',
               borderWidth: 2,
               borderColor: 'white',
               borderRadius: 30,
@@ -210,12 +210,13 @@ const SignUpScreen = ({}: Props) => {
           <Button
             title="CONTINUE WITH GOOGLE"
             buttonStyle={{
+              backgroundColor: 'transparent',
               borderWidth: 2,
-              borderColor: 'white',
+              borderColor: '#258842',
               borderRadius: 30,
               paddingVertical: 20,
             }}
-            titleStyle={{fontWeight: 'bold'}}
+            titleStyle={{fontWeight: 'bold', color: 'black'}}
             onPress={handleSignupWithGoogle}
           />
         </View>
