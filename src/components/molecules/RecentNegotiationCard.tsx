@@ -1,10 +1,13 @@
 import {Image, Text, View} from 'react-native';
 import {Label} from '../atoms/Label';
 import {currencyFormat} from '../../utils/currency';
+import {shadow} from '../../styles/Shadow';
 
 const RecentNegotiationCard = () => {
   return (
-    <View className="relative w-64 h-40 flex flex-col p-4 rounded-xl bg-white shadow-sm">
+    <View
+      className="relative w-64 h-40 flex flex-col p-4 my-0.5 rounded-xl bg-white"
+      style={[shadow.default]}>
       <View className="w-full flex flex-row">
         <View className="w-16 h-16 rounded-full overflow-hidden">
           <Image
