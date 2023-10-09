@@ -1,0 +1,791 @@
+
+> bizboost@0.0.1 ios
+> react-native run-ios
+
+info Found Xcode workspace "bizboost.xcworkspace"
+info Found booted Jevon’s iPhone, iPhone 15 Pro
+info Building (using "xcodebuild -workspace bizboost.xcworkspace -configuration Debug -scheme bizboost -destination id=00008110-000E7C3C3661401E")
+
+info 💡 Tip: Make sure that you have set up your development environment correctly, by running react-native doctor. To read more about doctor command visit: https://github.com/react-native-community/cli/blob/main/packages/cli-doctor/README.md#doctor 
+
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -workspace bizboost.xcworkspace -configuration Debug -scheme bizboost -destination id=00008110-000E7C3C3661401E
+
+User defaults from command line:
+    IDEPackageSupportUseBuiltinSCM = YES
+
+Prepare packages
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (75 targets)
+    Target 'bizboost' in project 'bizboost'
+        ➜ Implicit dependency on target 'Pods-bizboost' in project 'Pods' via file 'Pods_bizboost.framework' in build phase 'Link Binary'
+        ➜ Implicit dependency on target 'AppAuth' in project 'Pods' via options '-framework AppAuth' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-CoreModules' in project 'Pods' via options '-framework CoreModules' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'DoubleConversion' in project 'Pods' via options '-framework DoubleConversion' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'PromisesObjC' in project 'Pods' via options '-framework FBLPromises' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'FirebaseAppCheckInterop' in project 'Pods' via options '-framework FirebaseAppCheckInterop' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'FirebaseAuth' in project 'Pods' via options '-framework FirebaseAuth' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'FirebaseCore' in project 'Pods' via options '-framework FirebaseCore' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'FirebaseCoreInternal' in project 'Pods' via options '-framework FirebaseCoreInternal' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'FirebaseFirestore' in project 'Pods' via options '-framework FirebaseFirestore' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'GTMAppAuth' in project 'Pods' via options '-framework GTMAppAuth' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'GTMSessionFetcher' in project 'Pods' via options '-framework GTMSessionFetcher' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'GoogleSignIn' in project 'Pods' via options '-framework GoogleSignIn' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'GoogleUtilities' in project 'Pods' via options '-framework GoogleUtilities' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTAnimation' in project 'Pods' via options '-framework RCTAnimation' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTBlob' in project 'Pods' via options '-framework RCTBlob' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTImage' in project 'Pods' via options '-framework RCTImage' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTLinking' in project 'Pods' via options '-framework RCTLinking' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTNetwork' in project 'Pods' via options '-framework RCTNetwork' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTSettings' in project 'Pods' via options '-framework RCTSettings' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTText' in project 'Pods' via options '-framework RCTText' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RCTTypeSafety' in project 'Pods' via options '-framework RCTTypeSafety' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTVibration' in project 'Pods' via options '-framework RCTVibration' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNFBApp' in project 'Pods' via options '-framework RNFBApp' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNFBAuth' in project 'Pods' via options '-framework RNFBAuth' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNFBFirestore' in project 'Pods' via options '-framework RNFBFirestore' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNGestureHandler' in project 'Pods' via options '-framework RNGestureHandler' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNGoogleSignin' in project 'Pods' via options '-framework RNGoogleSignin' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNSVG' in project 'Pods' via options '-framework RNSVG' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNScreens' in project 'Pods' via options '-framework RNScreens' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RNVectorIcons' in project 'Pods' via options '-framework RNVectorIcons' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-Core' in project 'Pods' via options '-framework React' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'ReactCommon' in project 'Pods' via options '-framework ReactCommon' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-Codegen' in project 'Pods' via options '-framework React_Codegen' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-NativeModulesApple' in project 'Pods' via options '-framework React_NativeModulesApple' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-RCTAppDelegate' in project 'Pods' via options '-framework React_RCTAppDelegate' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-debug' in project 'Pods' via options '-framework React_debug' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-runtimescheduler' in project 'Pods' via options '-framework React_runtimescheduler' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-utils' in project 'Pods' via options '-framework React_utils' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RecaptchaInterop' in project 'Pods' via options '-framework RecaptchaInterop' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'SocketRocket' in project 'Pods' via options '-framework SocketRocket' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'abseil' in project 'Pods' via options '-framework absl' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-cxxreact' in project 'Pods' via options '-framework cxxreact' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'fmt' in project 'Pods' via options '-framework fmt' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'RCT-Folly' in project 'Pods' via options '-framework folly' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'glog' in project 'Pods' via options '-framework glog' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'gRPC-Core' in project 'Pods' via options '-framework grpc' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'gRPC-C++' in project 'Pods' via options '-framework grpcpp' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-jsi' in project 'Pods' via options '-framework jsi' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-jsinspector' in project 'Pods' via options '-framework jsinspector' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-jsiexecutor' in project 'Pods' via options '-framework jsireact' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'leveldb-library' in project 'Pods' via options '-framework leveldb' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'libevent' in project 'Pods' via options '-framework libevent' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-logger' in project 'Pods' via options '-framework logger' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'nanopb' in project 'Pods' via options '-framework nanopb' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'BoringSSL-GRPC' in project 'Pods' via options '-framework openssl_grpc' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'react-native-safe-area-context' in project 'Pods' via options '-framework react_native_safe_area_context' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-hermes' in project 'Pods' via options '-framework reacthermes' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'React-perflogger' in project 'Pods' via options '-framework reactperflogger' in build setting 'OTHER_LDFLAGS'
+        ➜ Implicit dependency on target 'Yoga' in project 'Pods' via options '-framework yoga' in build setting 'OTHER_LDFLAGS'
+    Target 'Pods-bizboost' in project 'Pods'
+        ➜ Explicit dependency on target 'AppAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'BoringSSL-GRPC' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'FBLazyVector' in project 'Pods'
+        ➜ Explicit dependency on target 'FBReactNativeSpec' in project 'Pods'
+        ➜ Explicit dependency on target 'Firebase' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseAppCheckInterop' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseCore' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseCoreInternal' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseFirestore' in project 'Pods'
+        ➜ Explicit dependency on target 'GTMAppAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'GTMSessionFetcher' in project 'Pods'
+        ➜ Explicit dependency on target 'GoogleSignIn' in project 'Pods'
+        ➜ Explicit dependency on target 'GoogleUtilities' in project 'Pods'
+        ➜ Explicit dependency on target 'PromisesObjC' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTRequired' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'RNFBApp' in project 'Pods'
+        ➜ Explicit dependency on target 'RNFBAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'RNFBFirestore' in project 'Pods'
+        ➜ Explicit dependency on target 'RNGestureHandler' in project 'Pods'
+        ➜ Explicit dependency on target 'RNGoogleSignin' in project 'Pods'
+        ➜ Explicit dependency on target 'RNSVG' in project 'Pods'
+        ➜ Explicit dependency on target 'RNScreens' in project 'Pods'
+        ➜ Explicit dependency on target 'RNVectorIcons' in project 'Pods'
+        ➜ Explicit dependency on target 'React' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-CoreModules' in project 'Pods'
+        ➜ Explicit dependency on target 'React-NativeModulesApple' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTActionSheet' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTAnimation' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTAppDelegate' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTBlob' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTImage' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTLinking' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTNetwork' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTSettings' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTText' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTVibration' in project 'Pods'
+        ➜ Explicit dependency on target 'React-callinvoker' in project 'Pods'
+        ➜ Explicit dependency on target 'React-cxxreact' in project 'Pods'
+        ➜ Explicit dependency on target 'React-debug' in project 'Pods'
+        ➜ Explicit dependency on target 'React-hermes' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsiexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsinspector' in project 'Pods'
+        ➜ Explicit dependency on target 'React-logger' in project 'Pods'
+        ➜ Explicit dependency on target 'React-perflogger' in project 'Pods'
+        ➜ Explicit dependency on target 'React-rncore' in project 'Pods'
+        ➜ Explicit dependency on target 'React-runtimeexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'React-runtimescheduler' in project 'Pods'
+        ➜ Explicit dependency on target 'React-utils' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+        ➜ Explicit dependency on target 'RecaptchaInterop' in project 'Pods'
+        ➜ Explicit dependency on target 'SocketRocket' in project 'Pods'
+        ➜ Explicit dependency on target 'Yoga' in project 'Pods'
+        ➜ Explicit dependency on target 'abseil' in project 'Pods'
+        ➜ Explicit dependency on target 'boost' in project 'Pods'
+        ➜ Explicit dependency on target 'fmt' in project 'Pods'
+        ➜ Explicit dependency on target 'gRPC-C++' in project 'Pods'
+        ➜ Explicit dependency on target 'gRPC-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+        ➜ Explicit dependency on target 'leveldb-library' in project 'Pods'
+        ➜ Explicit dependency on target 'libevent' in project 'Pods'
+        ➜ Explicit dependency on target 'nanopb' in project 'Pods'
+        ➜ Explicit dependency on target 'react-native-safe-area-context' in project 'Pods'
+    Target 'react-native-safe-area-context' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'React-RCTAppDelegate' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTRequired' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-CoreModules' in project 'Pods'
+        ➜ Explicit dependency on target 'React-NativeModulesApple' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTImage' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTNetwork' in project 'Pods'
+        ➜ Explicit dependency on target 'React-hermes' in project 'Pods'
+        ➜ Explicit dependency on target 'React-runtimescheduler' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'React-runtimescheduler' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-callinvoker' in project 'Pods'
+        ➜ Explicit dependency on target 'React-debug' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-runtimeexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'React-CoreModules' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTBlob' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTImage' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+        ➜ Explicit dependency on target 'SocketRocket' in project 'Pods'
+    Target 'React' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTActionSheet' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTAnimation' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTBlob' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTImage' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTLinking' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTNetwork' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTSettings' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTText' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTVibration' in project 'Pods'
+    Target 'React-RCTVibration' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'React-RCTText' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'React-RCTSettings' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'React-RCTLinking' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'React-RCTBlob' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTNetwork' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'React-RCTAnimation' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'React-RCTActionSheet' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'RNVectorIcons' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'RNScreens' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTImage' in project 'Pods'
+    Target 'React-RCTImage' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-RCTNetwork' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'React-RCTNetwork' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'React-Codegen' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'FBReactNativeSpec' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTRequired' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-NativeModulesApple' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsiexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'React-rncore' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'React-rncore' in project 'Pods' (no dependencies)
+    Target 'React-NativeModulesApple' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-callinvoker' in project 'Pods'
+        ➜ Explicit dependency on target 'React-cxxreact' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-runtimeexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'RNSVG' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'RNGoogleSignin' in project 'Pods'
+        ➜ Explicit dependency on target 'GoogleSignIn' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'RNGestureHandler' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'RNFBFirestore' in project 'Pods'
+        ➜ Explicit dependency on target 'Firebase' in project 'Pods'
+        ➜ Explicit dependency on target 'RNFBApp' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'nanopb' in project 'Pods'
+    Target 'RNFBAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'Firebase' in project 'Pods'
+        ➜ Explicit dependency on target 'RNFBApp' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'RNFBApp' in project 'Pods'
+        ➜ Explicit dependency on target 'Firebase' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'GoogleSignIn' in project 'Pods'
+        ➜ Explicit dependency on target 'AppAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'GTMAppAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'GTMSessionFetcher' in project 'Pods'
+        ➜ Explicit dependency on target 'GoogleSignIn-GoogleSignIn' in project 'Pods'
+    Target 'GoogleSignIn-GoogleSignIn' in project 'Pods' (no dependencies)
+    Target 'GTMAppAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'AppAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'GTMSessionFetcher' in project 'Pods'
+    Target 'Firebase' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseCore' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseFirestore' in project 'Pods'
+    Target 'FirebaseFirestore' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseCore' in project 'Pods'
+        ➜ Explicit dependency on target 'abseil' in project 'Pods'
+        ➜ Explicit dependency on target 'gRPC-C++' in project 'Pods'
+        ➜ Explicit dependency on target 'leveldb-library' in project 'Pods'
+        ➜ Explicit dependency on target 'nanopb' in project 'Pods'
+    Target 'nanopb' in project 'Pods' (no dependencies)
+    Target 'leveldb-library' in project 'Pods' (no dependencies)
+    Target 'gRPC-C++' in project 'Pods'
+        ➜ Explicit dependency on target 'abseil' in project 'Pods'
+        ➜ Explicit dependency on target 'gRPC-C++-gRPCCertificates-Cpp' in project 'Pods'
+        ➜ Explicit dependency on target 'gRPC-Core' in project 'Pods'
+    Target 'gRPC-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'BoringSSL-GRPC' in project 'Pods'
+        ➜ Explicit dependency on target 'abseil' in project 'Pods'
+    Target 'gRPC-C++-gRPCCertificates-Cpp' in project 'Pods' (no dependencies)
+    Target 'abseil' in project 'Pods' (no dependencies)
+    Target 'FirebaseAuth' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseAppCheckInterop' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseCore' in project 'Pods'
+        ➜ Explicit dependency on target 'GTMSessionFetcher' in project 'Pods'
+        ➜ Explicit dependency on target 'GoogleUtilities' in project 'Pods'
+        ➜ Explicit dependency on target 'RecaptchaInterop' in project 'Pods'
+    Target 'RecaptchaInterop' in project 'Pods' (no dependencies)
+    Target 'GTMSessionFetcher' in project 'Pods' (no dependencies)
+    Target 'FirebaseCore' in project 'Pods'
+        ➜ Explicit dependency on target 'FirebaseCoreInternal' in project 'Pods'
+        ➜ Explicit dependency on target 'GoogleUtilities' in project 'Pods'
+    Target 'FirebaseCoreInternal' in project 'Pods'
+        ➜ Explicit dependency on target 'GoogleUtilities' in project 'Pods'
+    Target 'GoogleUtilities' in project 'Pods'
+        ➜ Explicit dependency on target 'PromisesObjC' in project 'Pods'
+    Target 'PromisesObjC' in project 'Pods' (no dependencies)
+    Target 'FirebaseAppCheckInterop' in project 'Pods' (no dependencies)
+    Target 'FBReactNativeSpec' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTRequired' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'ReactCommon' in project 'Pods'
+    Target 'ReactCommon' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-callinvoker' in project 'Pods'
+        ➜ Explicit dependency on target 'React-cxxreact' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-logger' in project 'Pods'
+        ➜ Explicit dependency on target 'React-perflogger' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'RCTTypeSafety' in project 'Pods'
+        ➜ Explicit dependency on target 'FBLazyVector' in project 'Pods'
+        ➜ Explicit dependency on target 'RCTRequired' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core' in project 'Pods'
+    Target 'React-Core' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-Core-AccessibilityResources' in project 'Pods'
+        ➜ Explicit dependency on target 'React-cxxreact' in project 'Pods'
+        ➜ Explicit dependency on target 'React-hermes' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsiexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsinspector' in project 'Pods'
+        ➜ Explicit dependency on target 'React-perflogger' in project 'Pods'
+        ➜ Explicit dependency on target 'React-runtimeexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'React-utils' in project 'Pods'
+        ➜ Explicit dependency on target 'SocketRocket' in project 'Pods'
+        ➜ Explicit dependency on target 'Yoga' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'Yoga' in project 'Pods' (no dependencies)
+    Target 'SocketRocket' in project 'Pods' (no dependencies)
+    Target 'React-utils' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-debug' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+    Target 'React-hermes' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-cxxreact' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsiexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsinspector' in project 'Pods'
+        ➜ Explicit dependency on target 'React-perflogger' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'React-jsiexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-cxxreact' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-perflogger' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'React-cxxreact' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'React-callinvoker' in project 'Pods'
+        ➜ Explicit dependency on target 'React-debug' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsinspector' in project 'Pods'
+        ➜ Explicit dependency on target 'React-logger' in project 'Pods'
+        ➜ Explicit dependency on target 'React-perflogger' in project 'Pods'
+        ➜ Explicit dependency on target 'React-runtimeexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'boost' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'React-runtimeexecutor' in project 'Pods'
+        ➜ Explicit dependency on target 'React-jsi' in project 'Pods'
+    Target 'React-perflogger' in project 'Pods' (no dependencies)
+    Target 'React-logger' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+    Target 'React-jsinspector' in project 'Pods' (no dependencies)
+    Target 'React-jsi' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'boost' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'hermes-engine' in project 'Pods'
+    Target 'hermes-engine' in project 'Pods' (no dependencies)
+    Target 'React-debug' in project 'Pods' (no dependencies)
+    Target 'React-callinvoker' in project 'Pods' (no dependencies)
+    Target 'React-Core-AccessibilityResources' in project 'Pods' (no dependencies)
+    Target 'RCTRequired' in project 'Pods' (no dependencies)
+    Target 'RCT-Folly' in project 'Pods'
+        ➜ Explicit dependency on target 'DoubleConversion' in project 'Pods'
+        ➜ Explicit dependency on target 'boost' in project 'Pods'
+        ➜ Explicit dependency on target 'fmt' in project 'Pods'
+        ➜ Explicit dependency on target 'glog' in project 'Pods'
+        ➜ Explicit dependency on target 'libevent' in project 'Pods'
+    Target 'libevent' in project 'Pods' (no dependencies)
+    Target 'glog' in project 'Pods' (no dependencies)
+    Target 'fmt' in project 'Pods' (no dependencies)
+    Target 'boost' in project 'Pods' (no dependencies)
+    Target 'FBLazyVector' in project 'Pods' (no dependencies)
+    Target 'DoubleConversion' in project 'Pods' (no dependencies)
+    Target 'BoringSSL-GRPC' in project 'Pods' (no dependencies)
+    Target 'AppAuth' in project 'Pods' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+error: unable to attach DB: error: accessing build database "/Users/jevon/Library/Developer/Xcode/DerivedData/bizboost-gzyuxssjoxnmenepntylxicldvbl/Build/Intermediates.noindex/XCBuildData/build.db": database is locked Possibly there are two concurrent builds running in the same filesystem location.
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-debug' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-Codegen' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'fmt' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'BoringSSL-GRPC' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'abseil' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-runtimescheduler' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-utils' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-NativeModulesApple' from project 'Pods')
+warning: Run script build phase 'Bundle React Native code and images' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'bizboost' from project 'bizboost')
+warning: Run script build phase 'Start Packager' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'bizboost' from project 'bizboost')
+warning: Run script build phase '[CP-User] [RNFB] Core Configuration' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'bizboost' from project 'bizboost')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'ReactCommon' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'RCT-Folly' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'gRPC-Core' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this warning, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'gRPC-C++' from project 'Pods')
+
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.446 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.447 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.447 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.447 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.447 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.448 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.448 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.448 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.448 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.449 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.453 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.454 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.455 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.456 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.456 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.456 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.456 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.457 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.457 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.457 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.457 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2023-10-08 09:09:32.457 xcodebuild[3775:4815781] [MT] DVTAssertions: Warning in /System/Volumes/Data/SWE/Apps/DT/BuildRoots/BuildRoot11/ActiveBuildRoot/Library/Caches/com.apple.xbs/Sources/IDEFrameworks/IDEFrameworks-22267/IDEFoundation/Provisioning/Capabilities Infrastructure/IDECapabilityQuerySelection.swift:103
+Details:  createItemModels creation requirements should not create capability item model for a capability item model that already exists.
+Function: createItemModels(for:itemModelSource:)
+Thread:   <_NSMainThread: 0x12a609cb0>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+** BUILD FAILED **
+
+

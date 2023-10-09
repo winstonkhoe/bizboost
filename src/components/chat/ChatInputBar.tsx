@@ -10,7 +10,7 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress}) => {
   };
 
   return (
-    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+    <View className="flex flex-row items-center bg-green-500">
       <TouchableOpacity onPress={onOpenWidgetPress}>
         {/* + Button */}
         <Text>+</Text>

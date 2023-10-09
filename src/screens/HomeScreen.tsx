@@ -2,12 +2,24 @@ import {Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import InfluencerCard from '../components/atoms/InfluencerCard';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
+import {Button} from 'react-native-elements';
+import auth from '@react-native-firebase/auth';
+
 const HomeScreen = () => {
   return (
     <SafeAreaContainer>
       <View className="container h-full flex-col text-center">
-        <View className="w-full h-10 flex justify-center items-center">
+        <View className="w-full h-10 flex flex-row justify-between items-center px-4">
           <Text>Influencers</Text>
+
+          <Button
+            onPress={() => {
+              auth()
+                .signOut()
+                .then(() => console.log('User signed out!'));
+            }}
+            title={'Sign Out'}
+          />
         </View>
         <View className="h-full w-full">
           <ScrollView className="w-full">

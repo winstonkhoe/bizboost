@@ -1,68 +1,73 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, Text} from 'react-native';
-import ChatHeader from '../components/chat/ChatHeader'; // Import your ChatHeader component
-import ChatBubble from '../components/chat/ChatBubble'; // Import your ChatBubble component
-import ChatInputBar from '../components/chat/ChatInputBar'; // Import your ChatInputBar component
-import ChatWidget from '../components/chat/ChatWidget'; // Import your ChatWidget component
+import ChatHeader from '../components/chat/ChatHeader';
+import ChatBubble from '../components/chat/ChatBubble';
+import ChatInputBar from '../components/chat/ChatInputBar';
+import ChatWidget from '../components/chat/ChatWidget';
+
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/GuestNavigation'; // temporary
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
 const ChatScreen = () => {
-  // Sample chat messages data (you can replace this with your own data)
+  const [isWidgetVisible, setIsWidgetVisible] = useState(false); // State to track widget visibility
+
+  // Sample chat messages data
   const chatMessages = [
     {message: 'Hi there!', isSender: false, profilePic: 'profile_url_1'},
     {message: 'Hello!', isSender: true, profilePic: 'profile_url_2'},
-    // Add more chat messages here
   ];
 
   // Handle sending a message
   const handleSendPress = message => {
-    // Implement message sending logic here
     console.log(`Sending message: ${message}`);
   };
 
   // Handle opening the widget
   const handleOpenWidgetPress = () => {
-    // Implement widget opening logic here
-    console.log('Opening widget');
+    setIsWidgetVisible(!isWidgetVisible); // Toggle the visibility of the widget
   };
 
   // Handle sending a photo
   const handleSendPhotoPress = () => {
-    // Implement send photo logic here
     console.log('Sending photo');
   };
 
   // Handle making an offer
   const handleMakeOfferPress = () => {
-    // Implement make offer logic here
     console.log('Making offer');
   };
 
   return (
-    <View style={{flex: 1}}>
+    <View className="h-full w-full flex flex-col justify-between py-3 px-5">
       {/* Chat Header */}
       <ChatHeader recipientName="Recipient Name" lastOnline="Last Online" />
 
       {/* Chat Messages */}
-      {chatMessages.map((message, index) => (
-        <ChatBubble
-          key={index}
-          message={message.message}
-          isSender={message.isSender}
-          profilePic={message.profilePic}
+      <View>
+        {chatMessages.map((message, index) => (
+          <ChatBubble
+            key={index}
+            message={message.message}
+            isSender={message.isSender}
+            profilePic={message.profilePic}
+          />
+        ))}
+      </View>
+
+      <View className="bg-yellow-400 flex flex-col justify-between">
+        {/* Chat Input Bar */}
+        <ChatInputBar
+          onSendPress={handleSendPress}
+          onOpenWidgetPress={handleOpenWidgetPress}
         />
-      ))}
 
-      {/* Chat Input Bar */}
-      <ChatInputBar
-        onSendPress={handleSendPress}
-        onOpenWidgetPress={handleOpenWidgetPress}
-      />
-
-      {/* Chat Widget */}
-      <ChatWidget
-        onSendPhotoPress={handleSendPhotoPress}
-        onMakeOfferPress={handleMakeOfferPress}
-      />
+        {/* Chat Widget */}
+        {isWidgetVisible && ( // Render the widget only when isWidgetVisible is true
+          <ChatWidget />
+        )}
+      </View>
     </View>
   );
 };
