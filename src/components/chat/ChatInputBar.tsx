@@ -32,7 +32,7 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
 
   return (
     <View
-      className="bg-white flex flex-row items-center px-2 py-4 border-t-[0.5px]"
+      className="bg-white flex flex-row items-center px-2"
       style={gap.small}>
       {renderOpenWidgetButton()}
       <TextInput

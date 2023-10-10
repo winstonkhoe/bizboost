@@ -89,7 +89,7 @@ const ChatScreen = () => {
 
   return (
     <SafeAreaContainer>
-      <View className="h-full w-full flex flex-col">
+      <View className="bg-white h-full w-full flex flex-col">
         {/* Chat Header */}
         <View className="border-b-[0.5px] border-gray-400 flex items-center justify-start py-3">
           <ChatHeader recipientName="Recipient Name" lastOnline="1h ago" />
@@ -111,19 +111,21 @@ const ChatScreen = () => {
           </View>
         </ScrollView>
 
-        {/* Chat Input Bar */}
-        <ChatInputBar
-          onSendPress={handleSendPress}
-          onOpenWidgetPress={handleOpenWidgetPress}
-          isWidgetVisible={isWidgetVisible}
-        />
+        <View className="py-4 border-t-[0.5px]">
+          {/* Chat Input Bar */}
+          <ChatInputBar
+            onSendPress={handleSendPress}
+            onOpenWidgetPress={handleOpenWidgetPress}
+            isWidgetVisible={isWidgetVisible}
+          />
 
-        {/* Chat Widget */}
-        {isWidgetVisible && (
-          <View className="w-full">
-            <ChatWidget />
-          </View>
-        )}
+          {/* Chat Widget */}
+          {isWidgetVisible && (
+            <View className="w-full">
+              <ChatWidget />
+            </View>
+          )}
+        </View>
       </View>
     </SafeAreaContainer>
   );

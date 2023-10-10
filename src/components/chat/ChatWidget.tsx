@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View, Text, TouchableOpacity, Pressable} from 'react-native';
 import PhotosIcon from '../../assets/vectors/photos.svg';
 import MakeOfferIcon from '../../assets/vectors/make-offer.svg';
+import {gap} from '../../styles/Gap';
 
 const ChatWidget = () => {
   // Handle send photo button
@@ -15,7 +16,9 @@ const ChatWidget = () => {
   };
 
   return (
-    <View className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center">
+    <View
+      className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center"
+      style={gap.small}>
       {/* Send Photo Button */}
       <Pressable
         onPress={onSendPhotoPress}
