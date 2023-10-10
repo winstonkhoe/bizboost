@@ -6,7 +6,7 @@ import {shadow} from '../../styles/Shadow';
 
 const OngoingCampaignCard = () => {
   return (
-    <View style={[shadow.default]}>
+    <View className="bg-transparent" style={[shadow.default, rounded.medium]}>
       <View
         className="relative w-full h-40 overflow-hidden bg-white"
         style={[rounded.medium]}>
