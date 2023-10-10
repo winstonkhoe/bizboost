@@ -6,7 +6,7 @@ import {shadow} from '../../styles/Shadow';
 
 const OngoingCampaignCard = () => {
   return (
-    <View className="bg-transparent" style={[shadow.default, rounded.medium]}>
+    <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View
         className="relative w-full h-40 overflow-hidden bg-white"
         style={[rounded.medium]}>
@@ -22,7 +22,7 @@ const OngoingCampaignCard = () => {
           </Text>
         </View>
         <View className="px-4 py-8 w-full h-full" style={flex.flexCol}>
-          <View className="w-full" style={[flex.flexRow, gap.default]}>
+          <View className="w-full" style={[flex.flexRow, gap.medium]}>
             <View className="w-24 h-24 rounded-md overflow-hidden">
               <Image
                 className="w-full h-full object-cover"
