@@ -5,13 +5,13 @@ import LoginScreen from '../screens/LoginScreen';
 import AuthenticatedNavigation from './AuthenticatedNavigation';
 import SignUpScreen from '../screens/SignUpScreen';
 
-export type RootStackParamList = {
+export type RootGuestStackParamList = {
   Welcome: undefined;
   Login: undefined;
   Signup: undefined;
   Authenticated: undefined;
 };
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootGuestStackParamList>();
 
 const GuestNavigation = () => {
   return (

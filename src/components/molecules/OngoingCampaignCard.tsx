@@ -3,8 +3,11 @@ import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {borderRadius, radiusSize, rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootAuthenticatedStackParamList} from '../../navigation/AuthenticatedNavigation';
+type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'>;
 
-const OngoingCampaignCard = () => {
+const OngoingCampaignCard = ({navigation}: Props) => {
   return (
     <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View
@@ -35,7 +38,12 @@ const OngoingCampaignCard = () => {
               <Text className="font-semibold text-base" numberOfLines={2}>
                 Kopi Nako BSD City: The New Destination for Coffee Lovers
               </Text>
-              <Pressable>
+              <Pressable
+                onPress={() =>
+                  navigation.navigate('CampaignDetail', {
+                    campaignId: 'iniCampaignId',
+                  })
+                }>
                 <View className="rounded-3xl bg-black px-3 py-2">
                   <Text className="font-bold text-white">Detail</Text>
                 </View>

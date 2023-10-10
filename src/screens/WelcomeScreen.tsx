@@ -1,12 +1,12 @@
 import {Text, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/GuestNavigation';
+import {RootGuestStackParamList} from '../navigation/GuestNavigation';
 import {Button} from 'react-native-elements';
 import Logo from '../assets/images/bizboost.svg';
 
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
+type Props = NativeStackScreenProps<RootGuestStackParamList, 'Welcome'>;
 const WelcomeScreen = ({navigation}: Props) => {
   return (
     <SafeAreaContainer>

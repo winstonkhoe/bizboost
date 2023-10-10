@@ -9,8 +9,11 @@ import {HorizontalScrollView} from '../components/molecules/HorizontalScrollView
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
 
-const HomeScreen = () => {
+type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'>;
+const HomeScreen = (props: Props) => {
   return (
     <SafeAreaContainer>
       <View className="h-full text-center" style={[flex.flexCol]}>
@@ -42,7 +45,11 @@ const HomeScreen = () => {
               <HorizontalPadding>
                 <View style={[flex.flexCol, gap.medium]}>
                   {[...Array(10)].map((_item: any, index: number) => (
-                    <OngoingCampaignCard key={index} />
+                    <OngoingCampaignCard
+                      navigation={props.navigation}
+                      route={props.route}
+                      key={index}
+                    />
                   ))}
                 </View>
               </HorizontalPadding>

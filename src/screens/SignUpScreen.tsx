@@ -1,12 +1,12 @@
 import {Alert, Text, TextInput, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/GuestNavigation';
+import {RootGuestStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {Button} from 'react-native-elements';
 import {User} from '../model/User';
 import {useForm, Controller} from 'react-hook-form';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
+type Props = NativeStackScreenProps<RootGuestStackParamList, 'Signup'>;
 type FormData = {
   email: string;
   password: string;
