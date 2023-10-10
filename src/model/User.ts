@@ -1,13 +1,16 @@
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+
+export type UserRole = 'CC' | 'BP' | 'Admin' | undefined;
+
 export class User {
   email: string = '';
   password: string = '';
   fullname: string = '';
   phone: string = '';
   profilePicture: string = '';
-  role: 'CC' | 'BP' | 'Admin' | undefined;
+  role: UserRole;
 
   static async signUp({
     email,

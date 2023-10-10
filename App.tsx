@@ -5,6 +5,7 @@
  * @format
  */
 
+import {Provider} from 'react-redux';
 import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import GuestNavigation from './src/navigation/GuestNavigation';
@@ -13,6 +14,8 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import AuthenticatedNavigation from './src/navigation/AuthenticatedNavigation';
 import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {store} from './src/redux/store';
+import {SwitchUserModalProvider} from './src/providers/ModalProvider';
 
 GoogleSignin.configure({
   webClientId:
@@ -36,13 +39,16 @@ const App = () => {
   }
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          {!user ? <GuestNavigation /> : <AuthenticatedNavigation />}
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <Provider store={store}>
+      <GestureHandlerRootView style={{flex: 1}}>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            {!user ? <GuestNavigation /> : <AuthenticatedNavigation />}
+          </NavigationContainer>
+          <SwitchUserModalProvider />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </Provider>
   );
 };
 

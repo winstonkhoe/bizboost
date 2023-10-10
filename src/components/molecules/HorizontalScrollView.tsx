@@ -9,7 +9,7 @@ const HorizontalScrollView = ({children}: React.PropsWithChildren) => {
       horizontal={true}
       showsHorizontalScrollIndicator={false}>
       <HorizontalPadding>
-        <View className="flex flex-row" style={gap.default}>
+        <View className="flex flex-row" style={gap.medium}>
           {children}
         </View>
       </HorizontalPadding>

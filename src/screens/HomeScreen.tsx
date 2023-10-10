@@ -9,6 +9,7 @@ import {HorizontalScrollView} from '../components/molecules/HorizontalScrollView
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
+
 const HomeScreen = () => {
   return (
     <SafeAreaContainer>
@@ -39,7 +40,7 @@ const HomeScreen = () => {
               </HorizontalPadding>
               <View className="mt-3 w-full" />
               <HorizontalPadding>
-                <View style={[flex.flexCol, gap.default]}>
+                <View style={[flex.flexCol, gap.medium]}>
                   {[...Array(10)].map((_item: any, index: number) => (
                     <OngoingCampaignCard key={index} />
                   ))}
