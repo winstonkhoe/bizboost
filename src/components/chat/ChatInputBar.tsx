@@ -1,8 +1,10 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 import SendButton from '../../assets/vectors/send.svg';
+import Keyboard from '../../assets/vectors/keyboard.svg';
+import {gap} from '../../styles/Gap';
 
-const ChatInputBar = ({onSendPress, onOpenWidgetPress}) => {
+const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
   const [message, setMessage] = useState('');
 
   const handleSendPress = () => {
@@ -10,11 +12,29 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress}) => {
     setMessage(''); // Clear the input field after sending
   };
 
+  const renderOpenWidgetButton = () => {
+    if (isWidgetVisible) {
+      // when the widget is open
+      return (
+        <TouchableOpacity onPress={onOpenWidgetPress}>
+          <Keyboard width={20} height={20} />
+        </TouchableOpacity>
+      );
+    } else {
+      // when the widget is closed
+      return (
+        <TouchableOpacity onPress={onOpenWidgetPress}>
+          <Text className="text-3xl">+</Text>
+        </TouchableOpacity>
+      );
+    }
+  };
+
   return (
-    <View className="flex flex-row items-center gap-3 px-2 py-3">
-      <TouchableOpacity onPress={onOpenWidgetPress}>
-        <Text className="text-3xl">+</Text>
-      </TouchableOpacity>
+    <View
+      className="bg-white flex flex-row items-center px-2 py-4 border-t-[0.5px]"
+      style={gap.small}>
+      {renderOpenWidgetButton()}
       <TextInput
         style={{
           flex: 1,

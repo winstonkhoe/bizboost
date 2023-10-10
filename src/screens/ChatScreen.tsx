@@ -89,36 +89,40 @@ const ChatScreen = () => {
 
   return (
     <SafeAreaContainer>
-      <View className="h-full w-full flex flex-col justify-between py-3">
+      <View className="h-full w-full flex flex-col">
         {/* Chat Header */}
-        <View className="self-start h-[10%]">
+        <View className="border-b-[0.5px] border-gray-400 flex items-center justify-start py-3">
           <ChatHeader recipientName="Recipient Name" lastOnline="1h ago" />
         </View>
 
         {/* Chat Messages */}
-        <ScrollView className="relative flex flex-col gap-y-5">
-          {chatMessages.map((message, index) => (
-            <View key={index} className="w-full px-3">
-              <ChatBubble
-                key={index}
-                message={message.message}
-                isSender={message.isSender}
-                profilePic={message.profilePic}
-              />
-            </View>
-          ))}
+        <ScrollView>
+          <View className="flex flex-col gap-y-4 py-4">
+            {chatMessages.map((message, index) => (
+              <View key={index} className="w-full px-3">
+                <ChatBubble
+                  key={index}
+                  message={message.message}
+                  isSender={message.isSender}
+                  profilePic={message.profilePic}
+                />
+              </View>
+            ))}
+          </View>
         </ScrollView>
 
         {/* Chat Input Bar */}
         <ChatInputBar
           onSendPress={handleSendPress}
           onOpenWidgetPress={handleOpenWidgetPress}
+          isWidgetVisible={isWidgetVisible}
         />
 
         {/* Chat Widget */}
         {isWidgetVisible && (
-          // Render the widget only when isWidgetVisible is true
-          <ChatWidget />
+          <View className="w-full">
+            <ChatWidget />
+          </View>
         )}
       </View>
     </SafeAreaContainer>

@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, TouchableOpacity, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import BackNav from '../../assets/vectors/left-navigation-back.svg';
+import {gap} from '../../styles/Gap';
 
 const ChatHeader = ({recipientName, lastOnline}) => {
   const navigation = useNavigation();
@@ -12,7 +13,9 @@ const ChatHeader = ({recipientName, lastOnline}) => {
   };
 
   return (
-    <View className="border-b border-b-gray-400 flex flex-row items-center justify-start pt-1 pb-3 gap-3 px-2">
+    <View
+      className="w-full flex flex-row items-center justify-start px-2"
+      style={[gap.default]}>
       <TouchableOpacity onPress={handleBackButtonPress}>
         <BackNav width={30} height={20} />
       </TouchableOpacity>
