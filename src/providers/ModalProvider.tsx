@@ -33,7 +33,15 @@ export const SwitchUserModalProvider = () => {
     (props: any) => (
       <BottomSheetBackdrop
         {...props}
-        style={[props.style, background(COLOR.black)]}
+        disappearsOnIndex={-1}
+        opacity={1}
+        style={[
+          props.style,
+          background(COLOR.black),
+          {
+            opacity: 1,
+          },
+        ]}
       />
     ),
     [],
