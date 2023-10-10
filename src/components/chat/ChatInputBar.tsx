@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, TouchableOpacity} from 'react-native';
+import SendButton from '../../assets/vectors/send.svg';
 
 const ChatInputBar = ({onSendPress, onOpenWidgetPress}) => {
   const [message, setMessage] = useState('');
@@ -10,10 +11,9 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress}) => {
   };
 
   return (
-    <View className="flex flex-row items-center bg-green-500">
+    <View className="flex flex-row items-center gap-3 px-2 py-3">
       <TouchableOpacity onPress={onOpenWidgetPress}>
-        {/* + Button */}
-        <Text>+</Text>
+        <Text className="text-3xl">+</Text>
       </TouchableOpacity>
       <TextInput
         style={{
@@ -28,8 +28,9 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress}) => {
         placeholder="Type a message"
       />
       <TouchableOpacity onPress={handleSendPress}>
-        {/* Send Button */}
-        <Text>Send</Text>
+        <View className="bg-gray-300 p-1 rounded-full">
+          <SendButton className="text-white" width={30} height={30} />
+        </View>
       </TouchableOpacity>
     </View>
   );
