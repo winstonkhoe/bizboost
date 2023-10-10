@@ -24,15 +24,15 @@ const ChatWidget = () => {
         </View>
       </TouchableOpacity>
       {/* Make Offer Button */}
-      <View className="flex flex-col justify-center items-center">
-        <TouchableOpacity onPress={onMakeOfferPress}>
+      <TouchableOpacity onPress={onMakeOfferPress}>
+        <View className="flex flex-col justify-center items-center">
           {/* Wrap the content with a function */}
           <View>
             <MakeOfferIcon width={70} height={70} />
             <Text>Make Offer</Text>
           </View>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };

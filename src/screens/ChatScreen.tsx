@@ -98,7 +98,7 @@ const ChatScreen = () => {
         {/* Chat Messages */}
         <ScrollView className="relative flex flex-col gap-y-5">
           {chatMessages.map((message, index) => (
-            <View key={index} className="w-full px-2">
+            <View key={index} className="w-full px-3">
               <ChatBubble
                 key={index}
                 message={message.message}
