@@ -26,7 +26,7 @@ const HomeScreen = () => {
                   link="See All"
                 />
               </HorizontalPadding>
-              <View className="mt-3 w-full"></View>
+              <View className="mt-3 w-full" />
               <HorizontalScrollView>
                 {[...Array(10)].map((_item: any, index: number) => (
                   <RecentNegotiationCard key={index} />
@@ -37,7 +37,7 @@ const HomeScreen = () => {
               <HorizontalPadding>
                 <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
               </HorizontalPadding>
-              <View className="mt-3 w-full"></View>
+              <View className="mt-3 w-full" />
               <HorizontalPadding>
                 <View style={[flex.flexCol, gap.default]}>
                   {[...Array(10)].map((_item: any, index: number) => (
