@@ -40,7 +40,7 @@ const OngoingCampaignCard = ({navigation}: Props) => {
               </Text>
               <Pressable
                 onPress={() =>
-                  navigation.navigate('CampaignDetail', {
+                  navigation.navigate('Campaign Detail', {
                     campaignId: 'iniCampaignId',
                   })
                 }>

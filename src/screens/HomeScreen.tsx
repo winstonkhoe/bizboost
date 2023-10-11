@@ -11,9 +11,20 @@ import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
+import {useEffect, useState} from 'react';
+import {Campaign} from '../model/Campaign';
+import {Text} from 'react-native';
 
 type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'>;
 const HomeScreen = (props: Props) => {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  useEffect(() => {
+    Campaign.getAll()
+      .then(c => setCampaigns(c))
+      .catch(e => console.log(e));
+  }, []);
+
   return (
     <SafeAreaContainer>
       <View className="h-full text-center" style={[flex.flexCol]}>
@@ -44,6 +55,9 @@ const HomeScreen = (props: Props) => {
               <View className="mt-3 w-full" />
               <HorizontalPadding>
                 <View style={[flex.flexCol, gap.medium]}>
+                  {campaigns.map((c, index) => (
+                    <Text key={index}>{c.title}</Text>
+                  ))}
                   {[...Array(10)].map((_item: any, index: number) => (
                     <OngoingCampaignCard
                       navigation={props.navigation}

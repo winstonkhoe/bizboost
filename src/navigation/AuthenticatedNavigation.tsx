@@ -7,7 +7,7 @@ import CampaignDetailScreen from '../screens/CampaignDetailScreen';
 export type RootAuthenticatedStackParamList = {
   Main: undefined;
   Home: undefined;
-  CampaignDetail: {campaignId: string};
+  'Campaign Detail': {campaignId: string};
 };
 const Stack = createNativeStackNavigator<RootAuthenticatedStackParamList>();
 
@@ -19,7 +19,7 @@ const AuthenticatedNavigation = () => {
         component={TabNavigation}
         options={{headerShown: false}}
       />
-      <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} />
+      <Stack.Screen name="Campaign Detail" component={CampaignDetailScreen} />
     </Stack.Navigator>
   );
 };
