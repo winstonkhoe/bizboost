@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {View, Text, ScrollView} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
@@ -15,7 +15,8 @@ const ChatScreen = () => {
   const [isWidgetVisible, setIsWidgetVisible] = useState(false); // State to track widget visibility
 
   // Sample chat messages data
-  const chatMessages = [
+  // ========!Delete this before use!========
+  const sample = [
     {
       message:
         'Hi there, thank you for considering me for your campaign. I’m excited to work with you and create some amazing content.',
@@ -76,8 +77,32 @@ const ChatScreen = () => {
     },
   ];
 
+  // Initialize chatMessages with the sample data
+  const [chatMessages, setChatMessages] = useState(sample);
+  // ========!!========
+
+  // const [chatMessages, setChatMessages] = useState([
+  //   // Your sample chat messages data
+  // ]);
+
+  const scrollViewRef = useRef();
+
   // Handle sending a message
   const handleSendPress = message => {
+    // Add the new message to the chatMessages state
+    const newMessage = {
+      message,
+      isSender: true, // Assuming the sender is the user
+      profilePic: 'user_profile_url',
+    };
+    setChatMessages([...chatMessages, newMessage]);
+
+    // Scroll to the end of the ScrollView
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({animated: true});
+    }
+
+    // Clear the input field
     console.log(`Sending message: ${message}`);
   };
 
@@ -96,7 +121,13 @@ const ChatScreen = () => {
         </View>
 
         {/* Chat Messages */}
-        <ScrollView>
+        <ScrollView
+          ref={scrollViewRef}
+          onContentSizeChange={() => {
+            if (scrollViewRef.current) {
+              scrollViewRef.current.scrollToEnd({animated: true});
+            }
+          }}>
           <View className="flex flex-col gap-y-4 py-4">
             {chatMessages.map((message, index) => (
               <View key={index} className="w-full px-3">

@@ -3,6 +3,7 @@ import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 import SendButton from '../../assets/vectors/send.svg';
 import Keyboard from '../../assets/vectors/keyboard.svg';
 import {gap} from '../../styles/Gap';
+import {flex} from '../../styles/Flex';
 
 const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
   const [message, setMessage] = useState('');
@@ -30,10 +31,15 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
     }
   };
 
+  // Define a dynamic style for the send button view
+  const sendButtonStyle = {
+    backgroundColor: message ? '#2EA72B' : 'rgb(209 213 219)',
+  };
+
   return (
     <View
-      className="bg-white flex flex-row items-center px-2"
-      style={gap.small}>
+      className="bg-white flex flex-row items-center px-3"
+      style={gap.default}>
       {renderOpenWidgetButton()}
       <TextInput
         style={{
@@ -48,8 +54,8 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
         placeholder="Type a message"
       />
       <TouchableOpacity onPress={handleSendPress}>
-        <View className="bg-gray-300 p-1 rounded-full">
-          <SendButton className="text-white" width={30} height={30} />
+        <View style={sendButtonStyle} className="bg-gray-300 p-2 rounded-full">
+          <SendButton className="text-white" width={20} height={20} />
         </View>
       </TouchableOpacity>
     </View>

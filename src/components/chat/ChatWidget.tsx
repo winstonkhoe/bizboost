@@ -18,12 +18,12 @@ const ChatWidget = () => {
   return (
     <View
       className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center"
-      style={gap.small}>
+      style={gap.default}>
       {/* Send Photo Button */}
       <Pressable
         onPress={onSendPhotoPress}
         className="flex flex-col justify-center items-center">
-        <View className="w-20 h-20 bg-[#E7F3F8] rounded-full flex justify-center items-center">
+        <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
           <PhotosIcon width={30} height={30} />
         </View>
         <Text>Photos</Text>
@@ -32,7 +32,7 @@ const ChatWidget = () => {
       <Pressable
         onPress={onMakeOfferPress}
         className="flex flex-col justify-center items-center">
-        <View className="w-20 h-20 bg-[#E7F3F8] rounded-full flex justify-center items-center">
+        <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
           <MakeOfferIcon width={30} height={30} />
         </View>
         <Text>Make Offer</Text>
