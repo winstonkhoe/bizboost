@@ -20,7 +20,7 @@ const AccountListCard = ({name, active, role}: Props) => {
         flex.flexRow,
         rounded.default,
         gap.default,
-        active ? background(COLOR.blue[100]) : null,
+        active ? background(COLOR.blue[100], 0.6) : null,
       ]}>
       <View className="w-16 h-16 rounded-full overflow-hidden">
         <Image
