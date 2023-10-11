@@ -9,11 +9,14 @@ import Search from '../../assets/vectors/search.svg';
 import CrossMark from '../../assets/vectors/cross-mark.svg';
 import {flex} from '../../styles/Flex';
 import {useEffect, useRef, useState} from 'react';
+import {useAppDispatch, useAppSelector} from '../../redux/hooks';
+import {openSearchPage, updateSearchTerm} from '../../redux/slices/searchSlice';
 
 const SearchBar = () => {
   const searchInputRef = useRef<TextInput>(null);
-  const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [isFocus, setIsFocus] = useState<boolean>(false);
+  const {searchTerm} = useAppSelector(state => state.search);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (isFocus) {
@@ -26,18 +29,23 @@ const SearchBar = () => {
   const clearInput = (event: GestureResponderEvent) => {
     event.stopPropagation();
     searchInputRef.current?.clear();
-    setSearchKeyword('');
+    dispatch(updateSearchTerm(''));
   };
 
   const search = () => {
-    if (searchKeyword.trim().length > 0) {
-      console.log('searching for', searchKeyword);
+    if (searchTerm.trim().length > 0) {
+      console.log('searching for', searchTerm);
     }
   };
 
   return (
     <View className="w-full h-10 flex flex-row justify-center items-center text-center">
-      <Pressable className="flex-1" onPress={() => setIsFocus(true)}>
+      <Pressable
+        className="flex-1"
+        onPress={() => {
+          setIsFocus(true);
+          dispatch(openSearchPage());
+        }}>
         <View
           className="flex-1 h-full items-center p-2 bg-black/10 rounded-lg"
           style={[flex.flexRow]}>
@@ -47,16 +55,15 @@ const SearchBar = () => {
           <View className="flex-1 h-full items-center" style={flex.flexRow}>
             <TextInput
               ref={searchInputRef}
-              value={searchKeyword}
-              onChangeText={setSearchKeyword}
+              value={searchTerm}
+              onChangeText={(text: string) => dispatch(updateSearchTerm(text))}
               className="text-black/40"
               placeholder="David William"
-              onBlur={() => setIsFocus(false)}
               onSubmitEditing={search}
               returnKeyType="search"
             />
           </View>
-          {isFocus ? (
+          {isFocus && searchTerm.length > 0 ? (
             <Pressable
               className="h-full items-center rounded-full bg-black/40"
               style={[flex.flexRow]}
