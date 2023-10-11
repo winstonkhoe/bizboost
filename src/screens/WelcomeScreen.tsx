@@ -24,6 +24,21 @@ const WelcomeScreen = ({navigation}: Props) => {
           <View className="w-full justify-between items-center px-5 py-7">
             <View className="w-full flex flex-col">
               <Button
+                title="Chat"
+                buttonStyle={{
+                  backgroundColor: '#258842',
+                  borderWidth: 2,
+                  borderColor: 'white',
+                  borderRadius: 10,
+                  paddingVertical: 10,
+                  marginBottom: 10,
+                  width: '100%',
+                }}
+                onPress={() => {
+                  navigation.navigate('Chat');
+                }}
+              />
+              <Button
                 title="Sign In"
                 buttonStyle={{
                   backgroundColor: '#258842',
