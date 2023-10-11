@@ -35,13 +35,7 @@ export const SwitchUserModalProvider = () => {
         {...props}
         disappearsOnIndex={-1}
         opacity={1}
-        style={[
-          props.style,
-          background(COLOR.black),
-          {
-            opacity: 1,
-          },
-        ]}
+        style={[props.style, background(COLOR.black)]}
       />
     ),
     [],
