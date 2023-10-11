@@ -35,9 +35,9 @@ export const rgba2hex = ({rgba}: RGBA2HexProps) => {
 
   if (values && values.length === 4) {
     // Convert each RGBA value to hexadecimal
-    let r = parseInt(values[0], 16).toString(16).padStart(2, '0');
-    let g = parseInt(values[1], 16).toString(16).padStart(2, '0');
-    let b = parseInt(values[2], 16).toString(16).padStart(2, '0');
+    let r = parseInt(values[0], 10).toString(16).padStart(2, '0');
+    let g = parseInt(values[1], 10).toString(16).padStart(2, '0');
+    let b = parseInt(values[2], 10).toString(16).padStart(2, '0');
     let a = Math.round(values[3] * 255)
       .toString(16)
       .padStart(2, '0');
