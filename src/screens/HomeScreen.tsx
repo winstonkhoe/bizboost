@@ -13,7 +13,6 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
 import {useEffect, useState} from 'react';
 import {Campaign} from '../model/Campaign';
-import {Text} from 'react-native';
 
 type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'>;
 const HomeScreen = (props: Props) => {
@@ -56,10 +55,8 @@ const HomeScreen = (props: Props) => {
               <HorizontalPadding>
                 <View style={[flex.flexCol, gap.medium]}>
                   {campaigns.map((c, index) => (
-                    <Text key={index}>{c.title}</Text>
-                  ))}
-                  {[...Array(10)].map((_item: any, index: number) => (
                     <OngoingCampaignCard
+                      campaign={c}
                       navigation={props.navigation}
                       route={props.route}
                       key={index}

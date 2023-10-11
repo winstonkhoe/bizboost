@@ -4,15 +4,17 @@ import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNaviga
 import {Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
+import TagCard from '../components/atoms/TagCard';
+import {ScrollView} from 'react-native-gesture-handler';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   'Campaign Detail'
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {campaignId} = route.params;
+  const {campaign} = route.params;
   return (
-    <View>
+    <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
       <View className="w-full h-60 rounded-md overflow-hidden">
         <Image
           className="w-full h-full object-cover"
@@ -20,24 +22,14 @@ const CampaignDetailScreen = ({route}: Props) => {
         />
       </View>
       <View className="flex flex-col p-4 gap-2">
-        <Text className="font-semibold text-2xl">Campaign Title</Text>
+        <Text className="font-bold text-2xl">{campaign.title}</Text>
+        <Text>{campaign.description}</Text>
         <View>
-          <Text className="font-semibold text-base">Features</Text>
-          {[...Array(3)].map((_item: any, index: number) => (
-            <Text key={index} className="pl-1">
-              • Feature {index}
-            </Text>
-          ))}
-        </View>
-        {/* <Text>Tagline</Text> */}
-        <View>
-          <Text className="font-semibold text-base">Requirements</Text>
+          <Text className="font-semibold text-base">Criteria</Text>
           <View className="flex flex-row flex-wrap gap-2">
-            {[...Array(13)].map((_item: any, index: number) => (
-              <View
-                key={index}
-                className="border border-red-500 py-1 px-2 rounded-md">
-                <Text className="">asdf jkl</Text>
+            {campaign.criterias.map((_item: any, index: number) => (
+              <View key={index}>
+                <TagCard text={_item} />
               </View>
             ))}
           </View>
@@ -51,17 +43,38 @@ const CampaignDetailScreen = ({route}: Props) => {
             </Text>
           ))}
         </View>
-
         <View>
-          <Text className="font-semibold text-base">Task Summary</Text>
-          <Text className="font-semibold">Instagram</Text>
-          <Text className="">v 2 Story</Text>
-          <Text className="">v 1 Feed</Text>
-          <Text className="font-semibold">TikTok</Text>
+          <Text className="font-semibold text-base">Fee</Text>
+          <Text>
+            {new Intl.NumberFormat('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+            }).format(campaign.fee)}
+          </Text>
         </View>
-        <Text>CampaignDetailScreen, Campaign ID: {campaignId}</Text>
+        <View>
+          <Text className="font-semibold text-base">Platform</Text>
+          <View className="flex flex-row flex-wrap gap-2">
+            {campaign.platforms.map((_item: any, index: number) => (
+              <View key={index}>
+                <TagCard text={_item} />
+              </View>
+            ))}
+          </View>
+        </View>
+        <View>
+          <Text className="font-semibold text-base">Location</Text>
+          <View className="flex flex-row flex-wrap gap-2">
+            {campaign.locations.map((_item: any, index: number) => (
+              <View key={index}>
+                <TagCard text={_item} />
+              </View>
+            ))}
+          </View>
+        </View>
+        <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

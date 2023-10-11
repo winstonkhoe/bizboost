@@ -13,6 +13,9 @@ export class Campaign {
   fee: number;
   criterias: string[];
   slot: number;
+  image: string;
+  start: FirebaseFirestoreTypes.Timestamp;
+  end: FirebaseFirestoreTypes.Timestamp;
   createdAt: FirebaseFirestoreTypes.Timestamp;
 
   constructor(
@@ -25,6 +28,9 @@ export class Campaign {
     fee: number,
     criterias: string[],
     slot: number,
+    image: string,
+    start: FirebaseFirestoreTypes.Timestamp,
+    end: FirebaseFirestoreTypes.Timestamp,
     createdAt: FirebaseFirestoreTypes.Timestamp,
     id: string = '',
   ) {
@@ -37,6 +43,9 @@ export class Campaign {
     this.fee = fee;
     this.criterias = criterias;
     this.slot = slot;
+    this.image = image;
+    this.start = start;
+    this.end = end;
     this.createdAt = createdAt;
     this.id = id;
   }
@@ -62,6 +71,9 @@ export class Campaign {
           data.fee,
           data.criterias,
           data.slot,
+          data.image,
+          data.start,
+          data.end,
           data.createdAt,
           doc.id,
         );
