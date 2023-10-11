@@ -19,8 +19,14 @@ export const hex2rgba = ({hex, alpha}: Hex2RGBAProps) => {
       let a = parseInt(digits[3], 16) / 255;
       alpha = a;
     }
+    if (!alpha) {
+      alpha = 1;
+    }
     // Return the RGBA string
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  if (!alpha) {
+    alpha = 1;
   }
   return `rgba(255, 255, 255, ${alpha})`;
 };
