@@ -1,4 +1,4 @@
-import {Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {flex} from '../../styles/Flex';
 import Search from '../../assets/vectors/search.svg';
 import DiagonalArrow from '../../assets/vectors/diagonal-arrow.svg';
@@ -6,13 +6,15 @@ import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {rounded} from '../../styles/BorderRadius';
-import {useAppSelector} from '../../redux/hooks';
+import {useAppDispatch, useAppSelector} from '../../redux/hooks';
+import {updateSearchTerm} from '../../redux/slices/searchSlice';
 
 interface Props {
   itemValue: string;
 }
 
 const AutoCompleteSearchItem = ({itemValue}: Props) => {
+  const dispatch = useAppDispatch();
   const {searchTerm} = useAppSelector(state => state.search);
   const regEscape = (v: string) =>
     v.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
@@ -42,9 +44,11 @@ const AutoCompleteSearchItem = ({itemValue}: Props) => {
           );
         })}
       </View>
-      <View className="rotate-180">
+      <Pressable
+        className="rotate-180"
+        onPress={() => dispatch(updateSearchTerm(itemValue))}>
         <DiagonalArrow width={14} height={14} color={COLOR.black} />
-      </View>
+      </Pressable>
     </View>
   );
 };
