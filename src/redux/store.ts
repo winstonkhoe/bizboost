@@ -2,13 +2,14 @@ import {configureStore} from '@reduxjs/toolkit';
 import modalReducer from './slices/modalSlice';
 import searchReducer from './slices/searchSlice';
 import userReducer from './slices/userSlice';
-// ...
+import campaignReducer from './slices/campaignSlice';
 
 export const store = configureStore({
   reducer: {
     modal: modalReducer,
     search: searchReducer,
     user: userReducer,
+    campaign: campaignReducer,
   },
 });
 

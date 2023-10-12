@@ -4,13 +4,13 @@ import {rounded} from '../../styles/BorderRadius';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
-import {UserRole} from '../../model/User';
+import {UserRole, UserRoles} from '../../model/User';
 import {gap} from '../../styles/Gap';
 
 interface Props {
   name: string;
   active: boolean;
-  role: UserRole;
+  role: UserRoles;
 }
 const AccountListCard = ({name, active, role}: Props) => {
   return (
@@ -43,9 +43,9 @@ const AccountListCard = ({name, active, role}: Props) => {
           style={[
             active ? textColor(COLOR.blue[200]) : textColor(COLOR.black),
           ]}>
-          {role === 'CC'
+          {role === UserRole.ContentCreator
             ? 'Content Creator'
-            : role === 'BP'
+            : role === UserRole.BusinessPeople
             ? 'Business People'
             : null}
         </Text>

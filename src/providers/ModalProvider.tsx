@@ -15,6 +15,7 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {useUser} from '../hooks/user';
+import {UserRole} from '../model/User';
 
 export const SwitchUserModalProvider = () => {
   const dispatch = useAppDispatch();
@@ -58,7 +59,11 @@ export const SwitchUserModalProvider = () => {
                 active={true}
                 role={activeRole}
               />
-              <AccountListCard name="kodetime" active={false} role="BP" />
+              <AccountListCard
+                name="kodetime"
+                active={false}
+                role={UserRole.BusinessPeople}
+              />
             </View>
           </HorizontalPadding>
         </BottomSheetView>
