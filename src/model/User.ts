@@ -15,8 +15,8 @@ import {
 const USER_COLLECTION = 'users';
 
 export enum UserRole {
-  ContentCreator = 'CC',
-  BusinessPeople = 'BP',
+  ContentCreator = 'Content Creator',
+  BusinessPeople = 'Business People',
   Admin = 'Admin',
 }
 
