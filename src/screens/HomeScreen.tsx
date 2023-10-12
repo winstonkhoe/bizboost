@@ -11,17 +11,12 @@ import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
 import {Campaign} from '../model/Campaign';
-import {useEffect, useState} from 'react';
+import {useOngoingCampaign} from '../hooks/campaign';
 
 type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'>;
 const HomeScreen = (props: Props) => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const {campaigns} = useOngoingCampaign();
 
-  useEffect(() => {
-    Campaign.getAll()
-      .then(c => setCampaigns(c))
-      .catch(e => console.log(e));
-  }, []);
   return (
     <PageWithSearchBar>
       <View className="h-full w-full">

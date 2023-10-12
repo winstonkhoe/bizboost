@@ -1,17 +1,25 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
+import {User} from './User';
 
 export type CampaignPlatform = {name: string; tasks: string[]};
 
-export type CampaignType = 'Public' | 'Private';
+export enum CampaignType {
+  Public = 'Public',
+  Private = 'Private',
+}
+
+export type CampaignTypes = CampaignType.Public | CampaignType.Private;
+
+const CAMPAIGN_COLLECTION = 'campaigns';
 
 export class Campaign {
   id: string = '';
   userId: string;
   title: string;
   description: string;
-  type: CampaignType;
+  type: CampaignTypes;
   locations: string[];
   platforms: CampaignPlatform[];
   fee: number;
@@ -27,7 +35,7 @@ export class Campaign {
     userId: string,
     title: string,
     description: string,
-    type: CampaignType,
+    type: CampaignTypes,
     locations: string[],
     platforms: CampaignPlatform[],
     fee: number,
@@ -86,16 +94,65 @@ export class Campaign {
     throw Error("Error, document doesn't exist!");
   }
 
+  private static fromQuerySnapshot(
+    querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
+  ): Campaign[] {
+    return querySnapshots.docs.map(this.fromSnapshot);
+  }
+
+  static getCampaignCollections =
+    (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
+      return firestore().collection(CAMPAIGN_COLLECTION);
+    };
+
   static async getAll(): Promise<Campaign[]> {
     try {
-      const campaigns = await firestore()
-        .collection('campaigns')
+      const campaigns = await this.getCampaignCollections()
         .where('type', '==', 'Public')
         .get();
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
       return campaigns.docs.map(doc => this.fromSnapshot(doc));
+    } catch (error) {
+      throw Error('Error!');
+    }
+  }
+
+  static async getUserCampaigns(userId: string): Promise<Campaign[]> {
+    try {
+      const userRef = User.getDocumentReference(userId);
+      const campaigns = await this.getCampaignCollections()
+        .where('userId', '==', userRef)
+        .get();
+      if (campaigns.empty) {
+        throw Error('No Campaigns!');
+      }
+      return campaigns.docs.map(doc => this.fromSnapshot(doc));
+    } catch (error) {
+      throw Error('Error!');
+    }
+  }
+
+  static getUserCampaignsReactive(
+    userId: string,
+    callback: (campaigns: Campaign[], unsubscribe: () => void) => void,
+  ): void {
+    try {
+      const userRef = User.getDocumentReference(userId);
+      const subscriber = this.getCampaignCollections()
+        .where('userId', '==', userRef)
+        .onSnapshot(
+          (
+            querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
+          ) => {
+            const userCampaigns = this.fromQuerySnapshot(querySnapshots);
+            callback(userCampaigns, subscriber);
+          },
+          (error: Error) => {
+            throw Error(error.message);
+          },
+        );
     } catch (error) {
       throw Error('Error!');
     }
