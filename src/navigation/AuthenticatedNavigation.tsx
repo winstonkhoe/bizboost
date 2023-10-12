@@ -3,13 +3,12 @@ import * as React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import TabNavigation from './TabNavigation';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
-import {Campaign} from '../model/Campaign';
 
 export type RootAuthenticatedStackParamList = {
   Main: undefined;
   Home: undefined;
-  // 'Campaign Detail': {campaignId: string};
-  'Campaign Detail': {campaign: Campaign};
+  'Campaign Detail': {campaignId: string};
+  // 'Campaign Detail': {campaign: Campaign};
 };
 const Stack = createNativeStackNavigator<RootAuthenticatedStackParamList>();
 

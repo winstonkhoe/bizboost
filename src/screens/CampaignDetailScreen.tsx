@@ -1,18 +1,29 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
 import {Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
 import {ScrollView} from 'react-native-gesture-handler';
+import {Campaign, CampaignPlatform} from '../model/Campaign';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   'Campaign Detail'
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {campaign} = route.params;
+  // TODO: pass id instead of object to solve: `Non-serializable values were found in the navigation state.`
+  const {campaignId} = route.params;
+  const [campaign, setCampaign] = useState<Campaign>();
+  useEffect(() => {
+    Campaign.getById(campaignId).then(c => setCampaign(c));
+  }, [campaignId]);
+
+  if (!campaign) {
+    return <Text>Loading</Text>;
+  }
+
   return (
     <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
       <View className="w-full h-60 rounded-md overflow-hidden">
@@ -53,13 +64,18 @@ const CampaignDetailScreen = ({route}: Props) => {
           </Text>
         </View>
         <View>
-          <Text className="font-semibold text-base">Platform</Text>
+          <Text className="font-semibold text-base">Task</Text>
           <View className="flex flex-row flex-wrap gap-2">
-            {campaign.platforms.map((_item: any, index: number) => (
-              <View key={index}>
-                <TagCard text={_item} />
-              </View>
-            ))}
+            {campaign.platforms.map(
+              (_item: CampaignPlatform, index: number) => (
+                <View key={index}>
+                  <TagCard text={_item.name} />
+                  {_item.tasks.map((t, idx) => (
+                    <Text key={idx}>{t}</Text>
+                  ))}
+                </View>
+              ),
+            )}
           </View>
         </View>
         <View>

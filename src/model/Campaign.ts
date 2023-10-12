@@ -2,6 +2,8 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 
+export type CampaignPlatform = {name: string; tasks: string[]};
+
 export class Campaign {
   id: string = '';
   userId: string;
@@ -9,7 +11,7 @@ export class Campaign {
   description: string;
   type: 'Public' | 'Private';
   locations: string[];
-  platforms: string[];
+  platforms: CampaignPlatform[];
   fee: number;
   criterias: string[];
   slot: number;
@@ -24,7 +26,7 @@ export class Campaign {
     description: string,
     type: 'Public' | 'Private',
     locations: string[],
-    platforms: string[],
+    platforms: CampaignPlatform[],
     fee: number,
     criterias: string[],
     slot: number,
@@ -48,6 +50,34 @@ export class Campaign {
     this.end = end;
     this.createdAt = createdAt;
     this.id = id;
+  }
+
+  private static fromSnapshot(
+    doc:
+      | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
+      | FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
+  ): Campaign {
+    const data = doc.data();
+    if (data && doc.exists) {
+      return new Campaign(
+        data.userId,
+        data.title,
+        data.description,
+        data.type,
+        data.locations,
+        data.platforms,
+        data.fee,
+        data.criterias,
+        data.slot,
+        data.image,
+        data.start,
+        data.end,
+        data.createdAt,
+        doc.id,
+      );
+    }
+
+    throw Error("Error, document doesn't exist!");
   }
 
   static async getAll(): Promise<Campaign[]> {
@@ -81,5 +111,25 @@ export class Campaign {
     } catch (error) {
       throw Error('Error!');
     }
+  }
+
+  static async getById(id: string): Promise<Campaign> {
+    try {
+      const snapshot = await firestore().collection('campaigns').doc(id).get();
+      if (!snapshot.exists) {
+        throw Error('Campaign not found!');
+      }
+
+      const campaign = this.fromSnapshot(snapshot);
+      return campaign;
+    } catch (error) {}
+    throw Error('Error!');
+    // .then(documentSnapshot => {
+    //   console.log('User exists: ', documentSnapshot.exists);
+
+    //   if (documentSnapshot.exists) {
+    //     console.log('User data: ', documentSnapshot.data());
+    //   }
+    // });
   }
 }
