@@ -12,7 +12,6 @@ type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'> & {
 };
 
 const OngoingCampaignCard = ({navigation, campaign}: Props) => {
-  console.log(campaign);
   return (
     <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View
