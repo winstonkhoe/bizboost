@@ -34,6 +34,27 @@ const CampaignDetailScreen = ({route}: Props) => {
       </View>
       <View className="flex flex-col p-4 gap-2">
         <Text className="font-bold text-2xl">{campaign.title}</Text>
+        <Text className="font-bold text-xs">
+          {campaign.start.toDate().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}{' '}
+          -{' '}
+          {campaign.end.toDate().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </Text>
+        <View className="flex flex-row items-center">
+          <Text>Available Slot</Text>
+          <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md w-12">
+            <Text className="text-center text-xs font-bold">
+              0/{campaign.slot}
+            </Text>
+          </View>
+        </View>
         <Text>{campaign.description}</Text>
         <View>
           <Text className="font-semibold text-base">Criteria</Text>
@@ -48,9 +69,9 @@ const CampaignDetailScreen = ({route}: Props) => {
 
         <View>
           <Text className="font-semibold text-base">Important Information</Text>
-          {[...Array(3)].map((_item: any, index: number) => (
-            <Text key={index} className="pl-1">
-              i Info {index}
+          {campaign.importantInformation.map((_item: any, index: number) => (
+            <Text key={index} className="pl-1 mb-1">
+              ℹ️ {_item}
             </Text>
           ))}
         </View>
@@ -65,13 +86,13 @@ const CampaignDetailScreen = ({route}: Props) => {
         </View>
         <View>
           <Text className="font-semibold text-base">Task</Text>
-          <View className="flex flex-row flex-wrap gap-2">
+          <View className="flex flex-col flex-wrap gap-2">
             {campaign.platforms.map(
               (_item: CampaignPlatform, index: number) => (
                 <View key={index}>
-                  <TagCard text={_item.name} />
+                  <Text className="font-semibold">{_item.name}</Text>
                   {_item.tasks.map((t, idx) => (
-                    <Text key={idx}>{t}</Text>
+                    <Text key={idx}>✓ {t}</Text>
                   ))}
                 </View>
               ),

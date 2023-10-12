@@ -19,6 +19,7 @@ export class Campaign {
   start: FirebaseFirestoreTypes.Timestamp;
   end: FirebaseFirestoreTypes.Timestamp;
   createdAt: FirebaseFirestoreTypes.Timestamp;
+  importantInformation: string[];
 
   constructor(
     userId: string,
@@ -34,6 +35,7 @@ export class Campaign {
     start: FirebaseFirestoreTypes.Timestamp,
     end: FirebaseFirestoreTypes.Timestamp,
     createdAt: FirebaseFirestoreTypes.Timestamp,
+    importantInformation: string[],
     id: string = '',
   ) {
     this.userId = userId;
@@ -49,6 +51,7 @@ export class Campaign {
     this.start = start;
     this.end = end;
     this.createdAt = createdAt;
+    this.importantInformation = importantInformation;
     this.id = id;
   }
 
@@ -73,6 +76,7 @@ export class Campaign {
         data.start,
         data.end,
         data.createdAt,
+        data.importantInformation,
         doc.id,
       );
     }
@@ -89,25 +93,7 @@ export class Campaign {
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
-      return campaigns.docs.map(doc => {
-        const data = doc.data();
-        return new Campaign(
-          data.userId,
-          data.title,
-          data.description,
-          data.type,
-          data.locations,
-          data.platforms,
-          data.fee,
-          data.criterias,
-          data.slot,
-          data.image,
-          data.start,
-          data.end,
-          data.createdAt,
-          doc.id,
-        );
-      });
+      return campaigns.docs.map(doc => this.fromSnapshot(doc));
     } catch (error) {
       throw Error('Error!');
     }
