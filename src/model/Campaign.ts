@@ -108,7 +108,7 @@ export class Campaign {
   static async getAll(): Promise<Campaign[]> {
     try {
       const campaigns = await this.getCampaignCollections()
-        .where('type', '==', 'Public')
+        .where('type', '==', CampaignType.Public)
         .get();
       if (campaigns.empty) {
         throw Error('No Campaigns!');
