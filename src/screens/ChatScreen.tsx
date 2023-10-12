@@ -8,6 +8,7 @@ import ChatWidget from '../components/chat/ChatWidget';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation'; // temporary
 import SafeAreaContainer from '../containers/SafeAreaContainer';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
@@ -112,6 +113,26 @@ const ChatScreen = () => {
     console.log(`Opening widget: ${isWidgetVisible}`);
   };
 
+  // Handle image upload
+  const handleImageUpload = type => {
+    let options = {
+      mediaType: type,
+      maxWidth: 300,
+      maxHeight: 550,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('Image picker was canceled');
+      } else if (response.errorCode) {
+        console.log('Image picker error: ', response.errorMessage);
+      } else {
+        // Upload the selected image to your server or perform any other action
+        console.log('Selected image:', response);
+      }
+    });
+  };
+
   return (
     <SafeAreaContainer>
       <View className="bg-white h-full w-full flex flex-col">
@@ -151,11 +172,11 @@ const ChatScreen = () => {
           />
 
           {/* Chat Widget */}
-          {isWidgetVisible && (
+          {isWidgetVisible ? (
             <View className="w-full">
-              <ChatWidget />
+              <ChatWidget onImageUpload={handleImageUpload} />
             </View>
-          )}
+          ) : null}
         </View>
       </View>
     </SafeAreaContainer>

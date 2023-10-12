@@ -4,15 +4,15 @@ import PhotosIcon from '../../assets/vectors/photos.svg';
 import MakeOfferIcon from '../../assets/vectors/make-offer.svg';
 import {gap} from '../../styles/Gap';
 
-const ChatWidget = () => {
-  // Handle send photo button
-  const onSendPhotoPress = () => {
-    console.log('Send photo widget');
-  };
-
+const ChatWidget = ({onImageUpload}) => {
   // Handle make offer button
   const onMakeOfferPress = () => {
     console.log('Make offer widget');
+  };
+
+  const onPhotoPress = () => {
+    console.log('Image upload test');
+    onImageUpload('photo');
   };
 
   return (
@@ -21,7 +21,7 @@ const ChatWidget = () => {
       style={gap.default}>
       {/* Send Photo Button */}
       <Pressable
-        onPress={onSendPhotoPress}
+        onPress={onPhotoPress}
         className="flex flex-col justify-center items-center">
         <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
           <PhotosIcon width={30} height={30} />

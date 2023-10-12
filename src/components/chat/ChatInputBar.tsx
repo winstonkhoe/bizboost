@@ -13,24 +13,6 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
     setMessage(''); // Clear the input field after sending
   };
 
-  const renderOpenWidgetButton = () => {
-    if (isWidgetVisible) {
-      // when the widget is open
-      return (
-        <TouchableOpacity onPress={onOpenWidgetPress}>
-          <Keyboard width={20} height={20} />
-        </TouchableOpacity>
-      );
-    } else {
-      // when the widget is closed
-      return (
-        <TouchableOpacity onPress={onOpenWidgetPress}>
-          <Text className="text-3xl">+</Text>
-        </TouchableOpacity>
-      );
-    }
-  };
-
   // Define a dynamic style for the send button view
   const sendButtonStyle = {
     backgroundColor: message ? '#2EA72B' : 'rgb(209 213 219)',
@@ -40,7 +22,15 @@ const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
     <View
       className="bg-white flex flex-row items-center px-3"
       style={gap.default}>
-      {renderOpenWidgetButton()}
+      {isWidgetVisible ? (
+        <TouchableOpacity onPress={onOpenWidgetPress}>
+          <Keyboard width={20} height={20} />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={onOpenWidgetPress}>
+          <Text className="text-3xl">+</Text>
+        </TouchableOpacity>
+      )}
       <TextInput
         style={{
           flex: 1,
