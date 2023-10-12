@@ -4,37 +4,39 @@ import firestore, {
 
 export type CampaignPlatform = {name: string; tasks: string[]};
 
+export type CampaignType = 'Public' | 'Private';
+
 export class Campaign {
   id: string = '';
   userId: string;
   title: string;
   description: string;
-  type: 'Public' | 'Private';
+  type: CampaignType;
   locations: string[];
   platforms: CampaignPlatform[];
   fee: number;
   criterias: string[];
   slot: number;
   image: string;
-  start: FirebaseFirestoreTypes.Timestamp;
-  end: FirebaseFirestoreTypes.Timestamp;
-  createdAt: FirebaseFirestoreTypes.Timestamp;
+  start: FirebaseFirestoreTypes.Timestamp | number;
+  end: FirebaseFirestoreTypes.Timestamp | number;
+  createdAt: FirebaseFirestoreTypes.Timestamp | number;
   importantInformation: string[];
 
   constructor(
     userId: string,
     title: string,
     description: string,
-    type: 'Public' | 'Private',
+    type: CampaignType,
     locations: string[],
     platforms: CampaignPlatform[],
     fee: number,
     criterias: string[],
     slot: number,
     image: string,
-    start: FirebaseFirestoreTypes.Timestamp,
-    end: FirebaseFirestoreTypes.Timestamp,
-    createdAt: FirebaseFirestoreTypes.Timestamp,
+    start: FirebaseFirestoreTypes.Timestamp | number,
+    end: FirebaseFirestoreTypes.Timestamp | number,
+    createdAt: FirebaseFirestoreTypes.Timestamp | number,
     importantInformation: string[],
     id: string = '',
   ) {
@@ -62,23 +64,23 @@ export class Campaign {
   ): Campaign {
     const data = doc.data();
     if (data && doc.exists) {
-      return new Campaign(
-        data.userId,
-        data.title,
-        data.description,
-        data.type,
-        data.locations,
-        data.platforms,
-        data.fee,
-        data.criterias,
-        data.slot,
-        data.image,
-        data.start,
-        data.end,
-        data.createdAt,
-        data.importantInformation,
-        doc.id,
-      );
+      return {
+        id: doc.id,
+        userId: data.userId?.id,
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        locations: data.locations,
+        platforms: data.platforms,
+        fee: data.fee,
+        criterias: data.criterias,
+        slot: data.slot,
+        image: data.image,
+        start: data.start?.seconds,
+        end: data.end?.seconds,
+        createdAt: data.createdAt?.seconds,
+        importantInformation: data.importantInformation,
+      } as Campaign;
     }
 
     throw Error("Error, document doesn't exist!");

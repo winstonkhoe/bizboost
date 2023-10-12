@@ -11,6 +11,7 @@ type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'> & {
 };
 
 const OngoingCampaignCard = ({navigation, campaign}: Props) => {
+  console.log(campaign);
   return (
     <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View
@@ -24,17 +25,19 @@ const OngoingCampaignCard = ({navigation, campaign}: Props) => {
             }),
           ]}>
           <Text className="font-bold text-white text-xs">
-            {campaign.start.toDate().toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}{' '}
+            {typeof campaign.start == 'number' &&
+              new Date(campaign.start * 1000).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}{' '}
             -{' '}
-            {campaign.end.toDate().toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+            {typeof campaign.end == 'number' &&
+              new Date(campaign.end * 1000).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
           </Text>
         </View>
         <View className="px-4 py-8 w-full h-full" style={flex.flexCol}>

@@ -8,8 +8,20 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
+import {Campaign} from '../model/Campaign';
+import {useEffect, useState} from 'react';
 
-const HomeScreen = () => {
+type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'>;
+const HomeScreen = (props: Props) => {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  useEffect(() => {
+    Campaign.getAll()
+      .then(c => setCampaigns(c))
+      .catch(e => console.log(e));
+  }, []);
   return (
     <PageWithSearchBar>
       <View className="h-full w-full">
@@ -32,8 +44,13 @@ const HomeScreen = () => {
             <View className="mt-3 w-full" />
             <HorizontalPadding>
               <View style={[flex.flexCol, gap.medium]}>
-                {[...Array(10)].map((_item: any, index: number) => (
-                  <OngoingCampaignCard key={index} />
+                {campaigns.map((c: Campaign, index: number) => (
+                  <OngoingCampaignCard
+                    campaign={c}
+                    navigation={props.navigation}
+                    route={props.route}
+                    key={index}
+                  />
                 ))}
               </View>
             </HorizontalPadding>
