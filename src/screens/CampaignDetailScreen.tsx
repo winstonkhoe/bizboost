@@ -7,6 +7,7 @@ import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
+import { getDate } from '../utils/date';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   'Campaign Detail'
@@ -35,13 +36,13 @@ const CampaignDetailScreen = ({route}: Props) => {
       <View className="flex flex-col p-4 gap-2">
         <Text className="font-bold text-2xl">{campaign.title}</Text>
         <Text className="font-bold text-xs">
-          {campaign.start.toDate().toLocaleDateString('en-US', {
+          {getDate(campaign.start).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
           })}{' '}
           -{' '}
-          {campaign.end.toDate().toLocaleDateString('en-US', {
+          {getDate(campaign.end).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
