@@ -3,8 +3,14 @@ import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {borderRadius, radiusSize, rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootAuthenticatedStackParamList} from '../../navigation/AuthenticatedNavigation';
+import {Campaign} from '../../model/Campaign';
+type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'> & {
+  campaign: Campaign;
+};
 
-const OngoingCampaignCard = () => {
+const OngoingCampaignCard = ({navigation, campaign}: Props) => {
   return (
     <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View
@@ -18,7 +24,17 @@ const OngoingCampaignCard = () => {
             }),
           ]}>
           <Text className="font-bold text-white text-xs">
-            1 Sept 2023 - 31 Sept 2023
+            {campaign.start.toDate().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}{' '}
+            -{' '}
+            {campaign.end.toDate().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
           </Text>
         </View>
         <View className="px-4 py-8 w-full h-full" style={flex.flexCol}>
@@ -26,16 +42,22 @@ const OngoingCampaignCard = () => {
             <View className="w-24 h-24 rounded-md overflow-hidden">
               <Image
                 className="w-full h-full object-cover"
-                source={require('../../assets/images/kopi-nako-logo.jpeg')}
+                // source={require('../../assets/images/kopi-nako-logo.jpeg')}
+                source={{uri: campaign.image}}
               />
             </View>
             <View
               className="flex-1 items-start justify-between"
               style={[flex.flexCol]}>
               <Text className="font-semibold text-base" numberOfLines={2}>
-                Kopi Nako BSD City: The New Destination for Coffee Lovers
+                {campaign.title}
               </Text>
-              <Pressable>
+              <Pressable
+                onPress={() =>
+                  navigation.navigate('Campaign Detail', {
+                    campaignId: campaign.id,
+                  })
+                }>
                 <View className="rounded-3xl bg-black px-3 py-2">
                   <Text className="font-bold text-white">Detail</Text>
                 </View>
