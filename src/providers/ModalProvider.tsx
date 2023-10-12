@@ -14,9 +14,11 @@ import {closeModal} from '../redux/slices/modalSlice';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
+import {useUser} from '../hooks/user';
 
 export const SwitchUserModalProvider = () => {
   const dispatch = useAppDispatch();
+  const {user, activeRole} = useUser();
   const modalOpenState = useAppSelector(state => state.modal.isOpen);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   useEffect(() => {
@@ -33,6 +35,8 @@ export const SwitchUserModalProvider = () => {
     (props: any) => (
       <BottomSheetBackdrop
         {...props}
+        disappearsOnIndex={-1}
+        opacity={1}
         style={[props.style, background(COLOR.black)]}
       />
     ),
@@ -49,7 +53,11 @@ export const SwitchUserModalProvider = () => {
         <BottomSheetView>
           <HorizontalPadding>
             <View className="pt-2 pb-6" style={[flex.flexCol, gap.default]}>
-              <AccountListCard name="DavidCoderz" active={true} role="CC" />
+              <AccountListCard
+                name={user?.businessPeople?.fullname || 'undefined'}
+                active={true}
+                role={activeRole}
+              />
               <AccountListCard name="kodetime" active={false} role="BP" />
             </View>
           </HorizontalPadding>

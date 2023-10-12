@@ -1,51 +1,152 @@
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import firestore, {
+  FirebaseFirestoreTypes,
+} from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {
+  CREDENTIALS_INVALID,
+  EMAIL_ALREADY_EXISTS,
+  EMAIL_INVALID,
+  GOOGLE_ERROR,
+  LOGIN_FAILED,
+  PASSWORD_EMPTY,
+} from '../constants/errorMessage';
+
+const USER_COLLECTION = 'users';
 
 export type UserRole = 'CC' | 'BP' | 'Admin' | undefined;
 
+type ContentCreator = {
+  fullname: string;
+  profilePicture?: string;
+};
+
+type BusinessPeople = {
+  fullname: string;
+  profilePicture?: string;
+};
+
 export class User {
   email: string = '';
-  password: string = '';
-  fullname: string = '';
-  phone: string = '';
-  profilePicture: string = '';
-  role: UserRole;
+  password?: string;
+  phone?: string;
+  contentCreator?: ContentCreator;
+  businessPeople?: BusinessPeople;
+  joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
 
-  static async signUp({
+  static getDocumentReference(
+    documentId: string,
+  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+    return firestore().collection(USER_COLLECTION).doc(documentId);
+  }
+
+  static async createUserWithEmailAndPassword(
+    email: string,
+    password: string,
+  ): Promise<FirebaseAuthTypes.UserCredential> {
+    return await auth().createUserWithEmailAndPassword(email, password);
+  }
+
+  static async setUserData(documentId: string, data: User): Promise<void> {
+    await this.getDocumentReference(documentId).set({
+      ...data,
+      joinedAt: firestore.Timestamp.now(),
+    });
+  }
+
+  static async updateUserData(documentId: string, data: User): Promise<void> {
+    await this.getDocumentReference(documentId).update(data);
+  }
+
+  static getUserData(
+    documentId: string,
+    callback: (user: User | null) => void,
+  ): void {
+    this.getDocumentReference(documentId)
+      .get()
+      .then(documentSnapshot => {
+        console.log('User exists: ', documentSnapshot.exists);
+        if (documentSnapshot.exists) {
+          const userData = documentSnapshot.data();
+          console.log('User data: ', userData);
+          const user: User = {
+            email: userData?.email,
+            phone: userData?.phone,
+            contentCreator: userData?.contentCreator,
+            businessPeople: userData?.businessPeople,
+            joinedAt: userData?.joinedAt?.seconds,
+          };
+          callback(user);
+        } else {
+          callback(null);
+        }
+      });
+  }
+
+  static async signUpContentCreator({
     email,
     password,
-    fullname,
     phone,
-    profilePicture,
-    role,
+    contentCreator,
   }: User) {
     try {
-      const userCredential = await auth().createUserWithEmailAndPassword(
+      if (!password) {
+        throw Error(PASSWORD_EMPTY);
+      }
+      const userCredential = await this.createUserWithEmailAndPassword(
         email,
         password,
       );
-      await firestore()
-        .collection('users')
-        .doc(userCredential.user.uid)
-        .set({
-          fullname: fullname,
-          phone: phone,
-          profilePicture: profilePicture ?? '',
-          email: email.toLowerCase(),
-          role: role ?? '',
-          joinedAt: firestore.Timestamp.now(),
-        });
+      await this.setUserData(userCredential.user.uid, {
+        email: email.toLowerCase(),
+        phone: phone,
+        contentCreator: contentCreator,
+      });
 
       return true;
     } catch (error: any) {
       console.log(error);
       if (error.code === 'auth/email-already-in-use') {
-        throw Error('Email address is already in use!');
+        throw Error(EMAIL_ALREADY_EXISTS);
       }
 
       if (error.code === 'auth/invalid-email') {
-        throw Error('That email address is invalid!');
+        throw Error(EMAIL_INVALID);
+      }
+
+      return false;
+    }
+  }
+
+  static async signUpBusinessPeople({
+    email,
+    password,
+    phone,
+    businessPeople,
+  }: User) {
+    try {
+      if (!password) {
+        throw Error(PASSWORD_EMPTY);
+      }
+      const userCredential = await auth().createUserWithEmailAndPassword(
+        email,
+        password,
+      );
+      await this.setUserData(userCredential.user.uid, {
+        email: email.toLowerCase(),
+        phone: phone,
+        businessPeople: businessPeople,
+      });
+
+      return true;
+    } catch (error: any) {
+      console.log(error);
+      if (error.code === 'auth/email-already-in-use') {
+        throw Error(EMAIL_ALREADY_EXISTS);
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        throw Error(EMAIL_INVALID);
       }
 
       return false;
@@ -66,13 +167,19 @@ export class User {
       } else {
         console.log("User doesn't exist");
 
-        await firestore().collection('users').doc(userCredential.user.uid).set({
-          fullname: userCredential.user.displayName,
-          phone: 'phone',
-          profilePicture: userCredential.user.photoURL,
-          email: userCredential.user.email,
-          role: 'CC',
-          joinedAt: firestore.Timestamp.now(),
+        const user = userCredential.user;
+        const email = user.email;
+        const fullname = user.displayName;
+        const profilePicture = user.photoURL;
+        if (!email || !fullname || !profilePicture) {
+          throw Error(GOOGLE_ERROR);
+        }
+        await this.setUserData(user.uid, {
+          email: email,
+          businessPeople: {
+            fullname: fullname,
+            profilePicture: profilePicture,
+          },
         });
       }
 
@@ -92,14 +199,14 @@ export class User {
     } catch (error: any) {
       console.log('err: ' + error);
       if (error.code === 'auth/user-not-found') {
-        throw Error('User not found!');
+        throw Error(CREDENTIALS_INVALID);
       }
 
       if (error.code === 'auth/wrong-password') {
-        throw Error('Invalid password!');
+        throw Error(CREDENTIALS_INVALID);
       }
 
-      throw Error('Login failed!');
+      throw Error(LOGIN_FAILED);
       //   return false
     }
   }

@@ -1,8 +1,12 @@
-import {ColorValue} from 'react-native';
 import {ViewStyle} from 'react-native';
+import {hex2rgba} from '../utils/color';
+import {clamp} from '../utils/number';
 
-export const background = (color: ColorValue): ViewStyle => {
+export const background = (color: string, opacity?: number): ViewStyle => {
   return {
-    backgroundColor: color,
+    backgroundColor: hex2rgba({
+      hex: color,
+      alpha: opacity ? clamp(opacity, 0, 1) : undefined,
+    }),
   };
 };

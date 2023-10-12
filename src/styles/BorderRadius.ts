@@ -12,7 +12,8 @@ export type RadiusSizeType =
   | 'default'
   | 'medium'
   | 'large'
-  | 'xlarge';
+  | 'xlarge'
+  | 'max';
 
 type RadiusSize = {
   [key in RadiusSizeType]?: number;
@@ -42,6 +43,7 @@ export const radiusSize: RadiusSize = {
   medium: 16,
   large: 24,
   xlarge: 32,
+  max: 9999,
 };
 
 export const rounded = StyleSheet.create<RadiusStyles>(
