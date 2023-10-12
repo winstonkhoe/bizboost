@@ -29,8 +29,8 @@ export const AuthProvider = () => {
     <>
       <NavigationContainer>
         {!user ? <GuestNavigation /> : <AuthenticatedNavigation />}
+        <SwitchUserModalProvider />
       </NavigationContainer>
-      <SwitchUserModalProvider />
     </>
   );
 };

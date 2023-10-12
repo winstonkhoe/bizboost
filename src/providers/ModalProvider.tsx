@@ -56,14 +56,10 @@ export const SwitchUserModalProvider = () => {
             <View className="pt-2 pb-6" style={[flex.flexCol, gap.default]}>
               <AccountListCard
                 name={user?.businessPeople?.fullname || 'undefined'}
-                active={true}
+                active
                 role={activeRole}
               />
-              <AccountListCard
-                name="kodetime"
-                active={false}
-                role={UserRole.BusinessPeople}
-              />
+              <AccountListCard role={UserRole.ContentCreator} />
             </View>
           </HorizontalPadding>
         </BottomSheetView>
