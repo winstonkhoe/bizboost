@@ -1,11 +1,10 @@
-import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {createSlice} from '@reduxjs/toolkit';
-import {User, UserRole} from '../../model/User';
+import {User, UserRole, UserRoles} from '../../model/User';
 
 interface UserState {
   uid: string | null;
   user: User | null;
-  activeRole: UserRole;
+  activeRole: UserRoles;
 }
 
 const initialState = {
@@ -21,19 +20,19 @@ const userSlice = createSlice({
     setUser(state, action) {
       state.user = action.payload;
       if (action.payload?.contentCreator) {
-        state.activeRole = 'CC';
+        state.activeRole = UserRole.ContentCreator;
       } else if (action.payload?.businessPeople) {
-        state.activeRole = 'BP';
+        state.activeRole = UserRole.BusinessPeople;
       }
     },
     setUserUid(state, action) {
       state.uid = action.payload;
     },
     switchAccountToBusinessPeople(state) {
-      state.activeRole = 'BP';
+      state.activeRole = UserRole.BusinessPeople;
     },
     switchAccountToContentCreator(state) {
-      state.activeRole = 'CC';
+      state.activeRole = UserRole.ContentCreator;
     },
   },
 });

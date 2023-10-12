@@ -7,7 +7,7 @@ import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
-import { getDate } from '../utils/date';
+import {getDate} from '../utils/date';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   'Campaign Detail'

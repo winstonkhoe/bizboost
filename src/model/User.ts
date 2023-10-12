@@ -14,7 +14,17 @@ import {
 
 const USER_COLLECTION = 'users';
 
-export type UserRole = 'CC' | 'BP' | 'Admin' | undefined;
+export enum UserRole {
+  ContentCreator = 'CC',
+  BusinessPeople = 'BP',
+  Admin = 'Admin',
+}
+
+export type UserRoles =
+  | UserRole.ContentCreator
+  | UserRole.BusinessPeople
+  | UserRole.Admin
+  | undefined;
 
 type ContentCreator = {
   fullname: string;
