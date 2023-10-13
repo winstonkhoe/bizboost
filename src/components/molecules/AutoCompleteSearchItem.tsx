@@ -34,11 +34,15 @@ const AutoCompleteSearchItem = ({itemValue}: Props) => {
         {splittedItemValues?.map((splitItemValue: string, index: number) => {
           return (
             <>
-              <Text className="text-base tracking-wide font-bold">
+              <Text
+                key={`nst-${index}`}
+                className="text-base tracking-wide font-bold">
                 {splitItemValue}
               </Text>
               {index !== splittedItemValues.length - 1 && (
-                <Text className="text-base tracking-wide">{searchTerm}</Text>
+                <Text key={`st-${index}`} className="text-base tracking-wide">
+                  {searchTerm}
+                </Text>
               )}
             </>
           );
