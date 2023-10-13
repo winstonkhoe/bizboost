@@ -18,7 +18,7 @@ export const AuthButton = ({text, rounded: roundSize, ...props}: Props) => {
       style={[
         flex.flexRow,
         rounded[roundSize],
-        background(COLOR.blue[200], 1),
+        background(COLOR.blue[200], props.disabled ? 0.5 : 1),
       ]}>
       <Text className="font-bold text-base" style={[textColor(COLOR.white)]}>
         {text}
