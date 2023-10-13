@@ -15,7 +15,13 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {useUser} from '../hooks/user';
-import {User, UserRole, UserRoles} from '../model/User';
+import {
+  BusinessPeople,
+  ContentCreator,
+  User,
+  UserRole,
+  UserRoles,
+} from '../model/User';
 
 export const SwitchUserModalProvider = () => {
   const dispatch = useAppDispatch();
@@ -43,11 +49,17 @@ export const SwitchUserModalProvider = () => {
     ),
     [],
   );
-  const getUserName = (user: User, activeRole: UserRoles) => {
+  const getData = (
+    user: User | null,
+    activeRole: UserRoles,
+  ): ContentCreator | BusinessPeople | undefined => {
+    if (!user) {
+      return undefined;
+    }
     if (activeRole === UserRole.ContentCreator) {
-      return user?.contentCreator?.fullname;
+      return user?.contentCreator;
     } else if (activeRole === UserRole.BusinessPeople) {
-      return user?.businessPeople?.fullname;
+      return user?.businessPeople;
     }
     return undefined;
   };
@@ -70,16 +82,14 @@ export const SwitchUserModalProvider = () => {
         <HorizontalPadding>
           <View className="pt-2 pb-6" style={[flex.flexCol, gap.default]}>
             <AccountListCard
-              name={(user && getUserName(user, activeRole)) || 'undefined'}
+              data={getData(user, activeRole)}
               active
               role={activeRole}
             />
             <AccountListCard
-              name={
-                (user &&
-                  getAnotherRole(activeRole) &&
-                  getUserName(user, getAnotherRole(activeRole))) ||
-                'undefined'
+              data={
+                getAnotherRole(activeRole) &&
+                getData(user, getAnotherRole(activeRole))
               }
               role={getAnotherRole(activeRole)}
             />
