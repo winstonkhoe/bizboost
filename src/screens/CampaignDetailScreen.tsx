@@ -1,6 +1,9 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useState} from 'react';
-import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
+import {
+  AuthenticatedNavigation,
+  RootAuthenticatedNativeStackParamList,
+} from '../navigation/AuthenticatedNavigation';
 import {Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
@@ -9,8 +12,8 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {getDate} from '../utils/date';
 type Props = NativeStackScreenProps<
-  RootAuthenticatedStackParamList,
-  'Campaign Detail'
+  RootAuthenticatedNativeStackParamList,
+  AuthenticatedNavigation.CampaignDetail
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {

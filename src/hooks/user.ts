@@ -17,5 +17,5 @@ export const useUser = () => {
       User.getUserData(uid, updateUserState);
     }
   }, [user, uid, dispatch]);
-  return {user, activeRole};
+  return {uid, user, activeRole};
 };

@@ -3,15 +3,19 @@ import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {borderRadius, radiusSize, rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootAuthenticatedStackParamList} from '../../navigation/AuthenticatedNavigation';
 import {Campaign} from '../../model/Campaign';
 import {getDate} from '../../utils/date';
-type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'> & {
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  RootAuthenticatedNavigationStackProps,
+} from '../../navigation/AuthenticatedNavigation';
+type Props = {
   campaign: Campaign;
 };
 
-const OngoingCampaignCard = ({navigation, campaign}: Props) => {
+const OngoingCampaignCard = ({campaign}: Props) => {
+  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
   return (
     <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View
@@ -55,7 +59,7 @@ const OngoingCampaignCard = ({navigation, campaign}: Props) => {
               </Text>
               <Pressable
                 onPress={() =>
-                  navigation.navigate('Campaign Detail', {
+                  navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
                     campaignId: campaign.id,
                   })
                 }>

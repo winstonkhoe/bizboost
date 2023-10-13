@@ -12,6 +12,11 @@ import {useAppDispatch} from '../../redux/hooks';
 import {switchRole} from '../../redux/slices/userSlice';
 import {useNavigation} from '@react-navigation/native';
 import {closeModal} from '../../redux/slices/modalSlice';
+import {setRole} from '../../redux/slices/forms/createAdditionalAccountSlice';
+import {
+  AuthenticatedNavigation,
+  RootAuthenticatedNavigationStackProps,
+} from '../../navigation/AuthenticatedNavigation';
 
 interface Props {
   name?: string;
@@ -19,7 +24,7 @@ interface Props {
   role: UserRoles;
 }
 const AccountListCard = ({name, active = false, role}: Props) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
   const dispatch = useAppDispatch();
   const isValidUser = () => {
     return !!name;
@@ -27,8 +32,10 @@ const AccountListCard = ({name, active = false, role}: Props) => {
   const handlePress = () => {
     if (isValidUser()) {
       dispatch(switchRole(role));
+      dispatch(closeModal());
     } else {
-      navigation.navigate('Create Account', {role: role});
+      dispatch(setRole(role));
+      navigation.navigate(AuthenticatedNavigation.CreateAdditionalAccount);
       dispatch(closeModal());
     }
   };

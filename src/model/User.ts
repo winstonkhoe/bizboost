@@ -26,12 +26,12 @@ export type UserRoles =
   | UserRole.Admin
   | undefined;
 
-type ContentCreator = {
+export type ContentCreator = {
   fullname: string;
   profilePicture?: string;
 };
 
-type BusinessPeople = {
+export type BusinessPeople = {
   fullname: string;
   profilePicture?: string;
 };

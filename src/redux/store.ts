@@ -3,6 +3,7 @@ import modalReducer from './slices/modalSlice';
 import searchReducer from './slices/searchSlice';
 import userReducer from './slices/userSlice';
 import campaignReducer from './slices/campaignSlice';
+import createAdditionalAccountReducer from './slices/forms/createAdditionalAccountSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     search: searchReducer,
     user: userReducer,
     campaign: campaignReducer,
+    createAdditionalAccount: createAdditionalAccountReducer,
   },
 });
 
