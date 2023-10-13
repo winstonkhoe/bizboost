@@ -247,4 +247,10 @@ export class User {
       return false;
     }
   }
+
+  static signOut() {
+    auth()
+      .signOut()
+      .then(() => console.log('User signed out!'));
+  }
 }

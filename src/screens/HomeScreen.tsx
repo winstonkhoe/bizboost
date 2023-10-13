@@ -1,4 +1,4 @@
-import {View} from 'react-native';
+import {Button, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
@@ -8,8 +8,9 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
-import {Campaign} from '../model/Campaign';
+import {Campaign, CampaignType} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
+import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
 
 const HomeScreen = () => {
   const {campaigns} = useOngoingCampaign();
@@ -42,6 +43,29 @@ const HomeScreen = () => {
               </View>
             </HorizontalPadding>
           </View>
+          <Button
+            title="Test"
+            onPress={() => {
+              const campaign = new Campaign(
+                'Sn6HYcvx8YPnbjalnaLPSrh8PHf1',
+                'Test',
+                'lorem ipsum',
+                CampaignType.Public,
+                ['Bandung', 'Pontianak'],
+                [{name: 'Instagram', tasks: ['3 reels']}],
+                150000,
+                ['ganteng', 'cantik', 'tidak sombong'],
+                2,
+                'https://lh3.googleusercontent.com/p/AF1QipMvoZtSgC5aguviGyul1KfeSIR0w1HBROdlMmit=w1080-h608-p-no-v0',
+                new Date().getSeconds(),
+                new Date('12-12-2023').getSeconds(),
+                new Date().getSeconds(),
+                ['harus begini', 'ga boleh begitu'],
+              );
+
+              campaign.insert().then(v => console.log(`Insert campaign: ${v}`));
+            }}
+          />
         </ScrollView>
       </View>
     </PageWithSearchBar>

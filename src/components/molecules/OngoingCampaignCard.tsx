@@ -29,7 +29,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
             }),
           ]}>
           <Text className="font-bold text-white text-xs">
-            {getDate(campaign.end).toLocaleDateString('en-US', {
+            {getDate(campaign.start).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',
               day: 'numeric',

@@ -14,6 +14,7 @@ export const useUser = () => {
       }
     };
     if (!user && uid) {
+      console.log('uid: ' + uid);
       User.getUserData(uid, updateUserState);
     }
   }, [user, uid, dispatch]);

@@ -14,7 +14,7 @@ import {NavigationProp} from '@react-navigation/native';
 export enum AuthenticatedNavigation {
   Main = 'Main',
   Home = 'Home',
-  CampaignDetail = 'CampaignDetail',
+  CampaignDetail = 'Campaign Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
 }
 

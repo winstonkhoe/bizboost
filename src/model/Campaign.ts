@@ -169,12 +169,22 @@ export class Campaign {
       return campaign;
     } catch (error) {}
     throw Error('Error!');
-    // .then(documentSnapshot => {
-    //   console.log('User exists: ', documentSnapshot.exists);
+  }
 
-    //   if (documentSnapshot.exists) {
-    //     console.log('User data: ', documentSnapshot.data());
-    //   }
-    // });
+  async insert() {
+    try {
+      const data = {
+        ...this,
+        userId: User.getDocumentReference(this.userId),
+        start: new Date(),
+        end: new Date('2023-12-12'),
+        createdAt: new Date(),
+      };
+      await Campaign.getCampaignCollections().add(data);
+      return true;
+    } catch (error) {
+      console.log(error);
+    }
+    throw Error('Error!');
   }
 }
