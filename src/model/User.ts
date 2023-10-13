@@ -3,14 +3,9 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {
-  CREDENTIALS_INVALID,
-  EMAIL_ALREADY_EXISTS,
-  EMAIL_INVALID,
-  GOOGLE_ERROR,
-  LOGIN_FAILED,
-  PASSWORD_EMPTY,
-} from '../constants/errorMessage';
+import {ErrorMessage} from '../constants/errorMessage';
+import {handleError} from '../utils/error';
+import {BaseModel} from './BaseModel';
 
 const USER_COLLECTION = 'users';
 
@@ -36,13 +31,54 @@ export type BusinessPeople = {
   profilePicture?: string;
 };
 
-export class User {
-  email: string = '';
+export class User extends BaseModel {
+  id?: string;
+  email?: string;
   password?: string;
   phone?: string;
   contentCreator?: ContentCreator;
   businessPeople?: BusinessPeople;
   joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
+
+  constructor({
+    id,
+    email,
+    password,
+    phone,
+    contentCreator,
+    businessPeople,
+    joinedAt,
+  }: Partial<User>) {
+    super();
+    this.id = id;
+    this.email = email;
+    this.password = password;
+    this.phone = phone;
+    this.contentCreator = contentCreator;
+    this.businessPeople = businessPeople;
+    this.joinedAt = joinedAt;
+    // Add your non-static methods here
+  }
+
+  private static fromSnapshot(
+    doc:
+      | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
+      | FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
+  ): User {
+    const data = doc.data();
+    if (data && doc.exists) {
+      return new User({
+        id: doc.id,
+        email: data?.email,
+        phone: data?.phone,
+        contentCreator: data?.contentCreator,
+        businessPeople: data?.businessPeople,
+        joinedAt: data?.joinedAt?.seconds,
+      });
+    }
+
+    throw Error("Error, document doesn't exist!");
+  }
 
   static getDocumentReference(
     documentId: string,
@@ -79,18 +115,39 @@ export class User {
         if (documentSnapshot.exists) {
           const userData = documentSnapshot.data();
           console.log('User data: ', userData);
-          const user: User = {
+          const user = new User({
             email: userData?.email,
             phone: userData?.phone,
             contentCreator: userData?.contentCreator,
             businessPeople: userData?.businessPeople,
             joinedAt: userData?.joinedAt?.seconds,
-          };
+          });
           callback(user);
         } else {
           callback(null);
         }
       });
+  }
+
+  static getUserDataReactive(
+    documentId: string,
+    callback: (user: User | null, unsubscribe: () => void) => void,
+  ): void {
+    try {
+      const subscriber = this.getDocumentReference(documentId).onSnapshot(
+        (
+          documentSnapshot: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
+        ) => {
+          const user = this.fromSnapshot(documentSnapshot);
+          callback(user, subscriber);
+        },
+        (error: Error) => {
+          throw Error(error.message);
+        },
+      );
+    } catch (error) {
+      throw Error('Error!');
+    }
   }
 
   static async signUpContentCreator({
@@ -100,29 +157,26 @@ export class User {
     contentCreator,
   }: User) {
     try {
-      if (!password) {
-        throw Error(PASSWORD_EMPTY);
+      if (!password || !email) {
+        throw Error(ErrorMessage.MISSING_FIELDS);
       }
       const userCredential = await this.createUserWithEmailAndPassword(
         email,
         password,
       );
-      await this.setUserData(userCredential.user.uid, {
-        email: email.toLowerCase(),
-        phone: phone,
-        contentCreator: contentCreator,
-      });
+      await this.setUserData(
+        userCredential.user.uid,
+        new User({
+          email: email.toLowerCase(),
+          phone: phone,
+          contentCreator: contentCreator,
+        }),
+      );
 
       return true;
     } catch (error: any) {
       console.log(error);
-      if (error.code === 'auth/email-already-in-use') {
-        throw Error(EMAIL_ALREADY_EXISTS);
-      }
-
-      if (error.code === 'auth/invalid-email') {
-        throw Error(EMAIL_INVALID);
-      }
+      handleError(error.code);
 
       return false;
     }
@@ -135,29 +189,26 @@ export class User {
     businessPeople,
   }: User) {
     try {
-      if (!password) {
-        throw Error(PASSWORD_EMPTY);
+      if (!password || !email) {
+        throw Error(ErrorMessage.MISSING_FIELDS);
       }
       const userCredential = await auth().createUserWithEmailAndPassword(
         email,
         password,
       );
-      await this.setUserData(userCredential.user.uid, {
-        email: email.toLowerCase(),
-        phone: phone,
-        businessPeople: businessPeople,
-      });
+      await this.setUserData(
+        userCredential.user.uid,
+        new User({
+          email: email.toLowerCase(),
+          phone: phone,
+          businessPeople: businessPeople,
+        }),
+      );
 
       return true;
     } catch (error: any) {
       console.log(error);
-      if (error.code === 'auth/email-already-in-use') {
-        throw Error(EMAIL_ALREADY_EXISTS);
-      }
-
-      if (error.code === 'auth/invalid-email') {
-        throw Error(EMAIL_INVALID);
-      }
+      handleError(error.code);
 
       return false;
     }
@@ -182,21 +233,24 @@ export class User {
         const fullname = user.displayName;
         const profilePicture = user.photoURL;
         if (!email || !fullname || !profilePicture) {
-          throw Error(GOOGLE_ERROR);
+          throw Error(ErrorMessage.GOOGLE_ERROR);
         }
-        await this.setUserData(user.uid, {
-          email: email,
-          businessPeople: {
-            fullname: fullname,
-            profilePicture: profilePicture,
-          },
-        });
+        await this.setUserData(
+          user.uid,
+          new User({
+            email: email,
+            businessPeople: {
+              fullname: fullname,
+              profilePicture: profilePicture,
+            },
+          }),
+        );
       }
 
       return true;
     } catch (error: any) {
       console.log(error);
-
+      handleError(error.code);
       return false;
     }
   }
@@ -208,16 +262,7 @@ export class User {
       return true;
     } catch (error: any) {
       console.log('err: ' + error);
-      if (error.code === 'auth/user-not-found') {
-        throw Error(CREDENTIALS_INVALID);
-      }
-
-      if (error.code === 'auth/wrong-password') {
-        throw Error(CREDENTIALS_INVALID);
-      }
-
-      throw Error(LOGIN_FAILED);
-      //   return false
+      handleError(error.code, ErrorMessage.LOGIN_FAILED);
     }
   }
 
