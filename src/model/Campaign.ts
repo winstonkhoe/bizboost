@@ -2,6 +2,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {User} from './User';
+import {BaseModel} from './BaseModel';
 
 export type CampaignPlatform = {name: string; tasks: string[]};
 
@@ -14,7 +15,7 @@ export type CampaignTypes = CampaignType.Public | CampaignType.Private;
 
 const CAMPAIGN_COLLECTION = 'campaigns';
 
-export class Campaign {
+export class Campaign extends BaseModel {
   id: string = '';
   userId: string;
   title: string;
@@ -48,6 +49,7 @@ export class Campaign {
     importantInformation: string[],
     id: string = '',
   ) {
+    super();
     this.userId = userId;
     this.title = title;
     this.description = description;
