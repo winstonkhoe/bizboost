@@ -8,13 +8,14 @@ export const useUser = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    const updateUserState = (userCallback: User | null) => {
-      if (userCallback) {
-        dispatch(setUser(userCallback));
+    const updateUserState = (u: User | null, unsubscribe: () => void) => {
+      if (u) {
+        dispatch(setUser(u.toJSON()));
+        return unsubscribe;
       }
     };
     if (!user && uid) {
-      User.getUserData(uid, updateUserState);
+      User.getUserDataReactive(uid, updateUserState);
     }
   }, [user, uid, dispatch]);
   return {uid, user, activeRole};
