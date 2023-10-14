@@ -9,82 +9,16 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation'; // temporary
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {useUser} from '../hooks/user';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
 const ChatScreen = () => {
   const [isWidgetVisible, setIsWidgetVisible] = useState(false); // State to track widget visibility
+  const [chatMessages, setChatMessages] = useState([]);
+  const {user, activeRole} = useUser();
 
-  // Sample chat messages data
-  // ========!Delete this before use!========
-  const sample = [
-    {
-      message:
-        'Hi there, thank you for considering me for your campaign. I’m excited to work with you and create some amazing content.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message: 'Hi, we’re excited to work with you too.',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message: 'Can you give us an idea of your rates for this campaign?',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message:
-        'Sure, my standard rate for a campaign like this is $5,000. This includes the creation of 5 pieces of content, each with a unique concept and execution.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'That sounds reasonable. However, our budget for this campaign is $4,000. Is there any room for negotiation?',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message:
-        'I understand that budgets can be tight. I’m willing to work with you to find a solution that works for both of us. How about we reduce the number of content pieces to 4, and I can offer you a rate of $4,500?',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'That sounds like a fair compromise. Let’s move forward with that.',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message:
-        'Great! I’m looking forward to working with you on this campaign.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'Great! I’m looking forward to working with you on this campaign.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'Great! I’m looking forward to working with you on this campaign.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-  ];
-
-  // Initialize chatMessages with the sample data
-  const [chatMessages, setChatMessages] = useState(sample);
-  // ========!!========
-
-  // const [chatMessages, setChatMessages] = useState([
-  //   // Your sample chat messages data
-  // ]);
+  console.log(user);
 
   const scrollViewRef = useRef();
 
@@ -113,24 +47,11 @@ const ChatScreen = () => {
     console.log(`Opening widget: ${isWidgetVisible}`);
   };
 
-  // Handle image upload
-  const handleImageUpload = type => {
-    let options = {
-      mediaType: type,
-      maxWidth: 300,
-      maxHeight: 550,
-    };
-
-    launchImageLibrary(options, response => {
-      if (response.didCancel) {
-        console.log('Image picker was canceled');
-      } else if (response.errorCode) {
-        console.log('Image picker error: ', response.errorMessage);
-      } else {
-        // Upload the selected image to your server or perform any other action
-        console.log('Selected image:', response);
-      }
-    });
+  // Image launcher options
+  let options = {
+    mediaType: 'photo',
+    maxWidth: 300,
+    maxHeight: 550,
   };
 
   return (
@@ -174,7 +95,7 @@ const ChatScreen = () => {
           {/* Chat Widget */}
           {isWidgetVisible ? (
             <View className="w-full">
-              <ChatWidget onImageUpload={handleImageUpload} />
+              <ChatWidget options={options} />
             </View>
           ) : null}
         </View>
