@@ -8,13 +8,10 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootAuthenticatedStackParamList} from '../navigation/AuthenticatedNavigation';
 import {Campaign} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
 
-type Props = NativeStackScreenProps<RootAuthenticatedStackParamList, 'Home'>;
-const HomeScreen = (props: Props) => {
+const HomeScreen = () => {
   const {campaigns} = useOngoingCampaign();
 
   return (
@@ -40,12 +37,7 @@ const HomeScreen = (props: Props) => {
             <HorizontalPadding>
               <View style={[flex.flexCol, gap.medium]}>
                 {campaigns.map((c: Campaign, index: number) => (
-                  <OngoingCampaignCard
-                    campaign={c}
-                    navigation={props.navigation}
-                    route={props.route}
-                    key={index}
-                  />
+                  <OngoingCampaignCard campaign={c} key={index} />
                 ))}
               </View>
             </HorizontalPadding>

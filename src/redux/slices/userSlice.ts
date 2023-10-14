@@ -1,4 +1,4 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createAction, createSlice} from '@reduxjs/toolkit';
 import {User, UserRole, UserRoles} from '../../model/User';
 
 interface UserState {
@@ -12,6 +12,8 @@ const initialState = {
   user: null,
   activeRole: undefined,
 } as UserState;
+
+export const switchRole = createAction<UserRoles>('switchRole');
 
 const userSlice = createSlice({
   name: 'user',
@@ -28,19 +30,13 @@ const userSlice = createSlice({
     setUserUid(state, action) {
       state.uid = action.payload;
     },
-    switchAccountToBusinessPeople(state) {
-      state.activeRole = UserRole.BusinessPeople;
-    },
-    switchAccountToContentCreator(state) {
-      state.activeRole = UserRole.ContentCreator;
-    },
+  },
+  extraReducers(builder) {
+    builder.addCase(switchRole, (state, action) => {
+      state.activeRole = action.payload;
+    });
   },
 });
 
-export const {
-  setUser,
-  setUserUid,
-  switchAccountToBusinessPeople,
-  switchAccountToContentCreator,
-} = userSlice.actions;
+export const {setUser, setUserUid} = userSlice.actions;
 export default userSlice.reducer;

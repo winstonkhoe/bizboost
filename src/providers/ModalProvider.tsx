@@ -15,7 +15,13 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {useUser} from '../hooks/user';
-import {UserRole} from '../model/User';
+import {
+  BusinessPeople,
+  ContentCreator,
+  User,
+  UserRole,
+  UserRoles,
+} from '../model/User';
 
 export const SwitchUserModalProvider = () => {
   const dispatch = useAppDispatch();
@@ -43,31 +49,53 @@ export const SwitchUserModalProvider = () => {
     ),
     [],
   );
+  const getData = (
+    user: User | null,
+    activeRole: UserRoles,
+  ): ContentCreator | BusinessPeople | undefined => {
+    if (!user) {
+      return undefined;
+    }
+    if (activeRole === UserRole.ContentCreator) {
+      return user?.contentCreator;
+    } else if (activeRole === UserRole.BusinessPeople) {
+      return user?.businessPeople;
+    }
+    return undefined;
+  };
+  const getAnotherRole = (role: UserRoles) => {
+    if (role === UserRole.ContentCreator) {
+      return UserRole.BusinessPeople;
+    } else if (role === UserRole.BusinessPeople) {
+      return UserRole.ContentCreator;
+    }
+    return undefined;
+  };
   return (
-    <BottomSheetModalProvider>
-      <BottomSheetModal
-        ref={bottomSheetModalRef}
-        onDismiss={() => dispatch(closeModal())}
-        backdropComponent={renderBackdrop}
-        enableDynamicSizing
-        enablePanDownToClose>
-        <BottomSheetView>
-          <HorizontalPadding>
-            <View className="pt-2 pb-6" style={[flex.flexCol, gap.default]}>
-              <AccountListCard
-                name={user?.businessPeople?.fullname || 'undefined'}
-                active={true}
-                role={activeRole}
-              />
-              <AccountListCard
-                name="kodetime"
-                active={false}
-                role={UserRole.BusinessPeople}
-              />
-            </View>
-          </HorizontalPadding>
-        </BottomSheetView>
-      </BottomSheetModal>
-    </BottomSheetModalProvider>
+    <BottomSheetModal
+      ref={bottomSheetModalRef}
+      onDismiss={() => dispatch(closeModal())}
+      backdropComponent={renderBackdrop}
+      enableDynamicSizing
+      enablePanDownToClose>
+      <BottomSheetView>
+        <HorizontalPadding>
+          <View className="pt-2 pb-6" style={[flex.flexCol, gap.default]}>
+            <AccountListCard
+              data={getData(user, activeRole)}
+              active
+              role={activeRole}
+            />
+            <AccountListCard
+              data={
+                getAnotherRole(activeRole) &&
+                getData(user, getAnotherRole(activeRole))
+              }
+              role={getAnotherRole(activeRole)}
+            />
+          </View>
+        </HorizontalPadding>
+      </BottomSheetView>
+    </BottomSheetModal>
   );
 };

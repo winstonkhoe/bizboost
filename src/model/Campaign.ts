@@ -2,6 +2,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {User} from './User';
+import {BaseModel} from './BaseModel';
 
 export type CampaignPlatform = {name: string; tasks: string[]};
 
@@ -14,7 +15,7 @@ export type CampaignTypes = CampaignType.Public | CampaignType.Private;
 
 const CAMPAIGN_COLLECTION = 'campaigns';
 
-export class Campaign {
+export class Campaign extends BaseModel {
   id: string = '';
   userId: string;
   title: string;
@@ -31,38 +32,39 @@ export class Campaign {
   createdAt: FirebaseFirestoreTypes.Timestamp | number;
   importantInformation: string[];
 
-  constructor(
-    userId: string,
-    title: string,
-    description: string,
-    type: CampaignTypes,
-    locations: string[],
-    platforms: CampaignPlatform[],
-    fee: number,
-    criterias: string[],
-    slot: number,
-    image: string,
-    start: FirebaseFirestoreTypes.Timestamp | number,
-    end: FirebaseFirestoreTypes.Timestamp | number,
-    createdAt: FirebaseFirestoreTypes.Timestamp | number,
-    importantInformation: string[],
-    id: string = '',
-  ) {
-    this.userId = userId;
-    this.title = title;
-    this.description = description;
-    this.type = type;
-    this.locations = locations;
-    this.platforms = platforms;
-    this.fee = fee;
-    this.criterias = criterias;
-    this.slot = slot;
-    this.image = image;
-    this.start = start;
-    this.end = end;
-    this.createdAt = createdAt;
-    this.importantInformation = importantInformation;
-    this.id = id;
+  constructor({
+    id,
+    userId,
+    title,
+    description,
+    type,
+    locations,
+    platforms,
+    fee,
+    criterias,
+    slot,
+    image,
+    start,
+    end,
+    createdAt,
+    importantInformation,
+  }: Partial<Campaign>) {
+    super();
+    this.id = id!!;
+    this.userId = userId!!;
+    this.title = title!!;
+    this.description = description!!;
+    this.type = type!!;
+    this.locations = locations!!;
+    this.platforms = platforms!!;
+    this.fee = fee!!;
+    this.criterias = criterias!!;
+    this.slot = slot!!;
+    this.image = image!!;
+    this.start = start!!;
+    this.end = end!!;
+    this.createdAt = createdAt!!;
+    this.importantInformation = importantInformation!!;
   }
 
   private static fromSnapshot(
@@ -72,9 +74,9 @@ export class Campaign {
   ): Campaign {
     const data = doc.data();
     if (data && doc.exists) {
-      return {
+      return new Campaign({
         id: doc.id,
-        userId: data.userId?.id,
+        userId: data.userId.id,
         title: data.title,
         description: data.description,
         type: data.type,
@@ -88,7 +90,7 @@ export class Campaign {
         end: data.end?.seconds,
         createdAt: data.createdAt?.seconds,
         importantInformation: data.importantInformation,
-      } as Campaign;
+      });
     }
 
     throw Error("Error, document doesn't exist!");

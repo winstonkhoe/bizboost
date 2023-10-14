@@ -13,7 +13,9 @@ export const useOngoingCampaign = () => {
       Campaign.getUserCampaignsReactive(
         uid,
         (campaigns: Campaign[], unsubscribe: () => void) => {
-          dispatch(setUserCampaigns(campaigns));
+          dispatch(
+            setUserCampaigns(campaigns.map(campaign => campaign.toJSON())),
+          );
           return unsubscribe;
         },
       );
