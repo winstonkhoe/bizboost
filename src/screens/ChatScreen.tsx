@@ -48,11 +48,6 @@ const ChatScreen = () => {
   };
 
   // Image launcher options
-  let options = {
-    mediaType: 'photo',
-    maxWidth: 300,
-    maxHeight: 550,
-  };
 
   return (
     <SafeAreaContainer>
@@ -95,7 +90,13 @@ const ChatScreen = () => {
           {/* Chat Widget */}
           {isWidgetVisible ? (
             <View className="w-full">
-              <ChatWidget options={options} />
+              <ChatWidget
+                options={{
+                  width: 300,
+                  height: 400,
+                  cropping: true,
+                }}
+              />
             </View>
           ) : null}
         </View>

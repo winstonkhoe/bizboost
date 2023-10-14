@@ -12,13 +12,10 @@ import Reanimated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {
-  ImageLibraryOptions,
-  launchImageLibrary,
-} from 'react-native-image-picker';
 import {flex} from '../../styles/Flex';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {AuthButton} from './Button';
+import ImagePicker, {Options} from 'react-native-image-crop-picker';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -26,7 +23,7 @@ interface Props extends UseControllerProps {
 }
 
 interface MediaUploaderProps {
-  options: ImageLibraryOptions;
+  options: Options;
   children?: React.ReactNode;
 }
 
@@ -140,12 +137,8 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   children,
 }) => {
   const handleImageUpload = () => {
-    launchImageLibrary(options, response => {
-      if (response.didCancel) {
-        console.log('Image picker was canceled');
-      } else if (response.errorCode) {
-        console.log('Image picker error: ', response.errorMessage);
-      }
+    ImagePicker.openPicker(options).then(image => {
+      console.log(image);
     });
   };
 
