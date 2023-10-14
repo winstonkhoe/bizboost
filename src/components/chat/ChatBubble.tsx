@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, Image} from 'react-native';
 
-const ChatBubble = ({message, isSender, profilePic}) => {
+const ChatBubble = ({message, isSender, profilePic, isImage}) => {
   return (
     <View
       className="flex w-full"
@@ -13,7 +13,11 @@ const ChatBubble = ({message, isSender, profilePic}) => {
           borderRadius: 10,
           padding: 10,
         }}>
-        <Text style={{color: 'black'}}>{message}</Text>
+        {isImage ? (
+          <Image source={{uri: message}} style={{width: 150, height: 150}} />
+        ) : (
+          <Text style={{color: 'black'}}>{message}</Text>
+        )}
       </View>
     </View>
   );

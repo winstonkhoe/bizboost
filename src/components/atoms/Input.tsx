@@ -14,6 +14,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import {
   ImageLibraryOptions,
+  ImagePickerResponse,
   launchImageLibrary,
 } from 'react-native-image-picker';
 import {flex} from '../../styles/Flex';
@@ -27,6 +28,7 @@ interface Props extends UseControllerProps {
 
 interface MediaUploaderProps {
   options: ImageLibraryOptions;
+  onUploadComplete: (response: ImagePickerResponse) => void;
   children?: React.ReactNode;
 }
 
@@ -137,6 +139,7 @@ export const CustomTextInput = ({
 
 export const MediaUploader: React.FC<MediaUploaderProps> = ({
   options,
+  onUploadComplete,
   children,
 }) => {
   const handleImageUpload = () => {
@@ -145,6 +148,8 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
         console.log('Image picker was canceled');
       } else if (response.errorCode) {
         console.log('Image picker error: ', response.errorMessage);
+      } else {
+        onUploadComplete(response);
       }
     });
   };

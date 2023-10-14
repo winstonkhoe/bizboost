@@ -15,7 +15,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
 const ChatScreen = () => {
   const [isWidgetVisible, setIsWidgetVisible] = useState(false); // State to track widget visibility
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
   const {user, activeRole} = useUser();
 
   console.log(user);
@@ -25,20 +25,22 @@ const ChatScreen = () => {
   // Handle sending a message
   const handleSendPress = message => {
     // Add the new message to the chatMessages state
-    const newMessage = {
-      message,
-      isSender: true, // Assuming the sender is the user
-      profilePic: 'user_profile_url',
-    };
-    setChatMessages([...chatMessages, newMessage]);
+    if (message !== '') {
+      const newMessage = {
+        message,
+        isSender: true,
+        profilePic: 'user_profile_url',
+      };
+      setChatMessages([...chatMessages, newMessage]);
 
-    // Scroll to the end of the ScrollView
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({animated: true});
+      // Scroll to the end of the ScrollView
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({animated: true});
+      }
+
+      // Clear the input field
+      console.log(`Sending message: ${message}`);
     }
-
-    // Clear the input field
-    console.log(`Sending message: ${message}`);
   };
 
   // Handle opening the widget
@@ -52,6 +54,27 @@ const ChatScreen = () => {
     mediaType: 'photo',
     maxWidth: 300,
     maxHeight: 550,
+  };
+
+  const handleImageUpload = response => {
+    console.log(response);
+    const imageUrl = response.uri; // Assuming the image URI is stored in response.uri
+
+    // Create a new message with the image URL
+    const newMessage = {
+      message: imageUrl,
+      isSender: true,
+      profilePic: 'user_profile_url',
+      isImage: true,
+    };
+
+    // Add the new message to the chatMessages state
+    setChatMessages([...chatMessages, newMessage]);
+
+    // Scroll to the end of the ScrollView
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({animated: true});
+    }
   };
 
   return (
@@ -95,7 +118,10 @@ const ChatScreen = () => {
           {/* Chat Widget */}
           {isWidgetVisible ? (
             <View className="w-full">
-              <ChatWidget options={options} />
+              <ChatWidget
+                options={options}
+                handleImageUpload={handleImageUpload}
+              />
             </View>
           ) : null}
         </View>
