@@ -17,6 +17,7 @@ export enum AuthenticatedNavigation {
   Home = 'Home',
   CampaignDetail = 'CampaignDetail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
+  Chat = 'Chat',
 }
 
 export type RootAuthenticatedStackParamList = {
@@ -26,7 +27,7 @@ export type RootAuthenticatedStackParamList = {
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
 
   // 'Campaign Detail': {campaign: Campaign};
-  Chat: undefined;
+  [AuthenticatedNavigation.Chat]: undefined;
 };
 
 export type RootAuthenticatedNavigationStackProps =
@@ -86,6 +87,10 @@ const AuthenticatedNavigator = () => {
           name={AuthenticatedNavigation.Main}
           component={TabNavigation}
           options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.Chat}
+          component={ChatScreen}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CampaignDetail}

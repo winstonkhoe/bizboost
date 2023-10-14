@@ -12,10 +12,22 @@ import Reanimated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import {
+  ImageLibraryOptions,
+  launchImageLibrary,
+} from 'react-native-image-picker';
+import {flex} from '../../styles/Flex';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import {AuthButton} from './Button';
 
 interface Props extends UseControllerProps {
   label: string;
   placeholder?: string;
+}
+
+interface MediaUploaderProps {
+  options: ImageLibraryOptions;
+  children?: React.ReactNode;
 }
 
 export const CustomTextInput = ({
@@ -120,5 +132,28 @@ export const CustomTextInput = ({
         </Text>
       )}
     </View>
+  );
+};
+
+export const MediaUploader: React.FC<MediaUploaderProps> = ({
+  options,
+  children,
+}) => {
+  const handleImageUpload = () => {
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('Image picker was canceled');
+      } else if (response.errorCode) {
+        console.log('Image picker error: ', response.errorMessage);
+      }
+    });
+  };
+
+  return (
+    <TouchableOpacity onPress={handleImageUpload}>
+      <View style={[flex.flexRow]} className="items-center">
+        {children || <AuthButton text="Upload image" rounded={'small'} />}
+      </View>
+    </TouchableOpacity>
   );
 };

@@ -3,7 +3,7 @@ import {View, Text, Pressable} from 'react-native';
 import PhotosIcon from '../../assets/vectors/photos.svg';
 import MakeOfferIcon from '../../assets/vectors/make-offer.svg';
 import {gap} from '../../styles/Gap';
-import ImageLibraryLauncher from '../atoms/ImageLibraryLauncher';
+import {MediaUploader} from '../atoms/Input';
 import {flex} from '../../styles/Flex';
 
 const ChatWidget = ({options}) => {
@@ -17,17 +17,15 @@ const ChatWidget = ({options}) => {
       className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center"
       style={gap.default}>
       {/* Send Photo Button */}
-      <ImageLibraryLauncher
-        options={options}
-        icon={
-          <View style={[flex.flexCol]} className="justify-center items-center">
-            <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
-              <PhotosIcon width={30} height={30} />
-            </View>
-            <Text>Photos</Text>
+      <MediaUploader options={options}>
+        <View style={[flex.flexCol]} className="justify-center items-center">
+          <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
+            <PhotosIcon width={30} height={30} />
           </View>
-        }
-      />
+          <Text>Photos</Text>
+        </View>
+      </MediaUploader>
+
       {/* Make Offer Button */}
       <Pressable
         onPress={onMakeOfferPress}
