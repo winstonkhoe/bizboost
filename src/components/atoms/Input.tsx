@@ -138,6 +138,7 @@ interface MediaUploaderProps {
 
 export const MediaUploader = ({
   options,
+  onUploadComplete,
   children,
   callback,
 }: MediaUploaderProps) => {

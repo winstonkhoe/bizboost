@@ -34,20 +34,22 @@ const ChatScreen = () => {
   // Handle sending a message
   const handleSendPress = (message: string) => {
     // Add the new message to the chatMessages state
-    const newMessage = {
-      message,
-      isSender: true, // Assuming the sender is the user
-      profilePic: 'user_profile_url',
-    };
-    setChatMessages([...chatMessages, newMessage]);
+    if (message !== '') {
+      const newMessage = {
+        message,
+        isSender: true,
+        profilePic: 'user_profile_url',
+      };
+      setChatMessages([...chatMessages, newMessage]);
 
-    // Scroll to the end of the ScrollView
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({animated: true});
+      // Scroll to the end of the ScrollView
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({animated: true});
+      }
+
+      // Clear the input field
+      console.log(`Sending message: ${message}`);
     }
-
-    // Clear the input field
-    console.log(`Sending message: ${message}`);
   };
 
   // Handle opening the widget
