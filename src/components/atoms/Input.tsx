@@ -15,16 +15,14 @@ import Reanimated, {
 import {flex} from '../../styles/Flex';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {AuthButton} from './Button';
-import ImagePicker, {Options} from 'react-native-image-crop-picker';
+import ImagePicker, {
+  Options,
+  ImageOrVideo,
+} from 'react-native-image-crop-picker';
 
 interface Props extends UseControllerProps {
   label: string;
   placeholder?: string;
-}
-
-interface MediaUploaderProps {
-  options: Options;
-  children?: React.ReactNode;
 }
 
 export const CustomTextInput = ({
@@ -132,14 +130,25 @@ export const CustomTextInput = ({
   );
 };
 
-export const MediaUploader: React.FC<MediaUploaderProps> = ({
+interface MediaUploaderProps {
+  options: Options;
+  children?: React.ReactNode;
+  callback: (media: ImageOrVideo) => void;
+}
+
+export const MediaUploader = ({
   options,
   children,
-}) => {
+  callback,
+}: MediaUploaderProps) => {
   const handleImageUpload = () => {
-    ImagePicker.openPicker(options).then(image => {
-      console.log(image);
-    });
+    ImagePicker.openPicker(options)
+      .then((media: ImageOrVideo) => {
+        callback(media);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   };
 
   return (
