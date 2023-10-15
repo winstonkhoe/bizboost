@@ -5,7 +5,12 @@ import BackNav from '../../assets/vectors/chevron-left.svg';
 import {gap} from '../../styles/Gap';
 import {COLOR} from '../../styles/Color';
 
-const ChatHeader = ({recipientName, lastOnline}) => {
+interface Props {
+  recipientName: string;
+  lastOnline: string;
+}
+
+const ChatHeader = ({recipientName, lastOnline}: Props) => {
   const navigation = useNavigation();
 
   const handleBackButtonPress = () => {
