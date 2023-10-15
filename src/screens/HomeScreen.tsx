@@ -11,8 +11,15 @@ import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
 import {Campaign, CampaignType} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
 import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  RootAuthenticatedNavigationStackProps,
+} from '../navigation/AuthenticatedNavigation';
 
 const HomeScreen = () => {
+  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+
   const {campaigns} = useOngoingCampaign();
 
   return (
@@ -43,7 +50,7 @@ const HomeScreen = () => {
               </View>
             </HorizontalPadding>
           </View>
-          <Button
+          {/* <Button
             title="Test"
             onPress={() => {
               const campaign = new Campaign(
@@ -65,6 +72,13 @@ const HomeScreen = () => {
 
               campaign.insert().then(v => console.log(`Insert campaign: ${v}`));
             }}
+          /> */}
+
+          <Button
+            title="Create Campaign (Temp)"
+            onPress={() =>
+              navigation.navigate(AuthenticatedNavigation.CreateCampaign)
+            }
           />
         </ScrollView>
       </View>

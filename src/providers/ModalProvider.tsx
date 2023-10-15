@@ -70,16 +70,15 @@ export const SwitchUserModalProvider = () => {
         <HorizontalPadding>
           <View className="pt-2 pb-6" style={[flex.flexCol, gap.default]}>
             <AccountListCard
-              name={(user && getUserName(user, activeRole)) || 'undefined'}
+              name={user && getUserName(user, activeRole)}
               active
               role={activeRole}
             />
             <AccountListCard
               name={
-                (user &&
-                  getAnotherRole(activeRole) &&
-                  getUserName(user, getAnotherRole(activeRole))) ||
-                'undefined'
+                user &&
+                getAnotherRole(activeRole) &&
+                getUserName(user, getAnotherRole(activeRole))
               }
               role={getAnotherRole(activeRole)}
             />

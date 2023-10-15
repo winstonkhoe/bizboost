@@ -10,12 +10,14 @@ import {
   CreateAccountScreen_2,
 } from '../screens/CreateAccountScreen';
 import {NavigationProp} from '@react-navigation/native';
+import CreateCampaignScreen from '../screens/CreateCampaignScreen';
 
 export enum AuthenticatedNavigation {
   Main = 'Main',
   Home = 'Home',
   CampaignDetail = 'Campaign Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
+  CreateCampaign = 'Create Campaign',
 }
 
 export type RootAuthenticatedStackParamList = {
@@ -23,6 +25,7 @@ export type RootAuthenticatedStackParamList = {
   [AuthenticatedNavigation.Home]: undefined;
   [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
+  [AuthenticatedNavigation.CreateCampaign]: undefined;
 
   // 'Campaign Detail': {campaign: Campaign};
 };
@@ -88,6 +91,10 @@ const AuthenticatedNavigator = () => {
         <Stack.Screen
           name={AuthenticatedNavigation.CampaignDetail}
           component={CampaignDetailScreen}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.CreateCampaign}
+          component={CreateCampaignScreen}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CreateAdditionalAccount}
