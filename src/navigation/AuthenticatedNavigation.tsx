@@ -3,7 +3,7 @@ import * as React from 'react';
 import {TransitionPresets, createStackNavigator} from '@react-navigation/stack';
 
 // import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import TabNavigation from './TabNavigation';
+import {TabNavigator} from './TabNavigation';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
 import ChatScreen from '../screens/ChatScreen';
 import {
@@ -85,7 +85,7 @@ const AuthenticatedNavigator = () => {
       <Stack.Navigator>
         <Stack.Screen
           name={AuthenticatedNavigation.Main}
-          component={TabNavigation}
+          component={TabNavigator}
           options={{headerShown: false}}
         />
         <Stack.Screen

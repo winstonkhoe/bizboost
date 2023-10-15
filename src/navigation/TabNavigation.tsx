@@ -16,7 +16,13 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 const Tab = createBottomTabNavigator();
 
-const TabNavigation = () => {
+export enum TabNavigation {
+  Home = 'Home',
+  Chat = 'Chat',
+  Profile = 'Profile',
+}
+
+export const TabNavigator = () => {
   const dispatch = useAppDispatch();
   const {user, activeRole} = useUser();
 
@@ -53,24 +59,34 @@ const TabNavigation = () => {
     [],
   );
 
+  const chatIcon = useCallback(
+    (focused: boolean) =>
+      focused ? (
+        <ChatLogo width={30} height={30} color={COLOR.black} />
+      ) : (
+        <ChatLogo width={30} height={30} color={COLOR.black} />
+      ),
+    [],
+  );
+
   return (
     <Tab.Navigator screenOptions={{headerShown: false}}>
       <Tab.Screen
-        name="Home"
+        name={TabNavigation.Home}
         component={HomeScreen}
         options={{
           tabBarIcon: ({focused}) => homeIcon(focused),
         }}
       />
       <Tab.Screen
-        name="Chat"
+        name={TabNavigation.Chat}
         component={ChatScreen}
-        // options={{
-        //   tabBarIcon: <ChatLogo width={30} />,
-        // }}
+        options={{
+          tabBarIcon: ({focused}) => chatIcon(focused),
+        }}
       />
       <Tab.Screen
-        name="Profile"
+        name={TabNavigation.Profile}
         component={ProfileScreen}
         options={{
           tabBarIcon: profileIcon,
@@ -79,5 +95,3 @@ const TabNavigation = () => {
     </Tab.Navigator>
   );
 };
-
-export default TabNavigation;
