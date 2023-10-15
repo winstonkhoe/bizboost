@@ -5,11 +5,20 @@ import MakeOfferIcon from '../../assets/vectors/make-offer.svg';
 import {gap} from '../../styles/Gap';
 import {MediaUploader} from '../atoms/Input';
 import {flex} from '../../styles/Flex';
+import {Options, ImageOrVideo} from 'react-native-image-crop-picker';
 
-const ChatWidget = ({options, handleImageUpload}) => {
+interface Props {
+  options: Options;
+}
+
+const ChatWidget = ({options}: Props) => {
   // Handle make offer button
   const onMakeOfferPress = () => {
     console.log('Make offer widget');
+  };
+
+  const imageSelected = (media: ImageOrVideo) => {
+    console.log(media);
   };
 
   return (
@@ -17,9 +26,7 @@ const ChatWidget = ({options, handleImageUpload}) => {
       className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center"
       style={gap.default}>
       {/* Send Photo Button */}
-      <MediaUploader
-        options={options}
-        onUploadComplete={response => handleImageUpload(response)}>
+      <MediaUploader options={options} callback={imageSelected}>
         <View style={[flex.flexCol]} className="justify-center items-center">
           <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
             <PhotosIcon width={30} height={30} />

@@ -12,24 +12,17 @@ import Reanimated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {
-  ImageLibraryOptions,
-  ImagePickerResponse,
-  launchImageLibrary,
-} from 'react-native-image-picker';
 import {flex} from '../../styles/Flex';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {AuthButton} from './Button';
+import ImagePicker, {
+  Options,
+  ImageOrVideo,
+} from 'react-native-image-crop-picker';
 
 interface Props extends UseControllerProps {
   label: string;
   placeholder?: string;
-}
-
-interface MediaUploaderProps {
-  options: ImageLibraryOptions;
-  onUploadComplete: (response: ImagePickerResponse) => void;
-  children?: React.ReactNode;
 }
 
 export const CustomTextInput = ({
@@ -137,21 +130,26 @@ export const CustomTextInput = ({
   );
 };
 
-export const MediaUploader: React.FC<MediaUploaderProps> = ({
+interface MediaUploaderProps {
+  options: Options;
+  children?: React.ReactNode;
+  callback: (media: ImageOrVideo) => void;
+}
+
+export const MediaUploader = ({
   options,
   onUploadComplete,
   children,
-}) => {
+  callback,
+}: MediaUploaderProps) => {
   const handleImageUpload = () => {
-    launchImageLibrary(options, response => {
-      if (response.didCancel) {
-        console.log('Image picker was canceled');
-      } else if (response.errorCode) {
-        console.log('Image picker error: ', response.errorMessage);
-      } else {
-        onUploadComplete(response);
-      }
-    });
+    ImagePicker.openPicker(options)
+      .then((media: ImageOrVideo) => {
+        callback(media);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   };
 
   return (

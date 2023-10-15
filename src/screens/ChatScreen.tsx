@@ -1,29 +1,38 @@
 import React, {useState, useRef} from 'react';
-import {View, Text, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
 import ChatWidget from '../components/chat/ChatWidget';
 
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/GuestNavigation'; // temporary
 import SafeAreaContainer from '../containers/SafeAreaContainer';
-import {launchImageLibrary} from 'react-native-image-picker';
 import {useUser} from '../hooks/user';
+import {flex} from '../styles/Flex';
+import {background} from '../styles/BackgroundColor';
+import {COLOR} from '../styles/Color';
+import {
+  HorizontalPadding,
+  VerticalPadding,
+} from '../components/atoms/ViewPadding';
+import {gap} from '../styles/Gap';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
+export interface Message {
+  message: string;
+  isSender: boolean;
+  profilePic: string;
+}
 
 const ChatScreen = () => {
-  const [isWidgetVisible, setIsWidgetVisible] = useState(false); // State to track widget visibility
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false); // State to track widget visibility
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {user, activeRole} = useUser();
 
   console.log(user);
 
-  const scrollViewRef = useRef();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Handle sending a message
-  const handleSendPress = message => {
+  const handleSendPress = (message: string) => {
     // Add the new message to the chatMessages state
     if (message !== '') {
       const newMessage = {
@@ -50,38 +59,16 @@ const ChatScreen = () => {
   };
 
   // Image launcher options
-  let options = {
-    mediaType: 'photo',
-    maxWidth: 300,
-    maxHeight: 550,
-  };
-
-  const handleImageUpload = response => {
-    console.log(response);
-    const imageUrl = response.uri; // Assuming the image URI is stored in response.uri
-
-    // Create a new message with the image URL
-    const newMessage = {
-      message: imageUrl,
-      isSender: true,
-      profilePic: 'user_profile_url',
-      isImage: true,
-    };
-
-    // Add the new message to the chatMessages state
-    setChatMessages([...chatMessages, newMessage]);
-
-    // Scroll to the end of the ScrollView
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({animated: true});
-    }
-  };
 
   return (
     <SafeAreaContainer>
-      <View className="bg-white h-full w-full flex flex-col">
+      <View
+        className="h-full w-full"
+        style={[flex.flexCol, background(COLOR.white)]}>
         {/* Chat Header */}
-        <View className="border-b-[0.5px] border-gray-400 flex items-center justify-start py-3">
+        <View
+          className="border-b-[0.5px] border-gray-400 items-center justify-start py-3"
+          style={[flex.flexRow]}>
           <ChatHeader recipientName="Recipient Name" lastOnline="1h ago" />
         </View>
 
@@ -90,21 +77,25 @@ const ChatScreen = () => {
           ref={scrollViewRef}
           onContentSizeChange={() => {
             if (scrollViewRef.current) {
-              scrollViewRef.current.scrollToEnd({animated: true});
+              scrollViewRef.current?.scrollToEnd({animated: true});
             }
           }}>
-          <View className="flex flex-col gap-y-4 py-4">
-            {chatMessages.map((message, index) => (
-              <View key={index} className="w-full px-3">
-                <ChatBubble
-                  key={index}
-                  message={message.message}
-                  isSender={message.isSender}
-                  profilePic={message.profilePic}
-                />
-              </View>
-            ))}
-          </View>
+          <VerticalPadding>
+            <View style={[flex.flexCol, gap.default]}>
+              {chatMessages.map((message: Message, index: number) => (
+                <HorizontalPadding key={index} paddingSize="xsmall2">
+                  <View className="w-full px-3">
+                    <ChatBubble
+                      key={index}
+                      message={message.message}
+                      isSender={message.isSender}
+                      profilePic={message.profilePic}
+                    />
+                  </View>
+                </HorizontalPadding>
+              ))}
+            </View>
+          </VerticalPadding>
         </ScrollView>
 
         <View className="py-4 border-t-[0.5px]">
@@ -119,8 +110,11 @@ const ChatScreen = () => {
           {isWidgetVisible ? (
             <View className="w-full">
               <ChatWidget
-                options={options}
-                handleImageUpload={handleImageUpload}
+                options={{
+                  width: 300,
+                  height: 400,
+                  cropping: true,
+                }}
               />
             </View>
           ) : null}
