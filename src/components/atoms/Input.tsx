@@ -78,7 +78,7 @@ export const CustomTextInput = ({
           <TextInput
             multiline={multiline}
             onContentSizeChange={event =>
-              setHeight(event.nativeEvent.contentSize.height + 10)
+              setHeight(event.nativeEvent.contentSize.height + 15)
             }
             style={{height: Math.max(35, height)}}
             value={value}

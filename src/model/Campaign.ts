@@ -15,39 +15,38 @@ export type CampaignTypes = CampaignType.Public | CampaignType.Private;
 const CAMPAIGN_COLLECTION = 'campaigns';
 
 export class Campaign {
-  id: string = '';
-  userId: string;
-  title: string;
-  description: string;
-  type: CampaignTypes;
-  locations: string[];
-  platforms: CampaignPlatform[];
-  fee: number;
-  criterias: string[];
-  slot: number;
-  image: string;
-  start: FirebaseFirestoreTypes.Timestamp | number;
-  end: FirebaseFirestoreTypes.Timestamp | number;
-  createdAt: FirebaseFirestoreTypes.Timestamp | number;
-  importantInformation: string[];
+  id?: string = '';
+  userId?: string;
+  title?: string;
+  description?: string;
+  type?: CampaignTypes;
+  locations?: string[];
+  platforms?: CampaignPlatform[];
+  fee?: number;
+  criterias?: string[];
+  slot?: number;
+  image?: string;
+  start?: FirebaseFirestoreTypes.Timestamp | number | Date;
+  end?: FirebaseFirestoreTypes.Timestamp | number | Date;
+  createdAt?: FirebaseFirestoreTypes.Timestamp | number | Date;
+  importantInformation?: string[];
 
-  constructor(
-    userId: string,
-    title: string,
-    description: string,
-    type: CampaignTypes,
-    locations: string[],
-    platforms: CampaignPlatform[],
-    fee: number,
-    criterias: string[],
-    slot: number,
-    image: string,
-    start: FirebaseFirestoreTypes.Timestamp | number,
-    end: FirebaseFirestoreTypes.Timestamp | number,
-    createdAt: FirebaseFirestoreTypes.Timestamp | number,
-    importantInformation: string[],
-    id: string = '',
-  ) {
+  constructor({
+    userId,
+    title,
+    description,
+    type,
+    locations,
+    platforms,
+    fee,
+    criterias,
+    slot,
+    image,
+    start,
+    end,
+    createdAt,
+    importantInformation,
+  }: Partial<Campaign>) {
     this.userId = userId;
     this.title = title;
     this.description = description;
@@ -62,7 +61,6 @@ export class Campaign {
     this.end = end;
     this.createdAt = createdAt;
     this.importantInformation = importantInformation;
-    this.id = id;
   }
 
   private static fromSnapshot(
@@ -175,9 +173,7 @@ export class Campaign {
     try {
       const data = {
         ...this,
-        userId: User.getDocumentReference(this.userId),
-        start: new Date(),
-        end: new Date('2023-12-12'),
+        userId: User.getDocumentReference(this.userId ?? ''),
         createdAt: new Date(),
       };
       await Campaign.getCampaignCollections().add(data);
