@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">bizboost</string>
+    <string name="facebook_app_id">844834047148706</string>
+    <string name="facebook_client_token">9dedd7bd3443225283860a38fa83b25a</string>
 </resources>
