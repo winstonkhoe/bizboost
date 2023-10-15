@@ -18,34 +18,42 @@ import {
   useForm,
 } from 'react-hook-form';
 import SelectableTag from '../components/atoms/SelectableTag';
-import {CampaignType, CampaignTypes} from '../model/Campaign';
+import {CampaignPlatform, CampaignType, CampaignTypes} from '../model/Campaign';
 import {TextInput} from 'react-native';
-type FormData = {
+import FieldArray from '../components/organisms/FieldArray';
+export type CampaignFormData = {
   title: string;
   description: string;
   type: CampaignTypes;
-  platforms: string[];
   fee: number;
   slot: number;
   criterias: {value: string}[]; // workaround soalnnya fieldarray harus array of object
+  platforms: {name: string; tasks: {value: string}[]}[]; // tasks: {value: string}[] itu workaround jg, harusnya ini bisa CampaignPlatform[] lgsg
+  importantInformation: {value: string}[];
 };
 const CreateCampaignScreen = () => {
-  const methods = useForm<FormData>({
+  const methods = useForm<CampaignFormData>({
     // mode: 'all',
     defaultValues: {
       platforms: [],
+      importantInformation: [{value: ''}],
       criterias: [{value: ''}],
     },
   });
   const {handleSubmit, getFieldState, formState, setValue, watch, control} =
     methods;
-  const {fields, append, remove} = useFieldArray({
-    name: 'criterias',
+
+  const {
+    fields: fieldsPlatform,
+    append: appendPlatform,
+    remove: removePlatform,
+  } = useFieldArray({
+    name: 'platforms',
     control,
   });
 
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer customInsets={{top: 0}}>
       <ScrollView
         bounces={false}
         className="relative h-full "
@@ -113,16 +121,21 @@ const CreateCampaignScreen = () => {
                     <View key={index}>
                       <SelectableTag
                         text={value}
-                        isSelected={watch('platforms').includes(value)}
+                        isSelected={
+                          watch('platforms').find(p => p.name === value) !==
+                          undefined
+                        }
                         onPress={() => {
-                          let platforms = watch('platforms');
-
-                          if (platforms.includes(value)) {
-                            platforms = platforms.filter(v => v !== value);
+                          const searchIndex = watch('platforms').findIndex(
+                            p => p.name === value,
+                          );
+                          console.log(watch('platforms'));
+                          console.log(value + ', index: ' + searchIndex);
+                          if (searchIndex !== -1) {
+                            removePlatform(searchIndex);
                           } else {
-                            platforms.push(value);
+                            appendPlatform({name: value, tasks: [{value: ''}]});
                           }
-                          setValue('platforms', platforms);
                         }}
                       />
                     </View>
@@ -130,32 +143,32 @@ const CreateCampaignScreen = () => {
                 </View>
               </View>
 
-              <View>
-                <View className="flex flex-row justify-between items-center">
-                  <Text>Campaign Criterias</Text>
+              <FieldArray
+                control={control}
+                title="Campaign Criterias"
+                parentName="criterias"
+                childName="value"
+              />
 
-                  <Pressable onPress={() => append({value: ''})}>
-                    <Text className="font-bold text-md">+</Text>
-                  </Pressable>
+              {fieldsPlatform.map((fp, index) => (
+                <View key={fp.id}>
+                  <FieldArray
+                    control={control}
+                    title={`${fp.name}'s Task`}
+                    parentName={`platforms.${index}.tasks`}
+                    childName="value"
+                    placeholder="Add task"
+                  />
                 </View>
-                {fields.map((f, index) => (
-                  <View key={f.id}>
-                    <Controller
-                      control={control}
-                      name={`criterias.${index}.value`}
-                      render={({field: {onChange, onBlur, value}}) => (
-                        <TextInput
-                          value={value}
-                          onBlur={onBlur}
-                          onChangeText={onChange}
-                          placeholder={'Add criteria'}
-                          className="w-full h-10 px-1 pt-2 pb-1 text-base font-medium"
-                        />
-                      )}
-                    />
-                  </View>
-                ))}
-              </View>
+              ))}
+
+              <FieldArray
+                control={control}
+                title="Important Informations"
+                parentName="importantInformation"
+                childName="value"
+                placeholder="Add dos and/or don'ts"
+              />
               <AuthButton text="Next" rounded="default" onPress={() => {}} />
             </View>
           </HorizontalPadding>
