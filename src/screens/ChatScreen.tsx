@@ -9,6 +9,8 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/GuestNavigation'; // temporary
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {launchImageLibrary} from 'react-native-image-picker';
+import storage from '@react-native-firebase/storage';
+
 import {useUser} from '../hooks/user';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
@@ -56,24 +58,37 @@ const ChatScreen = () => {
     maxHeight: 550,
   };
 
-  const handleImageUpload = response => {
+  const handleImageUpload = async response => {
     console.log(response);
-    const imageUrl = response.uri; // Assuming the image URI is stored in response.uri
+    const tempImageUri = response.uri;
 
-    // Create a new message with the image URL
-    const newMessage = {
-      message: imageUrl,
-      isSender: true,
-      profilePic: 'user_profile_url',
-      isImage: true,
-    };
+    try {
+      const imageFileName = 'your_unique_filename.jpg';
+      const imageRef = storage().ref(`images/${imageFileName}`);
 
-    // Add the new message to the chatMessages state
-    setChatMessages([...chatMessages, newMessage]);
+      // Upload the image to Firebase Cloud Storage
+      await imageRef.putFile(tempImageUri);
 
-    // Scroll to the end of the ScrollView
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({animated: true});
+      // Get the download URL of the uploaded image
+      const downloadURL = await imageRef.getDownloadURL();
+
+      // Create a new message with the image download URL
+      const newMessage = {
+        message: downloadURL,
+        isSender: true, // Assuming the sender is the user
+        profilePic: 'user_profile_url',
+        isImage: true, // Add a flag to identify that it's an image
+      };
+
+      // Add the new message to the chatMessages state
+      setChatMessages([...chatMessages, newMessage]);
+
+      // Scroll to the end of the ScrollView
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({animated: true});
+      }
+    } catch (error) {
+      console.error('Error uploading the image to Firebase:', error);
     }
   };
 
