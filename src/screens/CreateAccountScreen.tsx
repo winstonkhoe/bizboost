@@ -22,10 +22,13 @@ import {updateData} from '../redux/slices/forms/createAdditionalAccountSlice';
 import {BusinessPeople, ContentCreator, User, UserRole} from '../model/User';
 import {useNavigation} from '@react-navigation/native';
 import {
+  AuthenticatedNavigation,
   CreateAdditionalAccountModalNavigationProps,
   CreateAdditionalAccountNavigation,
+  RootAuthenticatedNavigationStackProps,
 } from '../navigation/AuthenticatedNavigation';
 import {useUser} from '../hooks/user';
+import {switchRole} from '../redux/slices/userSlice';
 
 type FormData = {
   fullname: string;
@@ -117,6 +120,8 @@ export const CreateAccountScreen_1 = () => {
 };
 
 export const CreateAccountScreen_2 = () => {
+  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const dispatch = useAppDispatch();
   const {uid} = useUser();
   const {data: additionalAccountData, role} = useCreateAdditionalAccount();
   const methods = useForm<FormData>({
@@ -146,7 +151,8 @@ export const CreateAccountScreen_2 = () => {
     if (updatedData && uid) {
       User.updateUserData(uid, updatedData)
         .then(() => {
-          console.log('update success');
+          dispatch(switchRole(role));
+          navigation.navigate(AuthenticatedNavigation.Main);
         })
         .catch(err => {
           console.log('update fail', err);

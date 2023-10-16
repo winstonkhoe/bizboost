@@ -1,10 +1,16 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import BackNav from '../../assets/vectors/left-navigation-back.svg';
+import BackNav from '../../assets/vectors/chevron-left.svg';
 import {gap} from '../../styles/Gap';
+import {COLOR} from '../../styles/Color';
 
-const ChatHeader = ({recipientName, lastOnline}) => {
+interface Props {
+  recipientName: string;
+  lastOnline: string;
+}
+
+const ChatHeader = ({recipientName, lastOnline}: Props) => {
   const navigation = useNavigation();
 
   const handleBackButtonPress = () => {
@@ -17,7 +23,7 @@ const ChatHeader = ({recipientName, lastOnline}) => {
       className="w-full flex flex-row items-center justify-start px-2"
       style={[gap.default]}>
       <TouchableOpacity onPress={handleBackButtonPress}>
-        <BackNav width={30} height={20} />
+        <BackNav width={30} height={20} color={COLOR.black} />
       </TouchableOpacity>
       <View className="w-10 h-10 rounded-full overflow-hidden">
         <Image

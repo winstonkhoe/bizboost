@@ -1,84 +1,55 @@
-import React, {useState} from 'react';
-import {View, Text, ScrollView} from 'react-native';
+import React, {useState, useRef} from 'react';
+import {View, ScrollView} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
 import ChatWidget from '../components/chat/ChatWidget';
 
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/GuestNavigation'; // temporary
 import SafeAreaContainer from '../containers/SafeAreaContainer';
+import storage from '@react-native-firebase/storage';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
+import {useUser} from '../hooks/user';
+import {flex} from '../styles/Flex';
+import {background} from '../styles/BackgroundColor';
+import {COLOR} from '../styles/Color';
+import {
+  HorizontalPadding,
+  VerticalPadding,
+} from '../components/atoms/ViewPadding';
+import {gap} from '../styles/Gap';
+
+export interface Message {
+  message: string;
+  isSender: boolean;
+  profilePic: string;
+}
 
 const ChatScreen = () => {
-  const [isWidgetVisible, setIsWidgetVisible] = useState(false); // State to track widget visibility
+  const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false); // State to track widget visibility
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const {user, activeRole} = useUser();
 
-  // Sample chat messages data
-  const chatMessages = [
-    {
-      message:
-        'Hi there, thank you for considering me for your campaign. I’m excited to work with you and create some amazing content.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message: 'Hi, we’re excited to work with you too.',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message: 'Can you give us an idea of your rates for this campaign?',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message:
-        'Sure, my standard rate for a campaign like this is $5,000. This includes the creation of 5 pieces of content, each with a unique concept and execution.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'That sounds reasonable. However, our budget for this campaign is $4,000. Is there any room for negotiation?',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message:
-        'I understand that budgets can be tight. I’m willing to work with you to find a solution that works for both of us. How about we reduce the number of content pieces to 4, and I can offer you a rate of $4,500?',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'That sounds like a fair compromise. Let’s move forward with that.',
-      isSender: true,
-      profilePic: 'profile_url_2',
-    },
-    {
-      message:
-        'Great! I’m looking forward to working with you on this campaign.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'Great! I’m looking forward to working with you on this campaign.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-    {
-      message:
-        'Great! I’m looking forward to working with you on this campaign.',
-      isSender: false,
-      profilePic: 'profile_url_1',
-    },
-  ];
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Handle sending a message
-  const handleSendPress = message => {
-    console.log(`Sending message: ${message}`);
+  const handleSendPress = (message: string) => {
+    // Add the new message to the chatMessages state
+    if (message !== '') {
+      const newMessage = {
+        message,
+        isSender: true,
+        profilePic: 'user_profile_url',
+      };
+      setChatMessages([...chatMessages, newMessage]);
+
+      // Scroll to the end of the ScrollView
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({animated: true});
+      }
+
+      // Clear the input field
+      console.log(`Sending message: ${message}`);
+    }
   };
 
   // Handle opening the widget
@@ -87,28 +58,76 @@ const ChatScreen = () => {
     console.log(`Opening widget: ${isWidgetVisible}`);
   };
 
+  const handleImageUpload = async response => {
+    console.log(response);
+    const tempImageUri = response.uri;
+
+    try {
+      const imageFileName = 'your_unique_filename.jpg';
+      const imageRef = storage().ref(`images/${imageFileName}`);
+
+      // Upload the image to Firebase Cloud Storage
+      await imageRef.putFile(tempImageUri);
+
+      // Get the download URL of the uploaded image
+      const downloadURL = await imageRef.getDownloadURL();
+
+      // Create a new message with the image download URL
+      const newMessage = {
+        message: downloadURL,
+        isSender: true, // Assuming the sender is the user
+        profilePic: 'user_profile_url',
+        isImage: true, // Add a flag to identify that it's an image
+      };
+
+      // Add the new message to the chatMessages state
+      setChatMessages([...chatMessages, newMessage]);
+
+      // Scroll to the end of the ScrollView
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({animated: true});
+      }
+    } catch (error) {
+      console.error('Error uploading the image to Firebase:', error);
+    }
+  };
+
   return (
     <SafeAreaContainer>
-      <View className="bg-white h-full w-full flex flex-col">
+      <View
+        className="h-full w-full"
+        style={[flex.flexCol, background(COLOR.white)]}>
         {/* Chat Header */}
-        <View className="border-b-[0.5px] border-gray-400 flex items-center justify-start py-3">
+        <View
+          className="border-b-[0.5px] border-gray-400 items-center justify-start py-3"
+          style={[flex.flexRow]}>
           <ChatHeader recipientName="Recipient Name" lastOnline="1h ago" />
         </View>
 
         {/* Chat Messages */}
-        <ScrollView>
-          <View className="flex flex-col gap-y-4 py-4">
-            {chatMessages.map((message, index) => (
-              <View key={index} className="w-full px-3">
-                <ChatBubble
-                  key={index}
-                  message={message.message}
-                  isSender={message.isSender}
-                  profilePic={message.profilePic}
-                />
-              </View>
-            ))}
-          </View>
+        <ScrollView
+          ref={scrollViewRef}
+          onContentSizeChange={() => {
+            if (scrollViewRef.current) {
+              scrollViewRef.current?.scrollToEnd({animated: true});
+            }
+          }}>
+          <VerticalPadding>
+            <View style={[flex.flexCol, gap.default]}>
+              {chatMessages.map((message: Message, index: number) => (
+                <HorizontalPadding key={index} paddingSize="xsmall2">
+                  <View className="w-full px-3">
+                    <ChatBubble
+                      key={index}
+                      message={message.message}
+                      isSender={message.isSender}
+                      profilePic={message.profilePic}
+                    />
+                  </View>
+                </HorizontalPadding>
+              ))}
+            </View>
+          </VerticalPadding>
         </ScrollView>
 
         <View className="py-4 border-t-[0.5px]">
@@ -120,11 +139,17 @@ const ChatScreen = () => {
           />
 
           {/* Chat Widget */}
-          {isWidgetVisible && (
+          {isWidgetVisible ? (
             <View className="w-full">
-              <ChatWidget />
+              <ChatWidget
+                options={{
+                  width: 400,
+                  height: 400,
+                  cropping: true,
+                }}
+              />
             </View>
-          )}
+          ) : null}
         </View>
       </View>
     </SafeAreaContainer>

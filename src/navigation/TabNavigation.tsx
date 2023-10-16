@@ -1,8 +1,10 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
+import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
+import ChatLogo from '../assets/vectors/chat.svg';
 import {Image, Pressable} from 'react-native';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
@@ -59,6 +61,13 @@ const TabNavigation = () => {
         options={{
           tabBarIcon: ({focused}) => homeIcon(focused),
         }}
+      />
+      <Tab.Screen
+        name="Chat"
+        component={ChatScreen}
+        // options={{
+        //   tabBarIcon: <ChatLogo width={30} />,
+        // }}
       />
       <Tab.Screen
         name="Profile"

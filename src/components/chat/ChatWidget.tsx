@@ -1,38 +1,67 @@
-import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, Pressable} from 'react-native';
+import React from 'react';
+import {View, Text, Pressable} from 'react-native';
 import PhotosIcon from '../../assets/vectors/photos.svg';
 import MakeOfferIcon from '../../assets/vectors/make-offer.svg';
 import {gap} from '../../styles/Gap';
+import {MediaUploader} from '../atoms/Input';
+import {flex} from '../../styles/Flex';
+import {Options, ImageOrVideo} from 'react-native-image-crop-picker';
+import storage from '@react-native-firebase/storage';
+import uuid from 'react-native-uuid';
 
-const ChatWidget = () => {
-  // Handle send photo button
-  const onSendPhotoPress = () => {
-    console.log('Send photo widget');
-  };
+interface Props {
+  options: Options;
+}
 
+const ChatWidget = ({options}: Props) => {
   // Handle make offer button
   const onMakeOfferPress = () => {
     console.log('Make offer widget');
   };
 
+  const imageSelected = (media: ImageOrVideo) => {
+    console.log(media);
+    const imageType = media.mime.split('/')[1];
+    const filename = `${uuid.v4()}.${imageType}`;
+
+    const reference = storage().ref(filename);
+    const task = reference.putFile(media.path);
+
+    task.on('state_changed', taskSnapshot => {
+      console.log(
+        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
+      );
+    });
+
+    task.then(async () => {
+      try {
+        console.log(await reference.getDownloadURL());
+        console.log('Image uploaded to the bucket!');
+      } catch (e) {
+        console.log(e);
+      }
+    });
+  };
+
   return (
     <View
       className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center"
-      style={gap.small}>
+      style={gap.default}>
       {/* Send Photo Button */}
-      <Pressable
-        onPress={onSendPhotoPress}
-        className="flex flex-col justify-center items-center">
-        <View className="w-20 h-20 bg-[#E7F3F8] rounded-full flex justify-center items-center">
-          <PhotosIcon width={30} height={30} />
+      <MediaUploader options={options} callback={imageSelected}>
+        <View style={[flex.flexCol]} className="justify-center items-center">
+          <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
+            <PhotosIcon width={30} height={30} />
+          </View>
+          <Text>Photos</Text>
         </View>
-        <Text>Photos</Text>
-      </Pressable>
+      </MediaUploader>
+
       {/* Make Offer Button */}
       <Pressable
         onPress={onMakeOfferPress}
         className="flex flex-col justify-center items-center">
-        <View className="w-20 h-20 bg-[#E7F3F8] rounded-full flex justify-center items-center">
+        <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
           <MakeOfferIcon width={30} height={30} />
         </View>
         <Text>Make Offer</Text>

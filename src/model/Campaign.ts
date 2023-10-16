@@ -2,6 +2,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {User} from './User';
+import {BaseModel} from './BaseModel';
 
 export type CampaignPlatform = {name: string; tasks: string[]};
 
@@ -14,7 +15,7 @@ export type CampaignTypes = CampaignType.Public | CampaignType.Private;
 
 const CAMPAIGN_COLLECTION = 'campaigns';
 
-export class Campaign {
+export class Campaign extends BaseModel {
   id?: string = '';
   userId?: string;
   title?: string;
@@ -47,6 +48,7 @@ export class Campaign {
     createdAt,
     importantInformation,
   }: Partial<Campaign>) {
+    super();
     this.userId = userId;
     this.title = title;
     this.description = description;
@@ -70,9 +72,9 @@ export class Campaign {
   ): Campaign {
     const data = doc.data();
     if (data && doc.exists) {
-      return {
+      return new Campaign({
         id: doc.id,
-        userId: data.userId?.id,
+        userId: data.userId.id,
         title: data.title,
         description: data.description,
         type: data.type,
@@ -86,7 +88,7 @@ export class Campaign {
         end: data.end?.seconds,
         createdAt: data.createdAt?.seconds,
         importantInformation: data.importantInformation,
-      } as Campaign;
+      });
     }
 
     throw Error("Error, document doesn't exist!");

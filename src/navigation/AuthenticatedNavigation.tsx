@@ -5,6 +5,7 @@ import {TransitionPresets, createStackNavigator} from '@react-navigation/stack';
 // import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import TabNavigation from './TabNavigation';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import ChatScreen from '../screens/ChatScreen';
 import {
   CreateAccountScreen_1,
   CreateAccountScreen_2,
@@ -18,6 +19,7 @@ export enum AuthenticatedNavigation {
   CampaignDetail = 'Campaign Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
+  Chat = 'Chat',
 }
 
 export type RootAuthenticatedStackParamList = {
@@ -28,6 +30,7 @@ export type RootAuthenticatedStackParamList = {
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
   // 'Campaign Detail': {campaign: Campaign};
+  [AuthenticatedNavigation.Chat]: undefined;
 };
 
 export type RootAuthenticatedNavigationStackProps =
@@ -87,6 +90,10 @@ const AuthenticatedNavigator = () => {
           name={AuthenticatedNavigation.Main}
           component={TabNavigation}
           options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.Chat}
+          component={ChatScreen}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CampaignDetail}

@@ -12,6 +12,13 @@ import Reanimated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import {flex} from '../../styles/Flex';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import {AuthButton} from './Button';
+import ImagePicker, {
+  Options,
+  ImageOrVideo,
+} from 'react-native-image-crop-picker';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -128,5 +135,36 @@ export const CustomTextInput = ({
         </Text>
       )}
     </View>
+  );
+};
+
+interface MediaUploaderProps {
+  options: Options;
+  children?: React.ReactNode;
+  callback: (media: ImageOrVideo) => void;
+}
+
+export const MediaUploader = ({
+  options,
+  onUploadComplete,
+  children,
+  callback,
+}: MediaUploaderProps) => {
+  const handleImageUpload = () => {
+    ImagePicker.openPicker(options)
+      .then((media: ImageOrVideo) => {
+        callback(media);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  return (
+    <TouchableOpacity onPress={handleImageUpload}>
+      <View style={[flex.flexRow]} className="items-center">
+        {children || <AuthButton text="Upload image" rounded={'small'} />}
+      </View>
+    </TouchableOpacity>
   );
 };

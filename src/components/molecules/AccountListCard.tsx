@@ -4,7 +4,12 @@ import {rounded} from '../../styles/BorderRadius';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
-import {UserRole, UserRoles} from '../../model/User';
+import {
+  BusinessPeople,
+  ContentCreator,
+  UserRole,
+  UserRoles,
+} from '../../model/User';
 import {gap} from '../../styles/Gap';
 import Add from '../../assets/vectors/add-thin.svg';
 import {border} from '../../styles/Border';
@@ -19,15 +24,15 @@ import {
 } from '../../navigation/AuthenticatedNavigation';
 
 interface Props {
-  name?: string;
+  data?: BusinessPeople | ContentCreator;
   active?: boolean;
   role: UserRoles;
 }
-const AccountListCard = ({name, active = false, role}: Props) => {
+const AccountListCard = ({data, active = false, role}: Props) => {
   const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
   const dispatch = useAppDispatch();
   const isValidUser = () => {
-    return !!name;
+    return !!data;
   };
   const handlePress = () => {
     if (isValidUser()) {
@@ -64,7 +69,13 @@ const AccountListCard = ({name, active = false, role}: Props) => {
         {isValidUser() ? (
           <Image
             className="w-full h-full object-cover"
-            source={require('../../assets/images/kopi-nako-logo.jpeg')}
+            source={
+              isValidUser()
+                ? {
+                    uri: data?.profilePicture,
+                  }
+                : require('../../assets/images/bizboost-avatar.png')
+            }
           />
         ) : (
           <Add width={25} height={25} color={COLOR.black} />
@@ -77,7 +88,7 @@ const AccountListCard = ({name, active = false, role}: Props) => {
           style={[
             active ? textColor(COLOR.blue[200]) : textColor(COLOR.black),
           ]}>
-          {isValidUser() ? name : 'Create account'}
+          {isValidUser() ? data?.fullname : 'Create account'}
         </Text>
         <Text
           className="text-xs font-medium"
@@ -85,11 +96,7 @@ const AccountListCard = ({name, active = false, role}: Props) => {
           style={[
             active ? textColor(COLOR.blue[200]) : textColor(COLOR.black),
           ]}>
-          {role === UserRole.ContentCreator
-            ? 'Content Creator'
-            : role === UserRole.BusinessPeople
-            ? 'Business People'
-            : null}
+          {role}
         </Text>
       </View>
     </Pressable>
