@@ -3,9 +3,18 @@ import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 import SendButton from '../../assets/vectors/send.svg';
 import Keyboard from '../../assets/vectors/keyboard.svg';
 import {gap} from '../../styles/Gap';
-import {flex} from '../../styles/Flex';
 
-const ChatInputBar = ({onSendPress, onOpenWidgetPress, isWidgetVisible}) => {
+interface Props {
+  onSendPress: (message: string) => void;
+  onOpenWidgetPress: () => void;
+  isWidgetVisible: boolean;
+}
+
+const ChatInputBar = ({
+  onSendPress,
+  onOpenWidgetPress,
+  isWidgetVisible,
+}: Props) => {
   const [message, setMessage] = useState('');
 
   const handleSendPress = () => {
