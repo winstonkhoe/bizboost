@@ -5,14 +5,17 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {AuthButton} from '../components/atoms/Button';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
+import PhotosIcon from '../assets/vectors/photos.svg';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {COLOR} from '../styles/Color';
-import {CustomTextInput} from '../components/atoms/Input';
+import {CustomTextInput, MediaUploader} from '../components/atoms/Input';
 import {FormProvider, useFieldArray, useForm} from 'react-hook-form';
 import SelectableTag from '../components/atoms/SelectableTag';
 import {Campaign, CampaignType, CampaignTypes} from '../model/Campaign';
 import FieldArray from '../components/organisms/FieldArray';
+import uuid from 'react-native-uuid';
+
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -24,6 +27,9 @@ import CheckBox from '@react-native-community/checkbox';
 import {useUser} from '../hooks/user';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
+import storage from '@react-native-firebase/storage';
+
+import {ImageOrVideo} from 'react-native-image-crop-picker';
 export type CampaignFormData = {
   title: string;
   description: string;
@@ -34,6 +40,7 @@ export type CampaignFormData = {
   platforms: {name: string; tasks: StringObject[]}[]; // tasks: {value: string}[] itu workaround jg, harusnya ini bisa CampaignPlatform[] lgsg
   importantInformation: StringObject[];
   locations: StringObject[];
+  image: string;
 };
 const CreateCampaignScreen = () => {
   const {uid} = useUser();
@@ -109,8 +116,7 @@ const CreateCampaignScreen = () => {
       // TODO: start date end date, picture
       start: new Date(),
       end: new Date('2023-12-12'),
-      image:
-        'https://lh3.googleusercontent.com/p/AF1QipMvoZtSgC5aguviGyul1KfeSIR0w1HBROdlMmit=w1080-h608-p-no-v0',
+      image: d.image,
     });
 
     campaign.insert().then(isSuccess => {
@@ -161,20 +167,67 @@ const CreateCampaignScreen = () => {
     }
   }, [modalOpenState]);
 
+  // TODO: extract to utility function, call after insert clicked
+  const imageSelected = (media: ImageOrVideo) => {
+    console.log(media);
+    const imageType = media.mime.split('/')[1];
+    const filename = `campaigns/${uuid.v4()}.${imageType}`;
+
+    const reference = storage().ref(filename);
+    const task = reference.putFile(media.path);
+
+    task.on('state_changed', taskSnapshot => {
+      console.log(
+        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
+      );
+    });
+
+    task.then(() => {
+      try {
+        reference.getDownloadURL().then(url => {
+          setValue('image', url);
+          console.log(url);
+          console.log('Image uploaded to the bucket!');
+        });
+      } catch (e) {
+        console.log(e);
+      }
+    });
+  };
+
   //TODO: start date end date, picture
   return (
     <BottomSheetModalProvider>
       <SafeAreaContainer customInsets={{top: 0}}>
         <ScrollView
           bounces={false}
-          className="relative h-full "
+          className="relative h-full"
           // style={[background(COLOR.background.light)]}
         >
           <FormProvider {...methods}>
             <HorizontalPadding paddingSize="large">
               <View
-                className="w-full h-full "
+                className="w-full flex flex-col justify-between pt-3"
                 style={[flex.flexCol, gap.xlarge]}>
+                <View className="flex flex-col">
+                  <Text className="text-black mb-3">Campaign Image</Text>
+                  {/* <View className="flex flex-row gap-2"></View> */}
+                  <MediaUploader
+                    options={{
+                      width: 400,
+                      height: 400,
+                      cropping: true,
+                    }}
+                    callback={imageSelected}>
+                    <View
+                      style={[flex.flexCol]}
+                      className="justify-center items-center">
+                      <View className="w-16 h-16 bg-[#E7F3F8] rounded-lg flex justify-center items-center">
+                        <PhotosIcon width={30} height={30} />
+                      </View>
+                    </View>
+                  </MediaUploader>
+                </View>
                 <CustomTextInput
                   label="Campaign Title"
                   name="title"
@@ -283,15 +336,15 @@ const CreateCampaignScreen = () => {
                   placeholder="Add dos and/or don'ts"
                 />
 
-                <View>
-                  <View className="flex flex-row justify-between items-center mb-3">
+                <View className="flex flex-col">
+                  <View className="flex flex-row justify-between items-center">
                     <Text>Location</Text>
 
                     <Pressable onPress={() => setIsSheetOpened(true)}>
                       <Text className="font-bold text-md">+</Text>
                     </Pressable>
                   </View>
-                  <View className="flex flex-row flex-wrap gap-2">
+                  <View className="flex flex-row flex-wrap gap-2 mt-3">
                     {watch('locations').map((l, index: number) => (
                       <View key={index}>
                         <SelectableTag text={l.value} isSelected={true} />
@@ -299,6 +352,7 @@ const CreateCampaignScreen = () => {
                     ))}
                   </View>
                 </View>
+
                 <AuthButton
                   text="Submit"
                   rounded="default"
