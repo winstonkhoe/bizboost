@@ -19,6 +19,7 @@ const ChatWidget = ({options}: Props) => {
     console.log('Make offer widget');
   };
 
+  // TODO: extract to utility function
   const imageSelected = (media: ImageOrVideo) => {
     console.log(media);
     const imageType = media.mime.split('/')[1];

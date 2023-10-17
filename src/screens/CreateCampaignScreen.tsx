@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Pressable, Text} from 'react-native';
+import {Image, Pressable, Text} from 'react-native';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native-gesture-handler';
 import {AuthButton} from '../components/atoms/Button';
@@ -10,7 +10,12 @@ import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {COLOR} from '../styles/Color';
 import {CustomTextInput, MediaUploader} from '../components/atoms/Input';
-import {FormProvider, useFieldArray, useForm} from 'react-hook-form';
+import {
+  Controller,
+  FormProvider,
+  useFieldArray,
+  useForm,
+} from 'react-hook-form';
 import SelectableTag from '../components/atoms/SelectableTag';
 import {Campaign, CampaignType, CampaignTypes} from '../model/Campaign';
 import FieldArray from '../components/organisms/FieldArray';
@@ -29,7 +34,7 @@ import {StringObject, getStringObjectValue} from '../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
 import storage from '@react-native-firebase/storage';
 
-import {ImageOrVideo} from 'react-native-image-crop-picker';
+import {ImageOrVideo, Image as ImageType} from 'react-native-image-crop-picker';
 export type CampaignFormData = {
   title: string;
   description: string;
@@ -40,7 +45,7 @@ export type CampaignFormData = {
   platforms: {name: string; tasks: StringObject[]}[]; // tasks: {value: string}[] itu workaround jg, harusnya ini bisa CampaignPlatform[] lgsg
   importantInformation: StringObject[];
   locations: StringObject[];
-  image: string;
+  image: ImageType;
 };
 const CreateCampaignScreen = () => {
   const {uid} = useUser();
@@ -88,7 +93,7 @@ const CreateCampaignScreen = () => {
     'Papua Barat Daya',
   ];
   const methods = useForm<CampaignFormData>({
-    // mode: 'all',
+    mode: 'all',
     defaultValues: {
       platforms: [],
       locations: [],
@@ -99,29 +104,53 @@ const CreateCampaignScreen = () => {
   const {handleSubmit, setValue, watch, control} = methods;
 
   const onSubmit = (d: CampaignFormData) => {
-    const campaign = new Campaign({
-      userId: uid ?? '',
-      title: d.title,
-      description: d.description,
-      type: d.type,
-      fee: d.fee,
-      slot: d.slot,
-      criterias: d.criterias.map(getStringObjectValue),
-      platforms: d.platforms.map(p => ({
-        name: p.name,
-        tasks: p.tasks.map(getStringObjectValue),
-      })),
-      importantInformation: d.importantInformation.map(getStringObjectValue),
-      locations: d.locations.map(getStringObjectValue),
-      // TODO: start date end date, picture
-      start: new Date(),
-      end: new Date('2023-12-12'),
-      image: d.image,
+    const imageType = d.image.mime.split('/')[1];
+    const filename = `campaigns/${uuid.v4()}.${imageType}`;
+
+    const reference = storage().ref(filename);
+    const task = reference.putFile(d.image.path);
+
+    task.on('state_changed', taskSnapshot => {
+      console.log(
+        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
+      );
     });
 
-    campaign.insert().then(isSuccess => {
-      if (isSuccess) {
-        navigation.goBack();
+    task.then(() => {
+      try {
+        reference.getDownloadURL().then(url => {
+          console.log(url);
+          console.log('Image uploaded to the bucket!');
+
+          const campaign = new Campaign({
+            userId: uid ?? '',
+            title: d.title,
+            description: d.description,
+            type: d.type,
+            fee: d.fee,
+            slot: d.slot,
+            criterias: d.criterias.map(getStringObjectValue),
+            platforms: d.platforms.map(p => ({
+              name: p.name,
+              tasks: p.tasks.map(getStringObjectValue),
+            })),
+            importantInformation:
+              d.importantInformation.map(getStringObjectValue),
+            locations: d.locations.map(getStringObjectValue),
+            // TODO: start date end date, picture
+            start: new Date(),
+            end: new Date('2023-12-12'),
+            image: url,
+          });
+
+          campaign.insert().then(isSuccess => {
+            if (isSuccess) {
+              navigation.goBack();
+            }
+          });
+        });
+      } catch (e) {
+        console.log(e);
       }
     });
   };
@@ -168,31 +197,8 @@ const CreateCampaignScreen = () => {
   }, [modalOpenState]);
 
   // TODO: extract to utility function, call after insert clicked
-  const imageSelected = (media: ImageOrVideo) => {
-    console.log(media);
-    const imageType = media.mime.split('/')[1];
-    const filename = `campaigns/${uuid.v4()}.${imageType}`;
-
-    const reference = storage().ref(filename);
-    const task = reference.putFile(media.path);
-
-    task.on('state_changed', taskSnapshot => {
-      console.log(
-        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
-      );
-    });
-
-    task.then(() => {
-      try {
-        reference.getDownloadURL().then(url => {
-          setValue('image', url);
-          console.log(url);
-          console.log('Image uploaded to the bucket!');
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    });
+  const imageSelected = (media: ImageType) => {
+    setValue('image', media);
   };
 
   //TODO: start date end date, picture
@@ -209,25 +215,53 @@ const CreateCampaignScreen = () => {
               <View
                 className="w-full flex flex-col justify-between pt-3"
                 style={[flex.flexCol, gap.xlarge]}>
-                <View className="flex flex-col">
-                  <Text className="text-black mb-3">Campaign Image</Text>
-                  {/* <View className="flex flex-row gap-2"></View> */}
-                  <MediaUploader
-                    options={{
-                      width: 400,
-                      height: 400,
-                      cropping: true,
-                    }}
-                    callback={imageSelected}>
-                    <View
-                      style={[flex.flexCol]}
-                      className="justify-center items-center">
-                      <View className="w-16 h-16 bg-[#E7F3F8] rounded-lg flex justify-center items-center">
-                        <PhotosIcon width={30} height={30} />
-                      </View>
+                <Controller
+                  control={control}
+                  name="image"
+                  rules={{required: 'Image is required!'}}
+                  render={({
+                    field: {onChange, onBlur, value, name, ref},
+                    fieldState: {invalid, isTouched, isDirty, error},
+                    formState,
+                  }) => (
+                    <View className="flex flex-col">
+                      <Text className="text-black mb-3">Campaign Image</Text>
+                      <MediaUploader
+                        options={{
+                          width: 400,
+                          height: 400,
+                          cropping: true,
+                          includeBase64: true,
+                        }}
+                        callback={imageSelected}>
+                        {value ? (
+                          <Image
+                            className="w-16 h-16 rounded-lg"
+                            source={{
+                              uri: `data:${value.mime};base64,${value.data}`,
+                            }}
+                          />
+                        ) : (
+                          <View
+                            style={[flex.flexCol]}
+                            className="justify-center items-center">
+                            <View
+                              className={`w-16 h-16 bg-[#E7F3F8] rounded-lg flex justify-center items-center ${
+                                error && 'border border-red-500'
+                              }`}>
+                              <PhotosIcon width={30} height={30} />
+                            </View>
+                          </View>
+                        )}
+                      </MediaUploader>
+                      {error && (
+                        <Text className="text-xs mt-2 font-medium text-red-500">
+                          {`${error?.message}`}
+                        </Text>
+                      )}
                     </View>
-                  </MediaUploader>
-                </View>
+                  )}
+                />
                 <CustomTextInput
                   label="Campaign Title"
                   name="title"
@@ -322,6 +356,7 @@ const CreateCampaignScreen = () => {
                   </View>
                 ))}
 
+                {/* TODO: kasih rule buat length aja? */}
                 <FieldArray
                   control={control}
                   title="Campaign Criterias"
