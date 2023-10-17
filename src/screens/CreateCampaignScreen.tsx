@@ -102,11 +102,18 @@ const CreateCampaignScreen = () => {
       criterias: [{value: ''}],
     },
   });
-  const {handleSubmit, setValue, watch, control} = methods;
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    control,
+    formState: {errors},
+  } = methods;
 
   const onSubmit = (d: CampaignFormData) => {
     setIsUploading(true);
 
+    // TODO: extract to utility function
     const imageType = d.image.mime.split('/')[1];
     const filename = `campaigns/${uuid.v4()}.${imageType}`;
 
@@ -169,11 +176,7 @@ const CreateCampaignScreen = () => {
     control,
   });
 
-  const {
-    fields: fieldsLocation,
-    append: appendLocation,
-    remove: removeLocation,
-  } = useFieldArray({
+  const {append: appendLocation, remove: removeLocation} = useFieldArray({
     name: 'locations',
     control,
   });
@@ -201,7 +204,6 @@ const CreateCampaignScreen = () => {
     }
   }, [modalOpenState]);
 
-  // TODO: extract to utility function, call after insert clicked
   const imageSelected = (media: ImageType) => {
     setValue('image', media);
   };
@@ -228,11 +230,7 @@ const CreateCampaignScreen = () => {
                   control={control}
                   name="image"
                   rules={{required: 'Image is required!'}}
-                  render={({
-                    field: {onChange, onBlur, value, name, ref},
-                    fieldState: {invalid, isTouched, isDirty, error},
-                    formState,
-                  }) => (
+                  render={({field: {value}, fieldState: {error}}) => (
                     <View className="flex flex-col">
                       <Text className="text-black mb-3">Campaign Image</Text>
                       <MediaUploader
@@ -286,20 +284,32 @@ const CreateCampaignScreen = () => {
                     required: 'Description is required',
                   }}
                 />
-                <View>
-                  <Text className="text-black mb-3">Campaign Type</Text>
-                  <View className="flex flex-row gap-2">
-                    {Object.values(CampaignType).map((value, index) => (
-                      <View key={index}>
-                        <SelectableTag
-                          text={value}
-                          isSelected={watch('type') === value}
-                          onPress={() => setValue('type', value)}
-                        />
+                <Controller
+                  control={control}
+                  name="type"
+                  rules={{required: 'Type is required!'}}
+                  render={({field: {value, name}, fieldState: {error}}) => (
+                    <View>
+                      <Text className="text-black mb-3">Campaign Type</Text>
+                      <View className="flex flex-row gap-2">
+                        {Object.values(CampaignType).map((type, index) => (
+                          <View key={index}>
+                            <SelectableTag
+                              text={type}
+                              isSelected={value === type}
+                              onPress={() => setValue(name, type)}
+                            />
+                          </View>
+                        ))}
                       </View>
-                    ))}
-                  </View>
-                </View>
+                      {error && (
+                        <Text className="text-xs mt-2 font-medium text-red-500">
+                          {`${error?.message}`}
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                />
 
                 {watch('type') === 'Public' ? (
                   <>
@@ -321,38 +331,53 @@ const CreateCampaignScreen = () => {
                   </>
                 ) : null}
 
-                <View>
-                  <Text className="text-black mb-3">Campaign Platfroms</Text>
-                  <View className="flex flex-row gap-2">
-                    {['Instagram', 'TikTok'].map((value, index) => (
-                      <View key={index}>
-                        <SelectableTag
-                          text={value}
-                          isSelected={
-                            watch('platforms').find(p => p.name === value) !==
-                            undefined
-                          }
-                          onPress={() => {
-                            const searchIndex = watch('platforms').findIndex(
-                              p => p.name === value,
-                            );
-                            console.log(watch('platforms'));
-                            console.log(value + ', index: ' + searchIndex);
-                            if (searchIndex !== -1) {
-                              removePlatform(searchIndex);
-                            } else {
-                              appendPlatform({
-                                name: value,
-                                tasks: [{value: ''}],
-                              });
-                            }
-                          }}
-                        />
+                <Controller
+                  control={control}
+                  name="platforms"
+                  rules={{required: 'Platform is required!'}}
+                  render={({
+                    field: {value: platforms},
+                    fieldState: {error},
+                  }) => (
+                    <View>
+                      <Text className="text-black mb-3">
+                        Campaign Platfroms
+                      </Text>
+                      <View className="flex flex-row gap-2">
+                        {['Instagram', 'TikTok'].map((value, index) => (
+                          <View key={index}>
+                            <SelectableTag
+                              text={value}
+                              isSelected={
+                                platforms.find(p => p.name === value) !==
+                                undefined
+                              }
+                              onPress={() => {
+                                const searchIndex = platforms.findIndex(
+                                  p => p.name === value,
+                                );
+                                if (searchIndex !== -1) {
+                                  removePlatform(searchIndex);
+                                } else {
+                                  appendPlatform({
+                                    name: value,
+                                    tasks: [{value: ''}],
+                                  });
+                                }
+                              }}
+                            />
+                          </View>
+                        ))}
                       </View>
-                    ))}
-                  </View>
-                </View>
-
+                      {error && (
+                        <Text className="text-xs mt-2 font-medium text-red-500">
+                          {/* {`${error}`} */}
+                          Platform is required!
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                />
                 {fieldsPlatform.map((fp, index) => (
                   <View key={fp.id}>
                     <FieldArray
@@ -365,38 +390,79 @@ const CreateCampaignScreen = () => {
                   </View>
                 ))}
 
-                {/* TODO: kasih rule buat length aja? */}
-                <FieldArray
+                <Controller
                   control={control}
-                  title="Campaign Criterias"
-                  parentName="criterias"
-                  childName="value"
+                  name="criterias"
+                  rules={{required: 'Criterias is required!'}}
+                  render={({fieldState: {error}}) => (
+                    <View>
+                      <FieldArray
+                        control={control}
+                        title="Campaign Criterias"
+                        parentName="criterias"
+                        childName="value"
+                      />
+                      {error && (
+                        <Text className="text-xs mt-2 font-medium text-red-500">
+                          Criteria is required (at least 1)!
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 />
-                <FieldArray
+                <Controller
                   control={control}
-                  title="Important Informations"
-                  parentName="importantInformation"
-                  childName="value"
-                  placeholder="Add dos and/or don'ts"
+                  name="importantInformation"
+                  rules={{required: 'Information is required!'}}
+                  render={({fieldState: {error}}) => (
+                    <View>
+                      <FieldArray
+                        control={control}
+                        title="Important Informations"
+                        parentName="importantInformation"
+                        childName="value"
+                        placeholder="Add dos and/or don'ts"
+                      />
+                      {error && (
+                        <Text className="text-xs mt-2 font-medium text-red-500">
+                          Information is required (at least 1)!
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 />
 
-                <View className="flex flex-col">
-                  <View className="flex flex-row justify-between items-center">
-                    <Text>Location</Text>
+                <Controller
+                  control={control}
+                  name="locations"
+                  rules={{required: 'Locations are required!'}}
+                  render={({
+                    field: {value: locations},
+                    fieldState: {error},
+                  }) => (
+                    <View className="flex flex-col">
+                      <View className="flex flex-row justify-between items-center">
+                        <Text>Location</Text>
 
-                    <Pressable onPress={() => setIsSheetOpened(true)}>
-                      <Text className="font-bold text-md">+</Text>
-                    </Pressable>
-                  </View>
-                  <View className="flex flex-row flex-wrap gap-2 mt-3">
-                    {watch('locations').map((l, index: number) => (
-                      <View key={index}>
-                        <SelectableTag text={l.value} isSelected={true} />
+                        <Pressable onPress={() => setIsSheetOpened(true)}>
+                          <Text className="font-bold text-md">+</Text>
+                        </Pressable>
                       </View>
-                    ))}
-                  </View>
-                </View>
-
+                      <View className="flex flex-row flex-wrap gap-2 mt-3">
+                        {locations.map((l, index: number) => (
+                          <View key={index}>
+                            <SelectableTag text={l.value} isSelected={true} />
+                          </View>
+                        ))}
+                      </View>
+                      {error && (
+                        <Text className="text-xs mt-2 font-medium text-red-500">
+                          Locations are required (at least 1)!
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                />
                 <AuthButton
                   text="Submit"
                   rounded="default"
