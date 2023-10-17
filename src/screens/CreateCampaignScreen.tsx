@@ -20,7 +20,7 @@ import SelectableTag from '../components/atoms/SelectableTag';
 import {Campaign, CampaignType, CampaignTypes} from '../model/Campaign';
 import FieldArray from '../components/organisms/FieldArray';
 import uuid from 'react-native-uuid';
-
+import DatePicker from 'react-native-date-picker';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -35,6 +35,7 @@ import {useNavigation} from '@react-navigation/native';
 import storage from '@react-native-firebase/storage';
 
 import {ImageOrVideo, Image as ImageType} from 'react-native-image-crop-picker';
+import {Button} from 'react-native';
 export type CampaignFormData = {
   title: string;
   description: string;
@@ -46,10 +47,14 @@ export type CampaignFormData = {
   importantInformation: StringObject[];
   locations: StringObject[];
   image: ImageType;
+  startDate: Date;
+  endDate: Date;
 };
 const CreateCampaignScreen = () => {
   const {uid} = useUser();
-  const [modalOpenState, setIsSheetOpened] = useState(false);
+  const [isLocationSheetOpened, setIsLocationSheetOpened] = useState(false);
+  const [isStartDateSheetOpened, setIsStartDateSheetOpened] = useState(false);
+  const [isEndDateSheetOpened, setIsEndDateSheetOpened] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const navigation = useNavigation();
   //TODO: tidy up (extract to const?), source: Wikipedia
@@ -100,6 +105,8 @@ const CreateCampaignScreen = () => {
       locations: [],
       importantInformation: [{value: ''}],
       criterias: [{value: ''}],
+      startDate: new Date(),
+      endDate: new Date(),
     },
   });
   const {
@@ -148,8 +155,8 @@ const CreateCampaignScreen = () => {
               d.importantInformation.map(getStringObjectValue),
             locations: d.locations.map(getStringObjectValue),
             // TODO: start date end date, picture
-            start: new Date(),
-            end: new Date('2023-12-12'),
+            start: d.startDate,
+            end: d.endDate,
             image: url,
           });
 
@@ -183,7 +190,7 @@ const CreateCampaignScreen = () => {
 
   // Location bottom sheet
   const sheetRef = useRef<BottomSheetModal>(null);
-  const handleClosePress = () => setIsSheetOpened(false);
+  const handleClosePress = () => setIsLocationSheetOpened(false);
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -197,12 +204,12 @@ const CreateCampaignScreen = () => {
     [],
   );
   useEffect(() => {
-    if (modalOpenState) {
+    if (isLocationSheetOpened) {
       sheetRef.current?.present();
     } else {
       sheetRef.current?.close();
     }
-  }, [modalOpenState]);
+  }, [isLocationSheetOpened]);
 
   const imageSelected = (media: ImageType) => {
     setValue('image', media);
@@ -444,7 +451,8 @@ const CreateCampaignScreen = () => {
                       <View className="flex flex-row justify-between items-center">
                         <Text>Location</Text>
 
-                        <Pressable onPress={() => setIsSheetOpened(true)}>
+                        <Pressable
+                          onPress={() => setIsLocationSheetOpened(true)}>
                           <Text className="font-bold text-md">+</Text>
                         </Pressable>
                       </View>
@@ -463,6 +471,100 @@ const CreateCampaignScreen = () => {
                     </View>
                   )}
                 />
+
+                {/* TODO: validate date, extract to component */}
+                <View className="flex flex-row justify-between">
+                  <Controller
+                    control={control}
+                    name="startDate"
+                    rules={{
+                      required: 'Start Date is required!',
+                      validate: d =>
+                        d >= new Date() || 'Date must be after today!',
+                    }}
+                    render={({
+                      field: {name, value: startDate},
+                      fieldState: {error},
+                    }) => (
+                      <View className="">
+                        <View className="flex flex-col items-start ">
+                          <View className="flex flex-row justify-between items-center mb-3">
+                            <Text>Start Date</Text>
+                          </View>
+                          <SelectableTag
+                            text={`${startDate.toLocaleDateString()}`}
+                            onPress={() => setIsStartDateSheetOpened(true)}
+                          />
+                        </View>
+                        <DatePicker
+                          modal
+                          mode={'date'}
+                          open={isStartDateSheetOpened}
+                          date={startDate}
+                          onConfirm={d => {
+                            setIsStartDateSheetOpened(false);
+                            setValue(name, d);
+                          }}
+                          onCancel={() => {
+                            setIsStartDateSheetOpened(false);
+                          }}
+                        />
+
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            {error.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  />
+
+                  <Controller
+                    control={control}
+                    name="endDate"
+                    rules={{
+                      required: 'End Date is required!',
+                      validate: d =>
+                        d > watch('startDate') ||
+                        'End Date must be after start date!',
+                    }}
+                    render={({
+                      field: {name, value: endDate},
+                      fieldState: {error},
+                    }) => (
+                      <View className="">
+                        <View className="flex flex-col items-start ">
+                          <View className="flex flex-row justify-between items-center mb-3">
+                            <Text>End Date</Text>
+                          </View>
+                          <SelectableTag
+                            text={`${endDate.toLocaleDateString()}`}
+                            onPress={() => setIsEndDateSheetOpened(true)}
+                          />
+                        </View>
+                        <DatePicker
+                          modal
+                          mode={'date'}
+                          open={isEndDateSheetOpened}
+                          date={endDate}
+                          onConfirm={d => {
+                            setIsEndDateSheetOpened(false);
+                            setValue(name, d);
+                          }}
+                          onCancel={() => {
+                            setIsEndDateSheetOpened(false);
+                          }}
+                        />
+
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            {error.message}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  />
+                </View>
                 <AuthButton
                   text="Submit"
                   rounded="default"
