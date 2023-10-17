@@ -33,7 +33,7 @@ const CampaignDetailScreen = ({route}: Props) => {
       <View className="w-full h-60 rounded-md overflow-hidden">
         <Image
           className="w-full h-full object-cover"
-          source={require('../assets/images/kopi-nako-logo.jpeg')}
+          source={{uri: campaign.image}}
         />
       </View>
       <View className="flex flex-col p-4 gap-2">
@@ -53,7 +53,7 @@ const CampaignDetailScreen = ({route}: Props) => {
         </Text>
         <View className="flex flex-row items-center">
           <Text>Available Slot</Text>
-          <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md w-12">
+          <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
             <Text className="text-center text-xs font-bold">
               0/{campaign.slot}
             </Text>
