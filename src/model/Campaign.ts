@@ -175,11 +175,13 @@ export class Campaign extends BaseModel {
 
   async insert() {
     try {
+      const {id, ...rest} = this;
       const data = {
-        ...this,
+        ...rest,
         userId: User.getDocumentReference(this.userId ?? ''),
         createdAt: new Date(),
       };
+
       await Campaign.getCampaignCollections().add(data);
       return true;
     } catch (error) {

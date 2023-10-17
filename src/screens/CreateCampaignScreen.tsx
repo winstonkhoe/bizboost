@@ -160,6 +160,7 @@ const CreateCampaignScreen = () => {
             image: url,
           });
 
+          console.log(campaign);
           campaign.insert().then(isSuccess => {
             setIsUploading(false);
 
