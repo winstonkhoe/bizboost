@@ -50,6 +50,7 @@ export type CampaignFormData = {
 const CreateCampaignScreen = () => {
   const {uid} = useUser();
   const [modalOpenState, setIsSheetOpened] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const navigation = useNavigation();
   //TODO: tidy up (extract to const?), source: Wikipedia
   const data = [
@@ -104,6 +105,8 @@ const CreateCampaignScreen = () => {
   const {handleSubmit, setValue, watch, control} = methods;
 
   const onSubmit = (d: CampaignFormData) => {
+    setIsUploading(true);
+
     const imageType = d.image.mime.split('/')[1];
     const filename = `campaigns/${uuid.v4()}.${imageType}`;
 
@@ -144,6 +147,8 @@ const CreateCampaignScreen = () => {
           });
 
           campaign.insert().then(isSuccess => {
+            setIsUploading(false);
+
             if (isSuccess) {
               navigation.goBack();
             }
@@ -200,6 +205,10 @@ const CreateCampaignScreen = () => {
   const imageSelected = (media: ImageType) => {
     setValue('image', media);
   };
+
+  if (isUploading) {
+    return <Text>Loading</Text>;
+  }
 
   //TODO: start date end date, picture
   return (

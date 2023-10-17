@@ -33,6 +33,7 @@ export class Campaign extends BaseModel {
   importantInformation?: string[];
 
   constructor({
+    id,
     userId,
     title,
     description,
@@ -49,6 +50,7 @@ export class Campaign extends BaseModel {
     importantInformation,
   }: Partial<Campaign>) {
     super();
+    this.id = id;
     this.userId = userId;
     this.title = title;
     this.description = description;
