@@ -33,6 +33,7 @@ export class Campaign extends BaseModel {
   importantInformation?: string[];
 
   constructor({
+    id,
     userId,
     title,
     description,
@@ -49,6 +50,7 @@ export class Campaign extends BaseModel {
     importantInformation,
   }: Partial<Campaign>) {
     super();
+    this.id = id;
     this.userId = userId;
     this.title = title;
     this.description = description;
@@ -173,11 +175,13 @@ export class Campaign extends BaseModel {
 
   async insert() {
     try {
+      const {id, ...rest} = this;
       const data = {
-        ...this,
+        ...rest,
         userId: User.getDocumentReference(this.userId ?? ''),
         createdAt: new Date(),
       };
+
       await Campaign.getCampaignCollections().add(data);
       return true;
     } catch (error) {

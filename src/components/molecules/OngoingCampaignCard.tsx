@@ -60,7 +60,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
               <Pressable
                 onPress={() =>
                   navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
-                    campaignId: campaign.id,
+                    campaignId: campaign.id || '',
                   })
                 }>
                 <View className="rounded-3xl bg-black px-3 py-2">
