@@ -1,6 +1,6 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import ChatScreen from '../screens/ChatScreen';
+import ChatsScreen from '../screens/ChatsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
@@ -64,7 +64,7 @@ const TabNavigation = () => {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatScreen}
+        component={ChatsScreen}
         // options={{
         //   tabBarIcon: <ChatLogo width={30} />,
         // }}
