@@ -129,6 +129,34 @@ export class User extends BaseModel {
       });
   }
 
+  static async getUser(documentId: string): Promise<User | null> {
+    try {
+      const documentSnapshot = await this.getDocumentReference(
+        documentId,
+      ).get();
+      console.log('User exists: ', documentSnapshot.exists);
+
+      if (documentSnapshot.exists) {
+        const userData = documentSnapshot.data();
+        console.log('User data: ', userData);
+
+        const user = new User({
+          email: userData?.email,
+          phone: userData?.phone,
+          contentCreator: userData?.contentCreator,
+          businessPeople: userData?.businessPeople,
+          joinedAt: userData?.joinedAt?.seconds,
+        });
+
+        return user;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw error; // Handle the error appropriately
+    }
+  }
+
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null, unsubscribe: () => void) => void,
@@ -297,5 +325,26 @@ export class User extends BaseModel {
     auth()
       .signOut()
       .then(() => console.log('User signed out!'));
+  }
+
+  static async getByUserRef(userRef: string) {
+    try {
+      // Create a Firestore reference from the provided userRef (document ID)
+      const userDocumentReference = firestore()
+        .collection('users')
+        .doc(userRef);
+
+      const userDoc = await userDocumentReference.get();
+
+      if (!userDoc.exists) {
+        return null;
+      }
+      const user = User.fromSnapshot(userDoc);
+
+      return user;
+    } catch (error) {
+      console.error('Error getting user by reference:', error);
+      throw error;
+    }
   }
 }

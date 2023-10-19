@@ -3,6 +3,8 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {User} from './User';
 import {BaseModel} from './BaseModel';
+import {useUser} from '../hooks/user';
+import {formatDate} from '../utils/date';
 
 export enum MessageType {
   Photo = 'Photo',
@@ -37,6 +39,44 @@ export class Chat extends BaseModel {
     this.messages = messages;
   }
 
+  static serialize(chat: Chat): any {
+    if (!chat) {
+      return null;
+    }
+
+    const messages: Message[] = chat.messages.map((messageData: any) => ({
+      message: messageData.message,
+      type: messageData.type,
+      sender: messageData.sender,
+      createdAt: messageData.createdAt,
+    }));
+
+    const participants: Participant[] = chat.participants.map(
+      (participantData: any) => {
+        const ref = participantData.ref;
+        const role = participantData.role;
+
+        const serializedParticipant: Participant = {
+          ref: ref,
+          role: role,
+        };
+
+        if (participantData.fullname || participantData.profilePicture) {
+          serializedParticipant.fullname = participantData.fullname;
+          serializedParticipant.profilePicture = participantData.profilePicture;
+        }
+
+        return serializedParticipant;
+      },
+    );
+
+    return {
+      id: chat.id,
+      participants: participants,
+      messages: messages,
+    };
+  }
+
   private static fromSnapshot(
     doc:
       | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
@@ -44,19 +84,20 @@ export class Chat extends BaseModel {
   ): Chat {
     const data = doc.data();
     if (data && doc.exists) {
+      console.log('[fromSnapshot] data: ' + data);
       const messages: Message[] = data.messages.map((messageData: any) => ({
         message: messageData.message,
         type: messageData.type,
         sender: messageData.sender,
-        createdAt: messageData.createdAt,
+        createdAt: messageData.createdAt.seconds,
       }));
+      console.log('[fromSnapshot] data.messages: ' + data.messages);
 
-      const participants: Participant[] = data.participants.map(
-        (participantData: any) => ({
-          ref: participantData.ref,
-          role: participantData.role,
-        }),
-      );
+      const participants: Participant[] = data.participants.map((p: any) => ({
+        ref: p.ref.id,
+        role: p.role,
+      }));
+      console.log('[fromSnapshot] data.participants: ' + data.participants);
 
       return new Chat({
         id: doc.id,
@@ -106,4 +147,12 @@ export class Chat extends BaseModel {
       throw Error('Error!');
     }
   }
+}
+
+export interface ChatView {
+  chat: Chat;
+  recipient?: {
+    fullname?: string;
+    profilePicture?: string;
+  };
 }

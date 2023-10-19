@@ -5,7 +5,7 @@ import {TransitionPresets, createStackNavigator} from '@react-navigation/stack';
 // import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import TabNavigation from './TabNavigation';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
-import ChatsScreen from '../screens/ChatsScreen';
+import ChatListScreen from '../screens/ChatListScreen';
 import {
   CreateAccountScreen_1,
   CreateAccountScreen_2,
@@ -93,7 +93,7 @@ const AuthenticatedNavigator = () => {
         />
         <Stack.Screen
           name={AuthenticatedNavigation.Chat}
-          component={ChatsScreen}
+          component={ChatListScreen}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CampaignDetail}

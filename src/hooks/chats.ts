@@ -1,7 +1,8 @@
 import {useEffect} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {Chat} from '../model/Chat';
+import {Chat, ChatView, Participant} from '../model/Chat';
 import {setUserChats} from '../redux/slices/chatSlice';
+import {User} from '../model/User';
 
 export const useUserChats = () => {
   const {uid, activeRole} = useAppSelector(state => state.user);
@@ -13,22 +14,47 @@ export const useUserChats = () => {
       Chat.getUserChatsReactive(
         uid,
         activeRole,
-        (chats: Chat[], unsubscribe: () => void) => {
-          const serializedChats = chats.map(chat => {
-            const serializedMessages = chat.messages?.map(message => ({
-              message: message.message,
-              type: message.type,
-              sender: message.sender,
-              createdAt: message.createdAt.toString(),
-            }));
+        async (chats: Chat[], unsubscribe: () => void) => {
+          const updatedChats = await Promise.all(
+            chats.map(async chat => {
+              console.log('[chats.ts hook] chat:' + chat.id);
 
-            return {
-              id: chat.id,
-              participants: chat.participants,
-              messages: serializedMessages,
-            };
-          });
-          dispatch(setUserChats(serializedChats));
+              const cv: ChatView = {
+                chat: Chat.serialize(chat),
+                recipient: {},
+              };
+
+              for (const participant of chat.participants || []) {
+                if (participant.ref != uid) {
+                  console.log('[chats.ts hook] participant:' + participant.ref);
+                  const role = participant.role;
+                  const ref = participant.ref;
+                  console.log(ref);
+
+                  const user = await User.getUser(ref);
+                  if (user) {
+                    const fullname =
+                      role === 'Business People'
+                        ? user.businessPeople?.fullname
+                        : user.contentCreator?.fullname;
+                    const profilePicture =
+                      role === 'Business People'
+                        ? user.businessPeople?.profilePicture
+                        : user.contentCreator?.profilePicture;
+
+                    if (cv.recipient) {
+                      cv.recipient.fullname = fullname;
+                      cv.recipient.profilePicture = profilePicture;
+                    }
+                  }
+                }
+              }
+
+              return cv;
+            }),
+          );
+
+          dispatch(setUserChats(updatedChats));
           return unsubscribe;
         },
       );
