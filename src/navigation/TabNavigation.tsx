@@ -14,6 +14,7 @@ import {UserRole} from '../model/User';
 import {View} from 'react-native';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
+import CampaignsScreen from '../screens/CampaignsScreen';
 const Tab = createBottomTabNavigator();
 
 const TabNavigation = () => {
@@ -65,6 +66,13 @@ const TabNavigation = () => {
       <Tab.Screen
         name="Chat"
         component={ChatScreen}
+        // options={{
+        //   tabBarIcon: <ChatLogo width={30} />,
+        // }}
+      />
+      <Tab.Screen
+        name="Campaigns" // TODO: name camapaigns / jobs?
+        component={CampaignsScreen}
         // options={{
         //   tabBarIcon: <ChatLogo width={30} />,
         // }}
