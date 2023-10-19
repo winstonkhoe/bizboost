@@ -83,6 +83,7 @@ export class User extends BaseModel {
   static getDocumentReference(
     documentId: string,
   ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+    //TODO: tidy up, move somewhere else neater
     firestore().settings({
       ignoreUndefinedProperties: true,
     });

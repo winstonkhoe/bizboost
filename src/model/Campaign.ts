@@ -159,10 +159,14 @@ export class Campaign extends BaseModel {
       throw Error('Error!');
     }
   }
-
+  static getDocumentReference(
+    documentId: string,
+  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+    return this.getCampaignCollections().doc(documentId);
+  }
   static async getById(id: string): Promise<Campaign> {
     try {
-      const snapshot = await firestore().collection('campaigns').doc(id).get();
+      const snapshot = await this.getDocumentReference(id).get();
       if (!snapshot.exists) {
         throw Error('Campaign not found!');
       }

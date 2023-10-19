@@ -9,6 +9,7 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {Campaign} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
 import {gap} from '../styles/Gap';
+import {useUser} from '../hooks/user';
 
 const CampaignsScreen = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
