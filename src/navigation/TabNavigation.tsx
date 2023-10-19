@@ -65,9 +65,9 @@ const TabNavigation = () => {
       <Tab.Screen
         name="Chat"
         component={ChatListScreen}
-        // options={{
-        //   tabBarIcon: <ChatLogo width={30} />,
-        // }}
+        options={{
+          tabBarIcon: ChatLogo,
+        }}
       />
       <Tab.Screen
         name="Profile"

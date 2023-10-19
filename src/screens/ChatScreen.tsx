@@ -1,10 +1,9 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
 import ChatWidget from '../components/chat/ChatWidget';
-
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import storage from '@react-native-firebase/storage';
 
@@ -17,17 +16,33 @@ import {
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
+import {Chat, ChatView, Message, MessageType} from '../model/Chat';
 
-export interface Message {
-  message: string;
-  isSender: boolean;
-  profilePic: string;
-}
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {
+  AuthenticatedNavigation,
+  RootAuthenticatedNativeStackParamList,
+} from '../navigation/AuthenticatedNavigation';
+import {UserRole} from '../model/User';
 
-const ChatScreen = () => {
+type Props = NativeStackScreenProps<
+  RootAuthenticatedNativeStackParamList,
+  AuthenticatedNavigation.Chat
+>;
+const ChatScreen = ({route}: Props) => {
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false); // State to track widget visibility
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
-  const {user, activeRole} = useUser();
+  const {uid, user, activeRole} = useUser();
+
+  const {chat} = route.params;
+  console.log('profpic:' + chat.recipient.profilePicture);
+
+  useEffect(() => {
+    // Assuming that chat.messages is an array of Message objects
+    if (chat.chat.messages) {
+      setChatMessages(chat.chat.messages);
+    }
+  }, [chat.messages]);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -35,10 +50,10 @@ const ChatScreen = () => {
   const handleSendPress = (message: string) => {
     // Add the new message to the chatMessages state
     if (message !== '') {
-      const newMessage = {
-        message,
-        isSender: true,
-        profilePic: 'user_profile_url',
+      const newMessage: Message = {
+        message: message,
+        sender: uid,
+        type: MessageType.Text,
       };
       setChatMessages([...chatMessages, newMessage]);
 
@@ -58,37 +73,22 @@ const ChatScreen = () => {
     console.log(`Opening widget: ${isWidgetVisible}`);
   };
 
-  const handleImageUpload = async response => {
-    console.log(response);
+  const handleImageUpload = async (downloadURL: string) => {
     const tempImageUri = response.uri;
 
-    try {
-      const imageFileName = 'your_unique_filename.jpg';
-      const imageRef = storage().ref(`images/${imageFileName}`);
+    // Create a new message with the image download URL
+    const newMessage: Message = {
+      message: downloadURL,
+      type: MessageType.Photo,
+      sender: uid,
+    };
 
-      // Upload the image to Firebase Cloud Storage
-      await imageRef.putFile(tempImageUri);
+    // Add the new message to the chatMessages state
+    setChatMessages([...chatMessages, newMessage]);
 
-      // Get the download URL of the uploaded image
-      const downloadURL = await imageRef.getDownloadURL();
-
-      // Create a new message with the image download URL
-      const newMessage = {
-        message: downloadURL,
-        isSender: true, // Assuming the sender is the user
-        profilePic: 'user_profile_url',
-        isImage: true, // Add a flag to identify that it's an image
-      };
-
-      // Add the new message to the chatMessages state
-      setChatMessages([...chatMessages, newMessage]);
-
-      // Scroll to the end of the ScrollView
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollToEnd({animated: true});
-      }
-    } catch (error) {
-      console.error('Error uploading the image to Firebase:', error);
+    // Scroll to the end of the ScrollView
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({animated: true});
     }
   };
 
@@ -101,7 +101,10 @@ const ChatScreen = () => {
         <View
           className="border-b-[0.5px] border-gray-400 items-center justify-start py-3"
           style={[flex.flexRow]}>
-          <ChatHeader recipientName="Recipient Name" lastOnline="1h ago" />
+          <ChatHeader
+            recipientName={chat.recipient.fullname}
+            recipientPicture={chat.recipient.profilePicture}
+          />
         </View>
 
         {/* Chat Messages */}
@@ -114,18 +117,23 @@ const ChatScreen = () => {
           }}>
           <VerticalPadding>
             <View style={[flex.flexCol, gap.default]}>
-              {chatMessages.map((message: Message, index: number) => (
-                <HorizontalPadding key={index} paddingSize="xsmall2">
-                  <View className="w-full px-3">
-                    <ChatBubble
-                      key={index}
-                      message={message.message}
-                      isSender={message.isSender}
-                      profilePic={message.profilePic}
-                    />
-                  </View>
-                </HorizontalPadding>
-              ))}
+              {chatMessages &&
+                chatMessages.map((message: Message, index: number) => (
+                  <HorizontalPadding key={index} paddingSize="xsmall2">
+                    <View className="w-full px-3">
+                      <ChatBubble
+                        key={index}
+                        message={message.message}
+                        isSender={message.sender === uid}
+                        profilePic={
+                          activeRole === UserRole.BusinessPeople
+                            ? user?.businessPeople?.profilePicture
+                            : user?.contentCreator?.profilePicture
+                        }
+                      />
+                    </View>
+                  </HorizontalPadding>
+                ))}
             </View>
           </VerticalPadding>
         </ScrollView>
@@ -147,6 +155,7 @@ const ChatScreen = () => {
                   height: 400,
                   cropping: true,
                 }}
+                handleImageUpload={handleImageUpload}
               />
             </View>
           ) : null}
