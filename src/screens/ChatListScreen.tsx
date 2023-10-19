@@ -45,31 +45,25 @@ const ChatListScreen = () => {
                   chat: item,
                 });
               }}>
-              <View
-                style={flex.flexRow}
-                className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
-                <View className="w-12 h-full rounded-full overflow-hidden">
-                  <Image
-                    source={require('../assets/images/sample-influencer.jpeg')}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                </View>
-                {recipient.profilePicture && (
-                  <Image
-                    source={{uri: recipient.profilePicture}}
-                    className="w-12 h-12 rounded-full mr-4"
-                  />
-                )}
-                <View className="h-full">
-                  <Text className="text-lg font-bold">
-                    {recipient.fullname || 'User'}
-                  </Text>
-                  <Text>
-                    {chat.messages && chat.messages.length > 0
-                      ? chat.messages[chat.messages.length - 1].message
-                      : 'No messages'}
-                  </Text>
+              <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
+                <View style={gap.medium} className="flex flex-row h-full">
+                  <View className="w-12 h-full rounded-full overflow-hidden">
+                    <Image
+                      source={require('../assets/images/sample-influencer.jpeg')}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </View>
+                  <View className="h-full">
+                    <Text className="text-lg font-bold">
+                      {recipient.fullname || 'User'}
+                    </Text>
+                    <Text>
+                      {chat.messages && chat.messages.length > 0
+                        ? chat.messages[chat.messages.length - 1].message
+                        : ''}
+                    </Text>
+                  </View>
                 </View>
                 {chat.messages && chat.messages.length > 0 && (
                   <View className="flex h-full">

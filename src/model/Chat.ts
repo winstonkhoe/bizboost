@@ -32,11 +32,12 @@ export class Chat extends BaseModel {
   participants?: Participant[] = [];
   messages?: Message[] = [];
 
-  constructor({id, participants, messages}: Partial<Chat>) {
+  constructor(data: Partial<Chat>) {
     super();
-    this.id = id;
-    this.participants = participants;
-    this.messages = messages;
+    console.log('constructor:' + data.id);
+    this.id = data.id || '';
+    this.participants = data.participants || [];
+    this.messages = data.messages || [];
   }
 
   static serialize(chat: Chat): any {
@@ -109,6 +110,12 @@ export class Chat extends BaseModel {
     throw new Error("Error, document doesn't exist!");
   }
 
+  static getDocumentReference(
+    documentId: string,
+  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+    return firestore().collection(CHAT_COLLECTION).doc(documentId);
+  }
+
   private static fromQuerySnapshot(
     querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): Chat[] {
@@ -145,6 +152,28 @@ export class Chat extends BaseModel {
         );
     } catch (error) {
       throw Error('Error!');
+    }
+  }
+
+  async insertMessage(newMessage: Message) {
+    try {
+      const chatRef = Chat.getDocumentReference(this.id ?? '');
+
+      const chatDoc = await chatRef.get();
+      if (chatDoc.exists) {
+        const chatData = chatDoc.data() as Chat;
+
+        const updatedMessages = chatData.messages || [];
+        updatedMessages.push(newMessage);
+
+        await chatRef.update({messages: updatedMessages});
+
+        console.log('Message inserted successfully');
+      } else {
+        console.error('Chat document does not exist');
+      }
+    } catch (error) {
+      console.error('Error inserting message:', error);
     }
   }
 }

@@ -326,25 +326,4 @@ export class User extends BaseModel {
       .signOut()
       .then(() => console.log('User signed out!'));
   }
-
-  static async getByUserRef(userRef: string) {
-    try {
-      // Create a Firestore reference from the provided userRef (document ID)
-      const userDocumentReference = firestore()
-        .collection('users')
-        .doc(userRef);
-
-      const userDoc = await userDocumentReference.get();
-
-      if (!userDoc.exists) {
-        return null;
-      }
-      const user = User.fromSnapshot(userDoc);
-
-      return user;
-    } catch (error) {
-      console.error('Error getting user by reference:', error);
-      throw error;
-    }
-  }
 }

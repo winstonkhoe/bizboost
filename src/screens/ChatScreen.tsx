@@ -30,31 +30,46 @@ type Props = NativeStackScreenProps<
   AuthenticatedNavigation.Chat
 >;
 const ChatScreen = ({route}: Props) => {
-  const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false); // State to track widget visibility
+  const {chat} = route.params;
+  const [chatData, setChatData] = useState<Chat>(chat);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {uid, user, activeRole} = useUser();
 
-  const {chat} = route.params;
-  console.log('profpic:' + chat.recipient.profilePicture);
+  const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    const chatRef = Chat.getDocumentReference(chat.chat.id ?? '');
+
+    const unsubscribe = chatRef.onSnapshot(doc => {
+      if (doc.exists) {
+        const updatedChatData = doc.data() as Chat;
+        setChatData(updatedChatData);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [chat.chat.id]);
 
   useEffect(() => {
     // Assuming that chat.messages is an array of Message objects
-    if (chat.chat.messages) {
-      setChatMessages(chat.chat.messages);
+    if (chatData.messages) {
+      setChatMessages(chatData.messages);
     }
-  }, [chat.messages]);
+  }, [chatData.messages]);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Handle sending a message
-  const handleSendPress = (message: string) => {
+  const handleSendPress = async (message: string) => {
     // Add the new message to the chatMessages state
     if (message !== '') {
       const newMessage: Message = {
         message: message,
         sender: uid,
         type: MessageType.Text,
+        createdAt: new Date(),
       };
+      await new Chat(chat.chat).insertMessage(newMessage);
       setChatMessages([...chatMessages, newMessage]);
 
       // Scroll to the end of the ScrollView
@@ -74,23 +89,25 @@ const ChatScreen = ({route}: Props) => {
   };
 
   const handleImageUpload = async (downloadURL: string) => {
-    const tempImageUri = response.uri;
-
     // Create a new message with the image download URL
     const newMessage: Message = {
       message: downloadURL,
       type: MessageType.Photo,
       sender: uid,
+      createdAt: new Date(),
     };
 
     // Add the new message to the chatMessages state
     setChatMessages([...chatMessages, newMessage]);
+    await new Chat(chat.chat).insertMessage(newMessage);
 
     // Scroll to the end of the ScrollView
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({animated: true});
     }
   };
+
+  const sampleProfilePicture = require('../assets/images/sample-influencer.jpeg');
 
   return (
     <SafeAreaContainer>
@@ -125,11 +142,7 @@ const ChatScreen = ({route}: Props) => {
                         key={index}
                         message={message.message}
                         isSender={message.sender === uid}
-                        profilePic={
-                          activeRole === UserRole.BusinessPeople
-                            ? user?.businessPeople?.profilePicture
-                            : user?.contentCreator?.profilePicture
-                        }
+                        type={message.type}
                       />
                     </View>
                   </HorizontalPadding>
