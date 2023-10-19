@@ -11,6 +11,7 @@ import TagCard from '../components/atoms/TagCard';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {getDate} from '../utils/date';
+import {AuthButton} from '../components/atoms/Button';
 type Props = NativeStackScreenProps<
   RootAuthenticatedNativeStackParamList,
   AuthenticatedNavigation.CampaignDetail
@@ -113,7 +114,10 @@ const CampaignDetailScreen = ({route}: Props) => {
             ))}
           </View>
         </View>
-        <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text>
+        <View className="py-4">
+          <AuthButton text="Join Campaign" rounded="default" />
+        </View>
+        {/* <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text> */}
       </View>
     </ScrollView>
   );
