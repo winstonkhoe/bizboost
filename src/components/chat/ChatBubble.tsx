@@ -30,8 +30,9 @@ const ChatBubble = ({message, isSender, type}: Message) => {
       {type === MessageType.Photo && (
         <View
           style={{
-            borderRadius: 20,
+            borderRadius: 10,
             maxWidth: '80%',
+            overflow: 'hidden',
           }}>
           <FirebaseStorageImage imageUrl={message} />
         </View>
