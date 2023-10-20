@@ -14,11 +14,13 @@ import {UserRole} from '../model/User';
 import {View} from 'react-native';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
+import CampaignsScreen from '../screens/CampaignsScreen';
 const Tab = createBottomTabNavigator();
 
 export enum TabNavigation {
-  Home = 'Home',
+  Campaigns = 'Campaigns',
   Chat = 'Chat',
+  Home = 'Home',
   Profile = 'Profile',
 }
 
@@ -84,6 +86,10 @@ export const TabNavigator = () => {
         options={{
           tabBarIcon: ({focused}) => chatIcon(focused),
         }}
+      />
+      <Tab.Screen
+        name={TabNavigation.Campaigns}
+        component={CampaignsScreen}
       />
       <Tab.Screen
         name={TabNavigation.Profile}

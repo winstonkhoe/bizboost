@@ -23,11 +23,13 @@ import ImagePicker, {
 interface Props extends UseControllerProps {
   label: string;
   placeholder?: string;
+  multiline?: boolean;
 }
 
 export const CustomTextInput = ({
   label,
   placeholder = label,
+  multiline = false,
   ...controllerProps
 }: Props) => {
   const {
@@ -42,6 +44,7 @@ export const CustomTextInput = ({
   const [parentWidth, setParentWidth] = useState<number>(0);
   const animatedWidth = useRef(new Animated.Value(0)).current;
   const fieldFilled = watch(controllerProps.name, '');
+  const [height, setHeight] = useState(0);
 
   useEffect(() => {
     Animated.timing(animatedWidth, {
@@ -80,6 +83,11 @@ export const CustomTextInput = ({
         control={control}
         render={({field: {onChange, onBlur, value}}) => (
           <TextInput
+            multiline={multiline}
+            onContentSizeChange={event =>
+              setHeight(event.nativeEvent.contentSize.height + 15)
+            }
+            style={{height: Math.max(35, height)}}
             value={value}
             onFocus={() => {
               setIsFocus(true);

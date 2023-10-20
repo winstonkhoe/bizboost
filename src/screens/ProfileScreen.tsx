@@ -1,4 +1,5 @@
-import {Image, Text, View} from 'react-native';
+import {Image, Button, Text, View} from 'react-native';
+import {User} from '../model/User';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
 import {flex} from '../styles/Flex';

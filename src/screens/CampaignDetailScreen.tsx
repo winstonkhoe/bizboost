@@ -11,18 +11,37 @@ import TagCard from '../components/atoms/TagCard';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {getDate} from '../utils/date';
+import {AuthButton} from '../components/atoms/Button';
+import {useUser} from '../hooks/user';
+import {Transaction} from '../model/Transaction';
 type Props = NativeStackScreenProps<
   RootAuthenticatedNativeStackParamList,
   AuthenticatedNavigation.CampaignDetail
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  // TODO: pass id instead of object to solve: `Non-serializable values were found in the navigation state.`
+  const {uid} = useUser();
+
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
+
+  // TODO: validate join only for CC
+  const handleJoinCampaign = () => {
+    const data = new Transaction({
+      contentCreatorId: uid || '',
+      campaignId: campaignId,
+      status: 'PENDING',
+    });
+
+    data.insert().then(isSuccess => {
+      if (isSuccess) {
+        console.log('Joined!');
+      }
+    });
+  };
 
   if (!campaign) {
     return <Text>Loading</Text>;
@@ -33,7 +52,7 @@ const CampaignDetailScreen = ({route}: Props) => {
       <View className="w-full h-60 rounded-md overflow-hidden">
         <Image
           className="w-full h-full object-cover"
-          source={require('../assets/images/kopi-nako-logo.jpeg')}
+          source={{uri: campaign.image}}
         />
       </View>
       <View className="flex flex-col p-4 gap-2">
@@ -53,7 +72,7 @@ const CampaignDetailScreen = ({route}: Props) => {
         </Text>
         <View className="flex flex-row items-center">
           <Text>Available Slot</Text>
-          <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md w-12">
+          <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
             <Text className="text-center text-xs font-bold">
               0/{campaign.slot}
             </Text>
@@ -113,7 +132,15 @@ const CampaignDetailScreen = ({route}: Props) => {
             ))}
           </View>
         </View>
-        <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text>
+        <View className="py-4">
+          {/* TODO: validate join only for CC */}
+          <AuthButton
+            text="Join Campaign"
+            rounded="default"
+            onPress={handleJoinCampaign}
+          />
+        </View>
+        {/* <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text> */}
       </View>
     </ScrollView>
   );

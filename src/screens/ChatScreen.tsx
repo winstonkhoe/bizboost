@@ -6,6 +6,8 @@ import ChatInputBar from '../components/chat/ChatInputBar';
 import ChatWidget from '../components/chat/ChatWidget';
 
 import SafeAreaContainer from '../containers/SafeAreaContainer';
+import storage from '@react-native-firebase/storage';
+
 import {useUser} from '../hooks/user';
 import {flex} from '../styles/Flex';
 import {background} from '../styles/BackgroundColor';
@@ -26,8 +28,6 @@ const ChatScreen = () => {
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false); // State to track widget visibility
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {user, activeRole} = useUser();
-
-  console.log(user);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -58,7 +58,39 @@ const ChatScreen = () => {
     console.log(`Opening widget: ${isWidgetVisible}`);
   };
 
-  // Image launcher options
+  const handleImageUpload = async response => {
+    console.log(response);
+    const tempImageUri = response.uri;
+
+    try {
+      const imageFileName = 'your_unique_filename.jpg';
+      const imageRef = storage().ref(`images/${imageFileName}`);
+
+      // Upload the image to Firebase Cloud Storage
+      await imageRef.putFile(tempImageUri);
+
+      // Get the download URL of the uploaded image
+      const downloadURL = await imageRef.getDownloadURL();
+
+      // Create a new message with the image download URL
+      const newMessage = {
+        message: downloadURL,
+        isSender: true, // Assuming the sender is the user
+        profilePic: 'user_profile_url',
+        isImage: true, // Add a flag to identify that it's an image
+      };
+
+      // Add the new message to the chatMessages state
+      setChatMessages([...chatMessages, newMessage]);
+
+      // Scroll to the end of the ScrollView
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({animated: true});
+      }
+    } catch (error) {
+      console.error('Error uploading the image to Firebase:', error);
+    }
+  };
 
   return (
     <SafeAreaContainer>
@@ -111,7 +143,7 @@ const ChatScreen = () => {
             <View className="w-full">
               <ChatWidget
                 options={{
-                  width: 300,
+                  width: 400,
                   height: 400,
                   cropping: true,
                 }}

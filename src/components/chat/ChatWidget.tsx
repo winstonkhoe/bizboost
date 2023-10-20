@@ -6,6 +6,8 @@ import {gap} from '../../styles/Gap';
 import {MediaUploader} from '../atoms/Input';
 import {flex} from '../../styles/Flex';
 import {Options, ImageOrVideo} from 'react-native-image-crop-picker';
+import storage from '@react-native-firebase/storage';
+import uuid from 'react-native-uuid';
 
 interface Props {
   options: Options;
@@ -17,8 +19,29 @@ const ChatWidget = ({options}: Props) => {
     console.log('Make offer widget');
   };
 
+  // TODO: extract to utility function
   const imageSelected = (media: ImageOrVideo) => {
     console.log(media);
+    const imageType = media.mime.split('/')[1];
+    const filename = `${uuid.v4()}.${imageType}`;
+
+    const reference = storage().ref(filename);
+    const task = reference.putFile(media.path);
+
+    task.on('state_changed', taskSnapshot => {
+      console.log(
+        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
+      );
+    });
+
+    task.then(async () => {
+      try {
+        console.log(await reference.getDownloadURL());
+        console.log('Image uploaded to the bucket!');
+      } catch (e) {
+        console.log(e);
+      }
+    });
   };
 
   return (

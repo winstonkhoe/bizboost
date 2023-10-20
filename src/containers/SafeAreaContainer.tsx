@@ -1,13 +1,15 @@
 import {ReactNode} from 'react';
 import {View} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {EdgeInsets, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 type Props = {
   children: ReactNode;
+  customInsets?: Partial<EdgeInsets>;
 };
-const SafeAreaContainer = ({children}: Props) => {
-  const insets = useSafeAreaInsets();
+const SafeAreaContainer = ({children, customInsets}: Props) => {
+  const safeAreaInsets = useSafeAreaInsets();
+  const insets = {...safeAreaInsets, ...customInsets};
   return (
     <View
       style={[
