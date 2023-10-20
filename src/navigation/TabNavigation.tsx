@@ -1,6 +1,6 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import ChatScreen from '../screens/ChatScreen';
+import ChatListScreen from '../screens/ChatListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
@@ -82,15 +82,12 @@ export const TabNavigator = () => {
       />
       <Tab.Screen
         name={TabNavigation.Chat}
-        component={ChatScreen}
+        component={ChatListScreen}
         options={{
           tabBarIcon: ({focused}) => chatIcon(focused),
         }}
       />
-      <Tab.Screen
-        name={TabNavigation.Campaigns}
-        component={CampaignsScreen}
-      />
+      <Tab.Screen name={TabNavigation.Campaigns} component={CampaignsScreen} />
       <Tab.Screen
         name={TabNavigation.Profile}
         component={ProfileScreen}

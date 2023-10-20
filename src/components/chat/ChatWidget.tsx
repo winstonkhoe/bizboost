@@ -11,9 +11,10 @@ import uuid from 'react-native-uuid';
 
 interface Props {
   options: Options;
+  handleImageUpload: (downloadURL: string) => void;
 }
 
-const ChatWidget = ({options}: Props) => {
+const ChatWidget = ({options, handleImageUpload}: Props) => {
   // Handle make offer button
   const onMakeOfferPress = () => {
     console.log('Make offer widget');
@@ -36,8 +37,13 @@ const ChatWidget = ({options}: Props) => {
 
     task.then(async () => {
       try {
-        console.log(await reference.getDownloadURL());
+        // i want to call handleImageUpload here
         console.log('Image uploaded to the bucket!');
+        const downloadURL = await reference.getDownloadURL();
+        console.log(
+          '[ChatWidget.tsx: imageSelected] download url: ' + downloadURL,
+        );
+        handleImageUpload(downloadURL);
       } catch (e) {
         console.log(e);
       }
