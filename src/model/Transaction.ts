@@ -67,26 +67,18 @@ export class Transaction extends BaseModel {
     contentCreatorId: string,
     onComplete: (status: TransactionStatus) => void,
   ) {
+    const id = campaignId + contentCreatorId;
     const unsubscribe = firestore()
       .collection(TRANSACTION_COLLECTION)
-      .where(
-        'campaignId',
-        '==',
-        firestore().collection('campaigns').doc(campaignId),
-      )
-      .where(
-        'contentCreatorId',
-        '==',
-        firestore().collection('users').doc(contentCreatorId),
-      )
+      .doc(id)
       .onSnapshot(
-        querySnapshot => {
+        docSnapshot => {
           let status: TransactionStatus;
-          if (querySnapshot.empty) {
+          if (!docSnapshot.exists) {
             status = TransactionStatus.notRegistered;
             return;
           }
-          let transaction = querySnapshot.docs[0].data() as Transaction;
+          let transaction = docSnapshot.data() as Transaction;
           status = transaction.status || TransactionStatus.notRegistered;
 
           onComplete(status);
