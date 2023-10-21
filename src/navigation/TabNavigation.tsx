@@ -49,7 +49,7 @@ export const TabNavigator = () => {
         ) : (
           <View
             className="w-full h-full"
-            style={[background(COLOR.black, 0.2)]}></View>
+            style={[background(COLOR.black[100], 0.2)]}></View>
         )}
       </Pressable>
     );
@@ -64,9 +64,9 @@ export const TabNavigator = () => {
   const chatIcon = useCallback(
     (focused: boolean) =>
       focused ? (
-        <ChatLogo width={30} height={30} color={COLOR.black} />
+        <ChatLogo width={30} height={30} color={COLOR.black[100]} />
       ) : (
-        <ChatLogo width={30} height={30} color={COLOR.black} />
+        <ChatLogo width={30} height={30} color={COLOR.black[100]} />
       ),
     [],
   );

@@ -31,7 +31,7 @@ const ChatHeader = ({recipientName, recipientPicture}: Props) => {
       className="h-16 w-full flex flex-row items-center justify-start px-2 border-b-[0.5px] border-gray-400 "
       style={[gap.default]}>
       <TouchableOpacity onPress={handleBackButtonPress}>
-        <BackNav width={30} height={20} color={COLOR.black} />
+        <BackNav width={30} height={20} color={COLOR.black[100]} />
       </TouchableOpacity>
       <View className="w-10 h-10 rounded-full overflow-hidden">
         <Image

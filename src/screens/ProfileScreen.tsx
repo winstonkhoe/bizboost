@@ -61,7 +61,7 @@ const ProfileScreen = () => {
                     <EditIcon
                       width={14}
                       height={14}
-                      color={hex2rgba({hex: COLOR.black, alpha: 0.6})}
+                      color={hex2rgba({hex: COLOR.black[100], alpha: 0.6})}
                     />
                   </View>
                 </View>
@@ -74,7 +74,7 @@ const ProfileScreen = () => {
                       rounded.default,
                       border({
                         borderWidth: 2,
-                        color: COLOR.black,
+                        color: COLOR.black[100],
                         opacity: 0.7,
                       }),
                     ]}>

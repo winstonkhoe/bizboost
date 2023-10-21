@@ -113,7 +113,7 @@ export const CustomTextInput = ({
           {height: 1},
           errors?.[controllerProps.name]
             ? background(COLOR.red.error)
-            : background(COLOR.black),
+            : background(COLOR.black[100]),
         ]}>
         <Animated.View
           className="absolute top-0 left-0 w-full h-full bg-green-700"

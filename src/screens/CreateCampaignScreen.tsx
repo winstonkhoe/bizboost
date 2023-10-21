@@ -199,7 +199,7 @@ const CreateCampaignScreen = () => {
         {...props}
         disappearsOnIndex={-1}
         opacity={1}
-        style={[props.style, background(COLOR.black)]}
+        style={[props.style, background(COLOR.black[100])]}
       />
     ),
     [],
