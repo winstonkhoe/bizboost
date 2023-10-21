@@ -108,29 +108,20 @@ export class User extends BaseModel {
     await this.getDocumentReference(documentId).update(data);
   }
 
-  static getUserData(
-    documentId: string,
-    callback: (user: User | null) => void,
-  ): void {
-    this.getDocumentReference(documentId)
-      .get()
-      .then(documentSnapshot => {
-        console.log('User exists: ', documentSnapshot.exists);
-        if (documentSnapshot.exists) {
-          const userData = documentSnapshot.data();
-          console.log('User data: ', userData);
-          const user = new User({
-            email: userData?.email,
-            phone: userData?.phone,
-            contentCreator: userData?.contentCreator,
-            businessPeople: userData?.businessPeople,
-            joinedAt: userData?.joinedAt?.seconds,
-          });
-          callback(user);
-        } else {
-          callback(null);
-        }
+  static async getById(documentId: string): Promise<User | undefined> {
+    const snapshot = await this.getDocumentReference(documentId).get();
+    if (snapshot.exists) {
+      const userData = snapshot.data();
+      const user = new User({
+        email: userData?.email,
+        phone: userData?.phone,
+        contentCreator: userData?.contentCreator,
+        businessPeople: userData?.businessPeople,
+        joinedAt: userData?.joinedAt?.seconds,
       });
+
+      return user;
+    }
   }
 
   static getUserDataReactive(

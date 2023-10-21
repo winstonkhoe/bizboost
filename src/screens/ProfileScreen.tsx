@@ -101,14 +101,7 @@ const ProfileScreen = () => {
           <HorizontalPadding>
             <AuthButton
               onPress={() => {
-                auth()
-                  .signOut()
-                  .then(() => {
-                    console.log('sign out success');
-                  })
-                  .catch(err => {
-                    console.log(err);
-                  });
+                User.signOut();
               }}
               rounded="default"
               text="Sign out"

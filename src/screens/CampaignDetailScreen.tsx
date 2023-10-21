@@ -14,6 +14,7 @@ import {getDate} from '../utils/date';
 import {AuthButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {Transaction, TransactionStatus} from '../model/Transaction';
+import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 type Props = NativeStackScreenProps<
   RootAuthenticatedNativeStackParamList,
   AuthenticatedNavigation.CampaignDetail
@@ -27,6 +28,9 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     TransactionStatus.notRegistered,
   );
+  // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
@@ -43,6 +47,12 @@ const CampaignDetailScreen = ({route}: Props) => {
 
     return unsubscribe;
   }, [campaignId, uid]);
+
+  useEffect(() => {
+    Transaction.getAllTransactionsByCampaign(campaignId, t =>
+      setTransactions(t),
+    );
+  }, [campaignId]);
 
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
@@ -149,17 +159,29 @@ const CampaignDetailScreen = ({route}: Props) => {
           </View>
         </View>
         <Text>{transactionStatus}</Text>
-        <View className="py-4">
-          {/* TODO: validate join only for CC */}
-          {transactionStatus === TransactionStatus.notRegistered && (
-            <AuthButton
-              text="Join Campaign"
-              rounded="default"
-              onPress={handleJoinCampaign}
-            />
+        {uid !== campaign.userId &&
+          transactionStatus === TransactionStatus.notRegistered && (
+            <View className="py-4">
+              {/* TODO: validate join only for CC */}
+
+              <AuthButton
+                text="Join Campaign"
+                rounded="default"
+                onPress={handleJoinCampaign}
+              />
+            </View>
           )}
-        </View>
-        {/* <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text> */}
+        {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
+        {uid === campaign.userId && (
+          <View>
+            <Text>Registrants</Text>
+            <View>
+              {transactions.map((t, index) => (
+                <RegisteredUserListCard transaction={t} key={index} />
+              ))}
+            </View>
+          </View>
+        )}
       </View>
     </ScrollView>
   );

@@ -22,12 +22,7 @@ export class Transaction extends BaseModel {
   campaignId?: string;
   status?: TransactionStatus;
 
-  constructor({
-    id,
-    contentCreatorId,
-    campaignId,
-    status,
-  }: Partial<Transaction>) {
+  constructor({contentCreatorId, campaignId, status}: Partial<Transaction>) {
     super();
     // this.id = id;
     if (campaignId && contentCreatorId) {
@@ -38,12 +33,32 @@ export class Transaction extends BaseModel {
     this.status = status;
   }
 
+  private static fromSnapshot(
+    doc:
+      | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
+      | FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
+  ): Transaction {
+    const data = doc.data();
+    if (data && doc.exists) {
+      return new Transaction({
+        id: doc.id,
+        contentCreatorId: data.contentCreatorId.id,
+        campaignId: data.campaignId.id,
+        status: data.status,
+      });
+    }
+
+    throw Error("Error, document doesn't exist!");
+  }
+
   async insert() {
     return await this.updateStatus(TransactionStatus.registrationPending);
   }
 
   async updateStatus(status: TransactionStatus) {
     try {
+      this.status = status;
+
       const {id, ...rest} = this;
       const data = {
         ...rest,
@@ -60,6 +75,38 @@ export class Transaction extends BaseModel {
       console.log(error);
     }
     throw Error('Error!');
+  }
+
+  static getAllTransactionsByCampaign(
+    campaignId: string,
+    onComplete: (transactions: Transaction[]) => void,
+  ) {
+    try {
+      const unsubscribe = firestore()
+        .collection(TRANSACTION_COLLECTION)
+        .where(
+          'campaignId',
+          '==',
+          firestore().collection('campaigns').doc(campaignId),
+        )
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete([]);
+            }
+
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
   }
 
   static getTransactionStatusByContentCreator(
@@ -90,6 +137,7 @@ export class Transaction extends BaseModel {
 
     return unsubscribe;
   }
+
   //   static async getTransactionStatusByContentCreator(
   //     campaignId: string,
   //     contentCreatorId: string,
