@@ -26,7 +26,7 @@ type FormData = {
 const LoginScreen = ({}: Props) => {
   const methods = useForm<FormData>({mode: 'all'});
 
-  const {control, handleSubmit} = methods;
+  const {handleSubmit} = methods;
 
   const onSubmit = (data: FormData) => {
     User.login(data.email, data.password).catch(error => {
