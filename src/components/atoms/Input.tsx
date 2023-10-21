@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {Controller, UseControllerProps, useFormContext} from 'react-hook-form';
-import {Animated} from 'react-native';
+import {Animated, KeyboardTypeOptions} from 'react-native';
 import {TextInput} from 'react-native';
 import {Text} from 'react-native';
 import {View} from 'react-native';
@@ -25,6 +25,7 @@ interface Props extends UseControllerProps {
   placeholder?: string;
   multiline?: boolean;
   hideInputText?: boolean;
+  keyboardType?: KeyboardTypeOptions;
 }
 
 export const CustomTextInput = ({
@@ -32,6 +33,7 @@ export const CustomTextInput = ({
   placeholder = label,
   multiline = false,
   hideInputText = false,
+  keyboardType,
   ...controllerProps
 }: Props) => {
   const {
@@ -85,6 +87,7 @@ export const CustomTextInput = ({
         control={control}
         render={({field: {onChange, onBlur, value}}) => (
           <TextInput
+            keyboardType={keyboardType}
             secureTextEntry={hideInputText}
             multiline={multiline}
             onContentSizeChange={event =>
