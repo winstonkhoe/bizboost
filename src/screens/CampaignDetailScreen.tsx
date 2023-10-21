@@ -13,7 +13,7 @@ import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {getDate} from '../utils/date';
 import {AuthButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
-import {Transaction} from '../model/Transaction';
+import {Transaction, TransactionStatus} from '../model/Transaction';
 type Props = NativeStackScreenProps<
   RootAuthenticatedNativeStackParamList,
   AuthenticatedNavigation.CampaignDetail
@@ -24,16 +24,32 @@ const CampaignDetailScreen = ({route}: Props) => {
 
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
+  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
+    TransactionStatus.notRegistered,
+  );
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
+
+  useEffect(() => {
+    const unsubscribe = Transaction.getTransactionStatusByContentCreator(
+      campaignId,
+      uid || '',
+
+      status => {
+        setTransactionStatus(status);
+      },
+    );
+
+    return unsubscribe;
+  }, [campaignId, uid]);
 
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
     const data = new Transaction({
       contentCreatorId: uid || '',
       campaignId: campaignId,
-      status: 'PENDING',
+      status: TransactionStatus.registrationPending,
     });
 
     data.insert().then(isSuccess => {
@@ -132,13 +148,16 @@ const CampaignDetailScreen = ({route}: Props) => {
             ))}
           </View>
         </View>
+        <Text>{transactionStatus}</Text>
         <View className="py-4">
           {/* TODO: validate join only for CC */}
-          <AuthButton
-            text="Join Campaign"
-            rounded="default"
-            onPress={handleJoinCampaign}
-          />
+          {transactionStatus === TransactionStatus.notRegistered && (
+            <AuthButton
+              text="Join Campaign"
+              rounded="default"
+              onPress={handleJoinCampaign}
+            />
+          )}
         </View>
         {/* <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text> */}
       </View>
