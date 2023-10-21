@@ -24,12 +24,14 @@ interface Props extends UseControllerProps {
   label: string;
   placeholder?: string;
   multiline?: boolean;
+  hideInputText?: boolean;
 }
 
 export const CustomTextInput = ({
   label,
   placeholder = label,
   multiline = false,
+  hideInputText = false,
   ...controllerProps
 }: Props) => {
   const {
@@ -83,6 +85,7 @@ export const CustomTextInput = ({
         control={control}
         render={({field: {onChange, onBlur, value}}) => (
           <TextInput
+            secureTextEntry={hideInputText}
             multiline={multiline}
             onContentSizeChange={event =>
               setHeight(event.nativeEvent.contentSize.height + 15)
