@@ -5,7 +5,7 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {FormProvider, useForm} from 'react-hook-form';
-import {AuthButton} from '../components/atoms/Button';
+import {CustomButton} from '../components/atoms/Button';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {CustomTextInput} from '../components/atoms/Input';
@@ -105,7 +105,7 @@ export const CreateAccountScreen_1 = () => {
                   required: 'Fullname is required',
                 }}
               />
-              <AuthButton
+              <CustomButton
                 text="Next"
                 rounded="default"
                 disabled={!isValidField(getFieldState('fullname', formState))}
@@ -213,7 +213,7 @@ export const CreateAccountScreen_2 = () => {
                   required: 'Profile picture is required',
                 }}
               />
-              <AuthButton
+              <CustomButton
                 text="Create account"
                 rounded="default"
                 disabled={

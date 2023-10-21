@@ -11,7 +11,7 @@ import TagCard from '../components/atoms/TagCard';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {getDate} from '../utils/date';
-import {AuthButton} from '../components/atoms/Button';
+import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {Transaction} from '../model/Transaction';
 type Props = NativeStackScreenProps<
@@ -134,7 +134,7 @@ const CampaignDetailScreen = ({route}: Props) => {
         </View>
         <View className="py-4">
           {/* TODO: validate join only for CC */}
-          <AuthButton
+          <CustomButton
             text="Join Campaign"
             rounded="default"
             onPress={handleJoinCampaign}

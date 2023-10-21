@@ -14,7 +14,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import {flex} from '../../styles/Flex';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import {AuthButton} from './Button';
+import {CustomButton} from './Button';
 import ImagePicker, {
   Options,
   ImageOrVideo,
@@ -163,7 +163,7 @@ export const MediaUploader = ({
   return (
     <TouchableOpacity onPress={handleImageUpload}>
       <View style={[flex.flexRow]} className="items-center">
-        {children || <AuthButton text="Upload image" rounded={'small'} />}
+        {children || <CustomButton text="Upload image" rounded={'small'} />}
       </View>
     </TouchableOpacity>
   );

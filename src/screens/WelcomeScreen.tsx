@@ -1,12 +1,14 @@
 import {Text, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootGuestStackParamList} from '../navigation/GuestNavigation';
-import {Button} from 'react-native-elements';
 import Logo from '../assets/vectors/content-creator_business-people.svg';
 
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {textColor} from '../styles/Text';
 import {COLOR} from '../styles/Color';
+import {CustomButton} from '../components/atoms/Button';
+import {flex} from '../styles/Flex';
+import {gap} from '../styles/Gap';
 
 type Props = NativeStackScreenProps<RootGuestStackParamList, 'Welcome'>;
 const WelcomeScreen = ({navigation}: Props) => {
@@ -30,33 +32,18 @@ const WelcomeScreen = ({navigation}: Props) => {
         </View>
         <View className="w-full flex justify-center rounded-t-[80px] pb-5">
           <View className="w-full justify-between items-center px-5 py-7">
-            <View className="w-full flex flex-col">
-              <Button
-                title="Sign In"
-                buttonStyle={{
-                  backgroundColor: '#258842',
-                  borderWidth: 2,
-                  borderColor: 'white',
-                  borderRadius: 10,
-                  paddingVertical: 10,
-                  marginBottom: 10,
-                  width: '100%',
-                }}
+            <View className="w-full" style={[flex.flexCol, gap.default]}>
+              <CustomButton
+                text="Sign In"
+                rounded="max"
                 onPress={() => {
                   navigation.navigate('Login');
                 }}
               />
-              <Button
-                title="Sign Up"
-                buttonStyle={{
-                  backgroundColor: 'transparent',
-                  borderRadius: 10,
-                  borderWidth: 2,
-                  borderColor: '#258842',
-                  paddingVertical: 10,
-                  width: '100%',
-                }}
-                titleStyle={{color: 'black'}}
+              <CustomButton
+                text="Sign Up"
+                inverted
+                rounded="max"
                 onPress={() => {
                   navigation.navigate('Signup');
                 }}

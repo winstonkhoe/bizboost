@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Image, Pressable, Text} from 'react-native';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native-gesture-handler';
-import {AuthButton} from '../components/atoms/Button';
+import {CustomButton} from '../components/atoms/Button';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import PhotosIcon from '../assets/vectors/photos.svg';
@@ -566,7 +566,7 @@ const CreateCampaignScreen = () => {
                     )}
                   />
                 </View>
-                <AuthButton
+                <CustomButton
                   text="Submit"
                   rounded="default"
                   onPress={handleSubmit(onSubmit)}

@@ -61,6 +61,10 @@ export const COLOR = {
       low: `${black[90]}66`,
       disabled: `${black[90]}33`,
     },
+    green: {
+      default: `${green[60]}`,
+      disabled: `${green[60]}66`,
+    },
     success: {
       default: `${green[60]}`,
     },
@@ -75,6 +79,13 @@ export const COLOR = {
       med: `${black[5]}`,
       high: `${black[80]}`,
       disabled: `${black[10]}`,
+    },
+    green: {
+      default: `${green[1]}`,
+      low: `${green[5]}`,
+      med: `${green[40]}`,
+      high: `${green[50]}`,
+      disabled: `${green[50]}66`,
     },
     success: {
       default: `${green[1]}`,

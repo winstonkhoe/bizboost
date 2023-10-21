@@ -17,7 +17,7 @@ import {padding} from '../styles/Padding';
 import {border} from '../styles/Border';
 import {currencyFormat} from '../utils/currency';
 import {ProfileItem} from '../components/molecules/ProfileItem';
-import {AuthButton} from '../components/atoms/Button';
+import {CustomButton} from '../components/atoms/Button';
 import auth from '@react-native-firebase/auth';
 
 const ProfileScreen = () => {
@@ -99,7 +99,7 @@ const ProfileScreen = () => {
             </VerticalPadding>
           </View>
           <HorizontalPadding>
-            <AuthButton
+            <CustomButton
               onPress={() => {
                 auth()
                   .signOut()

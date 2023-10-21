@@ -36,8 +36,8 @@ interface RGBA2HexProps {
   alpha?: number;
 }
 
-export const rgba2hex = ({ rgba, alpha }: RGBA2HexProps) => {
-  console.log(rgba)
+export const rgba2hex = ({rgba, alpha}: RGBA2HexProps) => {
+  console.log(rgba);
   // Check if the input is a hex color
   if (isHex(rgba)) {
     // If an alpha value is provided, append it to the hex color
