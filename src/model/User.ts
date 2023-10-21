@@ -146,7 +146,7 @@ export class User extends BaseModel {
           callback(user, subscriber);
         },
         (error: Error) => {
-          throw Error(error.message);
+          console.log(error);
         },
       );
     } catch (error) {

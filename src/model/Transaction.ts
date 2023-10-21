@@ -84,8 +84,7 @@ export class Transaction extends BaseModel {
           onComplete(status);
         },
         error => {
-          console.error(error);
-          throw Error('Error!');
+          console.log(error);
         },
       );
 
