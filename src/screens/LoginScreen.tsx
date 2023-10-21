@@ -11,7 +11,6 @@ import {gap} from '../styles/Gap';
 import {CustomTextInput} from '../components/atoms/Input';
 import {textColor} from '../styles/Text';
 import {COLOR} from '../styles/Color';
-import {padding} from '../styles/Padding';
 import {
   HorizontalPadding,
   VerticalPadding,
