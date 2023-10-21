@@ -1,6 +1,6 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import ChatScreen from '../screens/ChatScreen';
+import ChatListScreen from '../screens/ChatListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
@@ -17,7 +17,14 @@ import {COLOR} from '../styles/Color';
 import CampaignsScreen from '../screens/CampaignsScreen';
 const Tab = createBottomTabNavigator();
 
-const TabNavigation = () => {
+export enum TabNavigation {
+  Campaigns = 'Campaigns',
+  Chat = 'Chat',
+  Home = 'Home',
+  Profile = 'Profile',
+}
+
+export const TabNavigator = () => {
   const dispatch = useAppDispatch();
   const {user, activeRole} = useUser();
 
@@ -54,31 +61,35 @@ const TabNavigation = () => {
     [],
   );
 
+  const chatIcon = useCallback(
+    (focused: boolean) =>
+      focused ? (
+        <ChatLogo width={30} height={30} color={COLOR.black} />
+      ) : (
+        <ChatLogo width={30} height={30} color={COLOR.black} />
+      ),
+    [],
+  );
+
   return (
     <Tab.Navigator screenOptions={{headerShown: false}}>
       <Tab.Screen
-        name="Home"
+        name={TabNavigation.Home}
         component={HomeScreen}
         options={{
           tabBarIcon: ({focused}) => homeIcon(focused),
         }}
       />
       <Tab.Screen
-        name="Chat"
-        component={ChatScreen}
-        // options={{
-        //   tabBarIcon: <ChatLogo width={30} />,
-        // }}
+        name={TabNavigation.Chat}
+        component={ChatListScreen}
+        options={{
+          tabBarIcon: ({focused}) => chatIcon(focused),
+        }}
       />
+      <Tab.Screen name={TabNavigation.Campaigns} component={CampaignsScreen} />
       <Tab.Screen
-        name="Campaigns" // TODO: name camapaigns / jobs?
-        component={CampaignsScreen}
-        // options={{
-        //   tabBarIcon: <ChatLogo width={30} />,
-        // }}
-      />
-      <Tab.Screen
-        name="Profile"
+        name={TabNavigation.Profile}
         component={ProfileScreen}
         options={{
           tabBarIcon: profileIcon,
@@ -87,5 +98,3 @@ const TabNavigation = () => {
     </Tab.Navigator>
   );
 };
-
-export default TabNavigation;

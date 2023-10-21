@@ -124,6 +124,34 @@ export class User extends BaseModel {
     }
   }
 
+  static async getUser(documentId: string): Promise<User | null> {
+    try {
+      const documentSnapshot = await this.getDocumentReference(
+        documentId,
+      ).get();
+      console.log('User exists: ', documentSnapshot.exists);
+
+      if (documentSnapshot.exists) {
+        const userData = documentSnapshot.data();
+        console.log('User data: ', userData);
+
+        const user = new User({
+          email: userData?.email,
+          phone: userData?.phone,
+          contentCreator: userData?.contentCreator,
+          businessPeople: userData?.businessPeople,
+          joinedAt: userData?.joinedAt?.seconds,
+        });
+
+        return user;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw error; // Handle the error appropriately
+    }
+  }
+
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null, unsubscribe: () => void) => void,

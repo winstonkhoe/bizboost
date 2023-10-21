@@ -3,15 +3,17 @@ import * as React from 'react';
 import {TransitionPresets, createStackNavigator} from '@react-navigation/stack';
 
 // import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import TabNavigation from './TabNavigation';
+import {TabNavigator} from './TabNavigation';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
-import ChatScreen from '../screens/ChatScreen';
+import ChatListScreen from '../screens/ChatListScreen';
 import {
   CreateAccountScreen_1,
   CreateAccountScreen_2,
 } from '../screens/CreateAccountScreen';
 import {NavigationProp} from '@react-navigation/native';
 import CreateCampaignScreen from '../screens/CreateCampaignScreen';
+import ChatScreen from '../screens/ChatScreen';
+import {ChatView} from '../model/Chat';
 
 export enum AuthenticatedNavigation {
   Main = 'Main',
@@ -19,7 +21,8 @@ export enum AuthenticatedNavigation {
   CampaignDetail = 'Campaign Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
-  Chat = 'Chat',
+  ChatDetail = 'Chat Screen',
+  ChatList = 'Chat List',
 }
 
 export type RootAuthenticatedStackParamList = {
@@ -29,8 +32,8 @@ export type RootAuthenticatedStackParamList = {
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
-  // 'Campaign Detail': {campaign: Campaign};
-  [AuthenticatedNavigation.Chat]: undefined;
+  [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
+  [AuthenticatedNavigation.ChatList]: undefined;
 };
 
 export type RootAuthenticatedNavigationStackProps =
@@ -88,12 +91,22 @@ const AuthenticatedNavigator = () => {
       <Stack.Navigator>
         <Stack.Screen
           name={AuthenticatedNavigation.Main}
-          component={TabNavigation}
+          component={TabNavigator}
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name={AuthenticatedNavigation.Chat}
+          name={AuthenticatedNavigation.ChatList}
+          component={ChatListScreen}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.ChatDetail}
           component={ChatScreen}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+            cardOverlayEnabled: true,
+            ...TransitionPresets.ModalTransition,
+          }}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CampaignDetail}

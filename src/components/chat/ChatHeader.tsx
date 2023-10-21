@@ -4,37 +4,44 @@ import {useNavigation} from '@react-navigation/native';
 import BackNav from '../../assets/vectors/chevron-left.svg';
 import {gap} from '../../styles/Gap';
 import {COLOR} from '../../styles/Color';
+import {UserRole} from '../../model/User';
+import {useUser} from '../../hooks/user';
 
 interface Props {
   recipientName: string;
-  lastOnline: string;
+  recipientPicture: string;
 }
 
-const ChatHeader = ({recipientName, lastOnline}: Props) => {
+const ChatHeader = ({recipientName, recipientPicture}: Props) => {
   const navigation = useNavigation();
+  const {uid, user, activeRole} = useUser();
 
   const handleBackButtonPress = () => {
-    // Handle back button press here
     navigation.goBack();
   };
 
+  let profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
+
+  if (recipientPicture) {
+    profilePictureSource = {uri: recipientPicture};
+  }
+
   return (
     <View
-      className="w-full flex flex-row items-center justify-start px-2"
+      className="h-16 w-full flex flex-row items-center justify-start px-2 border-b-[0.5px] border-gray-400 "
       style={[gap.default]}>
       <TouchableOpacity onPress={handleBackButtonPress}>
         <BackNav width={30} height={20} color={COLOR.black} />
       </TouchableOpacity>
       <View className="w-10 h-10 rounded-full overflow-hidden">
         <Image
-          source={require('../../assets/images/sample-influencer.jpeg')}
+          source={profilePictureSource}
           alt=""
           className="w-full h-full object-cover"
         />
       </View>
       <View className="flex flex-col">
         <Text className="text-lg font-bold text-black">{recipientName}</Text>
-        <Text className="text-md text-black">Last Online: {lastOnline}</Text>
       </View>
     </View>
   );
