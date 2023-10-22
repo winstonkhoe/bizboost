@@ -1,5 +1,4 @@
-import {Image, Button, Text, View} from 'react-native';
-import {User} from '../model/User';
+import {Image, Text, View} from 'react-native';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
 import {flex} from '../styles/Flex';
@@ -19,8 +18,11 @@ import {currencyFormat} from '../utils/currency';
 import {ProfileItem} from '../components/molecules/ProfileItem';
 import {CustomButton} from '../components/atoms/Button';
 import auth from '@react-native-firebase/auth';
+import {useAppDispatch} from '../redux/hooks';
+import {disableAccess} from '../redux/slices/authSlice';
 
 const ProfileScreen = () => {
+  const dispatch = useAppDispatch();
   const {user, activeData} = useUser();
   return (
     <View className="flex-1">
@@ -108,6 +110,7 @@ const ProfileScreen = () => {
                     auth()
                       .signOut()
                       .then(() => {
+                        dispatch(disableAccess());
                         console.log('sign out success');
                       })
                       .catch(err => {
