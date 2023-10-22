@@ -9,6 +9,8 @@ import {useEffect, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
 import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {CustomButton} from '../atoms/Button';
+import SelectableTag from '../atoms/SelectableTag';
 
 type Props = {
   transaction: Transaction;
@@ -26,13 +28,13 @@ const RegisteredUserListCard = ({transaction}: Props) => {
       style={[
         verticalPadding.default,
         border({
-          color: COLOR.black,
+          color: COLOR.black[50],
           opacity: 0.3,
         }),
       ]}>
-      <View className="flex flex-row items-center">
+      <View className="flex flex-row items-center w-1/2">
         <View
-          className="w-10 h-10 items-center justify-center overflow-hidden"
+          className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
           style={[flex.flexRow, rounded.max]}>
           <Image
             className="w-full h-full object-cover"
@@ -41,25 +43,42 @@ const RegisteredUserListCard = ({transaction}: Props) => {
             }}
           />
         </View>
-        <Text>{user?.contentCreator?.fullname}</Text>
+        <View className="flex flex-col w-4/5 ">
+          <Text className="font-semibold text-base " numberOfLines={1}>
+            {user?.contentCreator?.fullname}
+          </Text>
+          <Text className="text-gray-600 text-xs">Subtitle</Text>
+        </View>
       </View>
       {transaction.status === TransactionStatus.registrationPending ? (
-        <View className="flex flex-row items-center">
-          <Button
-            title="✅"
-            onPress={() => {
-              transaction.updateStatus(TransactionStatus.registrationApproved);
-            }}
-          />
-          <Button
-            title="❌"
-            onPress={() => {
-              transaction.updateStatus(TransactionStatus.registrationRejected);
-            }}
-          />
+        <View className="flex flex-row items-center w-1/2 justify-end">
+          <View className="w-2/5 mr-2">
+            <CustomButton
+              onPress={() => {
+                transaction.updateStatus(
+                  TransactionStatus.registrationApproved,
+                );
+              }}
+              text="Accept"
+              customTextSize="text-xs"
+            />
+          </View>
+          <View className="w-2/5">
+            <CustomButton
+              text="Reject"
+              onPress={() => {
+                transaction.updateStatus(
+                  TransactionStatus.registrationRejected,
+                );
+              }}
+              customTextSize="text-xs"
+              customBackgroundColor={COLOR.background.neutral}
+            />
+          </View>
         </View>
       ) : (
-        <Text>{transaction.status}</Text>
+        // <Text>{transaction.status}</Text>
+        <SelectableTag text={transaction.status || ''} />
       )}
     </View>
   );

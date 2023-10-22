@@ -6,7 +6,11 @@ import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
 import {border} from '../../styles/Border';
-import {PaddingSizeType, verticalPadding} from '../../styles/Padding';
+import {
+  PaddingSizeType,
+  horizontalPadding,
+  verticalPadding,
+} from '../../styles/Padding';
 
 interface Props extends PressableProps, React.RefAttributes<View> {
   text: string;
@@ -15,6 +19,7 @@ interface Props extends PressableProps, React.RefAttributes<View> {
   verticalPadding?: PaddingSizeType;
   customBackgroundColor?: typeof COLOR.background.green;
   customTextColor?: typeof COLOR.text.green;
+  customTextSize?: 'text-base' | 'text-sm' | 'text-xs';
 }
 export const CustomButton = ({
   text,
@@ -23,14 +28,16 @@ export const CustomButton = ({
   inverted = false,
   customBackgroundColor = COLOR.background.green,
   customTextColor = COLOR.text.green,
+  customTextSize = 'text-base',
   ...props
 }: Props) => {
   return (
     <Pressable
       {...props}
-      className="w-full justify-center items-center text-center px-6"
+      className="w-full justify-center items-center text-center"
       style={[
         flex.flexRow,
+        horizontalPadding.small,
         verticalPadding[verticalPaddingSize],
         rounded[roundSize],
         inverted &&
@@ -49,7 +56,7 @@ export const CustomButton = ({
           ),
       ]}>
       <Text
-        className="font-bold text-base"
+        className={`font-bold ${customTextSize}`}
         style={[
           inverted
             ? textColor(

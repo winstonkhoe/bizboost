@@ -2,6 +2,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useState} from 'react';
 import {
   AuthenticatedNavigation,
+  RootAuthenticatedNavigationStackProps,
   RootAuthenticatedStackParamList,
 } from '../navigation/AuthenticatedNavigation';
 import {Text} from 'react-native';
@@ -23,6 +24,7 @@ import TikTokLogo from '../assets/vectors/tiktok.svg';
 import People from '../assets/vectors/people.svg';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
+import {useNavigation} from '@react-navigation/native';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   AuthenticatedNavigation.CampaignDetail
@@ -35,7 +37,7 @@ const logo = {
 
 const CampaignDetailScreen = ({route}: Props) => {
   const {uid} = useUser();
-
+  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
@@ -61,12 +63,6 @@ const CampaignDetailScreen = ({route}: Props) => {
 
     return unsubscribe;
   }, [campaignId, uid]);
-
-  useEffect(() => {
-    Transaction.getAllTransactionsByCampaign(campaignId, t =>
-      setTransactions(t),
-    );
-  }, [campaignId]);
 
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
@@ -250,13 +246,22 @@ const CampaignDetailScreen = ({route}: Props) => {
             )}
           {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
           {uid === campaign.userId && (
-            <View>
-              <Text>Registrants</Text>
-              <View>
-                {transactions.map((t, index) => (
+            <View className="py-2">
+              <CustomButton
+                customBackgroundColor={COLOR.background.neutral}
+                customTextColor={COLOR.text.neutral}
+                text="View Registrants"
+                rounded="default"
+                onPress={() =>
+                  navigation.navigate(
+                    AuthenticatedNavigation.CampaignRegistrants,
+                    {campaignId: campaignId},
+                  )
+                }
+              />
+              {/* {transactions.map((t, index) => (
                   <RegisteredUserListCard transaction={t} key={index} />
-                ))}
-              </View>
+                ))} */}
             </View>
           )}
         </View>
