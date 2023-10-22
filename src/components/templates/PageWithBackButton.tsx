@@ -17,6 +17,7 @@ export const PageWithBackButton = ({children, fullHeight = false}: Props) => {
   return (
     <SafeAreaContainer>
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={fullHeight && {flexGrow: 1}}
         className="h-full w-full"
         style={[flex.flexCol]}>

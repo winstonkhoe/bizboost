@@ -111,10 +111,12 @@ const AuthenticatedNavigator = () => {
         <Stack.Screen
           name={AuthenticatedNavigation.CampaignDetail}
           component={CampaignDetailScreen}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CreateCampaign}
           component={CreateCampaignScreen}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CreateAdditionalAccount}

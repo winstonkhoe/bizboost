@@ -1,7 +1,7 @@
 import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
 
 export const getDate = (
-  timestamp: FirebaseFirestoreTypes.Timestamp | number,
+  timestamp: FirebaseFirestoreTypes.Timestamp | number | Date,
 ): Date => {
   console.log(timestamp);
   if (
@@ -10,6 +10,10 @@ export const getDate = (
   ) {
     return timestamp.toDate();
   }
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+
   let date = new Date(timestamp);
   if (date.getFullYear() <= 1970) {
     date = new Date(timestamp * 1000);

@@ -15,10 +15,21 @@ import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
+import {PageWithBackButton} from '../components/templates/PageWithBackButton';
+import {borderRadius, radiusSize} from '../styles/BorderRadius';
+import Checkmark from '../assets/vectors/checkmark.svg';
+import InstagramLogo from '../assets/vectors/instagram.svg';
+import TikTokLogo from '../assets/vectors/tiktok.svg';
+import {COLOR} from '../styles/Color';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   AuthenticatedNavigation.CampaignDetail
 >;
+
+const logo = {
+  Instagram: <InstagramLogo width={20} height={20} />,
+  TikTok: <TikTokLogo width={20} height={20} />,
+};
 
 const CampaignDetailScreen = ({route}: Props) => {
   const {uid} = useUser();
@@ -74,116 +85,147 @@ const CampaignDetailScreen = ({route}: Props) => {
   }
 
   return (
-    <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
-      <View className="w-full h-60 rounded-md overflow-hidden">
-        <Image
-          className="w-full h-full object-cover"
-          source={{uri: campaign.image}}
-        />
-      </View>
-      <View className="flex flex-col p-4 gap-2">
-        <Text className="font-bold text-2xl">{campaign.title}</Text>
-        <Text className="font-bold text-xs">
-          {getDate(campaign.start).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}{' '}
-          -{' '}
-          {getDate(campaign.end).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}
-        </Text>
-        <View className="flex flex-row items-center">
-          <Text>Available Slot</Text>
-          <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
-            <Text className="text-center text-xs font-bold">
-              0/{campaign.slot}
+    <PageWithBackButton>
+      <View className="w-full pt-4">
+        <View className="w-full h-60 overflow-hidden ">
+          <Image
+            className="w-full h-full object-cover"
+            source={{uri: campaign.image}}
+          />
+        </View>
+        <View className="flex flex-col p-4 gap-4">
+          <View>
+            <Text className="font-bold text-2xl">{campaign.title}</Text>
+            <Text className="font-bold text-xs">
+              {campaign.start &&
+                getDate(campaign.start).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}{' '}
+              -{' '}
+              {campaign.end &&
+                getDate(campaign.end).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
             </Text>
           </View>
-        </View>
-        <Text>{campaign.description}</Text>
-        <View>
-          <Text className="font-semibold text-base">Criteria</Text>
-          <View className="flex flex-row flex-wrap gap-2">
-            {campaign.criterias.map((_item: any, index: number) => (
-              <View key={index}>
-                <TagCard text={_item} />
-              </View>
-            ))}
+          <View className="flex flex-row items-center">
+            <Text>Available Slot</Text>
+            <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
+              <Text className="text-center text-xs font-bold">
+                0/{campaign.slot}
+              </Text>
+            </View>
           </View>
-        </View>
+          <Text>{campaign.description}</Text>
+          <View>
+            <Text className="font-semibold text-base pb-2">Criteria</Text>
+            <View className="flex flex-row flex-wrap gap-2">
+              {campaign.criterias &&
+                campaign.criterias.map((_item: any, index: number) => (
+                  <View key={index}>
+                    <TagCard text={_item} />
+                  </View>
+                ))}
+            </View>
+          </View>
 
-        <View>
-          <Text className="font-semibold text-base">Important Information</Text>
-          {campaign.importantInformation.map((_item: any, index: number) => (
-            <Text key={index} className="pl-1 mb-1">
-              ℹ️ {_item}
+          <View>
+            <Text className="font-semibold text-base pb-2">
+              Important Information
             </Text>
-          ))}
-        </View>
-        <View>
-          <Text className="font-semibold text-base">Fee</Text>
-          <Text>
-            {new Intl.NumberFormat('id-ID', {
-              style: 'currency',
-              currency: 'IDR',
-            }).format(campaign.fee)}
-          </Text>
-        </View>
-        <View>
-          <Text className="font-semibold text-base">Task</Text>
-          <View className="flex flex-col flex-wrap gap-2">
-            {campaign.platforms.map(
-              (_item: CampaignPlatform, index: number) => (
-                <View key={index}>
-                  <Text className="font-semibold">{_item.name}</Text>
-                  {_item.tasks.map((t, idx) => (
-                    <Text key={idx}>✓ {t}</Text>
-                  ))}
+            {campaign.importantInformation &&
+              campaign.importantInformation.map((_item: any, index: number) => (
+                <View key={index} className="mb-2 flex flex-row items-center">
+                  <View className="bg-gray-300 py-1 px-[11px] rounded-full mr-2">
+                    <Text className="text-center text-xs">i</Text>
+                  </View>
+                  <Text>{_item}</Text>
                 </View>
-              ),
-            )}
+              ))}
           </View>
-        </View>
-        <View>
-          <Text className="font-semibold text-base">Location</Text>
-          <View className="flex flex-row flex-wrap gap-2">
-            {campaign.locations.map((_item: any, index: number) => (
-              <View key={index}>
-                <TagCard text={_item} />
-              </View>
-            ))}
+          <View className="flex flex-col flex-wrap">
+            <Text className="font-semibold text-base pb-2">Fee</Text>
+            <View>
+              {campaign.fee && (
+                <TagCard
+                  text={new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(campaign.fee)}
+                />
+              )}
+            </View>
           </View>
-        </View>
-        <Text>{transactionStatus}</Text>
-        {uid !== campaign.userId &&
-          transactionStatus === TransactionStatus.notRegistered && (
-            <View className="py-4">
-              {/* TODO: validate join only for CC */}
+          <View>
+            <Text className="font-semibold text-base pb-2">Task Summary</Text>
+            <View className="flex flex-col flex-wrap gap-2">
+              {campaign.platforms &&
+                campaign.platforms.map(
+                  (_item: CampaignPlatform, index: number) => (
+                    <View key={index}>
+                      <View className="flex flex-row items-center">
+                        {logo[_item.name as keyof typeof logo]}
+                        <Text className="font-semibold ml-1">{_item.name}</Text>
+                      </View>
+                      {_item.tasks.map((t, idx) => (
+                        <View
+                          key={idx}
+                          className="flex flex-row items-center ml-3">
+                          <Checkmark
+                            color={COLOR.black[100]}
+                            width={20}
+                            height={20}
+                          />
+                          <Text className="ml-1">{t}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ),
+                )}
+            </View>
+          </View>
+          <View>
+            <Text className="font-semibold text-base pb-2">Location</Text>
+            <View className="flex flex-row flex-wrap gap-2">
+              {campaign.locations &&
+                campaign.locations.map((_item: any, index: number) => (
+                  <View key={index}>
+                    <TagCard text={_item} />
+                  </View>
+                ))}
+            </View>
+          </View>
+          <Text>{transactionStatus}</Text>
+          {uid !== campaign.userId &&
+            transactionStatus === TransactionStatus.notRegistered && (
+              <View className="py-4">
+                {/* TODO: validate join only for CC */}
 
-              <CustomButton
-                text="Join Campaign"
-                rounded="default"
-                onPress={handleJoinCampaign}
-              />
+                <CustomButton
+                  text="Join Campaign"
+                  rounded="default"
+                  onPress={handleJoinCampaign}
+                />
+              </View>
+            )}
+          {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
+          {uid === campaign.userId && (
+            <View>
+              <Text>Registrants</Text>
+              <View>
+                {transactions.map((t, index) => (
+                  <RegisteredUserListCard transaction={t} key={index} />
+                ))}
+              </View>
             </View>
           )}
-        {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
-        {uid === campaign.userId && (
-          <View>
-            <Text>Registrants</Text>
-            <View>
-              {transactions.map((t, index) => (
-                <RegisteredUserListCard transaction={t} key={index} />
-              ))}
-            </View>
-          </View>
-        )}
+        </View>
       </View>
-    </ScrollView>
+    </PageWithBackButton>
   );
 };
 
