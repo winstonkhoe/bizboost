@@ -25,13 +25,13 @@ export const ProfileItem = ({itemLabel, itemAdditionalInfo}: Props) => {
         verticalPadding.small,
         horizontalPadding.default,
         border({
-          color: COLOR.black,
+          color: COLOR.black[100],
           opacity: 0.3,
         }),
       ]}>
       <View
         className="items-center p-2"
-        style={[flex.flexRow, background(COLOR.black, 0.1), rounded.max]}>
+        style={[flex.flexRow, background(COLOR.black[100], 0.1), rounded.max]}>
         <Search width={14} height={14} />
       </View>
       <View className="flex-1 items-start" style={[flex.flexCol]}>
@@ -39,13 +39,13 @@ export const ProfileItem = ({itemLabel, itemAdditionalInfo}: Props) => {
         {itemAdditionalInfo && (
           <Text
             className="text-xs font-light"
-            style={[textColor(COLOR.black, 0.5)]}>
+            style={[textColor(COLOR.black[100], 0.5)]}>
             {itemAdditionalInfo}
           </Text>
         )}
       </View>
       <Pressable className="rotate-180">
-        <ChevronLeft width={14} height={14} color={COLOR.black} />
+        <ChevronLeft width={14} height={14} color={COLOR.black[100]} />
       </Pressable>
     </Pressable>
   );

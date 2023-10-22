@@ -1,6 +1,7 @@
 import {StyleSheet, ViewStyle} from 'react-native';
 
 export type PaddingSizeType =
+  | 'xsmall3'
   | 'xsmall2'
   | 'xsmall'
   | 'small'
@@ -19,9 +20,10 @@ type PaddingStyles = {
 };
 
 export const paddingSize: PaddingSize = {
-  xsmall2: 2,
-  xsmall: 4,
-  small: 8,
+  xsmall3: 2,
+  xsmall2: 4,
+  xsmall: 8,
+  small: 12,
   default: 16,
   medium: 24,
   large: 32,

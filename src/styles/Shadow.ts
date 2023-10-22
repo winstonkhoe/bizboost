@@ -29,7 +29,7 @@ export const shadow = StyleSheet.create<ShadowStyles>(
     return {
       ...acc,
       [key]: {
-        shadowColor: COLOR.black,
+        shadowColor: COLOR.black[100],
         shadowOffset: {
           width: 0,
           height: 0,

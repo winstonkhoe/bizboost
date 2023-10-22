@@ -1,45 +1,72 @@
-import React, {useState, useRef} from 'react';
-import {View, ScrollView} from 'react-native';
+import React, {useState, useRef, useEffect} from 'react';
+import {View, ScrollView, Animated, Text, TouchableOpacity} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
 import ChatWidget from '../components/chat/ChatWidget';
-
 import SafeAreaContainer from '../containers/SafeAreaContainer';
+
 import {useUser} from '../hooks/user';
 import {flex} from '../styles/Flex';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../components/atoms/ViewPadding';
+import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
+import {Chat, ChatView, Message, MessageType} from '../model/Chat';
 
-export interface Message {
-  message: string;
-  isSender: boolean;
-  profilePic: string;
-}
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {
+  AuthenticatedNavigation,
+  RootAuthenticatedNativeStackParamList,
+} from '../navigation/AuthenticatedNavigation';
+import {Button} from 'react-native-elements';
+import FloatingOffer from '../components/chat/FloatingOffer';
 
-const ChatScreen = () => {
-  const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false); // State to track widget visibility
+type Props = NativeStackScreenProps<
+  RootAuthenticatedNativeStackParamList,
+  AuthenticatedNavigation.Chat
+>;
+const ChatScreen = ({route}: Props) => {
+  const {chat} = route.params;
+  const [chatData, setChatData] = useState<Chat>(chat);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
-  const {user, activeRole} = useUser();
+  const {uid, user, activeRole} = useUser();
 
-  console.log(user);
+  const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    const chatRef = Chat.getDocumentReference(chat.chat.id ?? '');
+
+    const unsubscribe = chatRef.onSnapshot(doc => {
+      if (doc.exists) {
+        const updatedChatData = doc.data() as Chat;
+        setChatData(updatedChatData);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [chat.chat.id]);
+
+  useEffect(() => {
+    // Assuming that chat.messages is an array of Message objects
+    if (chatData.messages) {
+      setChatMessages(chatData.messages);
+    }
+  }, [chatData.messages]);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Handle sending a message
-  const handleSendPress = (message: string) => {
+  const handleSendPress = async (message: string) => {
     // Add the new message to the chatMessages state
     if (message !== '') {
-      const newMessage = {
-        message,
-        isSender: true,
-        profilePic: 'user_profile_url',
+      const newMessage: Message = {
+        message: message,
+        sender: uid,
+        type: MessageType.Text,
+        createdAt: new Date(),
       };
+      await new Chat(chat.chat).insertMessage(newMessage);
       setChatMessages([...chatMessages, newMessage]);
 
       // Scroll to the end of the ScrollView
@@ -58,7 +85,39 @@ const ChatScreen = () => {
     console.log(`Opening widget: ${isWidgetVisible}`);
   };
 
-  // Image launcher options
+  const handleImageUpload = async (downloadURL: string) => {
+    // Create a new message with the image download URL
+    const newMessage: Message = {
+      message: downloadURL,
+      type: MessageType.Photo,
+      sender: uid,
+      createdAt: new Date(),
+    };
+
+    // Add the new message to the chatMessages state
+    setChatMessages([...chatMessages, newMessage]);
+    await new Chat(chat.chat).insertMessage(newMessage);
+
+    // Scroll to the end of the ScrollView
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({animated: true});
+    }
+  };
+
+  const [isMaximized, setIsMaximized] = useState(true);
+  const animationValue = useRef(new Animated.Value(1)).current;
+
+  const toggleTab = () => {
+    const toValue = isMaximized ? 0.6 : 1; // Adjust the value as needed
+
+    Animated.timing(animationValue, {
+      toValue,
+      duration: 300, // Adjust the animation duration as needed
+      useNativeDriver: false, // Ensure to set it to false for layout animations
+    }).start();
+
+    setIsMaximized(!isMaximized);
+  };
 
   return (
     <SafeAreaContainer>
@@ -67,10 +126,16 @@ const ChatScreen = () => {
         style={[flex.flexCol, background(COLOR.white)]}>
         {/* Chat Header */}
         <View
-          className="border-b-[0.5px] border-gray-400 items-center justify-start py-3"
+          className="absolute top-0 z-20 items-center justify-start"
           style={[flex.flexRow]}>
-          <ChatHeader recipientName="Recipient Name" lastOnline="1h ago" />
+          <ChatHeader
+            recipientName={chat.recipient.fullname}
+            recipientPicture={chat.recipient.profilePicture}
+          />
         </View>
+
+        {/* Floating Tab */}
+        <FloatingOffer />
 
         {/* Chat Messages */}
         <ScrollView
@@ -79,23 +144,23 @@ const ChatScreen = () => {
             if (scrollViewRef.current) {
               scrollViewRef.current?.scrollToEnd({animated: true});
             }
-          }}>
-          <VerticalPadding>
-            <View style={[flex.flexCol, gap.default]}>
-              {chatMessages.map((message: Message, index: number) => (
+          }}
+          className="mt-16">
+          <View style={[flex.flexCol, gap.default]} className="py-3">
+            {chatMessages &&
+              chatMessages.map((message: Message, index: number) => (
                 <HorizontalPadding key={index} paddingSize="xsmall2">
                   <View className="w-full px-3">
                     <ChatBubble
                       key={index}
                       message={message.message}
-                      isSender={message.isSender}
-                      profilePic={message.profilePic}
+                      isSender={message.sender === uid}
+                      type={message.type}
                     />
                   </View>
                 </HorizontalPadding>
               ))}
-            </View>
-          </VerticalPadding>
+          </View>
         </ScrollView>
 
         <View className="py-4 border-t-[0.5px]">
@@ -111,10 +176,11 @@ const ChatScreen = () => {
             <View className="w-full">
               <ChatWidget
                 options={{
-                  width: 300,
+                  width: 400,
                   height: 400,
                   cropping: true,
                 }}
+                handleImageUpload={handleImageUpload}
               />
             </View>
           ) : null}

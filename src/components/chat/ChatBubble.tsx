@@ -1,11 +1,13 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, Image} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {Message} from '../../screens/ChatScreen';
 import {flex, items} from '../../styles/Flex';
+import {MessageType} from '../../model/Chat';
+import FirebaseStorageImage from '../molecules/FirebaseStorageImage';
 
-const ChatBubble = ({message, isSender, profilePic}: Message) => {
+const ChatBubble = ({message, isSender, type}: Message) => {
   return (
     <View
       className="w-full"
@@ -14,16 +16,27 @@ const ChatBubble = ({message, isSender, profilePic}: Message) => {
           ? {...flex.flexRowReverse, ...items.end}
           : {...flex.flexRow, ...items.start},
       ]}>
-      {/* <Image source={{uri: profilePic}} style={{width: 40, height: 40}} /> */}
-      <View
-        className="w-11/12"
-        style={{
-          backgroundColor: isSender ? '#CEE0E8' : '#E5E5EA',
-          borderRadius: 10,
-          padding: 10,
-        }}>
-        <Text style={[textColor(COLOR.black)]}>{message}</Text>
-      </View>
+      {type === MessageType.Text && (
+        <View
+          style={{
+            backgroundColor: isSender ? '#CEE0E8' : '#E5E5EA',
+            borderRadius: 10,
+            padding: 10,
+            maxWidth: '80%',
+          }}>
+          <Text style={[textColor(COLOR.black[100])]}>{message}</Text>
+        </View>
+      )}
+      {type === MessageType.Photo && (
+        <View
+          style={{
+            borderRadius: 10,
+            maxWidth: '80%',
+            overflow: 'hidden',
+          }}>
+          <FirebaseStorageImage imageUrl={message} />
+        </View>
+      )}
     </View>
   );
 };

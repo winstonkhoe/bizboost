@@ -62,7 +62,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           !isValidUser() &&
             border({
               borderWidth: 0.7,
-              color: COLOR.black,
+              color: COLOR.black[100],
               opacity: 0.4,
             }),
         ]}>
@@ -70,7 +70,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           <Image
             className="w-full h-full object-cover"
             source={
-              isValidUser()
+              isValidUser() && data?.profilePicture
                 ? {
                     uri: data?.profilePicture,
                   }
@@ -78,7 +78,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
             }
           />
         ) : (
-          <Add width={25} height={25} color={COLOR.black} />
+          <Add width={25} height={25} color={COLOR.black[100]} />
         )}
       </View>
       <View className="flex-1" style={[flex.flexCol, gap.xsmall2]}>
@@ -86,7 +86,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           className="text-base font-bold"
           numberOfLines={1}
           style={[
-            active ? textColor(COLOR.blue[200]) : textColor(COLOR.black),
+            active ? textColor(COLOR.blue[200]) : textColor(COLOR.black[100]),
           ]}>
           {isValidUser() ? data?.fullname : 'Create account'}
         </Text>
@@ -94,7 +94,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           className="text-xs font-medium"
           numberOfLines={1}
           style={[
-            active ? textColor(COLOR.blue[200]) : textColor(COLOR.black),
+            active ? textColor(COLOR.blue[200]) : textColor(COLOR.black[100]),
           ]}>
           {role}
         </Text>

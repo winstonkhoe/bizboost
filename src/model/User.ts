@@ -83,6 +83,10 @@ export class User extends BaseModel {
   static getDocumentReference(
     documentId: string,
   ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+    //TODO: tidy up, move somewhere else neater
+    firestore().settings({
+      ignoreUndefinedProperties: true,
+    });
     return firestore().collection(USER_COLLECTION).doc(documentId);
   }
 
@@ -127,6 +131,34 @@ export class User extends BaseModel {
           callback(null);
         }
       });
+  }
+
+  static async getUser(documentId: string): Promise<User | null> {
+    try {
+      const documentSnapshot = await this.getDocumentReference(
+        documentId,
+      ).get();
+      console.log('User exists: ', documentSnapshot.exists);
+
+      if (documentSnapshot.exists) {
+        const userData = documentSnapshot.data();
+        console.log('User data: ', userData);
+
+        const user = new User({
+          email: userData?.email,
+          phone: userData?.phone,
+          contentCreator: userData?.contentCreator,
+          businessPeople: userData?.businessPeople,
+          joinedAt: userData?.joinedAt?.seconds,
+        });
+
+        return user;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw error; // Handle the error appropriately
+    }
   }
 
   static getUserDataReactive(
@@ -291,5 +323,11 @@ export class User extends BaseModel {
 
       return false;
     }
+  }
+
+  static signOut() {
+    auth()
+      .signOut()
+      .then(() => console.log('User signed out!'));
   }
 }

@@ -16,21 +16,21 @@ export type CampaignTypes = CampaignType.Public | CampaignType.Private;
 const CAMPAIGN_COLLECTION = 'campaigns';
 
 export class Campaign extends BaseModel {
-  id: string = '';
-  userId: string;
-  title: string;
-  description: string;
-  type: CampaignTypes;
-  locations: string[];
-  platforms: CampaignPlatform[];
-  fee: number;
-  criterias: string[];
-  slot: number;
-  image: string;
-  start: FirebaseFirestoreTypes.Timestamp | number;
-  end: FirebaseFirestoreTypes.Timestamp | number;
-  createdAt: FirebaseFirestoreTypes.Timestamp | number;
-  importantInformation: string[];
+  id?: string = '';
+  userId?: string;
+  title?: string;
+  description?: string;
+  type?: CampaignTypes;
+  locations?: string[];
+  platforms?: CampaignPlatform[];
+  fee?: number;
+  criterias?: string[];
+  slot?: number;
+  image?: string;
+  start?: FirebaseFirestoreTypes.Timestamp | number | Date;
+  end?: FirebaseFirestoreTypes.Timestamp | number | Date;
+  createdAt?: FirebaseFirestoreTypes.Timestamp | number | Date;
+  importantInformation?: string[];
 
   constructor({
     id,
@@ -50,21 +50,21 @@ export class Campaign extends BaseModel {
     importantInformation,
   }: Partial<Campaign>) {
     super();
-    this.id = id!!;
-    this.userId = userId!!;
-    this.title = title!!;
-    this.description = description!!;
-    this.type = type!!;
-    this.locations = locations!!;
-    this.platforms = platforms!!;
-    this.fee = fee!!;
-    this.criterias = criterias!!;
-    this.slot = slot!!;
-    this.image = image!!;
-    this.start = start!!;
-    this.end = end!!;
-    this.createdAt = createdAt!!;
-    this.importantInformation = importantInformation!!;
+    this.id = id;
+    this.userId = userId;
+    this.title = title;
+    this.description = description;
+    this.type = type;
+    this.locations = locations;
+    this.platforms = platforms;
+    this.fee = fee;
+    this.criterias = criterias;
+    this.slot = slot;
+    this.image = image;
+    this.start = start;
+    this.end = end;
+    this.createdAt = createdAt;
+    this.importantInformation = importantInformation;
   }
 
   private static fromSnapshot(
@@ -159,10 +159,14 @@ export class Campaign extends BaseModel {
       throw Error('Error!');
     }
   }
-
+  static getDocumentReference(
+    documentId: string,
+  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+    return this.getCampaignCollections().doc(documentId);
+  }
   static async getById(id: string): Promise<Campaign> {
     try {
-      const snapshot = await firestore().collection('campaigns').doc(id).get();
+      const snapshot = await this.getDocumentReference(id).get();
       if (!snapshot.exists) {
         throw Error('Campaign not found!');
       }
@@ -171,12 +175,22 @@ export class Campaign extends BaseModel {
       return campaign;
     } catch (error) {}
     throw Error('Error!');
-    // .then(documentSnapshot => {
-    //   console.log('User exists: ', documentSnapshot.exists);
+  }
 
-    //   if (documentSnapshot.exists) {
-    //     console.log('User data: ', documentSnapshot.data());
-    //   }
-    // });
+  async insert() {
+    try {
+      const {id, ...rest} = this;
+      const data = {
+        ...rest,
+        userId: User.getDocumentReference(this.userId ?? ''),
+        createdAt: new Date(),
+      };
+
+      await Campaign.getCampaignCollections().add(data);
+      return true;
+    } catch (error) {
+      console.log(error);
+    }
+    throw Error('Error!');
   }
 }
