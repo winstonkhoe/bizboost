@@ -25,11 +25,11 @@ export const CloseModal = ({showBorder}: CloseStackProps) => {
         showBorder &&
           border({
             borderWidth: 0.6,
-            color: COLOR.black,
+            color: COLOR.black[100],
             opacity: 0.6,
           }),
       ]}>
-      <CrossMarkThin width={30} height={30} color={COLOR.black} />
+      <CrossMarkThin width={30} height={30} color={COLOR.black[100]} />
     </Pressable>
   );
 };
@@ -47,11 +47,11 @@ export const BackButton = ({showBorder}: CloseStackProps) => {
         showBorder &&
           border({
             borderWidth: 0.6,
-            color: COLOR.black,
+            color: COLOR.black[100],
             opacity: 0.6,
           }),
       ]}>
-      <ChevronLeft width={30} height={30} color={COLOR.black} />
+      <ChevronLeft width={30} height={30} color={COLOR.black[100]} />
     </Pressable>
   );
 };

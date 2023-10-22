@@ -12,10 +12,10 @@ const SafeAreaContainer = ({children, customInsets}: Props) => {
   const insets = {...safeAreaInsets, ...customInsets};
   return (
     <View
+      className="flex-1"
       style={[
         {
           paddingTop: insets.top,
-          paddingBottom: insets.bottom,
           paddingLeft: insets.left,
           paddingRight: insets.right,
         },

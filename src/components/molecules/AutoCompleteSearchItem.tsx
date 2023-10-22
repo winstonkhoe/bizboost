@@ -27,7 +27,7 @@ const AutoCompleteSearchItem = ({itemValue}: Props) => {
       style={[flex.flexRow, gap.medium]}>
       <View
         className="items-center p-2"
-        style={[flex.flexRow, background(COLOR.black, 0.1), rounded.max]}>
+        style={[flex.flexRow, background(COLOR.black[100], 0.1), rounded.max]}>
         <Search width={14} height={14} />
       </View>
       <View className="flex-1" style={[flex.flexRow]}>
@@ -51,7 +51,7 @@ const AutoCompleteSearchItem = ({itemValue}: Props) => {
       <Pressable
         className="rotate-180"
         onPress={() => dispatch(updateSearchTerm(itemValue))}>
-        <DiagonalArrow width={14} height={14} color={COLOR.black} />
+        <DiagonalArrow width={14} height={14} color={COLOR.black[100]} />
       </Pressable>
     </View>
   );

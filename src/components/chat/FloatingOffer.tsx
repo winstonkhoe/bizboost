@@ -40,10 +40,10 @@ const FloatingOffer = () => {
             <TouchableOpacity onPress={toggleExpansion}>
               {isExpanded ? (
                 // Display the new SVG icon when expanded
-                <ChevronUp width={20} height={10} color={COLOR.black} />
+                <ChevronUp width={20} height={10} color={COLOR.black[100]} />
               ) : (
                 // Display the original ChevronDown icon when not expanded
-                <ChevronDown width={20} height={10} color={COLOR.black} />
+                <ChevronDown width={20} height={10} color={COLOR.black[100]} />
               )}
             </TouchableOpacity>
           </View>

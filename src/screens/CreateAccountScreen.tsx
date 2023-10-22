@@ -5,7 +5,7 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {FormProvider, useForm} from 'react-hook-form';
-import {AuthButton} from '../components/atoms/Button';
+import {CustomButton} from '../components/atoms/Button';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {CustomTextInput} from '../components/atoms/Input';
@@ -71,11 +71,11 @@ export const CreateAccountScreen_1 = () => {
             background(COLOR.background.light),
             border({
               borderWidth: 1,
-              color: COLOR.black,
+              color: COLOR.black[100],
               opacity: 0.6,
             }),
           ]}>
-          <UserIcon width={25} height={25} color={COLOR.black} />
+          <UserIcon width={25} height={25} color={COLOR.black[100]} />
           <Text className="font-semibold text-sm">{role}</Text>
         </View>
       </View>
@@ -94,7 +94,7 @@ export const CreateAccountScreen_1 = () => {
                 <Text className="font-bold text-xl">Create full name</Text>
                 <Text
                   className="text-sm font-normal text-center"
-                  style={[textColor(COLOR.black, 0.7)]}>
+                  style={[textColor(COLOR.black[100], 0.7)]}>
                   {`Pick a name for your new ${role?.toLowerCase()} account. This will be displayed to all users. You can always change it later.`}
                 </Text>
               </View>
@@ -105,7 +105,7 @@ export const CreateAccountScreen_1 = () => {
                   required: 'Fullname is required',
                 }}
               />
-              <AuthButton
+              <CustomButton
                 text="Next"
                 rounded="default"
                 disabled={!isValidField(getFieldState('fullname', formState))}
@@ -177,11 +177,11 @@ export const CreateAccountScreen_2 = () => {
             background(COLOR.background.light),
             border({
               borderWidth: 1,
-              color: COLOR.black,
+              color: COLOR.black[100],
               opacity: 0.6,
             }),
           ]}>
-          <UserIcon width={25} height={25} color={COLOR.black} />
+          <UserIcon width={25} height={25} color={COLOR.black[100]} />
           <Text className="font-semibold text-sm">{role}</Text>
         </View>
       </View>
@@ -200,7 +200,7 @@ export const CreateAccountScreen_2 = () => {
                 <Text className="font-bold text-xl">Add profile picture</Text>
                 <Text
                   className="text-sm font-normal text-center"
-                  style={[textColor(COLOR.black, 0.7)]}>
+                  style={[textColor(COLOR.black[100], 0.7)]}>
                   {
                     'Pick a photo to be displayed to all users. You can always change it later.'
                   }
@@ -213,7 +213,7 @@ export const CreateAccountScreen_2 = () => {
                   required: 'Profile picture is required',
                 }}
               />
-              <AuthButton
+              <CustomButton
                 text="Create account"
                 rounded="default"
                 disabled={

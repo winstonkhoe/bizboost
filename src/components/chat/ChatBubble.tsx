@@ -24,7 +24,7 @@ const ChatBubble = ({message, isSender, type}: Message) => {
             padding: 10,
             maxWidth: '80%',
           }}>
-          <Text style={[textColor(COLOR.black)]}>{message}</Text>
+          <Text style={[textColor(COLOR.black[100])]}>{message}</Text>
         </View>
       )}
       {type === MessageType.Photo && (

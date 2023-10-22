@@ -48,7 +48,7 @@ const SearchBar = () => {
             searchInputRef.current?.blur();
             clearInput(event);
           }}>
-          <ChevronLeft width={25} height={25} color={COLOR.black} />
+          <ChevronLeft width={25} height={25} color={COLOR.black[100]} />
         </Pressable>
       )}
       <Pressable
@@ -69,7 +69,7 @@ const SearchBar = () => {
               onFocus={() => dispatch(openSearchPage())}
               onChangeText={(text: string) => dispatch(updateSearchTerm(text))}
               className="font-medium"
-              style={[textColor(COLOR.black, 1)]}
+              style={[textColor(COLOR.black[100], 1)]}
               placeholder="David William"
               onSubmitEditing={search}
               returnKeyType="search"
