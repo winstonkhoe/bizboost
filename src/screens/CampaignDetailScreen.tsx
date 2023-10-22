@@ -20,7 +20,9 @@ import {borderRadius, radiusSize} from '../styles/BorderRadius';
 import Checkmark from '../assets/vectors/checkmark.svg';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TikTokLogo from '../assets/vectors/tiktok.svg';
+import People from '../assets/vectors/people.svg';
 import {COLOR} from '../styles/Color';
+import {gap} from '../styles/Gap';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   AuthenticatedNavigation.CampaignDetail
@@ -41,6 +43,7 @@ const CampaignDetailScreen = ({route}: Props) => {
   );
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
 
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
@@ -95,34 +98,36 @@ const CampaignDetailScreen = ({route}: Props) => {
         </View>
         <View className="flex flex-col p-4 gap-4">
           <View>
-            <Text className="font-bold text-2xl">{campaign.title}</Text>
-            <Text className="font-bold text-xs">
-              {campaign.start &&
-                getDate(campaign.start).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}{' '}
-              -{' '}
-              {campaign.end &&
-                getDate(campaign.end).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-            </Text>
-          </View>
-          <View className="flex flex-row items-center">
-            <Text>Available Slot</Text>
-            <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
-              <Text className="text-center text-xs font-bold">
-                0/{campaign.slot}
+            <Text className="font-bold text-2xl mb-2">{campaign.title}</Text>
+            <View className="flex flex-row justify-between">
+              <Text className="font-bold text-xs">
+                {campaign.start &&
+                  getDate(campaign.start).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}{' '}
+                -{' '}
+                {campaign.end &&
+                  getDate(campaign.end).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
               </Text>
+              <View className="flex flex-row items-center">
+                <People width={20} height={20} />
+                <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
+                  <Text className="text-center text-xs font-bold">
+                    0/{campaign.slot}
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
-          <Text>{campaign.description}</Text>
+
           <View>
-            <Text className="font-semibold text-base pb-2">Criteria</Text>
+            {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
             <View className="flex flex-row flex-wrap gap-2">
               {campaign.criterias &&
                 campaign.criterias.map((_item: any, index: number) => (
@@ -133,79 +138,110 @@ const CampaignDetailScreen = ({route}: Props) => {
             </View>
           </View>
 
-          <View>
-            <Text className="font-semibold text-base pb-2">
-              Important Information
-            </Text>
-            {campaign.importantInformation &&
-              campaign.importantInformation.map((_item: any, index: number) => (
-                <View key={index} className="mb-2 flex flex-row items-center">
-                  <View className="bg-gray-300 py-1 px-[11px] rounded-full mr-2">
-                    <Text className="text-center text-xs">i</Text>
-                  </View>
-                  <Text>{_item}</Text>
-                </View>
-              ))}
-          </View>
-          <View className="flex flex-col flex-wrap">
-            <Text className="font-semibold text-base pb-2">Fee</Text>
+          <Text>{campaign.description}</Text>
+
+          <View className="flex flex-row items-center justify-between flex-wrap ">
+            <Text className="font-semibold text-base">Fee</Text>
             <View>
               {campaign.fee && (
-                <TagCard
-                  text={new Intl.NumberFormat('id-ID', {
+                <Text className="font-medium ">
+                  {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
                   }).format(campaign.fee)}
-                />
+                </Text>
               )}
             </View>
           </View>
-          <View>
-            <Text className="font-semibold text-base pb-2">Task Summary</Text>
-            <View className="flex flex-col flex-wrap gap-2">
-              {campaign.platforms &&
-                campaign.platforms.map(
-                  (_item: CampaignPlatform, index: number) => (
-                    <View key={index}>
-                      <View className="flex flex-row items-center">
-                        {logo[_item.name as keyof typeof logo]}
-                        <Text className="font-semibold ml-1">{_item.name}</Text>
-                      </View>
-                      {_item.tasks.map((t, idx) => (
-                        <View
-                          key={idx}
-                          className="flex flex-row items-center ml-3">
-                          <Checkmark
-                            color={COLOR.black[100]}
-                            width={20}
-                            height={20}
-                          />
-                          <Text className="ml-1">{t}</Text>
+
+          {isMoreInfoVisible && (
+            <View className="flex flex-col" style={[gap.medium]}>
+              <View className="">
+                <Text className="font-semibold text-base pb-2">
+                  Important Information
+                </Text>
+                {campaign.importantInformation &&
+                  campaign.importantInformation.map(
+                    (_item: any, index: number) => (
+                      <View
+                        key={index}
+                        className="mb-2 flex flex-row items-center">
+                        <View className="bg-gray-300 py-1 px-[11px] rounded-full mr-2">
+                          <Text className="text-center text-xs">i</Text>
                         </View>
-                      ))}
-                    </View>
-                  ),
-                )}
+                        <Text>{_item}</Text>
+                      </View>
+                    ),
+                  )}
+              </View>
+
+              <View className="">
+                <Text className="font-semibold text-base pb-2">
+                  Task Summary
+                </Text>
+                <View className="flex flex-col flex-wrap gap-2">
+                  {campaign.platforms &&
+                    campaign.platforms.map(
+                      (_item: CampaignPlatform, index: number) => (
+                        <View key={index}>
+                          <View className="flex flex-row items-center">
+                            {logo[_item.name as keyof typeof logo]}
+                            <Text className="font-semibold ml-1">
+                              {_item.name}
+                            </Text>
+                          </View>
+                          {_item.tasks.map((t, idx) => (
+                            <View
+                              key={idx}
+                              className="flex flex-row items-center ml-3">
+                              <Checkmark
+                                color={COLOR.black[100]}
+                                width={20}
+                                height={20}
+                              />
+                              <Text className="ml-1">{t}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      ),
+                    )}
+                </View>
+              </View>
+              <View className="">
+                <Text className="font-semibold text-base pb-2">Location</Text>
+                <View className="flex flex-row flex-wrap gap-2">
+                  {campaign.locations &&
+                    campaign.locations.map((_item: any, index: number) => (
+                      <View key={index}>
+                        <TagCard text={_item} />
+                      </View>
+                    ))}
+                </View>
+              </View>
             </View>
-          </View>
+          )}
           <View>
-            <Text className="font-semibold text-base pb-2">Location</Text>
-            <View className="flex flex-row flex-wrap gap-2">
-              {campaign.locations &&
-                campaign.locations.map((_item: any, index: number) => (
-                  <View key={index}>
-                    <TagCard text={_item} />
-                  </View>
-                ))}
-            </View>
+            <CustomButton
+              customBackgroundColor={COLOR.background.neutral}
+              customTextColor={COLOR.text.neutral}
+              verticalPadding="xsmall"
+              inverted
+              text={
+                isMoreInfoVisible ? 'Hide Information' : 'Read More Information'
+              }
+              rounded="default"
+              onPress={() => setIsMoreInfoVisible(value => !value)}
+            />
           </View>
-          <Text>{transactionStatus}</Text>
+          {/* <Text>{transactionStatus}</Text> */}
           {uid !== campaign.userId &&
             transactionStatus === TransactionStatus.notRegistered && (
-              <View className="py-4">
+              <View className="py-2">
                 {/* TODO: validate join only for CC */}
 
                 <CustomButton
+                  customBackgroundColor={COLOR.background.neutral}
+                  customTextColor={COLOR.text.neutral}
                   text="Join Campaign"
                   rounded="default"
                   onPress={handleJoinCampaign}

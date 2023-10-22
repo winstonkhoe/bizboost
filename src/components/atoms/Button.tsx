@@ -13,12 +13,16 @@ interface Props extends PressableProps, React.RefAttributes<View> {
   rounded?: RadiusSizeType;
   inverted?: boolean;
   verticalPadding?: PaddingSizeType;
+  customBackgroundColor?: typeof COLOR.background.green;
+  customTextColor?: typeof COLOR.text.green;
 }
 export const CustomButton = ({
   text,
   rounded: roundSize = 'default',
   verticalPadding: verticalPaddingSize = 'small',
   inverted = false,
+  customBackgroundColor = COLOR.background.green,
+  customTextColor = COLOR.text.green,
   ...props
 }: Props) => {
   return (
@@ -33,15 +37,15 @@ export const CustomButton = ({
           border({
             borderWidth: 2,
             color: props.disabled
-              ? COLOR.background.green.disabled
-              : COLOR.background.green.high,
+              ? customBackgroundColor.disabled
+              : customBackgroundColor.high,
           }),
         inverted && background(COLOR.black[0]),
         !inverted &&
           background(
             props.disabled
-              ? COLOR.background.green.disabled
-              : COLOR.background.green.high,
+              ? customBackgroundColor.disabled
+              : customBackgroundColor.high,
           ),
       ]}>
       <Text
@@ -50,8 +54,8 @@ export const CustomButton = ({
           inverted
             ? textColor(
                 props.disabled
-                  ? COLOR.text.green.disabled
-                  : COLOR.text.green.default,
+                  ? customTextColor.disabled
+                  : customTextColor.default,
               )
             : textColor(COLOR.black[1]),
         ]}>
