@@ -15,22 +15,16 @@ import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import Checkmark from '../assets/vectors/checkmark.svg';
-import InstagramLogo from '../assets/vectors/instagram.svg';
-import TikTokLogo from '../assets/vectors/tiktok.svg';
+
 import People from '../assets/vectors/people.svg';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
+import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
 type Props = NativeStackScreenProps<
   RootAuthenticatedStackParamList,
   AuthenticatedNavigation.CampaignDetail
 >;
-
-const logo = {
-  Instagram: <InstagramLogo width={20} height={20} />,
-  TikTok: <TikTokLogo width={20} height={20} />,
-};
 
 const CampaignDetailScreen = ({route}: Props) => {
   const {uid} = useUser();
@@ -171,33 +165,13 @@ const CampaignDetailScreen = ({route}: Props) => {
                 <Text className="font-semibold text-base pb-2">
                   Task Summary
                 </Text>
-                <View className="flex flex-col flex-wrap gap-2">
-                  {campaign.platforms &&
-                    campaign.platforms.map(
-                      (_item: CampaignPlatform, index: number) => (
-                        <View key={index}>
-                          <View className="flex flex-row items-center">
-                            {logo[_item.name as keyof typeof logo]}
-                            <Text className="font-semibold ml-1">
-                              {_item.name}
-                            </Text>
-                          </View>
-                          {_item.tasks.map((t, idx) => (
-                            <View
-                              key={idx}
-                              className="flex flex-row items-center ml-3">
-                              <Checkmark
-                                color={COLOR.black[100]}
-                                width={20}
-                                height={20}
-                              />
-                              <Text className="ml-1">{t}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      ),
-                    )}
-                </View>
+                {campaign.platforms && (
+                  <View className="flex flex-col">
+                    {campaign.platforms.map((p, index) => (
+                      <CampaignPlatformAccordion platform={p} key={index} />
+                    ))}
+                  </View>
+                )}
               </View>
               <View className="">
                 <Text className="font-semibold text-base pb-2">Location</Text>
