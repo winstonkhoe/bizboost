@@ -70,7 +70,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           <Image
             className="w-full h-full object-cover"
             source={
-              isValidUser()
+              isValidUser() && data?.profilePicture
                 ? {
                     uri: data?.profilePicture,
                   }
