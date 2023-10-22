@@ -11,18 +11,37 @@ import TagCard from '../components/atoms/TagCard';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {getDate} from '../utils/date';
+import {CustomButton} from '../components/atoms/Button';
+import {useUser} from '../hooks/user';
+import {Transaction} from '../model/Transaction';
 type Props = NativeStackScreenProps<
   RootAuthenticatedNativeStackParamList,
   AuthenticatedNavigation.CampaignDetail
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  // TODO: pass id instead of object to solve: `Non-serializable values were found in the navigation state.`
+  const {uid} = useUser();
+
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
+
+  // TODO: validate join only for CC
+  const handleJoinCampaign = () => {
+    const data = new Transaction({
+      contentCreatorId: uid || '',
+      campaignId: campaignId,
+      status: 'PENDING',
+    });
+
+    data.insert().then(isSuccess => {
+      if (isSuccess) {
+        console.log('Joined!');
+      }
+    });
+  };
 
   if (!campaign) {
     return <Text>Loading</Text>;
@@ -113,7 +132,15 @@ const CampaignDetailScreen = ({route}: Props) => {
             ))}
           </View>
         </View>
-        <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text>
+        <View className="py-4">
+          {/* TODO: validate join only for CC */}
+          <CustomButton
+            text="Join Campaign"
+            rounded="default"
+            onPress={handleJoinCampaign}
+          />
+        </View>
+        {/* <Text>CampaignDetailScreen, Campaign ID: {campaign.id}</Text> */}
       </View>
     </ScrollView>
   );

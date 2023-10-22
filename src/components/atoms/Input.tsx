@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {Controller, UseControllerProps, useFormContext} from 'react-hook-form';
-import {Animated} from 'react-native';
+import {Animated, KeyboardTypeOptions} from 'react-native';
 import {TextInput} from 'react-native';
 import {Text} from 'react-native';
 import {View} from 'react-native';
@@ -14,7 +14,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import {flex} from '../../styles/Flex';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import {AuthButton} from './Button';
+import {CustomButton} from './Button';
 import ImagePicker, {
   Options,
   ImageOrVideo,
@@ -24,12 +24,16 @@ interface Props extends UseControllerProps {
   label: string;
   placeholder?: string;
   multiline?: boolean;
+  hideInputText?: boolean;
+  keyboardType?: KeyboardTypeOptions;
 }
 
 export const CustomTextInput = ({
   label,
   placeholder = label,
   multiline = false,
+  hideInputText = false,
+  keyboardType,
   ...controllerProps
 }: Props) => {
   const {
@@ -83,6 +87,8 @@ export const CustomTextInput = ({
         control={control}
         render={({field: {onChange, onBlur, value}}) => (
           <TextInput
+            keyboardType={keyboardType}
+            secureTextEntry={hideInputText}
             multiline={multiline}
             onContentSizeChange={event =>
               setHeight(event.nativeEvent.contentSize.height + 15)
@@ -113,7 +119,7 @@ export const CustomTextInput = ({
           {height: 1},
           errors?.[controllerProps.name]
             ? background(COLOR.red.error)
-            : background(COLOR.black),
+            : background(COLOR.black[100]),
         ]}>
         <Animated.View
           className="absolute top-0 left-0 w-full h-full bg-green-700"
@@ -163,7 +169,7 @@ export const MediaUploader = ({
   return (
     <TouchableOpacity onPress={handleImageUpload}>
       <View style={[flex.flexRow]} className="items-center">
-        {children || <AuthButton text="Upload image" rounded={'small'} />}
+        {children || <CustomButton text="Upload image" rounded={'small'} />}
       </View>
     </TouchableOpacity>
   );
