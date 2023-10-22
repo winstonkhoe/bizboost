@@ -6,6 +6,14 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {ErrorMessage} from '../constants/errorMessage';
 import {handleError} from '../utils/error';
 import {BaseModel} from './BaseModel';
+import {
+  AccessToken,
+  GraphRequest,
+  GraphRequestManager,
+  LoginManager,
+  LoginResult,
+} from 'react-native-fbsdk-next';
+import {useAppDispatch} from '../redux/hooks';
 
 const USER_COLLECTION = 'users';
 
@@ -31,6 +39,11 @@ export type BusinessPeople = {
   profilePicture?: string;
 };
 
+export type SocialData = {
+  username?: string;
+  followersCount?: number;
+};
+
 export class User extends BaseModel {
   id?: string;
   email?: string;
@@ -38,6 +51,8 @@ export class User extends BaseModel {
   phone?: string;
   contentCreator?: ContentCreator;
   businessPeople?: BusinessPeople;
+  instagram?: SocialData;
+  tiktok?: SocialData;
   joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
 
   constructor({
@@ -48,6 +63,8 @@ export class User extends BaseModel {
     contentCreator,
     businessPeople,
     joinedAt,
+    instagram,
+    tiktok,
   }: Partial<User>) {
     super();
     this.id = id;
@@ -57,6 +74,8 @@ export class User extends BaseModel {
     this.contentCreator = contentCreator;
     this.businessPeople = businessPeople;
     this.joinedAt = joinedAt;
+    this.instagram = instagram;
+    this.tiktok = tiktok;
     // Add your non-static methods here
   }
 
@@ -284,6 +303,145 @@ export class User extends BaseModel {
       console.log(error);
       handleError(error.code);
       return false;
+    }
+  }
+
+  static async signUpWithFacebook(finishCallback: (result: boolean) => void) {
+    const result: LoginResult = await LoginManager.logInWithPermissions([
+      'pages_show_list',
+      'instagram_basic',
+      'business_management',
+    ]);
+
+    if (result.isCancelled) {
+      throw Error(ErrorMessage.FACEBOOK_SIGN_IN_CANCEL);
+    }
+
+    const fbAccessToken: AccessToken | null =
+      await AccessToken.getCurrentAccessToken();
+
+    if (!fbAccessToken) {
+      throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
+    }
+
+    const facebookCredential = auth.FacebookAuthProvider.credential(
+      fbAccessToken.accessToken,
+    );
+    const userCredential: FirebaseAuthTypes.UserCredential =
+      await auth().signInWithCredential(facebookCredential);
+
+    console.log('lewatin ini');
+    if (!userCredential.additionalUserInfo?.isNewUser) {
+      console.log('lewatin 1');
+      throw Error(ErrorMessage.USER_EXISTS);
+    } else {
+      console.log('lewatin 2');
+      const user = userCredential.user;
+      console.log(userCredential.user);
+
+      const instagramDataCallback = async (error?: Object, result?: any) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          return false;
+        } else {
+          const fullname = user.displayName;
+          const followersCount = result?.followers_count;
+          const instagramUsername = result?.username;
+          const instagramName = result?.name;
+          // const instagramMediaIds = result?.media.data;
+          const profilePicture = result?.profile_picture_url;
+          try {
+            await this.setUserData(
+              user.uid,
+              new User({
+                instagram: {
+                  username: instagramUsername,
+                  followersCount: followersCount,
+                },
+                businessPeople: {
+                  fullname: fullname || instagramName,
+                  profilePicture: profilePicture,
+                },
+              }),
+            );
+            console.log('before callback success');
+            finishCallback(true);
+          } catch (error) {
+            finishCallback(false);
+          }
+          console.log(result);
+        }
+      };
+
+      const userInstagramBusinessAccountCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(false);
+        } else {
+          const instagramBusinessAccount = result?.instagram_business_account;
+          const instagramId = instagramBusinessAccount?.id;
+          const getInstagramDataRequest = new GraphRequest(
+            `/${instagramId}`,
+            {
+              parameters: {
+                fields: {
+                  string:
+                    'id,followers_count,media_count,username,website,biography,name,media,profile_picture_url',
+                },
+              },
+            },
+            instagramDataCallback,
+          );
+          await new GraphRequestManager()
+            .addRequest(getInstagramDataRequest)
+            .start();
+        }
+      };
+
+      const userFacebookPagesListCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(false);
+        } else {
+          const data = result?.data;
+          if (data && data?.length > 0) {
+            const page = data?.[0];
+            if (page) {
+              const page_id = page?.id;
+              const getInstagramBusinessAccountRequest = new GraphRequest(
+                `/${page_id}`,
+                {
+                  parameters: {
+                    fields: {
+                      string: 'instagram_business_account',
+                    },
+                  },
+                },
+                userInstagramBusinessAccountCallback,
+              );
+              await new GraphRequestManager()
+                .addRequest(getInstagramBusinessAccountRequest)
+                .start();
+            }
+          }
+          console.log(result);
+        }
+      };
+      const getUserFacebookPagesListRequest = new GraphRequest(
+        '/me/accounts',
+        {},
+        userFacebookPagesListCallback,
+      );
+
+      await new GraphRequestManager()
+        .addRequest(getUserFacebookPagesListRequest)
+        .start();
     }
   }
 
