@@ -4,12 +4,13 @@ import AuthenticatedNavigator from '../navigation/AuthenticatedNavigation';
 import {SwitchUserModalProvider} from './ModalProvider';
 import {useEffect, useState} from 'react';
 import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
-import {useAppDispatch} from '../redux/hooks';
+import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {setUserUid} from '../redux/slices/userSlice';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 
 export const AuthProvider = () => {
   const [initializing, setInitializing] = useState(true);
+  const {isAccessGranted} = useAppSelector(select => select.auth);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const dispatch = useAppDispatch();
 
@@ -29,7 +30,11 @@ export const AuthProvider = () => {
   return (
     <>
       <NavigationContainer>
-        {!user ? <GuestNavigation /> : <AuthenticatedNavigator />}
+        {user && isAccessGranted ? (
+          <AuthenticatedNavigator />
+        ) : (
+          <GuestNavigation />
+        )}
         <BottomSheetModalProvider>
           <SwitchUserModalProvider />
         </BottomSheetModalProvider>
