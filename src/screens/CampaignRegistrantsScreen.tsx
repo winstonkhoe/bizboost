@@ -1,9 +1,7 @@
-import {View} from 'react-native';
 import {Text} from 'react-native';
 import {CloseModal} from '../components/atoms/Close';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
-import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
   RootAuthenticatedStackParamList,

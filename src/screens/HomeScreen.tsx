@@ -8,9 +8,8 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
-import {Campaign, CampaignType} from '../model/Campaign';
+import {Campaign} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
-import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,

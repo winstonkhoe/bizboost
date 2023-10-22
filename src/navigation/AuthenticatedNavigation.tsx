@@ -15,7 +15,6 @@ import CreateCampaignScreen from '../screens/CreateCampaignScreen';
 import ChatScreen from '../screens/ChatScreen';
 import {ChatView} from '../model/Chat';
 import CampaignRegistrantsScreen from '../screens/CampaignRegistrantsScreen';
-import {Transaction} from '../model/Transaction';
 
 export enum AuthenticatedNavigation {
   Main = 'Main',

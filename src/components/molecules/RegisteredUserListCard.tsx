@@ -1,4 +1,4 @@
-import {Button, View} from 'react-native';
+import {View} from 'react-native';
 import {Text} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
@@ -8,7 +8,7 @@ import {User} from '../../model/User';
 import {useEffect, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
-import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {verticalPadding} from '../../styles/Padding';
 import {CustomButton} from '../atoms/Button';
 import SelectableTag from '../atoms/SelectableTag';
 

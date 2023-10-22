@@ -9,15 +9,12 @@ import {Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
-import {ScrollView} from 'react-native-gesture-handler';
 import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {getDate} from '../utils/date';
 import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {Transaction, TransactionStatus} from '../model/Transaction';
-import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {borderRadius, radiusSize} from '../styles/BorderRadius';
 import Checkmark from '../assets/vectors/checkmark.svg';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TikTokLogo from '../assets/vectors/tiktok.svg';
@@ -44,7 +41,6 @@ const CampaignDetailScreen = ({route}: Props) => {
     TransactionStatus.notRegistered,
   );
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
 
   useEffect(() => {
