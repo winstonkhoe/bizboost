@@ -7,50 +7,81 @@ import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {rounded} from '../../styles/BorderRadius';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
-import {updateSearchTerm} from '../../redux/slices/searchSlice';
+import {
+  closeSearchPage,
+  updateSearchTerm,
+} from '../../redux/slices/searchSlice';
+import {textColor} from '../../styles/Text';
+import {useNavigation} from '@react-navigation/native';
+import {
+  TabNavigation,
+  TabNavigationProps,
+} from '../../navigation/TabNavigation';
+import React from 'react';
 
 interface Props {
   itemValue: string;
 }
 
 const AutoCompleteSearchItem = ({itemValue}: Props) => {
+  const navigation = useNavigation<TabNavigationProps>();
   const dispatch = useAppDispatch();
   const {searchTerm} = useAppSelector(state => state.search);
+  const loweredItemValue = itemValue.toLocaleLowerCase();
+  const loweredSearchTerm = searchTerm.toLocaleLowerCase();
   const regEscape = (v: string) =>
     v.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-  const splittedItemValues = itemValue.split(
-    new RegExp(regEscape(searchTerm), 'ig'),
+  const splittedItemValues = loweredItemValue.split(
+    new RegExp(regEscape(loweredSearchTerm), 'ig'),
   );
+
+  const pressItem = () => {
+    dispatch(updateSearchTerm(loweredItemValue));
+    dispatch(closeSearchPage());
+    navigation.navigate(TabNavigation.Campaigns);
+  };
+
   return (
     <View
       className="w-full h-10 items-center"
       style={[flex.flexRow, gap.medium]}>
-      <View
-        className="items-center p-2"
-        style={[flex.flexRow, background(COLOR.black[100], 0.1), rounded.max]}>
-        <Search width={14} height={14} />
-      </View>
-      <View className="flex-1" style={[flex.flexRow]}>
-        {splittedItemValues?.map((splitItemValue: string, index: number) => {
-          return (
-            <>
-              <Text
-                key={`nst-${index}`}
-                className="text-base tracking-wide font-bold">
-                {splitItemValue}
-              </Text>
-              {index !== splittedItemValues.length - 1 && (
-                <Text key={`st-${index}`} className="text-base tracking-wide">
-                  {searchTerm}
+      <Pressable
+        className="flex-1"
+        style={[flex.flexRow, gap.medium]}
+        onPress={pressItem}>
+        <View
+          className="items-center p-2"
+          style={[
+            flex.flexRow,
+            background(COLOR.black[100], 0.1),
+            rounded.max,
+          ]}>
+          <Search width={14} height={14} />
+        </View>
+        <View className="flex-1" style={[flex.flexRow]}>
+          {splittedItemValues?.map((splitItemValue: string, index: number) => {
+            return (
+              <React.Fragment key={index}>
+                <Text
+                  className="text-base tracking-wide font-bold"
+                  style={[textColor(COLOR.text.neutral.high)]}>
+                  {splitItemValue}
                 </Text>
-              )}
-            </>
-          );
-        })}
-      </View>
+                {index !== splittedItemValues.length - 1 && (
+                  <Text
+                    className="text-base tracking-wide"
+                    style={[textColor(COLOR.text.neutral.med)]}>
+                    {loweredSearchTerm}
+                  </Text>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </View>
+      </Pressable>
       <Pressable
         className="rotate-180"
-        onPress={() => dispatch(updateSearchTerm(itemValue))}>
+        onPress={() => dispatch(updateSearchTerm(loweredItemValue))}>
         <DiagonalArrow width={14} height={14} color={COLOR.black[100]} />
       </Pressable>
     </View>

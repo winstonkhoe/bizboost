@@ -5,7 +5,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
 import ChatLogo from '../assets/vectors/chat.svg';
-import {Image, Pressable} from 'react-native';
+import {Image} from 'react-native';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
 import {useCallback} from 'react';
@@ -15,6 +15,8 @@ import {View} from 'react-native';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import CampaignsScreen from '../screens/CampaignsScreen';
+import {NavigationProp} from '@react-navigation/native';
+import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
 const Tab = createBottomTabNavigator();
 
 export enum TabNavigation {
@@ -24,9 +26,23 @@ export enum TabNavigation {
   Profile = 'Profile',
 }
 
+type TabNavigationParamList = {
+  [TabNavigation.Home]: undefined;
+  [TabNavigation.Chat]: undefined;
+  [TabNavigation.Campaigns]: undefined;
+  [TabNavigation.Profile]: undefined;
+};
+
+export type TabNavigationProps = NavigationProp<TabNavigationParamList>;
+
 export const TabNavigator = () => {
   const dispatch = useAppDispatch();
   const {user, activeRole} = useUser();
+
+  const resetSearchState = () => {
+    dispatch(updateSearchTerm(''));
+    dispatch(closeSearchPage());
+  };
 
   const profileIcon = useCallback(() => {
     const getUserProfile = () => {
@@ -38,22 +54,18 @@ export const TabNavigator = () => {
       return undefined;
     };
     return (
-      <Pressable
-        hitSlop={{top: 20, bottom: 50, left: 50, right: 50}}
-        className="rounded-full w-6 h-6 overflow-hidden"
-        onLongPress={() => {
-          dispatch(openModal());
-        }}>
-        {getUserProfile() ? (
-          <Image className="w-full h-full" source={{uri: getUserProfile()}} />
-        ) : (
-          <View
-            className="w-full h-full"
-            style={[background(COLOR.black[100], 0.2)]}></View>
-        )}
-      </Pressable>
+      <View className="rounded-full w-6 h-6 overflow-hidden">
+        <Image
+          className="w-full h-full"
+          source={
+            getUserProfile()
+              ? {uri: getUserProfile()}
+              : require('../assets/images/bizboost-avatar.png')
+          }
+        />
+      </View>
     );
-  }, [dispatch, activeRole, user]);
+  }, [activeRole, user]);
 
   const homeIcon = useCallback(
     (focused: boolean) =>
@@ -76,6 +88,11 @@ export const TabNavigator = () => {
       <Tab.Screen
         name={TabNavigation.Home}
         component={HomeScreen}
+        listeners={{
+          tabPress: () => {
+            resetSearchState();
+          },
+        }}
         options={{
           tabBarIcon: ({focused}) => homeIcon(focused),
         }}
@@ -91,11 +108,21 @@ export const TabNavigator = () => {
         <Tab.Screen
           name={TabNavigation.Campaigns}
           component={CampaignsScreen}
+          listeners={{
+            tabPress: () => {
+              resetSearchState();
+            },
+          }}
         />
       )}
       <Tab.Screen
         name={TabNavigation.Profile}
         component={ProfileScreen}
+        listeners={{
+          tabLongPress: () => {
+            dispatch(openModal());
+          },
+        }}
         options={{
           tabBarIcon: profileIcon,
         }}
