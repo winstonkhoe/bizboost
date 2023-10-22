@@ -87,7 +87,12 @@ export const TabNavigator = () => {
           tabBarIcon: ({focused}) => chatIcon(focused),
         }}
       />
-      <Tab.Screen name={TabNavigation.Campaigns} component={CampaignsScreen} />
+      {UserRole.ContentCreator === activeRole && (
+        <Tab.Screen
+          name={TabNavigation.Campaigns}
+          component={CampaignsScreen}
+        />
+      )}
       <Tab.Screen
         name={TabNavigation.Profile}
         component={ProfileScreen}
