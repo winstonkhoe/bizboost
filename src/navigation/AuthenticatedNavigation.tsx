@@ -1,39 +1,121 @@
 import * as React from 'react';
-import HomeScreen from '../screens/HomeScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import HomeLogoOutline from '../assets/vectors/home-outline.svg';
-import HomeLogoFilled from '../assets/vectors/home-filled.svg';
-import {View} from 'react-native';
 
-const Tab = createBottomTabNavigator();
+import {TransitionPresets, createStackNavigator} from '@react-navigation/stack';
 
-const AuthenticatedNavigation = () => {
+// import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import TabNavigation from './TabNavigation';
+import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import ChatScreen from '../screens/ChatScreen';
+import {
+  CreateAccountScreen_1,
+  CreateAccountScreen_2,
+} from '../screens/CreateAccountScreen';
+import {NavigationProp} from '@react-navigation/native';
+import CreateCampaignScreen from '../screens/CreateCampaignScreen';
+
+export enum AuthenticatedNavigation {
+  Main = 'Main',
+  Home = 'Home',
+  CampaignDetail = 'Campaign Detail',
+  CreateAdditionalAccount = 'CreateAdditionalAccount',
+  CreateCampaign = 'Create Campaign',
+  Chat = 'Chat',
+}
+
+export type RootAuthenticatedStackParamList = {
+  [AuthenticatedNavigation.Main]: undefined;
+  [AuthenticatedNavigation.Home]: undefined;
+  [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
+  [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
+  [AuthenticatedNavigation.CreateCampaign]: undefined;
+
+  // 'Campaign Detail': {campaign: Campaign};
+  [AuthenticatedNavigation.Chat]: undefined;
+};
+
+export type RootAuthenticatedNavigationStackProps =
+  NavigationProp<RootAuthenticatedStackParamList>;
+
+export enum CreateAdditionalAccountNavigation {
+  First = 'Create Additional Account-1',
+  Second = 'Create Additional Account-2',
+}
+
+export type CreateAdditionalAccountModalStackParamList = {
+  [CreateAdditionalAccountNavigation.First]: undefined;
+  [CreateAdditionalAccountNavigation.Second]: undefined;
+};
+
+export type CreateAdditionalAccountModalNavigationProps =
+  NavigationProp<CreateAdditionalAccountModalStackParamList>;
+
+const CreateAdditionalAccountModalStack =
+  createStackNavigator<CreateAdditionalAccountModalStackParamList>();
+const Stack = createStackNavigator<RootAuthenticatedStackParamList>();
+// const NativeStack =
+//   createNativeStackNavigator<RootAuthenticatedNativeStackParamList>();
+
+const CreateAdditionalAccountNavigator = () => {
   return (
-    <Tab.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
+    <CreateAdditionalAccountModalStack.Navigator
+      initialRouteName={CreateAdditionalAccountNavigation.First}
+      screenOptions={{headerShown: false}}>
+      <CreateAdditionalAccountModalStack.Screen
+        name={CreateAdditionalAccountNavigation.First}
+        component={CreateAccountScreen_1}
         options={{
-          tabBarIcon: ({focused}) =>
-            focused ? (
-              <HomeLogoFilled width={30} />
-            ) : (
-              <HomeLogoOutline width={30} />
-            ),
+          presentation: 'modal',
+          cardOverlayEnabled: true,
+          ...TransitionPresets.ModalSlideFromBottomIOS,
         }}
       />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: () => (
-            <View className="rounded-full w-6 h-6 bg-yellow-600 overflow-hidden"></View>
-          ),
-        }}
-      />
-    </Tab.Navigator>
+      <CreateAdditionalAccountModalStack.Group
+        screenOptions={{
+          presentation: 'card',
+        }}>
+        <CreateAdditionalAccountModalStack.Screen
+          name={CreateAdditionalAccountNavigation.Second}
+          component={CreateAccountScreen_2}
+        />
+      </CreateAdditionalAccountModalStack.Group>
+    </CreateAdditionalAccountModalStack.Navigator>
   );
 };
 
-export default AuthenticatedNavigation;
+const AuthenticatedNavigator = () => {
+  return (
+    <>
+      <Stack.Navigator>
+        <Stack.Screen
+          name={AuthenticatedNavigation.Main}
+          component={TabNavigation}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.Chat}
+          component={ChatScreen}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.CampaignDetail}
+          component={CampaignDetailScreen}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.CreateCampaign}
+          component={CreateCampaignScreen}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.CreateAdditionalAccount}
+          component={CreateAdditionalAccountNavigator}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+            cardOverlayEnabled: true,
+            ...TransitionPresets.ModalSlideFromBottomIOS,
+          }}
+        />
+      </Stack.Navigator>
+    </>
+  );
+};
+
+export default AuthenticatedNavigator;

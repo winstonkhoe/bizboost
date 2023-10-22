@@ -1,20 +1,18 @@
 import {Alert, Text, TextInput, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/GuestNavigation';
+import {RootGuestStackParamList} from '../navigation/GuestNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {Button} from 'react-native-elements';
 import {User} from '../model/User';
 import {useForm, Controller} from 'react-hook-form';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
+type Props = NativeStackScreenProps<RootGuestStackParamList, 'Signup'>;
 type FormData = {
   email: string;
   password: string;
   confirmPassword: string;
   fullname: string;
   phone: string;
-  profilePicture: string;
-  role: 'CC' | 'BP' | 'Admin';
 };
 const SignUpScreen = ({}: Props) => {
   const {
@@ -24,19 +22,22 @@ const SignUpScreen = ({}: Props) => {
     formState: {errors},
   } = useForm<FormData>({
     mode: 'all',
-    defaultValues: {
-      profilePicture: 'a',
-      role: 'CC',
-    },
+    defaultValues: {},
   });
 
   const onSubmit = (data: FormData) => {
     console.log('data' + data);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {confirmPassword, ...rest} = data;
-
-    console.log(rest);
-    User.signUp(rest).catch(error => {
+    const signUpData: User = {
+      email: rest.email,
+      password: rest.password,
+      phone: rest.phone,
+      businessPeople: {
+        fullname: rest.fullname,
+      },
+    };
+    User.signUpBusinessPeople(signUpData).catch(error => {
       Alert.alert('Error!', error.message, [
         {
           text: 'OK',
