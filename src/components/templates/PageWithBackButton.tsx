@@ -4,7 +4,6 @@ import {HorizontalPadding} from '../atoms/ViewPadding';
 import {flex} from '../../styles/Flex';
 import {ScrollView} from 'react-native-gesture-handler';
 import {BackButtonPlaceholder} from '../molecules/BackButtonPlaceholder';
-import {Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 interface Props {
