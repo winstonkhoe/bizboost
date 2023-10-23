@@ -9,15 +9,9 @@ import {COLOR} from '../styles/Color';
 import {CustomButton} from '../components/atoms/Button';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {User} from '../model/User';
-import {useAppDispatch} from '../redux/hooks';
-import {allowAccess} from '../redux/slices/authSlice';
 
 type Props = NativeStackScreenProps<RootGuestStackParamList, 'Welcome'>;
 const WelcomeScreen = ({navigation}: Props) => {
-  const dispatch = useAppDispatch();
-  // Create a graph request asking for user information with a callback to handle the response.
-
   return (
     <SafeAreaContainer>
       <View className="h-full w-full bg-green-100/10 flex flex-col items-center">
@@ -39,23 +33,6 @@ const WelcomeScreen = ({navigation}: Props) => {
         <View className="w-full flex justify-center rounded-t-[80px] pb-5">
           <View className="w-full justify-between items-center px-5 py-7">
             <View className="w-full" style={[flex.flexCol, gap.default]}>
-              <CustomButton
-                text="Login with Facebook"
-                rounded="max"
-                inverted
-                onPress={() =>
-                  User.signUpWithFacebook(res => {
-                    if (res) {
-                      console.log('success from welcome screen');
-                      dispatch(allowAccess());
-                    } else {
-                      console.log('failed');
-                    }
-                  })
-                    .then(() => console.log('done then'))
-                    .catch(err => console.log('err nih', err))
-                }
-              />
               <CustomButton
                 text="Sign In"
                 rounded="max"
