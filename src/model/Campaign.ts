@@ -152,7 +152,8 @@ export class Campaign extends BaseModel {
             callback(userCampaigns, subscriber);
           },
           (error: Error) => {
-            throw Error(error.message);
+            callback([], subscriber);
+            console.error('getUserCampaignsReactive', error.message);
           },
         );
     } catch (error) {
