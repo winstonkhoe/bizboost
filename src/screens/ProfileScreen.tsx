@@ -1,4 +1,5 @@
 import {Image, Text, View} from 'react-native';
+import {User} from '../model/User';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
 import {flex} from '../styles/Flex';
@@ -107,15 +108,7 @@ const ProfileScreen = () => {
               <HorizontalPadding>
                 <CustomButton
                   onPress={() => {
-                    auth()
-                      .signOut()
-                      .then(() => {
-                        dispatch(disableAccess());
-                        console.log('sign out success');
-                      })
-                      .catch(err => {
-                        console.log(err);
-                      });
+                    User.signOut().then(() => dispatch(disableAccess()));
                   }}
                   rounded="default"
                   text="Sign out"

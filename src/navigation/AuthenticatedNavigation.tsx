@@ -14,6 +14,7 @@ import {NavigationProp} from '@react-navigation/native';
 import CreateCampaignScreen from '../screens/CreateCampaignScreen';
 import ChatScreen from '../screens/ChatScreen';
 import {ChatView} from '../model/Chat';
+import CampaignRegistrantsScreen from '../screens/CampaignRegistrantsScreen';
 
 export enum AuthenticatedNavigation {
   Main = 'Main',
@@ -23,6 +24,7 @@ export enum AuthenticatedNavigation {
   CreateCampaign = 'Create Campaign',
   ChatDetail = 'Chat Screen',
   ChatList = 'Chat List',
+  CampaignRegistrants = 'Campaign Registrants',
 }
 
 export type RootAuthenticatedStackParamList = {
@@ -34,6 +36,7 @@ export type RootAuthenticatedStackParamList = {
 
   [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
   [AuthenticatedNavigation.ChatList]: undefined;
+  [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
 };
 
 export type RootAuthenticatedNavigationStackProps =
@@ -111,10 +114,22 @@ const AuthenticatedNavigator = () => {
         <Stack.Screen
           name={AuthenticatedNavigation.CampaignDetail}
           component={CampaignDetailScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={AuthenticatedNavigation.CampaignRegistrants}
+          component={CampaignRegistrantsScreen}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+            cardOverlayEnabled: true,
+            ...TransitionPresets.ModalSlideFromBottomIOS,
+          }}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CreateCampaign}
           component={CreateCampaignScreen}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name={AuthenticatedNavigation.CreateAdditionalAccount}
