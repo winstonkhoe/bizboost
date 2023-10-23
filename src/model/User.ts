@@ -474,9 +474,7 @@ export class User extends BaseModel {
     }
   }
 
-  static signOut() {
-    auth()
-      .signOut()
-      .then(() => console.log('User signed out!'));
+  static async signOut() {
+    await auth().signOut();
   }
 }
