@@ -18,7 +18,6 @@ import {border} from '../styles/Border';
 import {currencyFormat} from '../utils/currency';
 import {ProfileItem} from '../components/molecules/ProfileItem';
 import {CustomButton} from '../components/atoms/Button';
-import auth from '@react-native-firebase/auth';
 import {useAppDispatch} from '../redux/hooks';
 import {disableAccess} from '../redux/slices/authSlice';
 
