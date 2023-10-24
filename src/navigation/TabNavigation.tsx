@@ -4,7 +4,10 @@ import ChatListScreen from '../screens/ChatListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
-import ChatLogo from '../assets/vectors/chat.svg';
+import ChatLogoFilled from '../assets/vectors/chat-filled.svg';
+import ChatLogoOutline from '../assets/vectors/chat-outline.svg';
+import ListLogoFilled from '../assets/vectors/list-box.svg';
+import ListLogoOutline from '../assets/vectors/list-box-line.svg';
 import {Image} from 'react-native';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
@@ -17,6 +20,7 @@ import {COLOR} from '../styles/Color';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import {NavigationProp} from '@react-navigation/native';
 import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
+import ContentCreatorsScreen from '../screens/ContentCreatorsScreen';
 const Tab = createBottomTabNavigator();
 
 export enum TabNavigation {
@@ -24,6 +28,7 @@ export enum TabNavigation {
   Chat = 'Chat',
   Home = 'Home',
   Profile = 'Profile',
+  ContentCreators = 'Content Creators',
 }
 
 type TabNavigationParamList = {
@@ -31,6 +36,7 @@ type TabNavigationParamList = {
   [TabNavigation.Chat]: undefined;
   [TabNavigation.Campaigns]: undefined;
   [TabNavigation.Profile]: undefined;
+  [TabNavigation.ContentCreators]: undefined;
 };
 
 export type TabNavigationProps = NavigationProp<TabNavigationParamList>;
@@ -76,9 +82,19 @@ export const TabNavigator = () => {
   const chatIcon = useCallback(
     (focused: boolean) =>
       focused ? (
-        <ChatLogo width={30} height={30} color={COLOR.black[100]} />
+        <ChatLogoFilled width={30} height={30} />
       ) : (
-        <ChatLogo width={30} height={30} color={COLOR.black[100]} />
+        <ChatLogoOutline width={30} height={30} />
+      ),
+    [],
+  );
+
+  const listIcon = useCallback(
+    (focused: boolean) =>
+      focused ? (
+        <ListLogoFilled width={30} height={30} />
+      ) : (
+        <ListLogoOutline width={30} height={30} />
       ),
     [],
   );
@@ -102,6 +118,13 @@ export const TabNavigator = () => {
         component={ChatListScreen}
         options={{
           tabBarIcon: ({focused}) => chatIcon(focused),
+        }}
+      />
+      <Tab.Screen
+        name={TabNavigation.ContentCreators}
+        component={ContentCreatorsScreen}
+        options={{
+          tabBarIcon: ({focused}) => listIcon(focused),
         }}
       />
       {UserRole.ContentCreator === activeRole && (
