@@ -10,19 +10,11 @@ interface Props extends React.PropsWithChildren {
 }
 
 const HorizontalPadding = ({paddingSize = 'default', children}: Props) => {
-  return (
-    <View className="w-full" style={[horizontalPadding[paddingSize]]}>
-      {children}
-    </View>
-  );
+  return <View style={[horizontalPadding[paddingSize]]}>{children}</View>;
 };
 
 const VerticalPadding = ({paddingSize = 'default', children}: Props) => {
-  return (
-    <View className="w-full" style={[verticalPadding[paddingSize]]}>
-      {children}
-    </View>
-  );
+  return <View style={[verticalPadding[paddingSize]]}>{children}</View>;
 };
 
 export {HorizontalPadding, VerticalPadding};
