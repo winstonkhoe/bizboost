@@ -1126,6 +1126,8 @@ PODS:
     - FBSDKGamingServicesKit (~> 16.1.3)
     - FBSDKShareKit (~> 16.1.3)
     - React-Core
+  - react-native-pager-view (6.2.2):
+    - React-Core
   - react-native-safe-area-context (4.7.2):
     - React-Core
   - React-NativeModulesApple (0.72.5):
@@ -1342,6 +1344,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-date-picker (from `../node_modules/react-native-date-picker`)
   - react-native-fbsdk-next (from `../node_modules/react-native-fbsdk-next`)
+  - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -1460,6 +1463,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-date-picker"
   react-native-fbsdk-next:
     :path: "../node_modules/react-native-fbsdk-next"
+  react-native-pager-view:
+    :path: "../node_modules/react-native-pager-view"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-NativeModulesApple:
@@ -1581,6 +1586,7 @@ SPEC CHECKSUMS:
   React-logger: 2e4aee3e11b3ec4fa6cfd8004610bbb3b8d6cca4
   react-native-date-picker: 1d61c76315098a6ad4c643a356f005916c7d4875
   react-native-fbsdk-next: 776f49479d36a1e72a1a367baadcc8391cd24374
+  react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
   react-native-safe-area-context: 7aa8e6d9d0f3100a820efb1a98af68aa747f9284
   React-NativeModulesApple: 54adc761c7a6fa5f183ca62ad0cb94f4f1cdce4a
   React-perflogger: cd8886513f68e1c135a1e79d20575c6489641597
