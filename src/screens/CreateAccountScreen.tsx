@@ -18,7 +18,7 @@ import {textColor} from '../styles/Text';
 import {isValidField} from '../utils/form';
 import {useCreateAdditionalAccount} from '../hooks/forms';
 import {useAppDispatch} from '../redux/hooks';
-import {updateData} from '../redux/slices/forms/createAdditionalAccountSlice';
+import {updateAdditionalAccountData} from '../redux/slices/forms/createAdditionalAccountSlice';
 import {BusinessPeople, ContentCreator, User, UserRole} from '../model/User';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -50,7 +50,7 @@ export const CreateAccountScreen_1 = () => {
     const updatedData = {
       fullname: data?.fullname,
     } as ContentCreator | BusinessPeople;
-    dispatch(updateData(updatedData));
+    dispatch(updateAdditionalAccountData(updatedData));
     navigation.navigate(CreateAdditionalAccountNavigation.Second);
   };
 
