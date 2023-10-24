@@ -5,13 +5,22 @@ import {flex} from '../../styles/Flex';
 import {ScrollView} from 'react-native-gesture-handler';
 import {BackButtonPlaceholder} from '../molecules/BackButtonPlaceholder';
 import {useNavigation} from '@react-navigation/native';
+import {PressableProps} from 'react-native';
 
-interface Props {
+interface Props extends PressableProps {
   children: ReactNode;
+  backButtonPlaceholder?: ReactNode;
   fullHeight?: boolean;
+  disableDefaultOnPress?: boolean;
 }
 
-export const PageWithBackButton = ({children, fullHeight = false}: Props) => {
+export const PageWithBackButton = ({
+  children,
+  backButtonPlaceholder,
+  fullHeight = false,
+  disableDefaultOnPress = false,
+  ...props
+}: Props) => {
   const navigation = useNavigation();
   return (
     <SafeAreaContainer>
@@ -22,10 +31,15 @@ export const PageWithBackButton = ({children, fullHeight = false}: Props) => {
         style={[flex.flexCol]}>
         <HorizontalPadding>
           <BackButtonPlaceholder
-            onPress={() => {
-              navigation.goBack();
-            }}
-          />
+            onPress={
+              disableDefaultOnPress
+                ? props.onPress
+                : () => {
+                    navigation.goBack();
+                  }
+            }>
+            {backButtonPlaceholder}
+          </BackButtonPlaceholder>
         </HorizontalPadding>
         {children}
       </ScrollView>
