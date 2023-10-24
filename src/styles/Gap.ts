@@ -8,7 +8,9 @@ export type GapSizeType =
   | 'default'
   | 'medium'
   | 'large'
-  | 'xlarge';
+  | 'xlarge'
+  | 'xlarge2'
+  | 'xlarge3';
 
 type ShadowSize = {
   [key in GapSizeType]?: number;
@@ -26,6 +28,8 @@ export const gapSize: ShadowSize = {
   medium: 18,
   large: 24,
   xlarge: 30,
+  xlarge2: 42,
+  xlarge3: 60,
 };
 
 export const gap = StyleSheet.create<GapStyles>(
