@@ -11,6 +11,7 @@ import {
   horizontalPadding,
   verticalPadding,
 } from '../../styles/Padding';
+import {ReactNode} from 'react';
 
 interface Props extends PressableProps, React.RefAttributes<View> {
   text: string;
@@ -20,6 +21,8 @@ interface Props extends PressableProps, React.RefAttributes<View> {
   customBackgroundColor?: typeof COLOR.background.green;
   customTextColor?: typeof COLOR.text.green;
   customTextSize?: 'text-base' | 'text-sm' | 'text-xs';
+  minimumWidth?: boolean;
+  logo?: ReactNode;
 }
 export const CustomButton = ({
   text,
@@ -29,15 +32,18 @@ export const CustomButton = ({
   customBackgroundColor = COLOR.background.green,
   customTextColor = COLOR.text.green,
   customTextSize = 'text-base',
+  minimumWidth = false,
+  logo,
   ...props
 }: Props) => {
   return (
     <Pressable
       {...props}
-      className="w-full justify-center items-center text-center"
+      className="justify-center items-center text-center relative"
       style={[
         flex.flexRow,
-        horizontalPadding.small,
+        minimumWidth && {alignSelf: 'center'},
+        horizontalPadding.large,
         verticalPadding[verticalPaddingSize],
         rounded[roundSize],
         inverted &&
@@ -55,6 +61,13 @@ export const CustomButton = ({
               : customBackgroundColor.high,
           ),
       ]}>
+      {logo && (
+        <View
+          className="absolute top-1/2 left-4 w-8 h-full justify-center items-center"
+          style={[flex.flexRow]}>
+          {logo}
+        </View>
+      )}
       <Text
         className={`font-bold ${customTextSize}`}
         style={[
