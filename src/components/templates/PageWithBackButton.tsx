@@ -27,7 +27,6 @@ export const PageWithBackButton = ({
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={fullHeight && {flexGrow: 1}}
-        className="h-full w-full"
         style={[flex.flexCol]}>
         <HorizontalPadding>
           <BackButtonPlaceholder
