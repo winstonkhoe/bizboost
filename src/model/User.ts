@@ -13,7 +13,6 @@ import {
   LoginManager,
   LoginResult,
 } from 'react-native-fbsdk-next';
-import {useAppDispatch} from '../redux/hooks';
 
 const USER_COLLECTION = 'users';
 
