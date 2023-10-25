@@ -1,4 +1,4 @@
-import {View} from 'react-native';
+import {Text, View} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {useEffect, useState} from 'react';
+import {textColor} from '../../styles/Text';
 
 type StepperType = 'simple';
 
@@ -30,16 +31,32 @@ export const Stepper = ({type = 'simple', ...props}: StepperProps) => {
 
 const SimpleStepper = ({...props}: BaseStepperProps) => {
   return (
-    <View className="h-2" style={[flex.flexRow, gap.small]}>
-      {[...Array(props.maxPosition)].map((_, index: number) => {
-        return (
-          <SimpleStepperBar
-            key={index}
-            barIndex={index}
-            currentPosition={props.currentPosition}
-          />
-        );
-      })}
+    <View style={[flex.flexCol, gap.small]}>
+      <View className="justify-end" style={[flex.flexRow]}>
+        <Text>
+          <Text
+            className="font-bold text-base"
+            style={[textColor(COLOR.text.neutral.high)]}>
+            {props.currentPosition}
+          </Text>
+          <Text
+            className="font-semibold text-base"
+            style={[
+              textColor(COLOR.text.neutral.low),
+            ]}>{` of ${props.maxPosition}`}</Text>
+        </Text>
+      </View>
+      <View className="h-2" style={[flex.flexRow, gap.small]}>
+        {[...Array(props.maxPosition)].map((_, index: number) => {
+          return (
+            <SimpleStepperBar
+              key={index}
+              barIndex={index}
+              currentPosition={props.currentPosition}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 };
