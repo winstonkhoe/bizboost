@@ -9,6 +9,8 @@ module.exports = {
         'primary-dark': '#1e572b',
         'primary-light': '#93dd91',
         secondary: '#ed2124',
+        'tiktok-pink': '#ff0050',
+        'tiktok-aqua': '#00f2ea',
       },
     },
   },
