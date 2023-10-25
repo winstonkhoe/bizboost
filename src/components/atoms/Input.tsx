@@ -186,11 +186,10 @@ export const CustomTextInput = ({
           }}
         />
       </View>
-      {errors?.[controllerProps.name] && (
-        <Text className="text-xs mt-2 font-medium text-red-500">
-          {`${errors?.[controllerProps.name]?.message}`}
-        </Text>
-      )}
+
+      <Text className="text-xs mt-2 font-medium text-red-500">
+        {`${errors?.[controllerProps.name]?.message || ''}`}
+      </Text>
     </View>
   );
 };
