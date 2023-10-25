@@ -6,6 +6,7 @@ import campaignReducer from './slices/campaignSlice';
 import chatReducer from './slices/chatSlice';
 import authReducer from './slices/authSlice';
 import createAdditionalAccountReducer from './slices/forms/createAdditionalAccountSlice';
+import signupReducer from './slices/forms/signup';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     user: userReducer,
     campaign: campaignReducer,
     createAdditionalAccount: createAdditionalAccountReducer,
+    signup: signupReducer,
     chat: chatReducer,
     auth: authReducer,
   },
