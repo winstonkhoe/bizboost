@@ -22,6 +22,13 @@ export enum UserRole {
   Admin = 'Admin',
 }
 
+export enum SocialPlatform {
+  Instagram = 'Instagram',
+  Tiktok = 'Tiktok',
+}
+
+export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
+
 export type UserRoles =
   | UserRole.ContentCreator
   | UserRole.BusinessPeople
@@ -42,6 +49,14 @@ export type SocialData = {
   username?: string;
   followersCount?: number;
 };
+
+export interface UserAuthProviderData {
+  token: string;
+  email?: string;
+  name?: string;
+  photo?: string;
+  instagram?: SocialData;
+}
 
 export class User extends BaseModel {
   id?: string;
@@ -443,6 +458,137 @@ export class User extends BaseModel {
     } catch (error: any) {
       console.log('err: ' + error);
       handleError(error.code, ErrorMessage.LOGIN_FAILED);
+    }
+  }
+
+  static async continueWithGoogle(): Promise<UserAuthProviderData> {
+    try {
+      const {
+        idToken,
+        user: {name, email, photo},
+      } = await GoogleSignin.signIn();
+      return {token: idToken!!, name: name!!, email: email, photo: photo!!};
+    } catch (error) {
+      console.log(error);
+    }
+    return {token: ''};
+  }
+
+  static async continueWithFacebook(
+    finishCallback: (data: UserAuthProviderData) => void,
+  ): Promise<void> {
+    const result: LoginResult = await LoginManager.logInWithPermissions([
+      'pages_show_list',
+      'instagram_basic',
+      'business_management',
+    ]);
+
+    if (result.isCancelled) {
+      throw Error(ErrorMessage.FACEBOOK_SIGN_IN_CANCEL);
+    }
+
+    const fbAccessToken: AccessToken | null =
+      await AccessToken.getCurrentAccessToken();
+
+    if (!fbAccessToken) {
+      throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
+    } else {
+      const data = {
+        token: fbAccessToken.accessToken,
+      };
+      const instagramDataCallback = async (error?: Object, result?: any) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(data);
+        } else {
+          const followersCount = result?.followers_count;
+          const instagramUsername = result?.username;
+          const instagramName = result?.name;
+          // const instagramMediaIds = result?.media.data;
+          const profilePicture = result?.profile_picture_url;
+
+          finishCallback({
+            ...data,
+            name: instagramName,
+            photo: profilePicture,
+            instagram: {
+              username: instagramUsername,
+              followersCount: followersCount,
+            },
+          });
+          console.log(result);
+        }
+      };
+
+      const userInstagramBusinessAccountCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(data);
+        } else {
+          const instagramBusinessAccount = result?.instagram_business_account;
+          const instagramId = instagramBusinessAccount?.id;
+          const getInstagramDataRequest = new GraphRequest(
+            `/${instagramId}`,
+            {
+              parameters: {
+                fields: {
+                  string:
+                    'id,followers_count,media_count,username,website,biography,name,media,profile_picture_url',
+                },
+              },
+            },
+            instagramDataCallback,
+          );
+          await new GraphRequestManager()
+            .addRequest(getInstagramDataRequest)
+            .start();
+        }
+      };
+
+      const userFacebookPagesListCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(data);
+        } else {
+          const data = result?.data;
+          if (data && data?.length > 0) {
+            const page = data?.[0];
+            if (page) {
+              const page_id = page?.id;
+              const getInstagramBusinessAccountRequest = new GraphRequest(
+                `/${page_id}`,
+                {
+                  parameters: {
+                    fields: {
+                      string: 'instagram_business_account',
+                    },
+                  },
+                },
+                userInstagramBusinessAccountCallback,
+              );
+              await new GraphRequestManager()
+                .addRequest(getInstagramBusinessAccountRequest)
+                .start();
+            }
+          }
+          console.log(result);
+        }
+      };
+      const getUserFacebookPagesListRequest = new GraphRequest(
+        '/me/accounts',
+        {},
+        userFacebookPagesListCallback,
+      );
+
+      await new GraphRequestManager()
+        .addRequest(getUserFacebookPagesListRequest)
+        .start();
     }
   }
 
