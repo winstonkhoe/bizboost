@@ -19,6 +19,10 @@ import ImagePicker, {
   Options,
   ImageOrVideo,
 } from 'react-native-image-crop-picker';
+import {gap} from '../../styles/Gap';
+import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {textColor} from '../../styles/Text';
+import {formatNumberWithThousandSeparator} from '../../utils/number';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -26,6 +30,8 @@ interface Props extends UseControllerProps {
   multiline?: boolean;
   hideInputText?: boolean;
   keyboardType?: KeyboardTypeOptions;
+  inputType?: 'default' | 'number' | 'price';
+  prefix?: string;
 }
 
 export const CustomTextInput = ({
@@ -34,6 +40,8 @@ export const CustomTextInput = ({
   multiline = false,
   hideInputText = false,
   keyboardType,
+  inputType = 'default',
+  prefix,
   ...controllerProps
 }: Props) => {
   const {
@@ -47,7 +55,7 @@ export const CustomTextInput = ({
   const [isFocus, setIsFocus] = useState<boolean>(false);
   const [parentWidth, setParentWidth] = useState<number>(0);
   const animatedWidth = useRef(new Animated.Value(0)).current;
-  const fieldFilled = watch(controllerProps.name, '');
+  const fieldFilled = watch(controllerProps.name);
   const [height, setHeight] = useState(0);
 
   useEffect(() => {
@@ -77,6 +85,26 @@ export const CustomTextInput = ({
     ],
   }));
 
+  const handleChangeText = (
+    text: string,
+    onChange: (...event: any[]) => void,
+  ) => {
+    let actual = text;
+    if (inputType === 'price' || inputType === 'number') {
+      if (text !== '') {
+        actual = actual.replaceAll('.', '');
+        const parsedNumber = parseInt(actual, 10);
+        if (!isNaN(parsedNumber)) {
+          actual = `${parsedNumber}`;
+        } else {
+          actual = '0';
+        }
+      }
+    }
+    console.log('actual', actual);
+    onChange(actual);
+  };
+
   return (
     <View className="w-full flex flex-col justify-start">
       <Reanimated.View style={[animatedStyles]}>
@@ -86,26 +114,49 @@ export const CustomTextInput = ({
         {...controllerProps}
         control={control}
         render={({field: {onChange, onBlur, value}}) => (
-          <TextInput
-            keyboardType={keyboardType}
-            secureTextEntry={hideInputText}
-            multiline={multiline}
-            onContentSizeChange={event =>
-              setHeight(event.nativeEvent.contentSize.height + 15)
-            }
-            style={{height: Math.max(35, height)}}
-            value={value}
-            onFocus={() => {
-              setIsFocus(true);
-            }}
-            onBlur={() => {
-              onBlur();
-              setIsFocus(false);
-            }}
-            onChangeText={onChange}
-            placeholder={placeholder}
-            className="w-full h-10 px-1 pt-2 pb-1 text-base font-medium"
-          />
+          <View style={[flex.flexRow, gap.xsmall2]}>
+            {(prefix || inputType === 'price') && (
+              <View
+                className="items-end"
+                style={[flex.flexRow, verticalPadding.xsmall2]}>
+                <Text
+                  className="text-m1 font-semibold"
+                  style={[textColor(COLOR.text.neutral.low)]}>
+                  {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
+                </Text>
+              </View>
+            )}
+            <TextInput
+              keyboardType={
+                keyboardType
+                  ? keyboardType
+                  : inputType === 'number' || inputType === 'price'
+                  ? 'number-pad'
+                  : undefined
+              }
+              secureTextEntry={hideInputText}
+              multiline={multiline}
+              onContentSizeChange={event =>
+                setHeight(event.nativeEvent.contentSize.height + 15)
+              }
+              style={{height: Math.max(35, height)}}
+              value={
+                inputType === 'number' || inputType === 'price'
+                  ? formatNumberWithThousandSeparator(value)
+                  : value
+              }
+              onFocus={() => {
+                setIsFocus(true);
+              }}
+              onBlur={() => {
+                onBlur();
+                setIsFocus(false);
+              }}
+              onChangeText={text => handleChangeText(text, onChange)}
+              placeholder={placeholder}
+              className="w-full h-10 px-1 pt-2 pb-1 text-base font-medium"
+            />
+          </View>
         )}
         name={controllerProps.name}
       />
