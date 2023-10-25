@@ -76,14 +76,7 @@ export class AuthMethod extends BaseModel {
   static async getById(documentId: string): Promise<AuthMethod | undefined> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {
-      const authMethodData = snapshot.data();
-      const authMethod = new AuthMethod({
-        id: snapshot.id,
-        email: authMethodData?.email,
-        method: authMethodData?.method,
-      });
-
-      return authMethod;
+      return this.fromSnapshot(snapshot);
     }
   }
 
