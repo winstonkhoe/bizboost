@@ -10,7 +10,7 @@ import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 
 export const AuthProvider = () => {
   const [initializing, setInitializing] = useState(true);
-  const {isAccessGranted} = useAppSelector(select => select.auth);
+  // const {isAccessGranted} = useAppSelector(select => select.auth);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const dispatch = useAppDispatch();
 
@@ -30,11 +30,7 @@ export const AuthProvider = () => {
   return (
     <>
       <NavigationContainer>
-        {user && isAccessGranted ? (
-          <AuthenticatedNavigator />
-        ) : (
-          <GuestNavigation />
-        )}
+        {user ? <AuthenticatedNavigator /> : <GuestNavigation />}
         <BottomSheetModalProvider>
           <SwitchUserModalProvider />
         </BottomSheetModalProvider>
