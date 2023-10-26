@@ -28,7 +28,7 @@ type Props = NativeStackScreenProps<
 >;
 const ChatScreen = ({route}: Props) => {
   const {chat} = route.params;
-  const [chatData, setChatData] = useState<Chat>(chat);
+  const [chatData, setChatData] = useState<Chat>(chat.chat);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {uid, user, activeRole} = useUser();
 
