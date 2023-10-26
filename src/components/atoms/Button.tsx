@@ -12,12 +12,13 @@ import {
   verticalPadding,
 } from '../../styles/Padding';
 import {ReactNode} from 'react';
+import {SizeType} from '../../styles/Size';
 
 interface Props extends PressableProps, React.RefAttributes<View> {
   text: string;
   rounded?: RadiusSizeType;
   inverted?: boolean;
-  verticalPadding?: PaddingSizeType;
+  verticalPadding?: SizeType;
   customBackgroundColor?: typeof COLOR.background.green;
   customTextColor?: typeof COLOR.text.green;
   customTextSize?: 'text-base' | 'text-sm' | 'text-xs';
@@ -27,7 +28,7 @@ interface Props extends PressableProps, React.RefAttributes<View> {
 export const CustomButton = ({
   text,
   rounded: roundSize = 'default',
-  verticalPadding: verticalPaddingSize = 'small',
+  verticalPadding: verticalPaddingSize = 'default',
   inverted = false,
   customBackgroundColor = COLOR.background.green,
   customTextColor = COLOR.text.green,

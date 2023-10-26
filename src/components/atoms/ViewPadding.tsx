@@ -1,12 +1,9 @@
 import {View} from 'react-native';
-import {
-  PaddingSizeType,
-  horizontalPadding,
-  verticalPadding,
-} from '../../styles/Padding';
+import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {SizeType} from '../../styles/Size';
 
 interface Props extends React.PropsWithChildren {
-  paddingSize?: PaddingSizeType;
+  paddingSize?: SizeType;
 }
 
 const HorizontalPadding = ({paddingSize = 'default', children}: Props) => {
