@@ -15,8 +15,11 @@ import CampaignRegistrantsScreen from '../screens/CampaignRegistrantsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import LocationScreen from '../screens/modals/LocationScreen';
+import ModalLocationScreen from '../screens/modals/ModalLocationScreen';
 import {useUser} from '../hooks/user';
+import {Location} from '../model/Location';
+import {Category} from '../model/Category';
+import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -38,6 +41,7 @@ export enum AuthenticatedNavigation {
 
 export enum GeneralNavigation {
   LocationModal = 'LocationModal',
+  CategoryModal = 'CategoryModal',
 }
 
 export type GuestStack = {
@@ -59,8 +63,19 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
 };
 
+interface LocationModalProps {
+  initialSelectedLocations: Location[];
+  eventType: string;
+}
+
+interface CategoryModalProps {
+  initialSelectedCategories: Category[];
+  eventType: string;
+}
+
 export type GeneralStack = {
-  [GeneralNavigation.LocationModal]: undefined;
+  [GeneralNavigation.LocationModal]: LocationModalProps;
+  [GeneralNavigation.CategoryModal]: CategoryModalProps;
 };
 
 type CombinedStack = GuestStack & AuthenticatedStack & GeneralStack;
@@ -184,16 +199,22 @@ const StackNavigator = () => {
         </Stack.Group>
       )}
       <Stack.Group>
-        <Stack.Screen
-          name={GeneralNavigation.LocationModal}
-          component={LocationScreen}
-          options={{
+        <Stack.Group
+          screenOptions={{
             headerShown: false,
             presentation: 'modal',
             cardOverlayEnabled: true,
             ...TransitionPresets.ModalSlideFromBottomIOS,
-          }}
-        />
+          }}>
+          <Stack.Screen
+            name={GeneralNavigation.LocationModal}
+            component={ModalLocationScreen}
+          />
+          <Stack.Screen
+            name={GeneralNavigation.CategoryModal}
+            component={ModalCategoryScreen}
+          />
+        </Stack.Group>
       </Stack.Group>
     </Stack.Navigator>
   );
