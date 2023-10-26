@@ -13,11 +13,11 @@ import {useOngoingCampaign} from '../hooks/campaign';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedNavigationStackProps,
-} from '../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
 const HomeScreen = () => {
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
 
   const {campaigns} = useOngoingCampaign();
 

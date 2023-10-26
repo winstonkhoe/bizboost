@@ -8,14 +8,14 @@ import {getDate} from '../../utils/date';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedNavigationStackProps,
-} from '../../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 type Props = {
   campaign: Campaign;
 };
 
 const OngoingCampaignCard = ({campaign}: Props) => {
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
   return (
     <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View

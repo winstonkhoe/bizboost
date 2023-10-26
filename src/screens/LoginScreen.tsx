@@ -1,7 +1,5 @@
 import React from 'react';
 import {Text, View, Alert} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootGuestStackParamList} from '../navigation/GuestNavigation';
 import {User} from '../model/User';
 import {useForm, FormProvider} from 'react-hook-form';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
@@ -16,13 +14,11 @@ import {
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
 
-type Props = NativeStackScreenProps<RootGuestStackParamList, 'Login'>;
-
 type FormData = {
   email: string;
   password: string;
 };
-const LoginScreen = ({}: Props) => {
+const LoginScreen = () => {
   const methods = useForm<FormData>({mode: 'all'});
 
   const {handleSubmit} = methods;

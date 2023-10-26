@@ -12,7 +12,6 @@ import {useCallback} from 'react';
 import {useUser} from '../hooks/user';
 import {UserRole} from '../model/User';
 import {View} from 'react-native';
-import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import {NavigationProp} from '@react-navigation/native';

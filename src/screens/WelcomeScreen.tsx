@@ -1,6 +1,4 @@
 import {Text, View} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootGuestStackParamList} from '../navigation/GuestNavigation';
 import Logo from '../assets/vectors/content-creator_business-people.svg';
 
 import SafeAreaContainer from '../containers/SafeAreaContainer';
@@ -19,9 +17,14 @@ import {
   updateTemporarySignupData,
 } from '../redux/slices/forms/signup';
 import {Provider} from '../model/AuthMethod';
+import {useNavigation} from '@react-navigation/native';
+import {
+  GuestNavigation,
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
-type Props = NativeStackScreenProps<RootGuestStackParamList, 'Welcome'>;
-const WelcomeScreen = ({navigation}: Props) => {
+const WelcomeScreen = () => {
+  const navigation = useNavigation<NavigationStackProps>();
   const dispatch = useAppDispatch();
 
   const continueWithGoogle = async () => {
@@ -72,7 +75,7 @@ const WelcomeScreen = ({navigation}: Props) => {
   };
 
   const navigateToSignupPage = () => {
-    navigation.navigate('Signup');
+    navigation.navigate(GuestNavigation.Signup);
   };
 
   return (
@@ -132,7 +135,7 @@ const WelcomeScreen = ({navigation}: Props) => {
                 rounded="max"
                 inverted
                 onPress={() => {
-                  navigation.navigate('Login');
+                  navigation.navigate(GuestNavigation.Login);
                 }}
               />
             </View>

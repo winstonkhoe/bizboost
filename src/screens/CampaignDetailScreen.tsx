@@ -2,9 +2,9 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useState} from 'react';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedNavigationStackProps,
-  RootAuthenticatedStackParamList,
-} from '../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+  AuthenticatedStack,
+} from '../navigation/StackNavigation';
 import {Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
@@ -22,13 +22,13 @@ import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
 type Props = NativeStackScreenProps<
-  RootAuthenticatedStackParamList,
+  AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
   const {uid} = useUser();
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(

@@ -17,14 +17,14 @@ import {Chat, ChatView, Message, MessageType} from '../model/Chat';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedNativeStackParamList,
-} from '../navigation/AuthenticatedNavigation';
+  AuthenticatedStack,
+} from '../navigation/StackNavigation';
 import {Button} from 'react-native-elements';
 import FloatingOffer from '../components/chat/FloatingOffer';
 
 type Props = NativeStackScreenProps<
-  RootAuthenticatedNativeStackParamList,
-  AuthenticatedNavigation.Chat
+  AuthenticatedStack,
+  AuthenticatedNavigation.ChatDetail
 >;
 const ChatScreen = ({route}: Props) => {
   const {chat} = route.params;

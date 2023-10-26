@@ -25,8 +25,8 @@ import {
   AuthenticatedNavigation,
   CreateAdditionalAccountModalNavigationProps,
   CreateAdditionalAccountNavigation,
-  RootAuthenticatedNavigationStackProps,
-} from '../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 import {useUser} from '../hooks/user';
 import {switchRole} from '../redux/slices/userSlice';
 
@@ -120,7 +120,7 @@ export const CreateAccountScreen_1 = () => {
 };
 
 export const CreateAccountScreen_2 = () => {
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
   const dispatch = useAppDispatch();
   const {uid} = useUser();
   const {data: additionalAccountData, role} = useCreateAdditionalAccount();

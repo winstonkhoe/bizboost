@@ -4,14 +4,14 @@ import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedStackParamList,
-} from '../navigation/AuthenticatedNavigation';
+  AuthenticatedStack,
+} from '../navigation/StackNavigation';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useEffect, useState} from 'react';
 import {Transaction} from '../model/Transaction';
 import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 type Props = NativeStackScreenProps<
-  RootAuthenticatedStackParamList,
+  AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants
 >;
 const CampaignRegistrantsScreen = ({route}: Props) => {
