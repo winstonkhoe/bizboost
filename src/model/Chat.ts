@@ -151,7 +151,7 @@ export class Chat extends BaseModel {
           },
         );
     } catch (error) {
-      throw Error('Error!');
+      console.log('no access', error);
     }
   }
 
