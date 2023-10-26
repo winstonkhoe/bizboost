@@ -38,6 +38,7 @@ import {
   verticalPadding,
 } from '../../styles/Padding';
 import {background} from '../../styles/BackgroundColor';
+import {shadow} from '../../styles/Shadow';
 
 type Props = StackScreenProps<GeneralStack, GeneralNavigation.CategoryModal>;
 
@@ -75,8 +76,10 @@ const ModalCategoryScreen = ({route}: Props) => {
         <ScrollView className="flex-1" contentContainerStyle={{flexGrow: 1}}>
           <VerticalPadding paddingSize="xlarge">
             <HorizontalPadding paddingSize="medium">
-              <View style={[flex.flexRow, gap.medium]}>
-                <View className="flex-1" style={[flex.flexCol, gap.medium]}>
+              <View style={[flex.flexRow, gap.default]}>
+                <View
+                  className="flex-1 justify-start"
+                  style={[flex.flexCol, gap.default]}>
                   {categories
                     .filter((_, index) => index % 2 === 0)
                     .map((category: Category, index) => (
@@ -94,7 +97,9 @@ const ModalCategoryScreen = ({route}: Props) => {
                       />
                     ))}
                 </View>
-                <View className="flex-1" style={[flex.flexCol, gap.medium]}>
+                <View
+                  className="flex-1 justify-start"
+                  style={[flex.flexCol, gap.default]}>
                   {categories
                     .filter((_, index) => index % 2 !== 0)
                     .map((category: Category, index) => (
@@ -138,12 +143,12 @@ const CategoryItem = ({category, isSelected, ...props}: CategoryItemProps) => {
       borderColor: interpolateColor(
         selectedProgress.value,
         [0, 1],
-        [COLOR.background.neutral.high, COLOR.green[50]],
+        [COLOR.black[25], COLOR.green[50]],
       ),
     };
   });
   return (
-    <Pressable className="flex-1" {...props}>
+    <Pressable {...props}>
       <Animated.View
         className="relative overflow-hidden"
         style={[
@@ -152,7 +157,7 @@ const CategoryItem = ({category, isSelected, ...props}: CategoryItemProps) => {
           rounded.default,
           animatedStyle,
           {
-            borderWidth: 1,
+            borderWidth: 1.5,
           },
         ]}>
         <View className="absolute z-20 top-2 left-2">
@@ -170,8 +175,7 @@ const CategoryItem = ({category, isSelected, ...props}: CategoryItemProps) => {
             }}
           />
         </View>
-        <View
-          style={[verticalPadding.xsmall2, horizontalPadding.default]}>
+        <View style={[verticalPadding.xsmall2, horizontalPadding.default]}>
           <Text
             className="text-sm font-semibold"
             style={[
