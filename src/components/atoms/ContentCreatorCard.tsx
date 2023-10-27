@@ -17,12 +17,13 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
       <ScaledImage
         uri={imageUrl}
         style={styles.image}
-        width={Dimensions.get('window').width * 0.5}
+        width={Dimensions.get('window').width * 0.45}
       />
       <LinearGradient
-        colors={['transparent', 'rgba(0, 0, 0, 0.7)']}
+        colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
         style={styles.nameContainer}>
         <Text style={styles.name}>{name}</Text>
+        <Text style={styles.location}>Tangerang, Indonesia</Text>
       </LinearGradient>
     </View>
   );
@@ -30,7 +31,7 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: '50%', // Adjust the width as needed
+    width: '100%',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
@@ -53,9 +54,15 @@ const styles = StyleSheet.create({
   },
   name: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'left',
+  },
+  location: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'normal',
+    textAlign: 'left',
   },
 });
 

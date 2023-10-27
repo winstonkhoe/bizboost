@@ -14,6 +14,7 @@ import {COLOR} from '../styles/Color';
 import ContentCreatorCard from '../components/atoms/ContentCreatorCard';
 import MasonryList from '@react-native-seoul/masonry-list';
 import {FlatList} from 'react-native-gesture-handler';
+import {gap} from '../styles/Gap';
 
 const contentCreators = [
   {
@@ -38,7 +39,7 @@ const contentCreators = [
     id: 4,
     name: 'Kesya Amanda',
     imageUrl:
-      'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/1cbd2471-20e9-446b-b3a6-788e8df2131f.jpeg?alt=media&token=703f56cb-b557-4b47-9a34-81ca49531e04',
+      'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/download.jpg?alt=media&token=8d8b8037-192e-4a24-8c63-09806f0e10c5&_gl=1*1ka8hrk*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5ODIxNzIzMy4zNS4xLjE2OTgyMTcyNjEuMzIuMC4w',
   },
   {
     id: 5,
@@ -108,16 +109,29 @@ const ContentCreatorsScreen: React.FC = () => {
       </View>
 
       {/* Product List */}
-      <View className="mx-auto">
-        <FlatList
-          data={contentCreators}
-          keyExtractor={item => item.id.toString()}
-          numColumns={2}
-          ListHeaderComponent={<View />}
-          renderItem={({item}) => (
-            <ContentCreatorCard name={item.name} imageUrl={item.imageUrl} />
+      <View style={flex.flexRow} className="px-4 justify-between items-center">
+        <View style={(flex.flexCol, gap.small)}>
+          {contentCreators.map((item, index) =>
+            index % 2 !== 0 ? (
+              <ContentCreatorCard
+                key={item.id.toString()}
+                name={item.name}
+                imageUrl={item.imageUrl}
+              />
+            ) : null,
           )}
-        />
+        </View>
+        <View style={(flex.flexCol, gap.small)}>
+          {contentCreators.map((item, index) =>
+            index % 2 === 0 ? (
+              <ContentCreatorCard
+                key={item.id.toString()}
+                name={item.name}
+                imageUrl={item.imageUrl}
+              />
+            ) : null,
+          )}
+        </View>
       </View>
     </ScrollView>
   );
