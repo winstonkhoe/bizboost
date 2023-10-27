@@ -99,6 +99,7 @@ export const COLOR = {
       low: `${red[5]}`,
       med: `${red[40]}`,
       high: `${red[50]}`,
+      disabled: `${red[50]}66`,
     },
     light: '#ffffff',
   },
