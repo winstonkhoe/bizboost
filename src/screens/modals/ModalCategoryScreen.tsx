@@ -166,7 +166,9 @@ const CategoryItem = ({category, isSelected, ...props}: CategoryItemProps) => {
         <View className="relative w-full h-24">
           <View
             className="absolute z-10 top-0 left-0 w-full h-full"
-            style={[background(COLOR.background.neutral.med, 0.2)]}
+            style={[
+              !isSelected && background(COLOR.background.neutral.med, 0.5),
+            ]}
           />
           <Image
             className="w-full h-full"
