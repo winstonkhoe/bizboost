@@ -35,12 +35,7 @@ export const AddIcon = ({
     <View className="relative" style={[dimension.square[size]]}>
       <View
         className="absolute top-0 left-0"
-        style={[
-          flex.flexRow,
-          dimension.square.full,
-          justify.center,
-          items.center,
-        ]}>
+        style={[flex.flexRow, dimension.full, justify.center, items.center]}>
         <Animated.View
           style={[
             dimension.width.full,
@@ -51,12 +46,7 @@ export const AddIcon = ({
       </View>
       <View
         className="absolute top-0 left-0"
-        style={[
-          flex.flexRow,
-          dimension.square.full,
-          justify.center,
-          items.center,
-        ]}>
+        style={[flex.flexRow, dimension.full, justify.center, items.center]}>
         <Animated.View
           style={[
             dimension.height.full,
@@ -89,12 +79,7 @@ export const MinusIcon = ({
     <View className="relative" style={[dimension.square[size]]}>
       <View
         className="absolute top-0 left-0"
-        style={[
-          flex.flexRow,
-          dimension.square.full,
-          justify.center,
-          items.center,
-        ]}>
+        style={[flex.flexRow, dimension.full, justify.center, items.center]}>
         <Animated.View
           style={[
             dimension.width.full,
