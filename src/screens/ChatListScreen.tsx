@@ -14,14 +14,14 @@ import {getDate} from '../utils/date';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedNavigationStackProps,
-} from '../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
 const ChatListScreen = () => {
   const {uid} = useUser();
   const chats = useUserChats();
 
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
 
   console.log('Chat Objects:', chats.chats);
 

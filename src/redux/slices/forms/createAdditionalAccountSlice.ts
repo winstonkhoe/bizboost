@@ -12,9 +12,9 @@ const initialState = {
 } as CreateAdditionalAccountState;
 
 export const setRole = createAction<UserRoles>('setRole');
-export const updateData = createAction<ContentCreator | BusinessPeople>(
-  'updateData',
-);
+export const updateAdditionalAccountData = createAction<
+  ContentCreator | BusinessPeople
+>('updateAdditionalAccountData');
 
 const createAdditionalAccountSlice = createSlice({
   name: 'createAdditionalAccount',
@@ -24,7 +24,7 @@ const createAdditionalAccountSlice = createSlice({
     builder.addCase(setRole, (state, action) => {
       state.role = action.payload;
     });
-    builder.addCase(updateData, (state, action) => {
+    builder.addCase(updateAdditionalAccountData, (state, action) => {
       state.data = {
         ...state.data,
         ...action.payload,

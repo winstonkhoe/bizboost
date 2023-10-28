@@ -6,17 +6,21 @@ import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {border} from '../../styles/Border';
 import {useNavigation} from '@react-navigation/native';
-import {Pressable} from 'react-native';
+import {DeviceEventEmitter, Pressable} from 'react-native';
 
 interface CloseStackProps {
   showBorder?: boolean;
+  closeEventType?: string;
 }
 
-export const CloseModal = ({showBorder}: CloseStackProps) => {
+export const CloseModal = ({showBorder, closeEventType}: CloseStackProps) => {
   const navigation = useNavigation();
   return (
     <Pressable
-      onPress={() => navigation.goBack()}
+      onPress={() => {
+        closeEventType && DeviceEventEmitter.emit(`close.${closeEventType}`);
+        navigation.goBack();
+      }}
       className="w-11 h-11 justify-center items-center"
       style={[
         flex.flexRow,

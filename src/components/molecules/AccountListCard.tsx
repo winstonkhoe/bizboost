@@ -20,8 +20,8 @@ import {closeModal} from '../../redux/slices/modalSlice';
 import {setRole} from '../../redux/slices/forms/createAdditionalAccountSlice';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedNavigationStackProps,
-} from '../../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 interface Props {
   data?: BusinessPeople | ContentCreator;
@@ -29,7 +29,7 @@ interface Props {
   role: UserRoles;
 }
 const AccountListCard = ({data, active = false, role}: Props) => {
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
   const dispatch = useAppDispatch();
   const isValidUser = () => {
     return !!data;

@@ -1,6 +1,4 @@
 import {Alert, Text, View} from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootGuestStackParamList} from '../navigation/GuestNavigation';
 import {User} from '../model/User';
 import {useForm, FormProvider} from 'react-hook-form';
 import {CustomTextInput} from '../components/atoms/Input';
@@ -14,8 +12,9 @@ import {textColor} from '../styles/Text';
 import {COLOR} from '../styles/Color';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {CustomButton} from '../components/atoms/Button';
+import {allowAccess} from '../redux/slices/authSlice';
+import {useAppDispatch} from '../redux/hooks';
 
-type Props = NativeStackScreenProps<RootGuestStackParamList, 'Signup'>;
 type FormData = {
   email: string;
   password: string;
@@ -23,7 +22,8 @@ type FormData = {
   fullname: string;
   phone: string;
 };
-const SignUpScreen = ({}: Props) => {
+const SignUpScreen = () => {
+  const dispatch = useAppDispatch();
   const methods = useForm<FormData>({
     mode: 'all',
     defaultValues: {},
@@ -144,6 +144,24 @@ const SignUpScreen = ({}: Props) => {
                     rounded="max"
                     inverted
                     onPress={handleSignupWithGoogle}
+                  />
+
+                  <CustomButton
+                    text="Continue with Facebook"
+                    rounded="max"
+                    inverted
+                    onPress={() =>
+                      User.signUpWithFacebook(res => {
+                        if (res) {
+                          console.log('success from welcome screen');
+                          dispatch(allowAccess());
+                        } else {
+                          console.log('failed');
+                        }
+                      })
+                        .then(() => console.log('done then'))
+                        .catch(err => console.log('err nih', err))
+                    }
                   />
                 </View>
               </View>

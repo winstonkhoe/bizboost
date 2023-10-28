@@ -7,8 +7,8 @@ type Props = {
 };
 const TagCard = ({text}: Props) => {
   return (
-    <View className="border border-red-700 py-1 px-2 rounded-md">
-      <Text className="text-red-700">{text}</Text>
+    <View className="border border-green-700 bg-green-50 py-1 px-2 rounded-md">
+      <Text className="text-green-700">{text}</Text>
     </View>
   );
 };

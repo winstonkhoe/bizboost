@@ -16,7 +16,7 @@ export type RadiusSizeType =
   | 'max';
 
 type RadiusSize = {
-  [key in RadiusSizeType]?: number;
+  [key in RadiusSizeType]: number;
 };
 
 type RadiusStyles = {

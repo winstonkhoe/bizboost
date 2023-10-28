@@ -28,11 +28,18 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.403012009031-qqoih4fum1r4dineqoo10jptjhj0n2o8</string>
+				<string>fb844834047148706</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FacebookAppID</key>
+	<string>844834047148706</string>
+	<key>FacebookClientToken</key>
+	<string>9dedd7bd3443225283860a38fa83b25a</string>
+	<key>FacebookDisplayName</key>
+	<string>bizboost</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

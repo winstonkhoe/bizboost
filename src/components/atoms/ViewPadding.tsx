@@ -1,28 +1,17 @@
 import {View} from 'react-native';
-import {
-  PaddingSizeType,
-  horizontalPadding,
-  verticalPadding,
-} from '../../styles/Padding';
+import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {SizeType} from '../../styles/Size';
 
 interface Props extends React.PropsWithChildren {
-  paddingSize?: PaddingSizeType;
+  paddingSize?: SizeType;
 }
 
 const HorizontalPadding = ({paddingSize = 'default', children}: Props) => {
-  return (
-    <View className="w-full" style={[horizontalPadding[paddingSize]]}>
-      {children}
-    </View>
-  );
+  return <View style={[horizontalPadding[paddingSize]]}>{children}</View>;
 };
 
 const VerticalPadding = ({paddingSize = 'default', children}: Props) => {
-  return (
-    <View className="w-full" style={[verticalPadding[paddingSize]]}>
-      {children}
-    </View>
-  );
+  return <View style={[verticalPadding[paddingSize]]}>{children}</View>;
 };
 
 export {HorizontalPadding, VerticalPadding};

@@ -1,31 +1,9 @@
 import {StyleSheet, ViewStyle} from 'react-native';
 import {COLOR} from './Color';
+import {SizeStyle, SizeType, size} from './Size';
 
-export type ShadowSizeType =
-  | 'small'
-  | 'default'
-  | 'medium'
-  | 'large'
-  | 'xlarge';
-
-type ShadowSize = {
-  [key in ShadowSizeType]?: number;
-};
-
-type ShadowStyles = {
-  [key in ShadowSizeType]?: ViewStyle;
-};
-
-export const shadowSize: ShadowSize = {
-  small: 2,
-  default: 4,
-  medium: 6,
-  large: 8,
-  xlarge: 10,
-};
-
-export const shadow = StyleSheet.create<ShadowStyles>(
-  Object.entries(shadowSize).reduce((acc, [key, value]) => {
+export const shadow = StyleSheet.create<SizeStyle>(
+  Object.entries(size).reduce((acc, [key, value]) => {
     return {
       ...acc,
       [key]: {
@@ -39,5 +17,5 @@ export const shadow = StyleSheet.create<ShadowStyles>(
         elevation: value,
       } as ViewStyle,
     };
-  }, {} as Record<keyof ShadowSizeType, ViewStyle>),
+  }, {} as Record<keyof SizeType, ViewStyle>),
 );

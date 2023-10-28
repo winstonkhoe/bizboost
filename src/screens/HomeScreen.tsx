@@ -8,49 +8,47 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
-import {Campaign, CampaignType} from '../model/Campaign';
+import {Campaign} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
-import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
-  RootAuthenticatedNavigationStackProps,
-} from '../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
 const HomeScreen = () => {
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
 
   const {campaigns} = useOngoingCampaign();
 
   return (
     <PageWithSearchBar>
-      <View className="h-full w-full">
-        <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
-          <View className="w-full flex flex-col items-center">
-            <HorizontalPadding>
-              <HomeSectionHeader header="Recent Negotiations" link="See All" />
-            </HorizontalPadding>
-            <View className="mt-3 w-full" />
-            <HorizontalScrollView>
-              {[...Array(10)].map((_item: any, index: number) => (
-                <RecentNegotiationCard key={index} />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={[flex.flexCol]}>
+          <HorizontalPadding>
+            <HomeSectionHeader header="Recent Negotiations" link="See All" />
+          </HorizontalPadding>
+          <View className="mt-3" />
+          <HorizontalScrollView>
+            {[...Array(10)].map((_item: any, index: number) => (
+              <RecentNegotiationCard key={index} />
+            ))}
+          </HorizontalScrollView>
+        </View>
+        <View className="mt-6" style={[flex.flexCol]}>
+          <HorizontalPadding>
+            <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
+          </HorizontalPadding>
+          <View className="mt-3" />
+          <HorizontalPadding>
+            <View style={[flex.flexCol, gap.medium]}>
+              {campaigns.map((c: Campaign, index: number) => (
+                <OngoingCampaignCard campaign={c} key={index} />
               ))}
-            </HorizontalScrollView>
-          </View>
-          <View className="mt-6 w-full items-center" style={[flex.flexCol]}>
-            <HorizontalPadding>
-              <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
-            </HorizontalPadding>
-            <View className="mt-3 w-full" />
-            <HorizontalPadding>
-              <View style={[flex.flexCol, gap.medium]}>
-                {campaigns.map((c: Campaign, index: number) => (
-                  <OngoingCampaignCard campaign={c} key={index} />
-                ))}
-              </View>
-            </HorizontalPadding>
-          </View>
-          {/* <Button
+            </View>
+          </HorizontalPadding>
+        </View>
+        {/* <Button
             title="Test"
             onPress={() => {
               const campaign = new Campaign(
@@ -74,14 +72,13 @@ const HomeScreen = () => {
             }}
           /> */}
 
-          <Button
-            title="Create Campaign (Temp)"
-            onPress={() =>
-              navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-            }
-          />
-        </ScrollView>
-      </View>
+        <Button
+          title="Create Campaign (Temp)"
+          onPress={() =>
+            navigation.navigate(AuthenticatedNavigation.CreateCampaign)
+          }
+        />
+      </ScrollView>
     </PageWithSearchBar>
   );
 };

@@ -6,52 +6,77 @@ import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
 import {border} from '../../styles/Border';
-import {PaddingSizeType, verticalPadding} from '../../styles/Padding';
+import {
+  PaddingSizeType,
+  horizontalPadding,
+  verticalPadding,
+} from '../../styles/Padding';
+import {ReactNode} from 'react';
+import {SizeType} from '../../styles/Size';
 
 interface Props extends PressableProps, React.RefAttributes<View> {
   text: string;
   rounded?: RadiusSizeType;
   inverted?: boolean;
-  verticalPadding?: PaddingSizeType;
+  verticalPadding?: SizeType;
+  customBackgroundColor?: typeof COLOR.background.green;
+  customTextColor?: typeof COLOR.text.green;
+  customTextSize?: 'text-base' | 'text-sm' | 'text-xs';
+  minimumWidth?: boolean;
+  logo?: ReactNode;
 }
 export const CustomButton = ({
   text,
   rounded: roundSize = 'default',
-  verticalPadding: verticalPaddingSize = 'small',
+  verticalPadding: verticalPaddingSize = 'default',
   inverted = false,
+  customBackgroundColor = COLOR.background.green,
+  customTextColor = COLOR.text.green,
+  customTextSize = 'text-base',
+  minimumWidth = false,
+  logo,
   ...props
 }: Props) => {
   return (
     <Pressable
       {...props}
-      className="w-full justify-center items-center text-center px-6"
+      className="justify-center items-center text-center relative"
       style={[
         flex.flexRow,
+        minimumWidth && {alignSelf: 'center'},
+        horizontalPadding.large,
         verticalPadding[verticalPaddingSize],
         rounded[roundSize],
         inverted &&
           border({
             borderWidth: 2,
             color: props.disabled
-              ? COLOR.background.green.disabled
-              : COLOR.background.green.high,
+              ? customBackgroundColor.disabled
+              : customBackgroundColor.high,
           }),
         inverted && background(COLOR.black[0]),
         !inverted &&
           background(
             props.disabled
-              ? COLOR.background.green.disabled
-              : COLOR.background.green.high,
+              ? customBackgroundColor.disabled
+              : customBackgroundColor.high,
           ),
       ]}>
+      {logo && (
+        <View
+          className="absolute top-1/2 left-4 w-8 h-full justify-center items-center"
+          style={[flex.flexRow]}>
+          {logo}
+        </View>
+      )}
       <Text
-        className="font-bold text-base"
+        className={`font-bold ${customTextSize}`}
         style={[
           inverted
             ? textColor(
                 props.disabled
-                  ? COLOR.text.green.disabled
-                  : COLOR.text.green.default,
+                  ? customTextColor.disabled
+                  : customTextColor.default,
               )
             : textColor(COLOR.black[1]),
         ]}>
