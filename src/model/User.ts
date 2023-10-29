@@ -206,6 +206,23 @@ export class User extends BaseModel {
     }
   }
 
+  static async getContentCreators(): Promise<User[]> {
+    try {
+      const users = await firestore()
+        .collection(USER_COLLECTION)
+        .where('contentCreator', '!=', null)
+        .get();
+
+      if (users.empty) {
+        throw Error('No content creators!');
+      }
+
+      return users.docs.map(doc => this.fromSnapshot(doc));
+    } catch (error) {
+      throw error; // Handle the error appropriately
+    }
+  }
+
   static async signUpContentCreator({
     email,
     password,

@@ -19,6 +19,9 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
         style={styles.image}
         width={Dimensions.get('window').width * 0.45}
       />
+      <View style={styles.categoryContainer}>
+        <Text style={styles.category}>Lifestyle</Text>
+      </View>
       <LinearGradient
         colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
         style={styles.nameContainer}>
@@ -51,6 +54,19 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
+  },
+  categoryContainer: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 5,
+    borderRadius: 10,
+  },
+  category: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'normal',
   },
   name: {
     color: 'white',
