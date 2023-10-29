@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import {Category} from '../model/Category';
 import {Location} from '../model/Location';
 import {
@@ -62,4 +63,17 @@ export const openCategoryModal = ({
     closeListener.remove();
     console.log('removed all listener');
   });
+};
+
+interface CloseModalProps {
+  triggerEventOnClose: string;
+  navigation: NavigationStackProps;
+}
+
+export const closeModal = ({
+  triggerEventOnClose,
+  navigation,
+}: CloseModalProps) => {
+  triggerEventOnClose && DeviceEventEmitter.emit(triggerEventOnClose);
+  navigation.goBack();
 };
