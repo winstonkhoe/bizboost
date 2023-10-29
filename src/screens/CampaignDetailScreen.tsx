@@ -194,7 +194,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                   <Text
                     className="text-xs"
                     style={[textColor(COLOR.black[30])]}>
-                    9 XXX | 99 XXX
+                    Subtitle
                   </Text>
                 </View>
               </View>
