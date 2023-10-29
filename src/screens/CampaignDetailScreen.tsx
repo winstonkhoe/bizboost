@@ -5,7 +5,7 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {Text} from 'react-native';
+import {Button, Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
@@ -21,6 +21,7 @@ import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
+import {User} from '../model/User';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -34,6 +35,7 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     TransactionStatus.notRegistered,
   );
+  const [businessPeople, setBusinessPeople] = useState<User | undefined>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
 
@@ -53,6 +55,10 @@ const CampaignDetailScreen = ({route}: Props) => {
 
     return unsubscribe;
   }, [campaignId, uid]);
+
+  useEffect(() => {
+    User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
+  }, [campaign]);
 
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
@@ -111,6 +117,18 @@ const CampaignDetailScreen = ({route}: Props) => {
               </View>
             </View>
           </View>
+
+          {businessPeople && (
+            <Button
+              title={businessPeople.businessPeople?.fullname || ''}
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.BusinessPeopleDetail,
+                  {businessPeopleId: `${businessPeople.id}`},
+                );
+              }}
+            />
+          )}
 
           <View>
             {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}

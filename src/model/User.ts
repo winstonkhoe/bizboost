@@ -146,6 +146,7 @@ export class User extends BaseModel {
     if (snapshot.exists) {
       const userData = snapshot.data();
       const user = new User({
+        id: snapshot.id,
         email: userData?.email,
         phone: userData?.phone,
         contentCreator: userData?.contentCreator,

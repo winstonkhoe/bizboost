@@ -20,6 +20,7 @@ import {useUser} from '../hooks/user';
 import {Location} from '../model/Location';
 import {Category} from '../model/Category';
 import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
+import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -31,6 +32,7 @@ export enum GuestNavigation {
 export enum AuthenticatedNavigation {
   Main = 'Main',
   Home = 'Home',
+  BusinessPeopleDetail = 'Business People Detail',
   CampaignDetail = 'Campaign Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
@@ -54,6 +56,7 @@ export type GuestStack = {
 export type AuthenticatedStack = {
   [AuthenticatedNavigation.Main]: undefined;
   [AuthenticatedNavigation.Home]: undefined;
+  [AuthenticatedNavigation.BusinessPeopleDetail]: {businessPeopleId: string};
   [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
@@ -169,6 +172,11 @@ const StackNavigator = () => {
           <Stack.Screen
             name={AuthenticatedNavigation.CampaignDetail}
             component={CampaignDetailScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name={AuthenticatedNavigation.BusinessPeopleDetail}
+            component={BusinessPeopleDetailScreen}
             options={{headerShown: false}}
           />
           <Stack.Screen
