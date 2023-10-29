@@ -5,11 +5,11 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {Button, Text} from 'react-native';
+import {Button, Pressable, Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
-import {Campaign, CampaignPlatform} from '../model/Campaign';
+import {Campaign} from '../model/Campaign';
 import {getDate} from '../utils/date';
 import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
@@ -17,11 +17,17 @@ import {Transaction, TransactionStatus} from '../model/Transaction';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 
 import People from '../assets/vectors/people.svg';
+import ChevronRight from '../assets/vectors/chevron-right.svg';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
 import {User} from '../model/User';
+import {flex} from '../styles/Flex';
+import {horizontalPadding, verticalPadding} from '../styles/Padding';
+import {rounded} from '../styles/BorderRadius';
+import {border} from '../styles/Border';
+import {textColor} from '../styles/Text';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -118,18 +124,6 @@ const CampaignDetailScreen = ({route}: Props) => {
             </View>
           </View>
 
-          {businessPeople && (
-            <Button
-              title={businessPeople.businessPeople?.fullname || ''}
-              onPress={() => {
-                navigation.navigate(
-                  AuthenticatedNavigation.BusinessPeopleDetail,
-                  {businessPeopleId: `${businessPeople.id}`},
-                );
-              }}
-            />
-          )}
-
           <View>
             {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
             <View className="flex flex-row flex-wrap gap-2">
@@ -157,6 +151,57 @@ const CampaignDetailScreen = ({route}: Props) => {
               )}
             </View>
           </View>
+
+          {/* TODO: extract component */}
+          {businessPeople && (
+            <Pressable
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.BusinessPeopleDetail,
+                  {businessPeopleId: `${businessPeople.id}`},
+                );
+              }}
+              className="justify-between items-center text-center relative"
+              style={[
+                flex.flexRow,
+                horizontalPadding.default,
+                verticalPadding.default,
+                rounded.default,
+                border({
+                  borderWidth: 1,
+                  color: COLOR.background.neutral.disabled,
+                }),
+              ]}>
+              <View className="flex flex-row items-center">
+                <View
+                  className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
+                  style={[flex.flexRow, rounded.max]}>
+                  <Image
+                    className="w-full h-full object-cover"
+                    source={
+                      businessPeople.businessPeople?.profilePicture
+                        ? {
+                            uri: businessPeople.businessPeople?.profilePicture,
+                          }
+                        : require('../assets/images/bizboost-avatar.png')
+                    }
+                  />
+                </View>
+                <View className="flex flex-col">
+                  <Text className="font-semibold">
+                    {businessPeople.businessPeople?.fullname}
+                  </Text>
+                  <Text
+                    className="text-xs"
+                    style={[textColor(COLOR.black[30])]}>
+                    9 XXX | 99 XXX
+                  </Text>
+                </View>
+              </View>
+
+              <ChevronRight fill={COLOR.black[20]} />
+            </Pressable>
+          )}
 
           {isMoreInfoVisible && (
             <View className="flex flex-col" style={[gap.medium]}>
@@ -208,7 +253,7 @@ const CampaignDetailScreen = ({route}: Props) => {
             <CustomButton
               customBackgroundColor={COLOR.background.neutral}
               customTextColor={COLOR.text.neutral}
-              verticalPadding="xsmall"
+              verticalPadding="small"
               inverted
               text={
                 isMoreInfoVisible ? 'Hide Information' : 'Read More Information'

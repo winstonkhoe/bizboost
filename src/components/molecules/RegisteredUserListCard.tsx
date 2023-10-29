@@ -38,9 +38,13 @@ const RegisteredUserListCard = ({transaction}: Props) => {
           style={[flex.flexRow, rounded.max]}>
           <Image
             className="w-full h-full object-cover"
-            source={{
-              uri: user?.contentCreator?.profilePicture,
-            }}
+            source={
+              user?.contentCreator?.profilePicture
+                ? {
+                    uri: user?.contentCreator?.profilePicture,
+                  }
+                : require('../../assets/images/bizboost-avatar.png')
+            }
           />
         </View>
         <View className="flex flex-col w-4/5 ">
