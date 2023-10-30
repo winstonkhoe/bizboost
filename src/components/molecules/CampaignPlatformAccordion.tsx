@@ -33,9 +33,9 @@ const CampaignPlatformAccordion = ({platform}: Props) => {
         </View>
         <Pressable onPress={() => setIsOpen(value => !value)}>
           {isOpen ? (
-            <ChevronUp width={10} height={10} />
+            <ChevronUp width={10} height={10} fill={COLOR.black[100]} />
           ) : (
-            <ChevronDown width={10} height={10} />
+            <ChevronDown width={10} height={10} fill={COLOR.black[100]} />
           )}
         </Pressable>
       </View>
