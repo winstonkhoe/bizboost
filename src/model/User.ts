@@ -145,6 +145,23 @@ export class User extends BaseModel {
     await this.getDocumentReference(documentId).update(data);
   }
 
+  static async getAll(): Promise<User[]> {
+    try {
+      const users = await firestore()
+        .collection(USER_COLLECTION)
+        // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja
+        // .where('isAdmin', '!=', true)
+        .get();
+      if (users.empty) {
+        throw Error('No Users!');
+      }
+      return users.docs.map(doc => this.fromSnapshot(doc));
+    } catch (error) {
+      console.log(error);
+      throw Error('Error!');
+    }
+  }
+
   static async getById(documentId: string): Promise<User | undefined> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {

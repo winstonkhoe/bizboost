@@ -15,39 +15,71 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {useEffect, useState} from 'react';
+import {User, UserRole} from '../model/User';
+import {Text} from 'react-native';
+import {useUser} from '../hooks/user';
 
 const HomeScreen = () => {
+  const {activeRole} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
 
   const {campaigns} = useOngoingCampaign();
 
+  const [users, setUsers] = useState<User[]>([]);
+  useEffect(() => {
+    User.getAll().then(u => setUsers(u));
+  }, []);
+
   return (
     <PageWithSearchBar>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[flex.flexCol]}>
-          <HorizontalPadding>
-            <HomeSectionHeader header="Recent Negotiations" link="See All" />
-          </HorizontalPadding>
-          <View className="mt-3" />
-          <HorizontalScrollView>
-            {[...Array(10)].map((_item: any, index: number) => (
-              <RecentNegotiationCard key={index} />
-            ))}
-          </HorizontalScrollView>
-        </View>
-        <View className="mt-6" style={[flex.flexCol]}>
-          <HorizontalPadding>
-            <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
-          </HorizontalPadding>
-          <View className="mt-3" />
-          <HorizontalPadding>
-            <View style={[flex.flexCol, gap.medium]}>
-              {campaigns.map((c: Campaign, index: number) => (
-                <OngoingCampaignCard campaign={c} key={index} />
-              ))}
+        {activeRole !== UserRole.Admin ? (
+          <>
+            {' '}
+            <View style={[flex.flexCol]}>
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header="Recent Negotiations"
+                  link="See All"
+                />
+              </HorizontalPadding>
+              <View className="mt-3" />
+              <HorizontalScrollView>
+                {[...Array(10)].map((_item: any, index: number) => (
+                  <RecentNegotiationCard key={index} />
+                ))}
+              </HorizontalScrollView>
             </View>
-          </HorizontalPadding>
-        </View>
+            <View className="mt-6" style={[flex.flexCol]}>
+              <HorizontalPadding>
+                <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
+              </HorizontalPadding>
+              <View className="mt-3" />
+              <HorizontalPadding>
+                <View style={[flex.flexCol, gap.medium]}>
+                  {campaigns.map((c: Campaign, index: number) => (
+                    <OngoingCampaignCard campaign={c} key={index} />
+                  ))}
+                </View>
+              </HorizontalPadding>
+            </View>
+          </>
+        ) : (
+          <View className="mt-6" style={[flex.flexCol]}>
+            <HorizontalPadding>
+              <HomeSectionHeader header="Users" link="See All" />
+            </HorizontalPadding>
+            <View className="mt-3" />
+            <HorizontalPadding>
+              <View style={[flex.flexCol, gap.medium]}>
+                {users.map((u, index) => (
+                  <Text key={index}>{u.email}</Text>
+                ))}
+              </View>
+            </HorizontalPadding>
+          </View>
+        )}
         {/* <Button
             title="Test"
             onPress={() => {
