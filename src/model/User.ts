@@ -68,6 +68,7 @@ export class User extends BaseModel {
   instagram?: SocialData;
   tiktok?: SocialData;
   joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
+  isAdmin?: boolean;
 
   constructor({
     id,
@@ -77,6 +78,7 @@ export class User extends BaseModel {
     contentCreator,
     businessPeople,
     joinedAt,
+    isAdmin,
     instagram,
     tiktok,
   }: Partial<User>) {
@@ -88,6 +90,7 @@ export class User extends BaseModel {
     this.contentCreator = contentCreator;
     this.businessPeople = businessPeople;
     this.joinedAt = joinedAt;
+    this.isAdmin = isAdmin;
     this.instagram = instagram;
     this.tiktok = tiktok;
     // Add your non-static methods here
@@ -107,6 +110,7 @@ export class User extends BaseModel {
         contentCreator: data?.contentCreator,
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt?.seconds,
+        isAdmin: data?.isAdmin,
       });
     }
 
@@ -152,6 +156,7 @@ export class User extends BaseModel {
         contentCreator: userData?.contentCreator,
         businessPeople: userData?.businessPeople,
         joinedAt: userData?.joinedAt?.seconds,
+        isAdmin: userData?.isAdmin,
       });
 
       return user;
@@ -175,6 +180,7 @@ export class User extends BaseModel {
           contentCreator: userData?.contentCreator,
           businessPeople: userData?.businessPeople,
           joinedAt: userData?.joinedAt?.seconds,
+          isAdmin: userData?.isAdmin,
         });
 
         return user;
