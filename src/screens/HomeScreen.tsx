@@ -19,6 +19,7 @@ import {useEffect, useState} from 'react';
 import {User, UserRole} from '../model/User';
 import {Text} from 'react-native';
 import {useUser} from '../hooks/user';
+import UserListCard from '../components/molecules/UserListCard';
 
 const HomeScreen = () => {
   const {activeRole} = useUser();
@@ -70,11 +71,11 @@ const HomeScreen = () => {
             <HorizontalPadding>
               <HomeSectionHeader header="Users" link="See All" />
             </HorizontalPadding>
-            <View className="mt-3" />
+            <View />
             <HorizontalPadding>
               <View style={[flex.flexCol, gap.medium]}>
                 {users.map((u, index) => (
-                  <Text key={index}>{u.email}</Text>
+                  <UserListCard user={u} key={index} />
                 ))}
               </View>
             </HorizontalPadding>
