@@ -8,7 +8,6 @@ import {COLOR} from '../../styles/Color';
 import {verticalPadding} from '../../styles/Padding';
 import {border} from '../../styles/Border';
 import {gap} from '../../styles/Gap';
-import SelectableTag from '../atoms/SelectableTag';
 import PlatformTag from '../atoms/PlatformTag';
 
 type Props = {

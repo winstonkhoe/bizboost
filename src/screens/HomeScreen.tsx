@@ -1,4 +1,4 @@
-import {Button, View} from 'react-native';
+import {Button, Pressable, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
@@ -37,7 +37,6 @@ const HomeScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {activeRole !== UserRole.Admin ? (
           <>
-            {' '}
             <View style={[flex.flexCol]}>
               <HorizontalPadding>
                 <HomeSectionHeader
@@ -75,7 +74,15 @@ const HomeScreen = () => {
             <HorizontalPadding>
               <View style={[flex.flexCol, gap.medium]}>
                 {users.map((u, index) => (
-                  <UserListCard user={u} key={index} />
+                  <Pressable
+                    key={index}
+                    onPress={() => {
+                      navigation.navigate(AuthenticatedNavigation.UserDetail, {
+                        user: u,
+                      });
+                    }}>
+                    <UserListCard user={u} />
+                  </Pressable>
                 ))}
               </View>
             </HorizontalPadding>
