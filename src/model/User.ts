@@ -505,6 +505,7 @@ export class User extends BaseModel {
       'pages_show_list',
       'instagram_basic',
       'business_management',
+      // 'email',
     ]);
 
     if (result.isCancelled) {
@@ -525,6 +526,9 @@ export class User extends BaseModel {
           console.log('Error fetching data: ' + error.toString());
           finishCallback(data);
         } else {
+          // console.log('masuk');
+          // console.log(result);
+          // console.log(result.email);
           const followersCount = result?.followers_count;
           const instagramUsername = result?.username;
           const instagramName = result?.name;

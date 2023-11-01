@@ -9,6 +9,7 @@ import {verticalPadding} from '../../styles/Padding';
 import {border} from '../../styles/Border';
 import {gap} from '../../styles/Gap';
 import SelectableTag from '../atoms/SelectableTag';
+import PlatformTag from '../atoms/PlatformTag';
 
 type Props = {
   user: User;
@@ -41,12 +42,13 @@ const UserListCard = ({user}: Props) => {
         </View>
         <View className="flex flex-col w-4/5 ">
           <Text className="font-semibold text-base " numberOfLines={1}>
-            {/* {user?.contentCreator?.fullname} */}
+            {user?.contentCreator?.fullname || user.email}
             {user?.id}
           </Text>
           <Text className="text-gray-600 text-xs">Subtitle</Text>
           <View style={[flex.flexRow, rounded.max, gap.default]}>
-            <SelectableTag text="Content Creator" />
+            {user.contentCreator && <PlatformTag text="Content Creator" />}
+            {user.businessPeople && <PlatformTag text="Business People" />}
           </View>
         </View>
       </View>
