@@ -5,7 +5,7 @@ import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {padding} from '../../styles/Padding';
 import LinearGradient from 'react-native-linear-gradient';
-import { background } from '../../styles/BackgroundColor';
+import {background} from '../../styles/BackgroundColor';
 
 interface SimpleImageCardProps {
   image: string;
