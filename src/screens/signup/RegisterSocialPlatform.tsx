@@ -62,7 +62,7 @@ export const RegisterSocialPlatform = ({
     defaultValues: {},
   });
 
-  const {getFieldState, watch, formState, setValue} = methods;
+  const {getFieldState, watch, formState, setValue, getValues} = methods;
   const updateSocialCarouselIndexRef = useRef<boolean>(true);
   const carouselRef = useRef<ICarouselInstance>(null);
   const [selectedSocialPlatforms, setSelectedSocialPlatforms] = useState<
@@ -113,6 +113,10 @@ export const RegisterSocialPlatform = ({
   }, [initialData, setFieldValue, toggleSelectPlatform]);
 
   useEffect(() => {
+    setFieldValue('instagramUsername', getValues('instagramUsername'));
+    setFieldValue('instagramFollowers', getValues('instagramFollowers'));
+    setFieldValue('tiktokUsername', getValues('tiktokUsername'));
+    setFieldValue('tiktokFollowers', getValues('tiktokFollowers'));
     const platformDatas: PlatformData[] = selectedSocialPlatforms.reduce(
       (acc, platform) => {
         if (platform === SocialPlatform.Instagram) {
@@ -138,7 +142,13 @@ export const RegisterSocialPlatform = ({
       [] as PlatformData[],
     );
     onChangeSocialData(platformDatas);
-  }, [watch, onChangeSocialData, selectedSocialPlatforms]);
+  }, [
+    watch,
+    onChangeSocialData,
+    selectedSocialPlatforms,
+    setFieldValue,
+    getValues,
+  ]);
 
   useEffect(() => {
     const isDisable =
@@ -155,18 +165,12 @@ export const RegisterSocialPlatform = ({
 
   useEffect(() => {
     const currentCarouselIndex = carouselRef.current?.getCurrentIndex();
-    console.log(
-      'current carousel index',
-      currentCarouselIndex,
-      'platforms length',
-      selectedSocialPlatforms.length,
-    );
     if (
       currentCarouselIndex &&
       currentCarouselIndex > selectedSocialPlatforms.length - 1
     ) {
       carouselRef.current?.prev({
-        count: selectedSocialPlatforms.length - currentCarouselIndex,
+        count: 0,
       });
     }
   }, [selectedSocialPlatforms, carouselRef]);
@@ -236,7 +240,7 @@ export const RegisterSocialPlatform = ({
               loop={false}
               width={width}
               mode="parallax"
-              height={width * 0.7}
+              height={width * 0.75}
               data={selectedSocialPlatforms}
               scrollAnimationDuration={300}
               modeConfig={{
