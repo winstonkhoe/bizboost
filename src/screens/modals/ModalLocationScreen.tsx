@@ -19,15 +19,21 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {
   GeneralNavigation,
   GeneralStack,
+  NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {Checkbox} from '../../components/atoms/Checkbox';
 import {ScrollView} from 'react-native-gesture-handler';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
+import {CustomButton} from '../../components/atoms/Button';
+import {closeModal} from '../../utils/modal';
+import {useNavigation} from '@react-navigation/native';
+import {padding} from '../../styles/Padding';
 
 type Props = StackScreenProps<GeneralStack, GeneralNavigation.LocationModal>;
 
 const ModalLocationScreen = ({route}: Props) => {
+  const navigation = useNavigation<NavigationStackProps>();
   const {initialSelectedLocations, eventType} = route.params;
   const [selectedLocations, setSelectedLocations] = useState<Location[]>(
     initialSelectedLocations,
@@ -47,16 +53,20 @@ const ModalLocationScreen = ({route}: Props) => {
     }
   };
 
-  useEffect(() => {
+  const emitChangesAndClose = () => {
     DeviceEventEmitter.emit(eventType, selectedLocations);
-  }, [selectedLocations, eventType]);
+    closeModal({
+      navigation: navigation,
+      triggerEventOnClose: 'close.location',
+    });
+  };
 
   return (
     <SafeAreaContainer>
       <View className="flex-1" style={[flex.flexCol, gap.small]}>
         <View className="items-center" style={[flex.flexRow, gap.default]}>
           <CloseModal closeEventType="location" />
-          <Text className="text-lg font-bold">Locations</Text>
+          <Text className="text-lg font-bold">Available Locations</Text>
         </View>
         <ScrollView className="flex-1" contentContainerStyle={{flexGrow: 1}}>
           <VerticalPadding paddingSize="xlarge">
@@ -78,6 +88,19 @@ const ModalLocationScreen = ({route}: Props) => {
             </HorizontalPadding>
           </VerticalPadding>
         </ScrollView>
+        <View style={[flex.flexCol, gap.default, padding.top.medium]}>
+          <HorizontalPadding>
+            <CustomButton
+              text={
+                selectedLocations.length === 0
+                  ? 'Choose'
+                  : `Choose (${selectedLocations.length})`
+              }
+              disabled={selectedLocations.length === 0}
+              onPress={emitChangesAndClose}
+            />
+          </HorizontalPadding>
+        </View>
       </View>
     </SafeAreaContainer>
   );
@@ -96,8 +119,8 @@ const LocationItem = ({location, isSelected, ...props}: LocationItemProps) => {
         className="text-xl font-semibold"
         style={[
           isSelected
-            ? textColor(COLOR.text.neutral.high)
-            : textColor(COLOR.text.neutral.med),
+            ? textColor(COLOR.text.neutral.low)
+            : textColor(COLOR.text.neutral.high),
         ]}>
         {location.id}
       </Text>
