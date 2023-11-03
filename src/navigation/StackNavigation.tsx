@@ -67,7 +67,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
-  [AuthenticatedNavigation.UserDetail]: {user: User};
+  [AuthenticatedNavigation.UserDetail]: {userId: string};
 };
 
 interface LocationModalProps {

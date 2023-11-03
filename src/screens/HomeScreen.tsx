@@ -80,7 +80,7 @@ const HomeScreen = () => {
                     key={index}
                     onPress={() => {
                       navigation.navigate(AuthenticatedNavigation.UserDetail, {
-                        user: u,
+                        userId: u.id || '',
                       });
                     }}>
                     <UserListCard user={u} />

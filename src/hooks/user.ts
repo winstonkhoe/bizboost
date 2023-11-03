@@ -32,14 +32,14 @@ export const useUser = () => {
   );
 
   useEffect(() => {
-    const updateUserState = (u: User | null, unsubscribe: () => void) => {
+    const updateUserState = (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
-        return unsubscribe;
       }
     };
     if (!user && uid) {
-      User.getUserDataReactive(uid, updateUserState);
+      const unsubscribe = User.getUserDataReactive(uid, updateUserState);
+      return unsubscribe;
     }
   }, [user, uid, dispatch]);
   return {uid, user, activeRole, activeData};

@@ -241,22 +241,24 @@ export class User extends BaseModel {
     }
   }
 
+  // TODO: fix callback and unsubscribe return
   static getUserDataReactive(
     documentId: string,
-    callback: (user: User | null, unsubscribe: () => void) => void,
-  ): void {
+    callback: (user: User | null) => void,
+  ) {
     try {
-      const subscriber = this.getDocumentReference(documentId).onSnapshot(
+      const unsubscribe = this.getDocumentReference(documentId).onSnapshot(
         (
           documentSnapshot: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
         ) => {
           const user = this.fromSnapshot(documentSnapshot);
-          callback(user, subscriber);
+          callback(user);
         },
         (error: Error) => {
           console.log(error);
         },
       );
+      return unsubscribe;
     } catch (error) {
       throw Error('Error!');
     }

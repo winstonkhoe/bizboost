@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Text, View} from 'react-native';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
@@ -23,7 +23,15 @@ type Props = NativeStackScreenProps<
   AuthenticatedNavigation.UserDetail
 >;
 const UserDetailScreen = ({route}: Props) => {
-  const {user} = route.params;
+  const {userId} = route.params;
+  const [user, setUser] = useState<User | null>(null);
+  useEffect(() => {
+    User.getUserDataReactive(userId, u => setUser(u));
+  }, [userId]);
+
+  if (!user) {
+    return <Text>Error</Text>;
+  }
 
   const onSuspendButtonClick = () => {
     if (user.status === UserStatus.Active) {
