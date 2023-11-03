@@ -1,5 +1,5 @@
 import {Text} from 'react-native';
-import {User} from '../../model/User';
+import {User, UserStatus} from '../../model/User';
 import {View} from 'react-native';
 import {Image} from 'react-native';
 import {flex} from '../../styles/Flex';
@@ -9,6 +9,7 @@ import {verticalPadding} from '../../styles/Padding';
 import {border} from '../../styles/Border';
 import {gap} from '../../styles/Gap';
 import PlatformTag from '../atoms/PlatformTag';
+import {textColor} from '../../styles/Text';
 
 type Props = {
   user: User;
@@ -39,18 +40,30 @@ const UserListCard = ({user}: Props) => {
             }
           />
         </View>
-        <View className="flex flex-col w-4/5 ">
+        <View className="flex flex-col w-full">
           <Text className="font-semibold text-base " numberOfLines={1}>
-            {user?.contentCreator?.fullname || user.email}
-            {user?.id}
+            {user?.contentCreator?.fullname ||
+              user.businessPeople?.fullname ||
+              user.email}
+            {/* {user?.id} */}
           </Text>
-          <Text className="text-gray-600 text-xs">Subtitle</Text>
-          <View style={[flex.flexRow, rounded.max, gap.default]}>
-            {user.contentCreator && <PlatformTag text="Content Creator" />}
-            {user.businessPeople && <PlatformTag text="Business People" />}
+          {/* <Text className="text-gray-600 text-xs">Subtitle</Text> */}
+          <View style={[flex.flexRow, rounded.max, gap.small]}>
+            {user.contentCreator && <PlatformTag text="CC" />}
+            {user.businessPeople && <PlatformTag text="BP" />}
           </View>
         </View>
       </View>
+      <Text
+        style={[
+          textColor(
+            user.status === UserStatus.Active
+              ? COLOR.text.green.default
+              : COLOR.text.danger.default,
+          ),
+        ]}>
+        {user.status}
+      </Text>
     </View>
   );
 };

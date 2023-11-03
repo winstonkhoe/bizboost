@@ -27,6 +27,11 @@ export enum SocialPlatform {
   Tiktok = 'Tiktok',
 }
 
+export enum UserStatus {
+  Active = 'Active',
+  Suspended = 'Suspended',
+}
+
 export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
 
 export type UserRoles =
@@ -69,6 +74,7 @@ export class User extends BaseModel {
   tiktok?: SocialData;
   joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
   isAdmin?: boolean;
+  status?: UserStatus;
 
   constructor({
     id,
@@ -79,6 +85,7 @@ export class User extends BaseModel {
     businessPeople,
     joinedAt,
     isAdmin,
+    status,
     instagram,
     tiktok,
   }: Partial<User>) {
@@ -91,6 +98,7 @@ export class User extends BaseModel {
     this.businessPeople = businessPeople;
     this.joinedAt = joinedAt;
     this.isAdmin = isAdmin;
+    this.status = status;
     this.instagram = instagram;
     this.tiktok = tiktok;
     // Add your non-static methods here
@@ -111,6 +119,7 @@ export class User extends BaseModel {
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt?.seconds,
         isAdmin: data?.isAdmin,
+        status: data?.status || UserStatus.Active,
       });
     }
 
