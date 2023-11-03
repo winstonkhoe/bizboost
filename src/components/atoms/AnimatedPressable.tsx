@@ -17,6 +17,19 @@ export const AnimatedPressable = ({
   children,
   ...props
 }: AnimatedPressableProps) => {
+  return (
+    <Pressable {...props}>
+      <AnimatedTap scale={scale}>{children}</AnimatedTap>
+    </Pressable>
+  );
+};
+
+interface AnimatedTapProps {
+  scale?: number;
+  children: ReactNode;
+}
+
+export const AnimatedTap = ({scale = 0.75, children}: AnimatedTapProps) => {
   const pressed = useSharedValue(false);
 
   const tap = Gesture.Tap()
@@ -31,9 +44,7 @@ export const AnimatedPressable = ({
   }));
   return (
     <GestureDetector gesture={tap}>
-      <Pressable {...props}>
-        <Animated.View style={[animatedStyles]}>{children}</Animated.View>
-      </Pressable>
+      <Animated.View style={[animatedStyles]}>{children}</Animated.View>
     </GestureDetector>
   );
 };
