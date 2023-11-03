@@ -154,21 +154,44 @@ export class User extends BaseModel {
     await this.getDocumentReference(documentId).update(data);
   }
 
-  static async getAll(): Promise<User[]> {
-    try {
-      const users = await firestore()
-        .collection(USER_COLLECTION)
-        // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja
-        // .where('isAdmin', '!=', true)
-        .get();
-      if (users.empty) {
-        throw Error('No Users!');
-      }
-      return users.docs.map(doc => this.fromSnapshot(doc));
-    } catch (error) {
-      console.log(error);
-      throw Error('Error!');
-    }
+  // static async getAll(): Promise<User[]> {
+  //   try {
+  //     const users = await firestore()
+  //       .collection(USER_COLLECTION)
+  //       // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja?
+  //       // .where('isAdmin', '!=', true)
+  //       .get();
+  //     if (users.empty) {
+  //       throw Error('No Users!');
+  //     }
+  //     return users.docs.map(doc => this.fromSnapshot(doc));
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw Error('Error!');
+  //   }
+  // }
+
+  static getAll(onComplete: (users: User[]) => void) {
+    const unsubscribe = firestore()
+      .collection(USER_COLLECTION)
+      // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja?
+      // .where('isAdmin', '!=', true)
+      .onSnapshot(
+        querySnapshot => {
+          let users: User[] = [];
+          if (querySnapshot.empty) {
+            return;
+          }
+          users = querySnapshot.docs.map(doc => this.fromSnapshot(doc));
+
+          onComplete(users);
+        },
+        error => {
+          console.log(error);
+        },
+      );
+
+    return unsubscribe;
   }
 
   static async getById(documentId: string): Promise<User | undefined> {

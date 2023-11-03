@@ -29,7 +29,9 @@ const HomeScreen = () => {
 
   const [users, setUsers] = useState<User[]>([]);
   useEffect(() => {
-    User.getAll().then(u => setUsers(u));
+    const unsubscribe = User.getAll(u => setUsers(u));
+
+    return unsubscribe;
   }, []);
 
   return (

@@ -16,12 +16,24 @@ import {
   AuthenticatedNavigation,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
+import {User, UserStatus} from '../model/User';
+import {COLOR} from '../styles/Color';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.UserDetail
 >;
 const UserDetailScreen = ({route}: Props) => {
   const {user} = route.params;
+
+  const onSuspendButtonClick = () => {
+    if (user.status === UserStatus.Active) {
+      user.status = UserStatus.Suspended;
+    } else {
+      user.status = UserStatus.Active;
+    }
+
+    User.updateUserData(user.id || '', user);
+  };
   return (
     <View className="flex-1">
       <ScrollView
@@ -66,9 +78,16 @@ const UserDetailScreen = ({route}: Props) => {
             <VerticalPadding>
               <HorizontalPadding>
                 <CustomButton
-                  onPress={() => {}}
+                  onPress={onSuspendButtonClick}
+                  customBackgroundColor={
+                    user.status === UserStatus.Active
+                      ? COLOR.background.danger
+                      : undefined
+                  }
                   rounded="default"
-                  text="Suspend"
+                  text={
+                    user.status === UserStatus.Active ? 'Suspend' : 'Reactivate'
+                  }
                 />
               </HorizontalPadding>
             </VerticalPadding>
