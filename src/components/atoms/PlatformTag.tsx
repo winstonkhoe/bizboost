@@ -8,9 +8,9 @@ const PlatformTag = ({text}: Props) => {
   return (
     <View
       className={
-        'border border-green-700 bg-green-100 py-[2px] px-2 rounded-lg'
+        'border border-green-700 bg-green-100 py-[2px] px-1 rounded-lg'
       }>
-      <Text className={'text-green-700 font-semibold text-xs'}>
+      <Text className={'text-green-700 font-semibold text-[10px]'}>
         {text.toUpperCase()}
       </Text>
     </View>

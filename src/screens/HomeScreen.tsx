@@ -90,29 +90,6 @@ const HomeScreen = () => {
             </HorizontalPadding>
           </View>
         )}
-        {/* <Button
-            title="Test"
-            onPress={() => {
-              const campaign = new Campaign(
-                'Sn6HYcvx8YPnbjalnaLPSrh8PHf1',
-                'Test',
-                'lorem ipsum',
-                CampaignType.Public,
-                ['Bandung', 'Pontianak'],
-                [{name: 'Instagram', tasks: ['3 reels']}],
-                150000,
-                ['ganteng', 'cantik', 'tidak sombong'],
-                2,
-                'https://lh3.googleusercontent.com/p/AF1QipMvoZtSgC5aguviGyul1KfeSIR0w1HBROdlMmit=w1080-h608-p-no-v0',
-                new Date().getSeconds(),
-                new Date('12-12-2023').getSeconds(),
-                new Date().getSeconds(),
-                ['harus begini', 'ga boleh begitu'],
-              );
-
-              campaign.insert().then(v => console.log(`Insert campaign: ${v}`));
-            }}
-          /> */}
 
         <Button
           title="Create Campaign (Temp)"
