@@ -19,6 +19,11 @@ import {useEffect, useState} from 'react';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import UserListCard from '../components/molecules/UserListCard';
+import {TouchableOpacity} from 'react-native';
+import {Text} from 'react-native';
+import {FAB} from 'react-native-elements';
+import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
+import Edit from '../assets/vectors/edit.svg';
 
 const HomeScreen = () => {
   const {activeRole} = useUser();
@@ -55,7 +60,7 @@ const HomeScreen = () => {
                 ))}
               </HorizontalScrollView>
             </View>
-            <View className="mt-6" style={[flex.flexCol]}>
+            <View className="my-6" style={[flex.flexCol]}>
               <HorizontalPadding>
                 <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
               </HorizontalPadding>
@@ -71,7 +76,7 @@ const HomeScreen = () => {
           </>
         ) : (
           <HorizontalPadding>
-            <View className="mt-4" style={[flex.flexCol]}>
+            <View className="my-4" style={[flex.flexCol]}>
               <HomeSectionHeader
                 header="Users"
                 link={userLimit === 3 ? 'See All' : 'Collapse'}
@@ -95,14 +100,24 @@ const HomeScreen = () => {
             </View>
           </HorizontalPadding>
         )}
-
-        <Button
-          title="Create Campaign (Temp)"
-          onPress={() =>
-            navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-          }
-        />
       </ScrollView>
+      {activeRole === UserRole.BusinessPeople && (
+        <AnimatedPressable
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            right: 20,
+          }}>
+          <FAB
+            onPress={() =>
+              navigation.navigate(AuthenticatedNavigation.CreateCampaign)
+            }
+            size="small"
+            color="#25A436"
+            icon={<Edit width={20} height={20} color={'white'} />}
+          />
+        </AnimatedPressable>
+      )}
     </PageWithSearchBar>
   );
 };
