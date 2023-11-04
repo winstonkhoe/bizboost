@@ -24,11 +24,11 @@ export const AuthProvider = () => {
     return null;
   }
   return (
-    <NavigationContainer>
-      <StackNavigator />
-      <BottomSheetModalProvider>
+    <BottomSheetModalProvider>
+      <NavigationContainer>
+        <StackNavigator />
         <SwitchUserModalProvider />
-      </BottomSheetModalProvider>
-    </NavigationContainer>
+      </NavigationContainer>
+    </BottomSheetModalProvider>
   );
 };

@@ -26,6 +26,12 @@ export const flex = StyleSheet.create({
   grow: {
     flexGrow: 1,
   },
+  wrap: {
+    flexWrap: 'wrap',
+  },
+  wrapRevese: {
+    flexWrap: 'wrap-reverse',
+  },
 });
 
 export const justify = StyleSheet.create({

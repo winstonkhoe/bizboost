@@ -237,7 +237,7 @@ export const CustomTextInput = ({
 };
 
 interface NumberInputProps extends UseControllerProps {
-  label: string;
+  label?: string;
   type?: 'default' | 'field';
   min?: number;
   max?: number;
@@ -329,11 +329,13 @@ export const CustomNumberInput = ({
 
   return (
     <View className="justify-start" style={[flex.flexCol, gap.small]}>
-      <Text
-        className="text-base font-medium"
-        style={[textColor(COLOR.text.neutral.high)]}>
-        {label}
-      </Text>
+      {label && (
+        <Text
+          className="text-base font-medium"
+          style={[textColor(COLOR.text.neutral.high)]}>
+          {label}
+        </Text>
+      )}
       <Controller
         defaultValue={min}
         {...controllerProps}

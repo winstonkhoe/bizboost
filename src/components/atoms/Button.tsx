@@ -13,6 +13,13 @@ import {
 } from '../../styles/Padding';
 import {ReactNode} from 'react';
 import {SizeType} from '../../styles/Size';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import {AnimatedPressable} from './AnimatedPressable';
 
 interface Props extends PressableProps, React.RefAttributes<View> {
   text: string;
@@ -38,50 +45,51 @@ export const CustomButton = ({
   ...props
 }: Props) => {
   return (
-    <Pressable
-      {...props}
-      className="justify-center items-center text-center relative"
-      style={[
-        flex.flexRow,
-        minimumWidth && {alignSelf: 'center'},
-        horizontalPadding.large,
-        verticalPadding[verticalPaddingSize],
-        rounded[roundSize],
-        inverted &&
-          border({
-            borderWidth: 2,
-            color: props.disabled
-              ? customBackgroundColor.disabled
-              : customBackgroundColor.high,
-          }),
-        inverted && background(COLOR.black[0]),
-        !inverted &&
-          background(
-            props.disabled
-              ? customBackgroundColor.disabled
-              : customBackgroundColor.high,
-          ),
-      ]}>
-      {logo && (
-        <View
-          className="absolute top-1/2 left-4 w-8 h-full justify-center items-center"
-          style={[flex.flexRow]}>
-          {logo}
-        </View>
-      )}
-      <Text
-        className={`font-bold ${customTextSize}`}
+    <AnimatedPressable {...props}>
+      <Animated.View
+        className="justify-center items-center text-center relative"
         style={[
-          inverted
-            ? textColor(
-                props.disabled
-                  ? customTextColor.disabled
-                  : customTextColor.default,
-              )
-            : textColor(COLOR.black[1]),
+          flex.flexRow,
+          minimumWidth && {alignSelf: 'center'},
+          horizontalPadding.large,
+          verticalPadding[verticalPaddingSize],
+          rounded[roundSize],
+          inverted &&
+            border({
+              borderWidth: 2,
+              color: props.disabled
+                ? customBackgroundColor.disabled
+                : customBackgroundColor.high,
+            }),
+          inverted && background(COLOR.black[0]),
+          !inverted &&
+            background(
+              props.disabled
+                ? customBackgroundColor.disabled
+                : customBackgroundColor.high,
+            ),
         ]}>
-        {text}
-      </Text>
-    </Pressable>
+        {logo && (
+          <View
+            className="absolute top-1/2 left-4 w-8 h-full justify-center items-center"
+            style={[flex.flexRow]}>
+            {logo}
+          </View>
+        )}
+        <Text
+          className={`font-bold ${customTextSize}`}
+          style={[
+            inverted
+              ? textColor(
+                  props.disabled
+                    ? customTextColor.disabled
+                    : customTextColor.default,
+                )
+              : textColor(COLOR.black[1]),
+          ]}>
+          {text}
+        </Text>
+      </Animated.View>
+    </AnimatedPressable>
   );
 };
