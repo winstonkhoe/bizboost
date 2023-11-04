@@ -110,7 +110,7 @@ const UserDetailScreen = ({route}: Props) => {
               <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
                 <View className="flex flex-row mb-2 items-center">
                   <InstagramLogo width={20} height={20} />
-                  <Text className={`font-semibold ml-1`}>Instagram</Text>
+                  <Text className={'font-semibold ml-1'}>Instagram</Text>
                 </View>
                 <Text className="text-gray-500 mb-1">@username</Text>
                 <Text className="text-gray-500">
@@ -121,7 +121,7 @@ const UserDetailScreen = ({route}: Props) => {
               <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
                 <View className="flex flex-row mb-2 items-center">
                   <TikTokLogo width={20} height={20} />
-                  <Text className={`font-semibold ml-1`}>TikTok</Text>
+                  <Text className={'font-semibold ml-1'}>TikTok</Text>
                 </View>
                 <Text className="text-gray-500 mb-1">@username</Text>
                 <Text className="text-gray-500">

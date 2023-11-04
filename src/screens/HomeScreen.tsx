@@ -17,7 +17,6 @@ import {
 } from '../navigation/StackNavigation';
 import {useEffect, useState} from 'react';
 import {User, UserRole} from '../model/User';
-import {Text} from 'react-native';
 import {useUser} from '../hooks/user';
 import UserListCard from '../components/molecules/UserListCard';
 
@@ -28,6 +27,9 @@ const HomeScreen = () => {
   const {campaigns} = useOngoingCampaign();
 
   const [users, setUsers] = useState<User[]>([]);
+
+  // TODO: kalo klik see all apa mending pindah page?
+  const [userLimit, setUserLimit] = useState(3);
   useEffect(() => {
     const unsubscribe = User.getAll(u => setUsers(u));
 
@@ -68,14 +70,17 @@ const HomeScreen = () => {
             </View>
           </>
         ) : (
-          <View className="mt-6" style={[flex.flexCol]}>
-            <HorizontalPadding>
-              <HomeSectionHeader header="Users" link="See All" />
-            </HorizontalPadding>
-            <View />
-            <HorizontalPadding>
-              <View style={[flex.flexCol, gap.medium]}>
-                {users.map((u, index) => (
+          <HorizontalPadding>
+            <View className="mt-4" style={[flex.flexCol]}>
+              <HomeSectionHeader
+                header="Users"
+                link={userLimit === 3 ? 'See All' : 'Collapse'}
+                onPressLink={() =>
+                  setUserLimit(userLimit === 3 ? users.length : 3)
+                }
+              />
+              <View style={[flex.flexCol, gap.medium]} className="mt-4">
+                {users.slice(0, userLimit).map((u, index) => (
                   <Pressable
                     key={index}
                     onPress={() => {
@@ -87,8 +92,8 @@ const HomeScreen = () => {
                   </Pressable>
                 ))}
               </View>
-            </HorizontalPadding>
-          </View>
+            </View>
+          </HorizontalPadding>
         )}
 
         <Button
