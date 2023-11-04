@@ -8,6 +8,7 @@ import TikTokLogo from '../../assets/vectors/tiktok.svg';
 import ChevronDown from '../../assets/vectors/chevron-down.svg';
 import ChevronUp from '../../assets/vectors/chevron-up.svg';
 import {COLOR} from '../../styles/Color';
+
 const logo = {
   Instagram: <InstagramLogo width={20} height={20} />,
   TikTok: <TikTokLogo width={20} height={20} />,

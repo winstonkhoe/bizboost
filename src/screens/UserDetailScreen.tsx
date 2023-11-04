@@ -21,6 +21,9 @@ import {COLOR} from '../styles/Color';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {ProfileItem} from '../components/molecules/ProfileItem';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
+import InstagramLogo from '../assets/vectors/instagram.svg';
+import TikTokLogo from '../assets/vectors/tiktok.svg';
+
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.UserDetail
@@ -101,6 +104,33 @@ const UserDetailScreen = ({route}: Props) => {
               </View>
             </HorizontalPadding>
           </VerticalPadding>
+
+          <HorizontalPadding>
+            <View className="flex flex-row items-center justify-around w-full">
+              <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
+                <View className="flex flex-row mb-2 items-center">
+                  <InstagramLogo width={20} height={20} />
+                  <Text className={`font-semibold ml-1`}>Instagram</Text>
+                </View>
+                <Text className="text-gray-500 mb-1">@username</Text>
+                <Text className="text-gray-500">
+                  Followers: <Text className="font-bold">100</Text>
+                </Text>
+              </View>
+
+              <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
+                <View className="flex flex-row mb-2 items-center">
+                  <TikTokLogo width={20} height={20} />
+                  <Text className={`font-semibold ml-1`}>TikTok</Text>
+                </View>
+                <Text className="text-gray-500 mb-1">@username</Text>
+                <Text className="text-gray-500">
+                  Followers: <Text className="font-bold">100</Text>
+                </Text>
+              </View>
+            </View>
+          </HorizontalPadding>
+
           <VerticalPadding>
             <HorizontalPadding>
               <CustomButton

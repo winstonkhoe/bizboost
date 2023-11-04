@@ -32,7 +32,7 @@ import {
 } from './signup/RegisterSocialPlatform';
 import {RegisterFocusCategory} from './signup/RegisterFocusCategory';
 import {RegisterLocation} from './signup/RegisterLocation';
-import { RegisterContentCreatorPreferences } from './signup/RegisterContentCreatorPreferences';
+import {RegisterContentCreatorPreferences} from './signup/RegisterContentCreatorPreferences';
 
 type FormData = {
   email: string;
@@ -95,7 +95,7 @@ const SignUpScreen = () => {
     }
 
     commonSteps = [
-      SignupStep.CONTENT_CREATOR_PREFERENCES,
+      SignupStep.SOCIAL_PLATFORM,
       ...commonSteps,
       SignupStep.PROFILE_PICTURE,
     ];
