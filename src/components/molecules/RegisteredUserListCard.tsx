@@ -56,7 +56,7 @@ const RegisteredUserListCard = ({transaction}: Props) => {
       </View>
       {transaction.status === TransactionStatus.registrationPending ? (
         <View className="flex flex-row items-center w-1/2 justify-end">
-          <View className="w-2/5 mr-2">
+          <View className="mr-2">
             <CustomButton
               onPress={() => {
                 transaction.updateStatus(
@@ -67,7 +67,7 @@ const RegisteredUserListCard = ({transaction}: Props) => {
               customTextSize="text-xs"
             />
           </View>
-          <View className="w-2/5">
+          <View>
             <CustomButton
               text="Reject"
               onPress={() => {

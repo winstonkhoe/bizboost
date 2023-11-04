@@ -5,7 +5,7 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {Button, Pressable, Text} from 'react-native';
+import {Pressable, Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
@@ -44,6 +44,18 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [businessPeople, setBusinessPeople] = useState<User | undefined>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
+
+  const [approvedTransactionsCount, setApprovedTransactionsCount] = useState(0);
+
+  useEffect(() => {
+    Transaction.getAllTransactionsByCampaign(campaignId, transactions =>
+      setApprovedTransactionsCount(
+        transactions.filter(
+          t => t.status === TransactionStatus.registrationApproved,
+        ).length,
+      ),
+    );
+  }, [campaignId]);
 
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
@@ -117,7 +129,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                 <People width={20} height={20} />
                 <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
                   <Text className="text-center text-xs font-bold">
-                    0/{campaign.slot}
+                    {approvedTransactionsCount}/{campaign.slot}
                   </Text>
                 </View>
               </View>

@@ -114,7 +114,7 @@ const CreateCampaignScreen = () => {
     setValue,
     watch,
     control,
-    formState: {errors},
+    // formState: {errors},
   } = methods;
 
   const onSubmitButtonClicked = (d: CampaignFormData) => {
