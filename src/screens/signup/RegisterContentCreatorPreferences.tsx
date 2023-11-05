@@ -35,7 +35,7 @@ import {StringObject} from '../../utils/stringObject';
 import {FormLabel} from '../../components/atoms/FormLabel';
 
 export interface ContentCreatorPreference {
-  contentRevisionLimit: number;
+  contentRevisionLimit: number | undefined;
   postingSchedules: Date[];
   preferences: string[];
 }
@@ -45,7 +45,7 @@ interface RegisterContentCreatorPreferencesProps {
 }
 
 export type ContentCreatorPreferencesFormData = {
-  contentRevisionLimit: number;
+  contentRevisionLimit: number | string;
   postingSchedules: {value: Date}[];
   preferences: StringObject[];
 };
@@ -124,8 +124,15 @@ export const RegisterContentCreatorPreferences = ({
 
   useEffect(() => {
     const subscription = watch(value => {
+      let contentRevisionLimit = value.contentRevisionLimit;
+      if (
+        contentRevisionLimit === undefined ||
+        typeof contentRevisionLimit === 'string'
+      ) {
+        contentRevisionLimit = undefined;
+      }
       onPreferenceChange({
-        contentRevisionLimit: value.contentRevisionLimit || 0,
+        contentRevisionLimit: contentRevisionLimit,
         postingSchedules: (
           value?.postingSchedules?.map(item => item?.value) || []
         ).filter((item): item is Date => item !== undefined),
@@ -183,6 +190,9 @@ export const RegisterContentCreatorPreferences = ({
                 type="field"
                 min={0}
                 max={999}
+                rules={{
+                  required: 'Revision limit cannot be empty',
+                }}
               />
             </View>
             <View style={[flex.flexCol, gap.medium]}>

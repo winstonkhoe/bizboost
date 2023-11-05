@@ -393,6 +393,11 @@ const SignUpScreen = () => {
                     text={actionText}
                     rounded="max"
                     minimumWidth
+                    disabled={
+                      contentCreatorPreference?.contentRevisionLimit ===
+                        undefined ||
+                      contentCreatorPreference.contentRevisionLimit < 0
+                    }
                     onPress={nextPage}
                   />
                 </View>

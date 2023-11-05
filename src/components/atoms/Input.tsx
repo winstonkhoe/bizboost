@@ -314,11 +314,10 @@ export const CustomNumberInput = ({
     let actual = text.replaceAll('.', '');
     const parsedNumber = parseInt(actual, 10);
     if (!isNaN(parsedNumber)) {
-      actual = `${updateValue(actual, 0)}`;
+      onChange(updateValue(actual, 0));
     } else {
-      actual = type === 'field' ? '' : '0';
+      onChange(type === 'field' ? '' : '0');
     }
-    onChange(actual);
   };
 
   const decrement = (actual: string, onChange: (...event: any[]) => void) => {
