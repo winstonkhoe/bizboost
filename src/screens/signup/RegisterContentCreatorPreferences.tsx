@@ -94,33 +94,39 @@ export const RegisterContentCreatorPreferences = ({
     control,
   });
 
-  const closeDatePickerSheetModalAndReset = useCallback(() => {
+  const closeDatePickerSheetModal = () => {
+    setIsDatePickerModalOpened(false);
+  };
+
+  const resetDatePickerSheetModal = useCallback(() => {
     setTemporaryDate(new Date());
     if (updatePostingSchedulesIndex !== undefined) {
       setUpdatePostingSchedulesIndex(undefined);
     }
-    setIsDatePickerModalOpened(false);
   }, [updatePostingSchedulesIndex]);
 
-  const closePreferenceSheetModalAndReset = useCallback(() => {
+  const closePreferenceSheetModal = () => {
+    setIsPreferencesModalOpened(false);
+  };
+
+  const resetPreferenceSheetModal = useCallback(() => {
     setTemporaryPreference('');
     if (updatePreferenceIndex !== undefined) {
       setUpdatePreferenceIndex(undefined);
     }
-    setIsPreferencesModalOpened(false);
   }, [updatePreferenceIndex]);
 
   useEffect(() => {
     if (!isDatePickerModalOpened) {
-      closeDatePickerSheetModalAndReset();
+      resetDatePickerSheetModal();
     }
-  }, [isDatePickerModalOpened, closeDatePickerSheetModalAndReset]);
+  }, [isDatePickerModalOpened, resetDatePickerSheetModal]);
 
   useEffect(() => {
     if (!isPreferencesModalOpened) {
-      closePreferenceSheetModalAndReset();
+      resetPreferenceSheetModal();
     }
-  }, [isPreferencesModalOpened, closePreferenceSheetModalAndReset]);
+  }, [isPreferencesModalOpened, resetPreferenceSheetModal]);
 
   useEffect(() => {
     const subscription = watch(value => {
@@ -149,20 +155,24 @@ export const RegisterContentCreatorPreferences = ({
     appendPostingSchedule({
       value: temporaryDate,
     });
+    closeDatePickerSheetModal();
   };
 
   const updatePostingSchedule = (onChange: (...event: any[]) => void) => {
     onChange(temporaryDate);
+    closeDatePickerSheetModal();
   };
 
   const savePreference = () => {
     appendPreferences({
       value: temporaryPreference,
     });
+    closePreferenceSheetModal();
   };
 
   const updatePreference = (onChange: (...event: any[]) => void) => {
     onChange(temporaryPreference);
+    closePreferenceSheetModal();
   };
 
   return (
