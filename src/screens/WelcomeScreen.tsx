@@ -109,7 +109,7 @@ const WelcomeScreen = () => {
               <CustomButton
                 text="Continue with Google"
                 rounded="max"
-                inverted
+                type="secondary"
                 logo={
                   <View>
                     <GoogleLogo width={25} height={25} />
@@ -121,7 +121,7 @@ const WelcomeScreen = () => {
               <CustomButton
                 text="Continue with Facebook"
                 rounded="max"
-                inverted
+                type="secondary"
                 logo={
                   <View>
                     <FacebookLogo width={35} height={35} color="#0F90F3" />
@@ -133,7 +133,7 @@ const WelcomeScreen = () => {
               <CustomButton
                 text="Log in"
                 rounded="max"
-                inverted
+                type="secondary"
                 onPress={() => {
                   navigation.navigate(GuestNavigation.Login);
                 }}

@@ -91,7 +91,7 @@ const LoginScreen = () => {
                     <CustomButton
                       text="Continue With Google"
                       rounded="max"
-                      inverted
+                      type="secondary"
                       onPress={handleLoginWithGoogle}
                     />
                   </View>
