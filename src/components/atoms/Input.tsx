@@ -38,6 +38,9 @@ import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {AddIcon, MinusIcon} from './Icon';
 import {font} from '../../styles/Font';
+import uuid from 'react-native-uuid';
+import storage from '@react-native-firebase/storage';
+import {ProgressBar} from './ProgressBar';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -495,23 +498,67 @@ const IncrementDecrementButton = ({
 
 interface MediaUploaderProps {
   options: Options;
+  targetFolder: string;
+  showUploadProgress?: boolean;
   children?: React.ReactNode;
-  callback: (media: ImageOrVideo) => void;
+  onMediaSelected?: (media: ImageOrVideo) => void;
+  onUploadSuccess?: (url: string) => void;
+  onUploadFail?: (err?: any) => void;
 }
 
 export const MediaUploader = ({
   options,
-  onUploadComplete,
+  targetFolder,
+  showUploadProgress = false,
+  onUploadSuccess,
+  onUploadFail,
   children,
-  callback,
+  onMediaSelected,
 }: MediaUploaderProps) => {
+  const [uploadProgress, setUploadProgress] = useState<number | undefined>(
+    undefined,
+  );
   const handleImageUpload = () => {
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
-        callback(media);
+        onMediaSelected && onMediaSelected(media);
+        const imageType = media.mime.split('/')[1];
+        const filename = `${targetFolder}/${uuid.v4()}.${imageType}`;
+
+        const reference = storage().ref(filename);
+        const task = reference.putFile(media.path);
+        task.on('state_changed', taskSnapshot => {
+          console.log(
+            `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
+          );
+          setUploadProgress(
+            taskSnapshot.bytesTransferred / taskSnapshot.totalBytes,
+          );
+        });
+        task.then(() => {
+          try {
+            reference
+              .getDownloadURL()
+              .then(url => {
+                onUploadSuccess && onUploadSuccess(url);
+                console.log(url);
+                console.log('Image uploaded to the bucket!');
+              })
+              .catch(err => {
+                onUploadFail && onUploadFail(err);
+                setUploadProgress(undefined);
+                console.log(err);
+              });
+          } catch (e) {
+            onUploadFail && onUploadFail(e);
+            setUploadProgress(undefined);
+            console.log(e);
+          }
+        });
       })
       .catch(err => {
         console.log(err);
+        setUploadProgress(undefined);
       });
   };
 
@@ -520,6 +567,11 @@ export const MediaUploader = ({
       <View style={[flex.flexRow]} className="items-center">
         {children || <CustomButton text="Upload image" rounded={'small'} />}
       </View>
+      {showUploadProgress &&
+        uploadProgress !== undefined &&
+        uploadProgress < 1 && (
+          <ProgressBar currentProgress={uploadProgress} showProgressNumber />
+        )}
     </TouchableOpacity>
   );
 };
