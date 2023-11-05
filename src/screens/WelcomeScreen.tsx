@@ -9,8 +9,6 @@ import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {User, UserAuthProviderData} from '../model/User';
 import {useAppDispatch} from '../redux/hooks';
-import GoogleLogo from '../assets/vectors/google-color-logo.svg';
-import FacebookLogo from '../assets/vectors/facebook-logo.svg';
 import {
   setSignupProvider,
   updateSignupData,
@@ -22,6 +20,7 @@ import {
   GuestNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
 
 const WelcomeScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -106,34 +105,18 @@ const WelcomeScreen = () => {
                 rounded="max"
                 onPress={handleEmailSignup}
               />
-              <CustomButton
-                text="Continue with Google"
-                rounded="max"
-                type="secondary"
-                logo={
-                  <View>
-                    <GoogleLogo width={25} height={25} />
-                  </View>
-                }
+              <AuthProviderButton
+                provider={Provider.GOOGLE}
                 onPress={async () => await continueWithGoogle()}
               />
-
-              <CustomButton
-                text="Continue with Facebook"
-                rounded="max"
-                type="secondary"
-                logo={
-                  <View>
-                    <FacebookLogo width={35} height={35} color="#0F90F3" />
-                  </View>
-                }
+              <AuthProviderButton
+                provider={Provider.FACEBOOK}
                 onPress={continueWithFacebook}
               />
 
-              <CustomButton
-                text="Log in"
-                rounded="max"
-                type="secondary"
+              <AuthProviderButton
+                provider={Provider.EMAIL}
+                type="tertiary"
                 onPress={() => {
                   navigation.navigate(GuestNavigation.Login);
                 }}
