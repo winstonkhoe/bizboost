@@ -14,7 +14,9 @@ import {AnimatedPressable} from './AnimatedPressable';
 
 type Prominence = 'primary' | 'secondary' | 'tertiary';
 
-interface Props extends PressableProps, React.RefAttributes<View> {
+export interface CustomButtonProps
+  extends PressableProps,
+    React.RefAttributes<View> {
   text: string;
   rounded?: RadiusSizeType;
   type?: Prominence;
@@ -37,7 +39,7 @@ export const CustomButton = ({
   minimumWidth = false,
   logo,
   ...props
-}: Props) => {
+}: CustomButtonProps) => {
   return (
     <AnimatedPressable {...props}>
       <Animated.View
