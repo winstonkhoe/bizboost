@@ -82,7 +82,7 @@ export class AuthMethod extends BaseModel {
 
   static async getByEmail(email: string): Promise<AuthMethod | undefined> {
     const querySnapshot = await this.getCollectionReference()
-      .where('email', '==', email)
+      .where('email', '==', email.toLowerCase())
       .get();
 
     if (!querySnapshot.empty) {
