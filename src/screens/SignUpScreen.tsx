@@ -32,7 +32,10 @@ import {
 } from './signup/RegisterSocialPlatform';
 import {RegisterFocusCategory} from './signup/RegisterFocusCategory';
 import {RegisterLocation} from './signup/RegisterLocation';
-import { RegisterContentCreatorPreferences } from './signup/RegisterContentCreatorPreferences';
+import {
+  ContentCreatorPreference,
+  RegisterContentCreatorPreferences,
+} from './signup/RegisterContentCreatorPreferences';
 
 type FormData = {
   email: string;
@@ -55,6 +58,8 @@ enum SignupStep {
 }
 
 const SignUpScreen = () => {
+  const [contentCreatorPreference, setContentCreatorPreference] =
+    useState<ContentCreatorPreference>();
   const [platformDatas, setPlatformDatas] = useState<PlatformData[]>([]);
   const [isValidPlatformData, setIsValidPlatformData] =
     useState<boolean>(false);
@@ -211,9 +216,6 @@ const SignUpScreen = () => {
             scrollEnabled={false}
             onPageSelected={e => {
               const position = e.nativeEvent.position;
-              console.log(e.nativeEvent);
-              console.log('position', position);
-
               setActivePosition(steps.findIndex(step => step === position));
             }}>
             <View key={SignupStep.EMAIL}>
@@ -385,10 +387,10 @@ const SignUpScreen = () => {
               <KeyboardAvoidingContainer>
                 <View style={[flex.flexCol, gap.xlarge2]}>
                   <RegisterContentCreatorPreferences
-                    onLocationsChange={setPreferredLocations}
+                    onPreferenceChange={setContentCreatorPreference}
                   />
                   <CustomButton
-                    text={preferredLocations.length === 0 ? 'Skip' : actionText}
+                    text={actionText}
                     rounded="max"
                     minimumWidth
                     onPress={nextPage}
