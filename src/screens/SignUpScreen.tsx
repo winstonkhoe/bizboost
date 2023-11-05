@@ -6,7 +6,7 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
-import {flex} from '../styles/Flex';
+import {flex, items, justify} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {textColor} from '../styles/Text';
 import {COLOR} from '../styles/Color';
@@ -18,12 +18,11 @@ import {isValidField} from '../utils/form';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {verticalPadding} from '../styles/Padding';
 import {Stepper} from '../components/atoms/Stepper';
-import {Provider} from '../model/AuthMethod';
+import {AuthMethod, Provider, Providers} from '../model/AuthMethod';
 import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationStackProps} from '../navigation/StackNavigation';
 import {Location} from '../model/Location';
-import {openLocationModal} from '../utils/modal';
 import {Category} from '../model/Category';
 import {ChooseRole} from './signup/ChooseRole';
 import {
@@ -37,6 +36,9 @@ import {
   RegisterContentCreatorPreferences,
 } from './signup/RegisterContentCreatorPreferences';
 import {RegisterProfilePicture} from './signup/RegisterProfilePicture';
+import {CustomModal} from '../components/atoms/CustomModal';
+import {font} from '../styles/Font';
+import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
 
 type FormData = {
   email: string;
@@ -59,6 +61,10 @@ enum SignupStep {
 }
 
 const SignUpScreen = () => {
+  const [loginAuthMethod, setLoginAuthMethod] = useState<Providers | undefined>(
+    undefined,
+  );
+  const [isLoginModalOpened, setIsLoginModalOpened] = useState<boolean>(false);
   const [profilePicture, setProfilePicture] = useState<string | undefined>(
     undefined,
   );
@@ -93,7 +99,7 @@ const SignUpScreen = () => {
       commonSteps = [SignupStep.EMAIL, SignupStep.PASSWORD, ...commonSteps];
     }
 
-    if (UserRole.ContentCreator === role) {
+    if (UserRole.ContentCreator === currentRole) {
       commonSteps = [
         ...commonSteps,
         SignupStep.SOCIAL_PLATFORM,
@@ -105,7 +111,7 @@ const SignUpScreen = () => {
 
     commonSteps = [...commonSteps, SignupStep.PROFILE_PICTURE];
     return commonSteps;
-  }, [provider, userSignupData, role]);
+  }, [provider, userSignupData, currentRole]);
 
   const pagerViewRef = useRef<PagerView>(null);
   const methods = useForm<FormData>({
@@ -113,7 +119,8 @@ const SignUpScreen = () => {
     defaultValues: {},
   });
 
-  const {handleSubmit, getFieldState, watch, formState, setValue} = methods;
+  const {handleSubmit, getFieldState, watch, formState, setValue, getValues} =
+    methods;
 
   const onSubmit = (data: FormData) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -164,6 +171,17 @@ const SignUpScreen = () => {
     },
     [setValue],
   );
+
+  const emailCheck = async () => {
+    const email = getValues('email');
+    const authMethod = await AuthMethod.getByEmail(email);
+    if (authMethod) {
+      setLoginAuthMethod(authMethod.method);
+      setIsLoginModalOpened(true);
+    } else {
+      nextPage();
+    }
+  };
 
   useEffect(() => {
     if (steps.includes(SignupStep.EMAIL)) {
@@ -240,8 +258,40 @@ const SignUpScreen = () => {
                       disabled={
                         !isValidField(getFieldState('email', formState))
                       }
-                      onPress={nextPage}
+                      onPress={emailCheck}
                     />
+                    <CustomModal
+                      transparent={true}
+                      visible={isLoginModalOpened}>
+                      <HorizontalPadding paddingSize="xlarge">
+                        <VerticalPadding paddingSize="xlarge">
+                          <View style={[flex.flexCol, gap.large]}>
+                            <Text
+                              className="self-center text-center font-bold"
+                              style={[font.size[40]]}>
+                              This email is already connected to an account
+                            </Text>
+                            <Text
+                              className="self-center text-center"
+                              style={[font.size[40]]}>
+                              Do you want to log in instead?
+                            </Text>
+                            <View style={[flex.flexCol, gap.default]}>
+                              <AuthProviderButton
+                                provider={loginAuthMethod || Provider.EMAIL}
+                                customTextSize="text-sm"
+                              />
+                              <CustomButton
+                                text="Dismiss"
+                                type="tertiary"
+                                rounded="large"
+                                onPress={() => setIsLoginModalOpened(false)}
+                              />
+                            </View>
+                          </View>
+                        </VerticalPadding>
+                      </HorizontalPadding>
+                    </CustomModal>
                   </View>
                 </HorizontalPadding>
               </VerticalPadding>
