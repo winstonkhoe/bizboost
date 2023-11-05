@@ -528,9 +528,6 @@ export const MediaUploader = ({
         const reference = storage().ref(filename);
         const task = reference.putFile(media.path);
         task.on('state_changed', taskSnapshot => {
-          console.log(
-            `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
-          );
           setUploadProgress(
             taskSnapshot.bytesTransferred / taskSnapshot.totalBytes,
           );
