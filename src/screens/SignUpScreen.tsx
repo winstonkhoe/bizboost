@@ -36,6 +36,7 @@ import {
   ContentCreatorPreference,
   RegisterContentCreatorPreferences,
 } from './signup/RegisterContentCreatorPreferences';
+import {RegisterProfilePicture} from './signup/RegisterProfilePicture';
 
 type FormData = {
   email: string;
@@ -58,6 +59,9 @@ enum SignupStep {
 }
 
 const SignUpScreen = () => {
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(
+    undefined,
+  );
   const [contentCreatorPreference, setContentCreatorPreference] =
     useState<ContentCreatorPreference>();
   const [platformDatas, setPlatformDatas] = useState<PlatformData[]>([]);
@@ -99,11 +103,7 @@ const SignUpScreen = () => {
       ];
     }
 
-    commonSteps = [
-      SignupStep.CONTENT_CREATOR_PREFERENCES,
-      ...commonSteps,
-      SignupStep.PROFILE_PICTURE,
-    ];
+    commonSteps = [...commonSteps, SignupStep.PROFILE_PICTURE];
     return commonSteps;
   }, [provider, userSignupData, role]);
 
@@ -398,6 +398,21 @@ const SignUpScreen = () => {
                         undefined ||
                       contentCreatorPreference.contentRevisionLimit < 0
                     }
+                    onPress={nextPage}
+                  />
+                </View>
+              </KeyboardAvoidingContainer>
+            </View>
+            <View key={SignupStep.PROFILE_PICTURE}>
+              <KeyboardAvoidingContainer>
+                <View style={[flex.flexCol, gap.xlarge2]}>
+                  <RegisterProfilePicture
+                    onProfilePictureChange={setProfilePicture}
+                  />
+                  <CustomButton
+                    text={actionText}
+                    rounded="max"
+                    minimumWidth
                     onPress={nextPage}
                   />
                 </View>
