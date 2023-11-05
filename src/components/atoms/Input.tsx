@@ -5,6 +5,7 @@ import {
   KeyboardTypeOptions,
   Pressable,
   PressableProps,
+  TextInputProps,
 } from 'react-native';
 import {TextInput} from 'react-native';
 import {Text} from 'react-native';
@@ -36,6 +37,7 @@ import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {AddIcon, MinusIcon} from './Icon';
+import {font} from '../../styles/Font';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -520,5 +522,212 @@ export const MediaUploader = ({
         {children || <CustomButton text="Upload image" rounded={'small'} />}
       </View>
     </TouchableOpacity>
+  );
+};
+
+interface FormlessTextInputProps extends TextInputProps {
+  label?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  error?: boolean;
+  success?: boolean;
+  description?: string;
+  counter?: boolean;
+  max?: number;
+  inputType?: 'default' | 'number' | 'price';
+  prefix?: string;
+  focus?: boolean;
+  onChangeText?: (text: string) => void;
+}
+
+export const FormlessTextInput = ({
+  label,
+  placeholder = label,
+  disabled = false,
+  error,
+  success,
+  description,
+  counter,
+  max,
+  inputType = 'default',
+  prefix,
+  focus = false,
+  onChangeText,
+  ...props
+}: FormlessTextInputProps) => {
+  const fieldRef = useRef<TextInput>(null);
+  const [fieldValue, setFieldValue] = useState(props.defaultValue || '');
+  const maxTranslateX = 40;
+  const animationDuration = 400;
+  const translateX = useSharedValue(maxTranslateX);
+  const [parentWidth, setParentWidth] = useState<number>(0);
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedWidth, {
+      toValue: !error && focus ? 1 : 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [focus, animatedWidth, error, props]);
+
+  useEffect(() => {
+    if (fieldValue?.length > 0 || disabled) {
+      translateX.value = 0;
+    } else {
+      translateX.value = maxTranslateX;
+    }
+  }, [fieldValue, translateX, disabled]);
+
+  useEffect(() => {
+    if (onChangeText) {
+      onChangeText(fieldValue);
+    }
+  }, [fieldValue, onChangeText]);
+
+  useEffect(() => {
+    if (focus) {
+      fieldRef.current?.focus();
+    } else {
+      fieldRef.current?.blur();
+    }
+  }, [focus]);
+
+  const animatedStyles = useAnimatedStyle(() => ({
+    opacity: withTiming(fieldValue?.length > 0 || disabled ? 1 : 0, {
+      duration: animationDuration,
+    }),
+    transform: [
+      {
+        translateX: withSpring(translateX.value * 2),
+      },
+    ],
+  }));
+
+  const handleChangeText = (text: string) => {
+    let actual = text;
+    if (!max || (max && actual.length <= max)) {
+      if (inputType === 'price' || inputType === 'number') {
+        if (text !== '') {
+          actual = actual.replaceAll('.', '');
+          const parsedNumber = parseInt(actual, 10);
+          if (!isNaN(parsedNumber)) {
+            actual = `${parsedNumber}`;
+          } else {
+            actual = '0';
+          }
+        }
+      }
+      setFieldValue(actual);
+    }
+  };
+
+  return (
+    <View style={[flex.flexCol, gap.small]}>
+      <Reanimated.View style={[animatedStyles]}>
+        <Text
+          className="text-base font-medium"
+          style={[textColor(COLOR.text.neutral.high)]}>
+          {label}
+        </Text>
+      </Reanimated.View>
+      <View
+        style={[
+          flex.flexRow,
+          justify.start,
+          gap.default,
+          disabled && rounded.default,
+          disabled && horizontalPadding.small,
+          disabled && background(COLOR.background.neutral.disabled),
+        ]}>
+        {(prefix || inputType === 'price') && (
+          <View
+            style={[
+              flex.flexRow,
+              verticalPadding.xsmall2,
+              justify.start,
+              items.end,
+            ]}>
+            <Text
+              className="text-base font-semibold"
+              style={[textColor(COLOR.text.neutral.low)]}>
+              {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
+            </Text>
+          </View>
+        )}
+        <TextInput
+          ref={fieldRef}
+          {...props}
+          keyboardType={
+            props.keyboardType
+              ? props.keyboardType
+              : inputType === 'number' || inputType === 'price'
+              ? 'number-pad'
+              : undefined
+          }
+          style={[
+            textColor(
+              disabled ? COLOR.text.neutral.low : COLOR.text.neutral.high,
+            ),
+            font.size[30],
+            font.lineHeight[30],
+          ]}
+          value={
+            inputType === 'number' || inputType === 'price'
+              ? `${formatNumberWithThousandSeparator(parseInt(fieldValue, 10))}`
+              : fieldValue
+          }
+          editable={!disabled}
+          onChangeText={text => handleChangeText(text)}
+          placeholder={placeholder}
+          className="w-full font-medium"
+        />
+      </View>
+      {!disabled && (
+        <View
+          onLayout={event => {
+            const {width} = event.nativeEvent.layout;
+            setParentWidth(width);
+          }}
+          className="relative w-full overflow-hidden"
+          style={[
+            {height: 1},
+            error ? background(COLOR.red.error) : background(COLOR.black[100]),
+          ]}>
+          <Animated.View
+            className="absolute top-0 left-0 w-full h-full bg-green-700"
+            style={{
+              transform: [
+                {
+                  translateX: animatedWidth.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-parentWidth, 0],
+                  }),
+                },
+              ],
+            }}
+          />
+        </View>
+      )}
+      <View style={[flex.flexRow, gap.medium, justify.between]}>
+        <Text
+          className="text-xs"
+          style={[
+            flex.flex1,
+            flex.grow,
+            textColor(COLOR.text.neutral.med),
+            error && textColor(COLOR.text.danger.default),
+          ]}>
+          {description}
+        </Text>
+        {counter && (
+          <Text
+            className="text-xs"
+            style={[textColor(COLOR.text.neutral.med)]}>{`${
+            fieldValue.length
+          } / ${parseInt(`${max}`, 10)}`}</Text>
+        )}
+      </View>
+    </View>
   );
 };
