@@ -30,6 +30,11 @@ export enum SocialPlatform {
   Tiktok = 'Tiktok',
 }
 
+export enum UserStatus {
+  Active = 'Active',
+  Suspended = 'Suspended',
+}
+
 export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
 
 export type UserRoles =
@@ -87,6 +92,8 @@ export class User extends BaseModel {
   instagram?: SocialData;
   tiktok?: SocialData;
   joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
+  isAdmin?: boolean;
+  status?: UserStatus;
 
   constructor({
     id,
@@ -96,6 +103,8 @@ export class User extends BaseModel {
     contentCreator,
     businessPeople,
     joinedAt,
+    isAdmin,
+    status,
     instagram,
     tiktok,
   }: Partial<User>) {
@@ -107,6 +116,8 @@ export class User extends BaseModel {
     this.contentCreator = contentCreator;
     this.businessPeople = businessPeople;
     this.joinedAt = joinedAt;
+    this.isAdmin = isAdmin;
+    this.status = status;
     this.instagram = instagram;
     this.tiktok = tiktok;
     // Add your non-static methods here
@@ -141,6 +152,8 @@ export class User extends BaseModel {
         },
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt?.seconds,
+        isAdmin: data?.isAdmin,
+        status: data?.status || UserStatus.Active,
       });
     }
 
@@ -193,16 +206,58 @@ export class User extends BaseModel {
     );
   }
 
+  // static async getAll(): Promise<User[]> {
+  //   try {
+  //     const users = await firestore()
+  //       .collection(USER_COLLECTION)
+  //       // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja?
+  //       // .where('isAdmin', '!=', true)
+  //       .get();
+  //     if (users.empty) {
+  //       throw Error('No Users!');
+  //     }
+  //     return users.docs.map(doc => this.fromSnapshot(doc));
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw Error('Error!');
+  //   }
+  // }
+
+  static getAll(onComplete: (users: User[]) => void) {
+    const unsubscribe = firestore()
+      .collection(USER_COLLECTION)
+      // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja?
+      // .where('isAdmin', '!=', true)
+      .onSnapshot(
+        querySnapshot => {
+          let users: User[] = [];
+          if (querySnapshot.empty) {
+            return;
+          }
+          users = querySnapshot.docs.map(doc => this.fromSnapshot(doc));
+
+          onComplete(users);
+        },
+        error => {
+          console.log(error);
+        },
+      );
+
+    return unsubscribe;
+  }
+
   static async getById(documentId: string): Promise<User | undefined> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {
       const userData = snapshot.data();
       const user = new User({
+        id: snapshot.id,
         email: userData?.email,
         phone: userData?.phone,
         contentCreator: userData?.contentCreator,
         businessPeople: userData?.businessPeople,
         joinedAt: userData?.joinedAt?.seconds,
+        isAdmin: userData?.isAdmin,
       });
 
       return user;
@@ -226,6 +281,7 @@ export class User extends BaseModel {
           contentCreator: userData?.contentCreator,
           businessPeople: userData?.businessPeople,
           joinedAt: userData?.joinedAt?.seconds,
+          isAdmin: userData?.isAdmin,
         });
 
         return user;
@@ -237,22 +293,24 @@ export class User extends BaseModel {
     }
   }
 
+  // TODO: fix callback and unsubscribe return
   static getUserDataReactive(
     documentId: string,
-    callback: (user: User | null, unsubscribe: () => void) => void,
-  ): void {
+    callback: (user: User | null) => void,
+  ) {
     try {
-      const subscriber = this.getDocumentReference(documentId).onSnapshot(
+      const unsubscribe = this.getDocumentReference(documentId).onSnapshot(
         (
           documentSnapshot: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
         ) => {
           const user = this.fromSnapshot(documentSnapshot);
-          callback(user, subscriber);
+          callback(user);
         },
         (error: Error) => {
           console.log(error);
         },
       );
+      return unsubscribe;
     } catch (error) {
       throw Error('Error!');
     }
@@ -589,6 +647,7 @@ export class User extends BaseModel {
       'pages_show_list',
       'instagram_basic',
       'business_management',
+      // 'email',
     ]);
 
     if (result.isCancelled) {

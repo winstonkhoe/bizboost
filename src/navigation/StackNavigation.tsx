@@ -20,6 +20,9 @@ import {useUser} from '../hooks/user';
 import {Location} from '../model/Location';
 import {Category} from '../model/Category';
 import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
+import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
+import {User} from '../model/User';
+import UserDetailScreen from '../screens/UserDetailScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -31,12 +34,14 @@ export enum GuestNavigation {
 export enum AuthenticatedNavigation {
   Main = 'Main',
   Home = 'Home',
+  BusinessPeopleDetail = 'Business People Detail',
   CampaignDetail = 'Campaign Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
   ChatDetail = 'Chat Screen',
   ChatList = 'Chat List',
   CampaignRegistrants = 'Campaign Registrants',
+  UserDetail = 'User Detail',
 }
 
 export enum GeneralNavigation {
@@ -54,6 +59,7 @@ export type GuestStack = {
 export type AuthenticatedStack = {
   [AuthenticatedNavigation.Main]: undefined;
   [AuthenticatedNavigation.Home]: undefined;
+  [AuthenticatedNavigation.BusinessPeopleDetail]: {businessPeopleId: string};
   [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
@@ -61,6 +67,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
+  [AuthenticatedNavigation.UserDetail]: {userId: string};
 };
 
 interface LocationModalProps {
@@ -169,6 +176,16 @@ const StackNavigator = () => {
           <Stack.Screen
             name={AuthenticatedNavigation.CampaignDetail}
             component={CampaignDetailScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name={AuthenticatedNavigation.BusinessPeopleDetail}
+            component={BusinessPeopleDetailScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name={AuthenticatedNavigation.UserDetail}
+            component={UserDetailScreen}
             options={{headerShown: false}}
           />
           <Stack.Screen

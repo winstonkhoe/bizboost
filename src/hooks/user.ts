@@ -32,7 +32,7 @@ export const useUser = () => {
   );
 
   useEffect(() => {
-    const updateUserState = (u: User | null, unsubscribe: () => void) => {
+    const updateUserState = (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
         if (!activeRole && u.contentCreator?.fullname) {
@@ -40,11 +40,11 @@ export const useUser = () => {
         } else {
           dispatch(switchRole(UserRole.BusinessPeople));
         }
-        return unsubscribe;
       }
     };
     if (!user && uid) {
-      User.getUserDataReactive(uid, updateUserState);
+      const unsubscribe = User.getUserDataReactive(uid, updateUserState);
+      return unsubscribe;
     }
     if (user && !uid) {
       dispatch(setUser(null));

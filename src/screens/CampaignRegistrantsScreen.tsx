@@ -28,9 +28,13 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
       <CloseModal />
       <HorizontalPadding>
         <Text className="text-lg font-bold">Registrants</Text>
-        {transactions.map((t, index) => (
-          <RegisteredUserListCard transaction={t} key={index} />
-        ))}
+        {transactions.length <= 0 ? (
+          <Text>No Content Creator has joined this campaign!</Text>
+        ) : (
+          transactions.map((t, index) => (
+            <RegisteredUserListCard transaction={t} key={index} />
+          ))
+        )}
       </HorizontalPadding>
     </SafeAreaContainer>
   );

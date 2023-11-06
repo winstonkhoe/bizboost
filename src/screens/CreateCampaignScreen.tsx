@@ -114,10 +114,10 @@ const CreateCampaignScreen = () => {
     setValue,
     watch,
     control,
-    formState: {errors},
+    // formState: {errors},
   } = methods;
 
-  const onSubmit = (d: CampaignFormData) => {
+  const onSubmitButtonClicked = (d: CampaignFormData) => {
     setIsUploading(true);
 
     // TODO: extract to utility function
@@ -571,7 +571,7 @@ const CreateCampaignScreen = () => {
                   <CustomButton
                     text="Submit"
                     rounded="default"
-                    onPress={handleSubmit(onSubmit)}
+                    onPress={handleSubmit(onSubmitButtonClicked)}
                   />
                 </View>
               </HorizontalPadding>

@@ -5,11 +5,11 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {Text} from 'react-native';
+import {Pressable, Text} from 'react-native';
 import {View} from 'react-native';
 import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
-import {Campaign, CampaignPlatform} from '../model/Campaign';
+import {Campaign} from '../model/Campaign';
 import {getDate} from '../utils/date';
 import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
@@ -17,10 +17,17 @@ import {Transaction, TransactionStatus} from '../model/Transaction';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 
 import People from '../assets/vectors/people.svg';
+import ChevronRight from '../assets/vectors/chevron-right.svg';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
+import {User} from '../model/User';
+import {flex} from '../styles/Flex';
+import {horizontalPadding, verticalPadding} from '../styles/Padding';
+import {rounded} from '../styles/BorderRadius';
+import {border} from '../styles/Border';
+import {textColor} from '../styles/Text';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -34,8 +41,21 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     TransactionStatus.notRegistered,
   );
+  const [businessPeople, setBusinessPeople] = useState<User | undefined>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
+
+  const [approvedTransactionsCount, setApprovedTransactionsCount] = useState(0);
+
+  useEffect(() => {
+    Transaction.getAllTransactionsByCampaign(campaignId, transactions =>
+      setApprovedTransactionsCount(
+        transactions.filter(
+          t => t.status === TransactionStatus.registrationApproved,
+        ).length,
+      ),
+    );
+  }, [campaignId]);
 
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
@@ -53,6 +73,10 @@ const CampaignDetailScreen = ({route}: Props) => {
 
     return unsubscribe;
   }, [campaignId, uid]);
+
+  useEffect(() => {
+    User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
+  }, [campaign]);
 
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
@@ -105,7 +129,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                 <People width={20} height={20} />
                 <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
                   <Text className="text-center text-xs font-bold">
-                    0/{campaign.slot}
+                    {approvedTransactionsCount}/{campaign.slot}
                   </Text>
                 </View>
               </View>
@@ -139,6 +163,57 @@ const CampaignDetailScreen = ({route}: Props) => {
               )}
             </View>
           </View>
+
+          {/* TODO: extract component */}
+          {businessPeople && (
+            <Pressable
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.BusinessPeopleDetail,
+                  {businessPeopleId: `${businessPeople.id}`},
+                );
+              }}
+              className="justify-between items-center text-center relative"
+              style={[
+                flex.flexRow,
+                horizontalPadding.default,
+                verticalPadding.default,
+                rounded.default,
+                border({
+                  borderWidth: 1,
+                  color: COLOR.background.neutral.disabled,
+                }),
+              ]}>
+              <View className="flex flex-row items-center">
+                <View
+                  className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
+                  style={[flex.flexRow, rounded.max]}>
+                  <Image
+                    className="w-full h-full object-cover"
+                    source={
+                      businessPeople.businessPeople?.profilePicture
+                        ? {
+                            uri: businessPeople.businessPeople?.profilePicture,
+                          }
+                        : require('../assets/images/bizboost-avatar.png')
+                    }
+                  />
+                </View>
+                <View className="flex flex-col">
+                  <Text className="font-semibold">
+                    {businessPeople.businessPeople?.fullname}
+                  </Text>
+                  <Text
+                    className="text-xs"
+                    style={[textColor(COLOR.black[30])]}>
+                    Subtitle
+                  </Text>
+                </View>
+              </View>
+
+              <ChevronRight fill={COLOR.black[20]} />
+            </Pressable>
+          )}
 
           {isMoreInfoVisible && (
             <View className="flex flex-col" style={[gap.medium]}>
@@ -190,7 +265,7 @@ const CampaignDetailScreen = ({route}: Props) => {
             <CustomButton
               customBackgroundColor={COLOR.background.neutral}
               customTextColor={COLOR.text.neutral}
-              verticalPadding="xsmall"
+              verticalPadding="small"
               type="secondary"
               text={
                 isMoreInfoVisible ? 'Hide Information' : 'Read More Information'

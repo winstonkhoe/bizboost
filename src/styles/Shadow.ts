@@ -12,7 +12,7 @@ export const shadow = StyleSheet.create<SizeStyle>(
           width: 0,
           height: 0,
         },
-        shadowOpacity: 0.25,
+        shadowOpacity: 0.15,
         shadowRadius: value,
         elevation: value,
       } as ViewStyle,

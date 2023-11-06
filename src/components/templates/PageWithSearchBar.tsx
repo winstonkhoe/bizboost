@@ -22,7 +22,7 @@ export const PageWithSearchBar = ({children}: Props) => {
     Campaign.getAll().then(campaignsData => setCampaigns(campaignsData));
   }, []);
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer customInsets={{bottom: 0}}>
       <View className="h-full text-center" style={[flex.flexCol]}>
         <HorizontalPadding>
           <SearchBar />
