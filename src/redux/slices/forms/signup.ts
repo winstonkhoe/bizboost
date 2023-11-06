@@ -9,7 +9,6 @@ export interface TemporarySignupData {
 }
 
 interface CreateAdditionalAccountState {
-  role?: UserRoles;
   data?: User;
   provider?: Providers;
   temporaryData?: TemporarySignupData;
@@ -21,7 +20,6 @@ const initialState = {
   provider: undefined,
 } as CreateAdditionalAccountState;
 
-export const setSignupRole = createAction<UserRoles>('setSignupRole');
 export const setSignupProvider = createAction<Providers>('setSignupProvider');
 export const updateSignupData = createAction<User>('updateSignupData');
 export const updateTemporarySignupData = createAction<TemporarySignupData>(
@@ -33,9 +31,6 @@ const signupSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers(builder) {
-    builder.addCase(setSignupRole, (state, action) => {
-      state.role = action.payload;
-    });
     builder.addCase(setSignupProvider, (state, action) => {
       state.provider = action.payload;
     });
