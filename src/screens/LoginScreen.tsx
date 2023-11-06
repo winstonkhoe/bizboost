@@ -1,6 +1,6 @@
 import React from 'react';
 import {Text, View, Alert} from 'react-native';
-import {User} from '../model/User';
+import {User, UserAuthProviderData} from '../model/User';
 import {useForm, FormProvider} from 'react-hook-form';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {CustomButton} from '../components/atoms/Button';
@@ -13,6 +13,20 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
+import {Provider} from '../model/AuthMethod';
+import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
+import {
+  setProviderId,
+  setSignupProvider,
+  updateSignupData,
+  updateTemporarySignupData,
+} from '../redux/slices/forms/signup';
+import {useAppDispatch} from '../redux/hooks';
+import {useNavigation} from '@react-navigation/native';
+import {
+  GuestNavigation,
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
 type FormData = {
   email: string;
@@ -35,8 +49,62 @@ const LoginScreen = () => {
     });
   };
 
-  const handleLoginWithGoogle = () => {
-    User.loginWithGoogle();
+  const navigation = useNavigation<NavigationStackProps>();
+  const dispatch = useAppDispatch();
+
+  const continueWithGoogle = async () => {
+    const data = await User.continueWithGoogle();
+    if (data.token && data.token !== '') {
+      console.log(data);
+      dispatch(
+        updateSignupData(
+          new User({
+            email: data.email,
+          }).toJSON(),
+        ),
+      );
+      dispatch(
+        updateTemporarySignupData({
+          fullname: data.name,
+          profilePicture: data.photo,
+          token: data.token,
+        }),
+      );
+      dispatch(setProviderId(data.id));
+      dispatch(setSignupProvider(Provider.GOOGLE));
+      navigateToSignupPage();
+    }
+  };
+
+  const continueWithFacebook = () => {
+    try {
+      User.continueWithFacebook((data: UserAuthProviderData) => {
+        dispatch(
+          updateSignupData(
+            new User({
+              email: data.email,
+              instagram: data.instagram,
+            }).toJSON(),
+          ),
+        );
+        dispatch(
+          updateTemporarySignupData({
+            fullname: data.name,
+            profilePicture: data.photo,
+            token: data.token,
+          }),
+        );
+        dispatch(setProviderId(data.id));
+        dispatch(setSignupProvider(Provider.FACEBOOK));
+        navigateToSignupPage();
+      }).catch(err => console.log('err nih', err));
+    } catch (error) {
+      console.log('trycatch fb', error);
+    }
+  };
+
+  const navigateToSignupPage = () => {
+    navigation.navigate(GuestNavigation.Signup);
   };
 
   return (
@@ -88,11 +156,13 @@ const LoginScreen = () => {
                       rounded="max"
                       onPress={handleSubmit(onSubmit)}
                     />
-                    <CustomButton
-                      text="Continue With Google"
-                      rounded="max"
-                      type="secondary"
-                      onPress={handleLoginWithGoogle}
+                    <AuthProviderButton
+                      provider={Provider.GOOGLE}
+                      onPress={continueWithGoogle}
+                    />
+                    <AuthProviderButton
+                      provider={Provider.FACEBOOK}
+                      onPress={continueWithFacebook}
                     />
                   </View>
                 </View>

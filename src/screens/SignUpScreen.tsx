@@ -43,6 +43,8 @@ import {font} from '../styles/Font';
 import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
 import {dimension} from '../styles/Dimension';
 import firestore from '@react-native-firebase/firestore';
+import {useNavigation} from '@react-navigation/native';
+import {GuestNavigation, NavigationStackProps} from '../navigation/StackNavigation';
 
 type FormData = {
   email: string;
@@ -65,6 +67,7 @@ enum SignupStep {
 }
 
 const SignUpScreen = () => {
+  const navigation = useNavigation<NavigationStackProps>();
   const [loginAuthMethod, setLoginAuthMethod] = useState<Providers | undefined>(
     undefined,
   );
@@ -83,6 +86,7 @@ const SignUpScreen = () => {
     temporaryData: temporaryUserSignupData,
     data: userSignupData,
     provider,
+    providerId,
   } = useAppSelector(select => select.signup);
   const [currentRole, setCurrentRole] = useState<UserRoles | undefined>(
     undefined,
@@ -121,11 +125,9 @@ const SignUpScreen = () => {
     defaultValues: {},
   });
 
-  const {handleSubmit, getFieldState, watch, formState, setValue, getValues} =
-    methods;
+  const {getFieldState, watch, formState, setValue, getValues} = methods;
 
   const onSubmit = async (data: FormData) => {
-    console.log('onsubmit called');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {confirmPassword, ...rest} = data;
     const commonUserData: User = new User({
@@ -136,6 +138,7 @@ const SignUpScreen = () => {
 
     let signupData: SignupContentCreatorProps = {
       ...commonUserData.toJSON(),
+      providerId: providerId === '' ? undefined : providerId,
       provider: provider || Provider.EMAIL,
       token: temporaryUserSignupData?.token!!,
       tiktok: platformDatas.find(
@@ -202,9 +205,7 @@ const SignUpScreen = () => {
     if (hasNext()) {
       pagerViewRef.current?.setPage(steps[activePosition + 1]);
     } else {
-      console.log('handleSubmit');
       await onSubmit(getValues());
-      console.log('afterhandleSubmit');
     }
   };
 
@@ -232,6 +233,17 @@ const SignUpScreen = () => {
       setIsLoginModalOpened(true);
     } else {
       nextPage();
+    }
+  };
+
+  const handleLogin = () => {
+    if (loginAuthMethod === Provider.GOOGLE) {
+      User.continueWithGoogle();
+    } else if (loginAuthMethod === Provider.FACEBOOK) {
+      User.continueWithFacebook(() => {});
+    } else {
+      navigation.navigate(GuestNavigation.Login);
+      // TODO: (additional) navigate to login page and set email with value here
     }
   };
 
@@ -348,6 +360,7 @@ const SignUpScreen = () => {
                               <AuthProviderButton
                                 provider={loginAuthMethod || Provider.EMAIL}
                                 customTextSize="text-sm"
+                                onPress={handleLogin}
                               />
                               <CustomButton
                                 text="Dismiss"

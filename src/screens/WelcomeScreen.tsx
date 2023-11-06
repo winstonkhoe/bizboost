@@ -10,6 +10,7 @@ import {gap} from '../styles/Gap';
 import {User, UserAuthProviderData} from '../model/User';
 import {useAppDispatch} from '../redux/hooks';
 import {
+  setProviderId,
   setSignupProvider,
   updateSignupData,
   updateTemporarySignupData,
@@ -43,6 +44,7 @@ const WelcomeScreen = () => {
           token: data.token,
         }),
       );
+      dispatch(setProviderId(data.id));
       dispatch(setSignupProvider(Provider.GOOGLE));
       navigateToSignupPage();
     }
@@ -66,6 +68,7 @@ const WelcomeScreen = () => {
             token: data.token,
           }),
         );
+        dispatch(setProviderId(data.id));
         dispatch(setSignupProvider(Provider.FACEBOOK));
         navigateToSignupPage();
       }).catch(err => console.log('err nih', err));

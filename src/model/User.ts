@@ -64,6 +64,7 @@ export type SocialData = {
 
 export interface UserAuthProviderData {
   token: string;
+  id: string;
   email?: string;
   name?: string;
   photo?: string;
@@ -72,6 +73,7 @@ export interface UserAuthProviderData {
 
 export interface SignupContentCreatorProps extends Partial<User> {
   token: string | null;
+  providerId?: string;
   provider: Providers;
 }
 
@@ -123,6 +125,9 @@ export class User extends BaseModel {
         phone: data?.phone,
         contentCreator: {
           ...data.contentCreator,
+          postingSchedules: data.contentCreator.postingSchedules.map(
+            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
+          ),
           specializedCategoryIds:
             data.contentCreator?.specializedCategoryIds.map(
               (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
@@ -253,7 +258,12 @@ export class User extends BaseModel {
     }
   }
 
-  static async signUp({token, provider, ...user}: SignupContentCreatorProps) {
+  static async signUp({
+    token,
+    provider,
+    providerId,
+    ...user
+  }: SignupContentCreatorProps) {
     try {
       const userCredential = await AuthMethod.getUserCredentialByProvider({
         provider: provider,
@@ -270,9 +280,16 @@ export class User extends BaseModel {
         }),
       );
 
+      console.log('signup providerId', {
+        providerId: providerId,
+        email: user.email,
+        method: provider,
+      });
+
       await AuthMethod.setAuthMethod(
         userCredential.user.uid,
         new AuthMethod({
+          providerId: providerId,
           email: user.email,
           method: provider,
         }),
@@ -543,13 +560,26 @@ export class User extends BaseModel {
     try {
       const {
         idToken,
-        user: {name, email, photo},
+        user: {id, name, email, photo},
       } = await GoogleSignin.signIn();
-      return {token: idToken!!, name: name!!, email: email, photo: photo!!};
+      const authMethod = await AuthMethod.getByProviderId(id);
+      if (authMethod) {
+        await AuthMethod.getUserCredentialByProvider({
+          provider: Provider.GOOGLE,
+          token: idToken,
+        });
+      }
+      return {
+        id: id,
+        token: idToken!!,
+        name: name!!,
+        email: email,
+        photo: photo!!,
+      };
     } catch (error) {
       console.log(error);
     }
-    return {token: ''};
+    return {id: '', token: ''};
   }
 
   static async continueWithFacebook(
@@ -572,6 +602,7 @@ export class User extends BaseModel {
       throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
     } else {
       const data = {
+        id: '',
         token: fbAccessToken.accessToken,
       };
       const instagramDataCallback = async (error?: Object, result?: any) => {
@@ -579,22 +610,31 @@ export class User extends BaseModel {
           console.log('Error fetching data: ' + error.toString());
           finishCallback(data);
         } else {
+          const facebookId = result?.id;
           const followersCount = result?.followers_count;
           const instagramUsername = result?.username;
           const instagramName = result?.name;
           // const instagramMediaIds = result?.media.data;
           const profilePicture = result?.profile_picture_url;
-
-          finishCallback({
-            ...data,
-            name: instagramName,
-            photo: profilePicture,
-            instagram: {
-              username: instagramUsername,
-              followersCount: followersCount,
-            },
-          });
-          console.log(result);
+          const authMethod = await AuthMethod.getByProviderId(facebookId);
+          if (authMethod) {
+            await AuthMethod.getUserCredentialByProvider({
+              provider: Provider.FACEBOOK,
+              token: data.token,
+            });
+          } else {
+            finishCallback({
+              ...data,
+              id: facebookId,
+              name: instagramName,
+              photo: profilePicture,
+              instagram: {
+                username: instagramUsername,
+                followersCount: followersCount,
+              },
+            });
+            console.log(result);
+          }
         }
       };
 

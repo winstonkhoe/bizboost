@@ -25,16 +25,16 @@ interface GetUserCredentialByProviderProps {
 
 export class AuthMethod extends BaseModel {
   id?: string;
+  providerId?: string;
   email?: string;
   method?: Providers;
 
-  constructor({id, email, method}: Partial<AuthMethod>) {
+  constructor({id, email, method, providerId}: Partial<AuthMethod>) {
     super();
     this.id = id;
     this.email = email;
     this.method = method;
-    this.toJSON = this.toJSON.bind(this);
-    // Add your non-static methods here
+    this.providerId = providerId;
   }
 
   private static fromSnapshot(
@@ -46,7 +46,8 @@ export class AuthMethod extends BaseModel {
     if (data && doc.exists) {
       return new AuthMethod({
         id: doc.id,
-        email: data?.email,
+        providerId: data?.providerId,
+        email: data?.email?.toLocaleLowerCase(),
         method: data?.method,
       });
     }
@@ -87,6 +88,19 @@ export class AuthMethod extends BaseModel {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {
       return this.fromSnapshot(snapshot);
+    }
+  }
+
+  static async getByProviderId(
+    providerId: string,
+  ): Promise<AuthMethod | undefined> {
+    const querySnapshot = await this.getCollectionReference()
+      .where('providerId', '==', providerId)
+      .get();
+
+    if (!querySnapshot.empty) {
+      const documentSnapshot = querySnapshot.docs[0];
+      return this.fromSnapshot(documentSnapshot);
     }
   }
 
