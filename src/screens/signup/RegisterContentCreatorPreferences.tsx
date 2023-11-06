@@ -33,12 +33,7 @@ import {background} from '../../styles/BackgroundColor';
 import {useKeyboard} from '../../hooks/keyboard';
 import {StringObject} from '../../utils/stringObject';
 import {FormLabel} from '../../components/atoms/FormLabel';
-
-export interface ContentCreatorPreference {
-  contentRevisionLimit: number | undefined;
-  postingSchedules: Date[];
-  preferences: string[];
-}
+import {ContentCreatorPreference} from '../../model/User';
 
 interface RegisterContentCreatorPreferencesProps {
   onPreferenceChange: (preference: ContentCreatorPreference) => void;

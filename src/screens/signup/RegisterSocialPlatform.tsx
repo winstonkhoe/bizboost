@@ -103,12 +103,20 @@ export const RegisterSocialPlatform = ({
   );
 
   const isValidInitialData = useCallback((field: any) => {
-    return field && field !== '' && field !== undefined;
+    return (
+      field && field !== '' && field !== undefined && field !== 'undefined'
+    );
   }, []);
+
+  const getFallbackField = (value: any) => {
+    if (value === undefined || value === 'undefined') {
+      return '';
+    }
+    return value;
+  };
 
   useEffect(() => {
     if (initialData) {
-      console.log(initialData);
       if (isValidInitialData(initialData.instagramUsername)) {
         if (
           isValidInitialData(initialData.instagramFollowers) &&
@@ -128,20 +136,43 @@ export const RegisterSocialPlatform = ({
           setVerifiedPlatforms([...verifiedPlatforms, SocialPlatform.Tiktok]);
         }
       }
-      console.log('setfieldvalue');
-      setFieldValue('instagramUsername', initialData.instagramUsername);
-      setFieldValue('instagramFollowers', initialData.instagramFollowers);
-      setFieldValue('tiktokUsername', initialData.tiktokUsername);
-      setFieldValue('tiktokFollowers', initialData.tiktokFollowers);
+      setFieldValue(
+        'instagramUsername',
+        getFallbackField(initialData.instagramUsername),
+      );
+      setFieldValue(
+        'instagramFollowers',
+        getFallbackField(initialData.instagramFollowers),
+      );
+      setFieldValue(
+        'tiktokUsername',
+        getFallbackField(initialData.tiktokUsername),
+      );
+      setFieldValue(
+        'tiktokFollowers',
+        getFallbackField(initialData.tiktokFollowers),
+      );
       finishedSetDefaultValue.current = true;
     }
   }, [initialData, setFieldValue, isValidInitialData, verifiedPlatforms]);
 
   useEffect(() => {
-    setValue('instagramUsername', getValues('instagramUsername'));
-    setValue('instagramFollowers', getValues('instagramFollowers'));
-    setValue('tiktokUsername', getValues('tiktokUsername'));
-    setValue('tiktokFollowers', getValues('tiktokFollowers'));
+    setFieldValue(
+      'instagramUsername',
+      getFallbackField(getValues('instagramUsername')),
+    );
+    setFieldValue(
+      'instagramFollowers',
+      getFallbackField(getValues('instagramFollowers')),
+    );
+    setFieldValue(
+      'tiktokUsername',
+      getFallbackField(getValues('tiktokUsername')),
+    );
+    setFieldValue(
+      'tiktokFollowers',
+      getFallbackField(getValues('tiktokFollowers')),
+    );
     const platformDatas: PlatformData[] = selectedSocialPlatforms.reduce(
       (acc, platform) => {
         if (platform === SocialPlatform.Instagram) {
@@ -352,7 +383,6 @@ const SocialCard = ({
   ...props
 }: SocialCardProps) => {
   const {getFieldState, formState} = useFormContext();
-  console.log(formState.errors);
   const currentFields = useMemo(() => {
     return {
       username:

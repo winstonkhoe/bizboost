@@ -13,6 +13,9 @@ import {
   LoginManager,
   LoginResult,
 } from 'react-native-fbsdk-next';
+import {AuthMethod, Provider, Providers} from './AuthMethod';
+import {Category} from './Category';
+import {Location} from './Location';
 
 const USER_COLLECTION = 'users';
 
@@ -35,15 +38,24 @@ export type UserRoles =
   | UserRole.Admin
   | undefined;
 
-export type ContentCreator = {
+export interface ContentCreatorPreference {
+  contentRevisionLimit?: number;
+  postingSchedules: Date[] | FirebaseFirestoreTypes.Timestamp[];
+  preferences: string[];
+}
+
+export type BaseUserData = {
   fullname: string;
   profilePicture?: string;
 };
 
-export type BusinessPeople = {
-  fullname: string;
-  profilePicture?: string;
-};
+export type ContentCreator = BaseUserData &
+  ContentCreatorPreference & {
+    specializedCategoryIds: string[];
+    preferredLocationIds: string[];
+  };
+
+export type BusinessPeople = BaseUserData;
 
 export type SocialData = {
   username?: string;
@@ -56,6 +68,11 @@ export interface UserAuthProviderData {
   name?: string;
   photo?: string;
   instagram?: SocialData;
+}
+
+export interface SignupContentCreatorProps extends Partial<User> {
+  token: string | null;
+  provider: Providers;
 }
 
 export class User extends BaseModel {
@@ -104,7 +121,19 @@ export class User extends BaseModel {
         id: doc.id,
         email: data?.email,
         phone: data?.phone,
-        contentCreator: data?.contentCreator,
+        contentCreator: {
+          ...data.contentCreator,
+          specializedCategoryIds:
+            data.contentCreator?.specializedCategoryIds.map(
+              (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
+                categoryId.id,
+            ) || [],
+          preferredLocationIds:
+            data.contentCreator?.preferredLocationIds.map(
+              (locationId: FirebaseFirestoreTypes.DocumentReference) =>
+                locationId.id,
+            ) || [],
+        },
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt?.seconds,
       });
@@ -130,15 +159,33 @@ export class User extends BaseModel {
     return await auth().createUserWithEmailAndPassword(email, password);
   }
 
+  private static mappingUserFields(data: User) {
+    return {
+      ...data,
+      email: data.email?.toLocaleLowerCase(),
+      contentCreator: data.contentCreator && {
+        ...data.contentCreator,
+        specializedCategoryIds: data.contentCreator?.specializedCategoryIds.map(
+          categoryId => Category.getDocumentReference(categoryId),
+        ),
+        preferredLocationIds: data.contentCreator?.preferredLocationIds.map(
+          locationId => Location.getDocumentReference(locationId),
+        ),
+      },
+    };
+  }
+
   static async setUserData(documentId: string, data: User): Promise<void> {
     await this.getDocumentReference(documentId).set({
-      ...data,
+      ...this.mappingUserFields(data),
       joinedAt: firestore.Timestamp.now(),
     });
   }
 
   static async updateUserData(documentId: string, data: User): Promise<void> {
-    await this.getDocumentReference(documentId).update(data);
+    await this.getDocumentReference(documentId).update(
+      this.mappingUserFields(data),
+    );
   }
 
   static async getById(documentId: string): Promise<User | undefined> {
@@ -206,26 +253,57 @@ export class User extends BaseModel {
     }
   }
 
-  static async signUpContentCreator({
-    email,
-    password,
-    phone,
-    contentCreator,
-  }: User) {
+  static async signUp({token, provider, ...user}: SignupContentCreatorProps) {
     try {
-      if (!password || !email) {
-        throw Error(ErrorMessage.MISSING_FIELDS);
-      }
-      const userCredential = await this.createUserWithEmailAndPassword(
-        email,
-        password,
-      );
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: user.email,
+        password: user.password,
+      });
+
       await this.setUserData(
         userCredential.user.uid,
         new User({
-          email: email.toLowerCase(),
-          phone: phone,
-          contentCreator: contentCreator,
+          ...user,
+          password: undefined,
+        }),
+      );
+
+      await AuthMethod.setAuthMethod(
+        userCredential.user.uid,
+        new AuthMethod({
+          email: user.email,
+          method: provider,
+        }),
+      );
+
+      return true;
+    } catch (error: any) {
+      console.log(error);
+      handleError(error.code);
+
+      return false;
+    }
+  }
+
+  static async signUpContentCreator({
+    token,
+    provider,
+    ...user
+  }: SignupContentCreatorProps) {
+    try {
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: user.email,
+        password: user.password,
+      });
+
+      await this.setUserData(
+        userCredential.user.uid,
+        new User({
+          ...user,
         }),
       );
 
