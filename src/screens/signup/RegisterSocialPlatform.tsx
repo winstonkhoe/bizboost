@@ -403,6 +403,7 @@ const SocialCard = ({platform, isActive, ...props}: SocialCardProps) => {
             label="Username"
             name={currentFields.username}
             prefix="@"
+            forceLowercase
             rules={{
               required: 'Username cannot be empty',
             }}
