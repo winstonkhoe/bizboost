@@ -2,6 +2,9 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import {User} from './User';
+import {ErrorMessage} from '../constants/errorMessage';
 
 const AUTH_METHOD_COLLECTION = 'authMethods';
 
@@ -12,6 +15,13 @@ export enum Provider {
 }
 
 export type Providers = Provider.EMAIL | Provider.GOOGLE | Provider.FACEBOOK;
+
+interface GetUserCredentialByProviderProps {
+  provider: Providers;
+  token: string | null;
+  email?: string;
+  password?: string;
+}
 
 export class AuthMethod extends BaseModel {
   id?: string;
@@ -89,5 +99,36 @@ export class AuthMethod extends BaseModel {
       const documentSnapshot = querySnapshot.docs[0];
       return this.fromSnapshot(documentSnapshot);
     }
+  }
+
+  static async getUserCredentialByProvider({
+    provider,
+    token,
+    email,
+    password,
+  }: GetUserCredentialByProviderProps): Promise<FirebaseAuthTypes.UserCredential> {
+    if (Provider.EMAIL === provider) {
+      if (!password || !email) {
+        throw Error(ErrorMessage.MISSING_FIELDS);
+      }
+      const userCredential = await User.createUserWithEmailAndPassword(
+        email,
+        password,
+      );
+      return userCredential;
+    }
+    let credential;
+    if (Provider.FACEBOOK === provider) {
+      credential = auth.FacebookAuthProvider.credential(token);
+    }
+
+    if (Provider.GOOGLE === provider) {
+      credential = auth.GoogleAuthProvider.credential(token);
+    }
+
+    if (!credential) {
+      throw Error(ErrorMessage.PROVIDER_ERROR);
+    }
+    return await auth().signInWithCredential(credential);
   }
 }
