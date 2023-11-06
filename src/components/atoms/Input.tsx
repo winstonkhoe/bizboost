@@ -47,6 +47,7 @@ interface Props extends UseControllerProps {
   placeholder?: string;
   multiline?: boolean;
   hideInputText?: boolean;
+  forceLowercase?: boolean;
   keyboardType?: KeyboardTypeOptions;
   inputType?: 'default' | 'number' | 'price';
   prefix?: string;
@@ -57,6 +58,7 @@ export const CustomTextInput = ({
   placeholder = label,
   multiline = false,
   hideInputText = false,
+  forceLowercase = false,
   keyboardType,
   inputType = 'default',
   prefix,
@@ -121,6 +123,9 @@ export const CustomTextInput = ({
           actual = '0';
         }
       }
+    }
+    if (forceLowercase) {
+      actual = actual.toLocaleLowerCase();
     }
     onChange(actual);
   };
