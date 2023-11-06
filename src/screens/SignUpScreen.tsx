@@ -129,7 +129,7 @@ const SignUpScreen = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {confirmPassword, ...rest} = data;
     const commonUserData: User = new User({
-      email: rest.email,
+      email: rest.email || userSignupData?.email,
       password: rest.password,
       phone: rest.phone,
     });
