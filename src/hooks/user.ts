@@ -41,6 +41,9 @@ export const useUser = () => {
     if (!user && uid) {
       User.getUserDataReactive(uid, updateUserState);
     }
+    if (user && !uid) {
+      dispatch(setUser(null));
+    }
   }, [user, uid, dispatch]);
   return {uid, user, activeRole, activeData};
 };
