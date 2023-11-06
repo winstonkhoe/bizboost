@@ -17,6 +17,25 @@ export const flex = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column-reverse',
   },
+  flex1: {
+    flex: 1,
+  },
+  growShrink: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
+  grow: {
+    flexGrow: 1,
+  },
+  shrink: {
+    flexShrink: 1,
+  },
+  wrap: {
+    flexWrap: 'wrap',
+  },
+  wrapRevese: {
+    flexWrap: 'wrap-reverse',
+  },
 });
 
 export const justify = StyleSheet.create({

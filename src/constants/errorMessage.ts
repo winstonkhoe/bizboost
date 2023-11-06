@@ -12,6 +12,10 @@ export enum ErrorMessage {
   EMAIL_ALREADY_EXISTS = 'Email address is already in use!',
   EMAIL_INVALID = 'That email address is invalid!',
   GOOGLE_ERROR = 'Google sign in error!',
+  FACEBOOK_SIGN_IN_CANCEL = 'Cancel Facebook sign in!',
+  FACEBOOK_ACCESS_TOKEN_ERROR = 'Failed retrieving facebook access token',
   LOGIN_FAILED = 'Login failed!',
+  USER_EXISTS = 'User already exists',
+  PROVIDER_ERROR = 'Provider error!',
   DEFAULT = 'Error!',
 }

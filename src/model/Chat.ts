@@ -3,8 +3,6 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {User} from './User';
 import {BaseModel} from './BaseModel';
-import {useUser} from '../hooks/user';
-import {formatDate} from '../utils/date';
 
 export enum MessageType {
   Photo = 'Photo',
@@ -45,15 +43,16 @@ export class Chat extends BaseModel {
       return null;
     }
 
-    const messages: Message[] = chat.messages.map((messageData: any) => ({
-      message: messageData.message,
-      type: messageData.type,
-      sender: messageData.sender,
-      createdAt: messageData.createdAt,
-    }));
+    const messages: Message[] =
+      chat.messages?.map((messageData: any) => ({
+        message: messageData.message,
+        type: messageData.type,
+        sender: messageData.sender,
+        createdAt: messageData.createdAt,
+      })) || [];
 
-    const participants: Participant[] = chat.participants.map(
-      (participantData: any) => {
+    const participants: Participant[] =
+      chat.participants?.map((participantData: any) => {
         const ref = participantData.ref;
         const role = participantData.role;
 
@@ -68,8 +67,7 @@ export class Chat extends BaseModel {
         }
 
         return serializedParticipant;
-      },
-    );
+      }) || [];
 
     return {
       id: chat.id,
@@ -147,11 +145,11 @@ export class Chat extends BaseModel {
             callback(userChats, subscriber);
           },
           (error: Error) => {
-            throw Error(error.message);
+            console.log('getUserChatsReactive error', error.message);
           },
         );
     } catch (error) {
-      throw Error('Error!');
+      console.log('no access', error);
     }
   }
 

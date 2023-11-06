@@ -18,15 +18,15 @@ import {textColor} from '../styles/Text';
 import {isValidField} from '../utils/form';
 import {useCreateAdditionalAccount} from '../hooks/forms';
 import {useAppDispatch} from '../redux/hooks';
-import {updateData} from '../redux/slices/forms/createAdditionalAccountSlice';
+import {updateAdditionalAccountData} from '../redux/slices/forms/createAdditionalAccountSlice';
 import {BusinessPeople, ContentCreator, User, UserRole} from '../model/User';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
   CreateAdditionalAccountModalNavigationProps,
   CreateAdditionalAccountNavigation,
-  RootAuthenticatedNavigationStackProps,
-} from '../navigation/AuthenticatedNavigation';
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 import {useUser} from '../hooks/user';
 import {switchRole} from '../redux/slices/userSlice';
 
@@ -50,7 +50,7 @@ export const CreateAccountScreen_1 = () => {
     const updatedData = {
       fullname: data?.fullname,
     } as ContentCreator | BusinessPeople;
-    dispatch(updateData(updatedData));
+    dispatch(updateAdditionalAccountData(updatedData));
     navigation.navigate(CreateAdditionalAccountNavigation.Second);
   };
 
@@ -120,7 +120,7 @@ export const CreateAccountScreen_1 = () => {
 };
 
 export const CreateAccountScreen_2 = () => {
-  const navigation = useNavigation<RootAuthenticatedNavigationStackProps>();
+  const navigation = useNavigation<NavigationStackProps>();
   const dispatch = useAppDispatch();
   const {uid} = useUser();
   const {data: additionalAccountData, role} = useCreateAdditionalAccount();

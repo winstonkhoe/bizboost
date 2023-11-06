@@ -1,64 +1,97 @@
 import {StyleSheet, ViewStyle} from 'react-native';
+import {SizeStyle, SizeType, size} from './Size';
 
-export type PaddingSizeType =
-  | 'xsmall3'
-  | 'xsmall2'
-  | 'xsmall'
-  | 'small'
-  | 'default'
-  | 'medium'
-  | 'large'
-  | 'xlarge'
-  | 'max';
-
-type PaddingSize = {
-  [key in PaddingSizeType]?: number;
+export const padding = {
+  ...StyleSheet.create<SizeStyle>(
+    Object.entries(size).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: {
+          padding: value,
+        } as ViewStyle,
+      };
+    }, {} as Record<keyof SizeType, ViewStyle>),
+  ),
+  vertical: StyleSheet.create<SizeStyle>(
+    Object.entries(size).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: {
+          paddingVertical: value,
+        } as ViewStyle,
+      };
+    }, {} as Record<keyof SizeType, ViewStyle>),
+  ),
+  horizontal: StyleSheet.create<SizeStyle>(
+    Object.entries(size).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: {
+          paddingHorizontal: value,
+        } as ViewStyle,
+      };
+    }, {} as Record<keyof SizeType, ViewStyle>),
+  ),
+  top: StyleSheet.create<SizeStyle>(
+    Object.entries(size).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: {
+          paddingTop: value,
+        } as ViewStyle,
+      };
+    }, {} as Record<keyof SizeType, ViewStyle>),
+  ),
+  right: StyleSheet.create<SizeStyle>(
+    Object.entries(size).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: {
+          paddingRight: value,
+        } as ViewStyle,
+      };
+    }, {} as Record<keyof SizeType, ViewStyle>),
+  ),
+  left: StyleSheet.create<SizeStyle>(
+    Object.entries(size).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: {
+          paddingLeft: value,
+        } as ViewStyle,
+      };
+    }, {} as Record<keyof SizeType, ViewStyle>),
+  ),
+  bottom: StyleSheet.create<SizeStyle>(
+    Object.entries(size).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: {
+          paddingBottom: value,
+        } as ViewStyle,
+      };
+    }, {} as Record<keyof SizeType, ViewStyle>),
+  ),
 };
 
-type PaddingStyles = {
-  [key in PaddingSizeType]?: ViewStyle;
-};
-
-export const paddingSize: PaddingSize = {
-  xsmall3: 2,
-  xsmall2: 4,
-  xsmall: 8,
-  small: 12,
-  default: 16,
-  medium: 24,
-  large: 32,
-  xlarge: 40,
-};
-
-export const padding = StyleSheet.create<PaddingStyles>(
-  Object.entries(paddingSize).reduce((acc, [key, value]) => {
-    return {
-      ...acc,
-      [key]: {
-        padding: value,
-      } as ViewStyle,
-    };
-  }, {} as Record<keyof PaddingSizeType, ViewStyle>),
-);
-
-export const horizontalPadding = StyleSheet.create<PaddingStyles>(
-  Object.entries(paddingSize).reduce((acc, [key, value]) => {
+export const horizontalPadding = StyleSheet.create<SizeStyle>(
+  Object.entries(size).reduce((acc, [key, value]) => {
     return {
       ...acc,
       [key]: {
         paddingHorizontal: value,
       } as ViewStyle,
     };
-  }, {} as Record<keyof PaddingSizeType, ViewStyle>),
+  }, {} as Record<keyof SizeType, ViewStyle>),
 );
 
-export const verticalPadding = StyleSheet.create<PaddingStyles>(
-  Object.entries(paddingSize).reduce((acc, [key, value]) => {
+export const verticalPadding = StyleSheet.create<SizeStyle>(
+  Object.entries(size).reduce((acc, [key, value]) => {
     return {
       ...acc,
       [key]: {
         paddingVertical: value,
       } as ViewStyle,
     };
-  }, {} as Record<keyof PaddingSizeType, ViewStyle>),
+  }, {} as Record<keyof SizeType, ViewStyle>),
 );

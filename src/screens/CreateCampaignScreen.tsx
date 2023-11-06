@@ -34,8 +34,8 @@ import {StringObject, getStringObjectValue} from '../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
 import storage from '@react-native-firebase/storage';
 
-import {ImageOrVideo, Image as ImageType} from 'react-native-image-crop-picker';
-import {Button} from 'react-native';
+import {Image as ImageType} from 'react-native-image-crop-picker';
+import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 export type CampaignFormData = {
   title: string;
   description: string;
@@ -114,10 +114,10 @@ const CreateCampaignScreen = () => {
     setValue,
     watch,
     control,
-    formState: {errors},
+    // formState: {errors},
   } = methods;
 
-  const onSubmit = (d: CampaignFormData) => {
+  const onSubmitButtonClicked = (d: CampaignFormData) => {
     setIsUploading(true);
 
     // TODO: extract to utility function
@@ -223,395 +223,398 @@ const CreateCampaignScreen = () => {
   //TODO: start date end date, picture
   return (
     <BottomSheetModalProvider>
-      <SafeAreaContainer customInsets={{top: 0}}>
-        <ScrollView
-          bounces={false}
-          className="relative h-full"
-          // style={[background(COLOR.background.light)]}
-        >
-          <FormProvider {...methods}>
-            <HorizontalPadding paddingSize="large">
-              <View
-                className="w-full flex flex-col justify-between pt-3"
-                style={[flex.flexCol, gap.xlarge]}>
-                <Controller
-                  control={control}
-                  name="image"
-                  rules={{required: 'Image is required!'}}
-                  render={({field: {value}, fieldState: {error}}) => (
-                    <View className="flex flex-col">
-                      <Text className="text-black mb-3">Campaign Image</Text>
-                      <MediaUploader
-                        options={{
-                          width: 400,
-                          height: 400,
-                          cropping: true,
-                          includeBase64: true,
-                        }}
-                        callback={imageSelected}>
-                        {value ? (
-                          <Image
-                            className="w-16 h-16 rounded-lg"
-                            source={{
-                              uri: `data:${value.mime};base64,${value.data}`,
-                            }}
-                          />
-                        ) : (
-                          <View
-                            style={[flex.flexCol]}
-                            className="justify-center items-center">
-                            <View
-                              className={`w-16 h-16 bg-[#E7F3F8] rounded-lg flex justify-center items-center ${
-                                error && 'border border-red-500'
-                              }`}>
-                              <PhotosIcon width={30} height={30} />
-                            </View>
-                          </View>
-                        )}
-                      </MediaUploader>
-                      {error && (
-                        <Text className="text-xs mt-2 font-medium text-red-500">
-                          {`${error?.message}`}
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                />
-                <CustomTextInput
-                  label="Campaign Title"
-                  name="title"
-                  rules={{
-                    required: 'Title is required',
-                  }}
-                />
-                <CustomTextInput
-                  label="Campaign Description"
-                  name="description"
-                  multiline={true}
-                  rules={{
-                    required: 'Description is required',
-                  }}
-                />
-                <Controller
-                  control={control}
-                  name="type"
-                  rules={{required: 'Type is required!'}}
-                  render={({field: {value, name}, fieldState: {error}}) => (
-                    <View>
-                      <Text className="text-black mb-3">Campaign Type</Text>
-                      <View className="flex flex-row gap-2">
-                        {Object.values(CampaignType).map((type, index) => (
-                          <View key={index}>
-                            <SelectableTag
-                              text={type}
-                              isSelected={value === type}
-                              onPress={() => setValue(name, type)}
-                            />
-                          </View>
-                        ))}
-                      </View>
-                      {error && (
-                        <Text className="text-xs mt-2 font-medium text-red-500">
-                          {`${error?.message}`}
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                />
-
-                {watch('type') === 'Public' ? (
-                  <>
-                    <CustomTextInput
-                      label="Campaign Fee"
-                      name="fee"
-                      rules={{
-                        required: 'Fee is required',
-                      }}
-                    />
-
-                    <CustomTextInput
-                      label="Campaign Slot"
-                      name="slot"
-                      rules={{
-                        required: 'Slot is required',
-                      }}
-                    />
-                  </>
-                ) : null}
-
-                <Controller
-                  control={control}
-                  name="platforms"
-                  rules={{required: 'Platform is required!'}}
-                  render={({
-                    field: {value: platforms},
-                    fieldState: {error},
-                  }) => (
-                    <View>
-                      <Text className="text-black mb-3">
-                        Campaign Platfroms
-                      </Text>
-                      <View className="flex flex-row gap-2">
-                        {['Instagram', 'TikTok'].map((value, index) => (
-                          <View key={index}>
-                            <SelectableTag
-                              text={value}
-                              isSelected={
-                                platforms.find(p => p.name === value) !==
-                                undefined
-                              }
-                              onPress={() => {
-                                const searchIndex = platforms.findIndex(
-                                  p => p.name === value,
-                                );
-                                if (searchIndex !== -1) {
-                                  removePlatform(searchIndex);
-                                } else {
-                                  appendPlatform({
-                                    name: value,
-                                    tasks: [{value: ''}],
-                                  });
-                                }
+      <PageWithBackButton>
+        <SafeAreaContainer customInsets={{top: 0}}>
+          <ScrollView
+            bounces={false}
+            className="relative h-full"
+            // style={[background(COLOR.background.light)]}
+          >
+            <FormProvider {...methods}>
+              <HorizontalPadding paddingSize="large">
+                <View
+                  className="w-full flex flex-col justify-between py-5"
+                  style={[flex.flexCol, gap.xlarge]}>
+                  <Controller
+                    control={control}
+                    name="image"
+                    rules={{required: 'Image is required!'}}
+                    render={({field: {value}, fieldState: {error}}) => (
+                      <View className="flex flex-col">
+                        <Text className="text-black mb-3">Campaign Image</Text>
+                        <MediaUploader
+                          targetFolder="campaigns"
+                          options={{
+                            width: 400,
+                            height: 400,
+                            cropping: true,
+                            includeBase64: true,
+                          }}
+                          onMediaSelected={imageSelected}>
+                          {value ? (
+                            <Image
+                              className="w-16 h-16 rounded-lg"
+                              source={{
+                                uri: `data:${value.mime};base64,${value.data}`,
                               }}
                             />
-                          </View>
-                        ))}
+                          ) : (
+                            <View
+                              style={[flex.flexCol]}
+                              className="justify-center items-center">
+                              <View
+                                className={`w-16 h-16 bg-[#E7F3F8] rounded-lg flex justify-center items-center ${
+                                  error && 'border border-red-500'
+                                }`}>
+                                <PhotosIcon width={30} height={30} />
+                              </View>
+                            </View>
+                          )}
+                        </MediaUploader>
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            {`${error?.message}`}
+                          </Text>
+                        )}
                       </View>
-                      {error && (
-                        <Text className="text-xs mt-2 font-medium text-red-500">
-                          {/* {`${error}`} */}
-                          Platform is required!
+                    )}
+                  />
+                  <CustomTextInput
+                    label="Campaign Title"
+                    name="title"
+                    rules={{
+                      required: 'Title is required',
+                    }}
+                  />
+                  <CustomTextInput
+                    label="Campaign Description"
+                    name="description"
+                    multiline={true}
+                    rules={{
+                      required: 'Description is required',
+                    }}
+                  />
+                  <Controller
+                    control={control}
+                    name="type"
+                    rules={{required: 'Type is required!'}}
+                    render={({field: {value, name}, fieldState: {error}}) => (
+                      <View>
+                        <Text className="text-black mb-3">Campaign Type</Text>
+                        <View className="flex flex-row gap-2">
+                          {Object.values(CampaignType).map((type, index) => (
+                            <View key={index}>
+                              <SelectableTag
+                                text={type}
+                                isSelected={value === type}
+                                onPress={() => setValue(name, type)}
+                              />
+                            </View>
+                          ))}
+                        </View>
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            {`${error?.message}`}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  />
+
+                  {watch('type') === 'Public' ? (
+                    <>
+                      <CustomTextInput
+                        label="Campaign Fee"
+                        name="fee"
+                        rules={{
+                          required: 'Fee is required',
+                        }}
+                      />
+
+                      <CustomTextInput
+                        label="Campaign Slot"
+                        name="slot"
+                        rules={{
+                          required: 'Slot is required',
+                        }}
+                      />
+                    </>
+                  ) : null}
+
+                  <Controller
+                    control={control}
+                    name="platforms"
+                    rules={{required: 'Platform is required!'}}
+                    render={({
+                      field: {value: platforms},
+                      fieldState: {error},
+                    }) => (
+                      <View>
+                        <Text className="text-black mb-3">
+                          Campaign Platfroms
                         </Text>
-                      )}
+                        <View className="flex flex-row gap-2">
+                          {['Instagram', 'TikTok'].map((value, index) => (
+                            <View key={index}>
+                              <SelectableTag
+                                text={value}
+                                isSelected={
+                                  platforms.find(p => p.name === value) !==
+                                  undefined
+                                }
+                                onPress={() => {
+                                  const searchIndex = platforms.findIndex(
+                                    p => p.name === value,
+                                  );
+                                  if (searchIndex !== -1) {
+                                    removePlatform(searchIndex);
+                                  } else {
+                                    appendPlatform({
+                                      name: value,
+                                      tasks: [{value: ''}],
+                                    });
+                                  }
+                                }}
+                              />
+                            </View>
+                          ))}
+                        </View>
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            {/* {`${error}`} */}
+                            Platform is required!
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  />
+                  {fieldsPlatform.map((fp, index) => (
+                    <View key={fp.id}>
+                      <FieldArray
+                        control={control}
+                        title={`${fp.name}'s Task`}
+                        parentName={`platforms.${index}.tasks`}
+                        childName="value"
+                        placeholder="Add task"
+                      />
                     </View>
-                  )}
-                />
-                {fieldsPlatform.map((fp, index) => (
-                  <View key={fp.id}>
-                    <FieldArray
+                  ))}
+
+                  <Controller
+                    control={control}
+                    name="criterias"
+                    rules={{required: 'Criterias is required!'}}
+                    render={({fieldState: {error}}) => (
+                      <View>
+                        <FieldArray
+                          control={control}
+                          title="Campaign Criterias"
+                          parentName="criterias"
+                          childName="value"
+                        />
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            Criteria is required (at least 1)!
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="importantInformation"
+                    rules={{required: 'Information is required!'}}
+                    render={({fieldState: {error}}) => (
+                      <View>
+                        <FieldArray
+                          control={control}
+                          title="Important Informations"
+                          parentName="importantInformation"
+                          childName="value"
+                          placeholder="Add dos and/or don'ts"
+                        />
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            Information is required (at least 1)!
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  />
+
+                  <Controller
+                    control={control}
+                    name="locations"
+                    rules={{required: 'Locations are required!'}}
+                    render={({
+                      field: {value: locations},
+                      fieldState: {error},
+                    }) => (
+                      <View className="flex flex-col">
+                        <View className="flex flex-row justify-between items-center">
+                          <Text>Location</Text>
+
+                          <Pressable
+                            onPress={() => setIsLocationSheetOpened(true)}>
+                            <Text className="font-bold text-md">+</Text>
+                          </Pressable>
+                        </View>
+                        <View className="flex flex-row flex-wrap gap-2 mt-3">
+                          {locations.map((l, index: number) => (
+                            <View key={index}>
+                              <SelectableTag text={l.value} isSelected={true} />
+                            </View>
+                          ))}
+                        </View>
+                        {error && (
+                          <Text className="text-xs mt-2 font-medium text-red-500">
+                            Locations are required (at least 1)!
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  />
+
+                  {/* TODO: validate date, extract to component */}
+                  <View className="flex flex-row justify-between">
+                    <Controller
                       control={control}
-                      title={`${fp.name}'s Task`}
-                      parentName={`platforms.${index}.tasks`}
-                      childName="value"
-                      placeholder="Add task"
+                      name="startDate"
+                      rules={{
+                        required: 'Start Date is required!',
+                        validate: d =>
+                          d >= new Date() || 'Date must be after today!',
+                      }}
+                      render={({
+                        field: {name, value: startDate},
+                        fieldState: {error},
+                      }) => (
+                        <View className="">
+                          <View className="flex flex-col items-start ">
+                            <View className="flex flex-row justify-between items-center mb-3">
+                              <Text>Start Date</Text>
+                            </View>
+                            <SelectableTag
+                              text={`${startDate.toLocaleDateString()}`}
+                              onPress={() => setIsStartDateSheetOpened(true)}
+                            />
+                          </View>
+                          <DatePicker
+                            modal
+                            mode={'date'}
+                            open={isStartDateSheetOpened}
+                            date={startDate}
+                            onConfirm={d => {
+                              setIsStartDateSheetOpened(false);
+                              setValue(name, d);
+                            }}
+                            onCancel={() => {
+                              setIsStartDateSheetOpened(false);
+                            }}
+                          />
+
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {error.message}
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
+
+                    <Controller
+                      control={control}
+                      name="endDate"
+                      rules={{
+                        required: 'End Date is required!',
+                        validate: d =>
+                          d > watch('startDate') ||
+                          'End Date must be after start date!',
+                      }}
+                      render={({
+                        field: {name, value: endDate},
+                        fieldState: {error},
+                      }) => (
+                        <View className="">
+                          <View className="flex flex-col items-start ">
+                            <View className="flex flex-row justify-between items-center mb-3">
+                              <Text>End Date</Text>
+                            </View>
+                            <SelectableTag
+                              text={`${endDate.toLocaleDateString()}`}
+                              onPress={() => setIsEndDateSheetOpened(true)}
+                            />
+                          </View>
+                          <DatePicker
+                            modal
+                            mode={'date'}
+                            open={isEndDateSheetOpened}
+                            date={endDate}
+                            onConfirm={d => {
+                              setIsEndDateSheetOpened(false);
+                              setValue(name, d);
+                            }}
+                            onCancel={() => {
+                              setIsEndDateSheetOpened(false);
+                            }}
+                          />
+
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {error.message}
+                            </Text>
+                          )}
+                        </View>
+                      )}
                     />
                   </View>
-                ))}
-
-                <Controller
-                  control={control}
-                  name="criterias"
-                  rules={{required: 'Criterias is required!'}}
-                  render={({fieldState: {error}}) => (
-                    <View>
-                      <FieldArray
-                        control={control}
-                        title="Campaign Criterias"
-                        parentName="criterias"
-                        childName="value"
-                      />
-                      {error && (
-                        <Text className="text-xs mt-2 font-medium text-red-500">
-                          Criteria is required (at least 1)!
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name="importantInformation"
-                  rules={{required: 'Information is required!'}}
-                  render={({fieldState: {error}}) => (
-                    <View>
-                      <FieldArray
-                        control={control}
-                        title="Important Informations"
-                        parentName="importantInformation"
-                        childName="value"
-                        placeholder="Add dos and/or don'ts"
-                      />
-                      {error && (
-                        <Text className="text-xs mt-2 font-medium text-red-500">
-                          Information is required (at least 1)!
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                />
-
-                <Controller
-                  control={control}
-                  name="locations"
-                  rules={{required: 'Locations are required!'}}
-                  render={({
-                    field: {value: locations},
-                    fieldState: {error},
-                  }) => (
-                    <View className="flex flex-col">
-                      <View className="flex flex-row justify-between items-center">
-                        <Text>Location</Text>
-
-                        <Pressable
-                          onPress={() => setIsLocationSheetOpened(true)}>
-                          <Text className="font-bold text-md">+</Text>
-                        </Pressable>
-                      </View>
-                      <View className="flex flex-row flex-wrap gap-2 mt-3">
-                        {locations.map((l, index: number) => (
-                          <View key={index}>
-                            <SelectableTag text={l.value} isSelected={true} />
-                          </View>
-                        ))}
-                      </View>
-                      {error && (
-                        <Text className="text-xs mt-2 font-medium text-red-500">
-                          Locations are required (at least 1)!
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                />
-
-                {/* TODO: validate date, extract to component */}
-                <View className="flex flex-row justify-between">
-                  <Controller
-                    control={control}
-                    name="startDate"
-                    rules={{
-                      required: 'Start Date is required!',
-                      validate: d =>
-                        d >= new Date() || 'Date must be after today!',
-                    }}
-                    render={({
-                      field: {name, value: startDate},
-                      fieldState: {error},
-                    }) => (
-                      <View className="">
-                        <View className="flex flex-col items-start ">
-                          <View className="flex flex-row justify-between items-center mb-3">
-                            <Text>Start Date</Text>
-                          </View>
-                          <SelectableTag
-                            text={`${startDate.toLocaleDateString()}`}
-                            onPress={() => setIsStartDateSheetOpened(true)}
-                          />
-                        </View>
-                        <DatePicker
-                          modal
-                          mode={'date'}
-                          open={isStartDateSheetOpened}
-                          date={startDate}
-                          onConfirm={d => {
-                            setIsStartDateSheetOpened(false);
-                            setValue(name, d);
-                          }}
-                          onCancel={() => {
-                            setIsStartDateSheetOpened(false);
-                          }}
-                        />
-
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            {error.message}
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-
-                  <Controller
-                    control={control}
-                    name="endDate"
-                    rules={{
-                      required: 'End Date is required!',
-                      validate: d =>
-                        d > watch('startDate') ||
-                        'End Date must be after start date!',
-                    }}
-                    render={({
-                      field: {name, value: endDate},
-                      fieldState: {error},
-                    }) => (
-                      <View className="">
-                        <View className="flex flex-col items-start ">
-                          <View className="flex flex-row justify-between items-center mb-3">
-                            <Text>End Date</Text>
-                          </View>
-                          <SelectableTag
-                            text={`${endDate.toLocaleDateString()}`}
-                            onPress={() => setIsEndDateSheetOpened(true)}
-                          />
-                        </View>
-                        <DatePicker
-                          modal
-                          mode={'date'}
-                          open={isEndDateSheetOpened}
-                          date={endDate}
-                          onConfirm={d => {
-                            setIsEndDateSheetOpened(false);
-                            setValue(name, d);
-                          }}
-                          onCancel={() => {
-                            setIsEndDateSheetOpened(false);
-                          }}
-                        />
-
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            {error.message}
-                          </Text>
-                        )}
-                      </View>
-                    )}
+                  <CustomButton
+                    text="Submit"
+                    rounded="default"
+                    onPress={handleSubmit(onSubmitButtonClicked)}
                   />
                 </View>
-                <CustomButton
-                  text="Submit"
-                  rounded="default"
-                  onPress={handleSubmit(onSubmit)}
-                />
-              </View>
-            </HorizontalPadding>
-          </FormProvider>
-        </ScrollView>
+              </HorizontalPadding>
+            </FormProvider>
+          </ScrollView>
 
-        <BottomSheetModal
-          ref={sheetRef}
-          onDismiss={handleClosePress}
-          backdropComponent={renderBackdrop}
-          snapPoints={['90%']}
-          index={1}
-          enableDynamicSizing
-          enablePanDownToClose>
-          <BottomSheetScrollView>
-            <View className="flex flex-col px-4 pb-8 gap-1">
-              {data.map((d, index) => (
-                <View key={index} className="flex flex-row items-center">
-                  <CheckBox
-                    boxType="circle"
-                    style={{transform: [{scaleX: 0.7}, {scaleY: 0.7}]}}
-                    value={
-                      watch('locations').find(l => l.value === d) !== undefined
-                    }
-                    onValueChange={() => {
-                      const searchIndex = watch('locations').findIndex(
-                        l => l.value === d,
-                      );
-                      if (searchIndex !== -1) {
-                        removeLocation(searchIndex);
-                      } else {
-                        appendLocation({value: d});
+          <BottomSheetModal
+            ref={sheetRef}
+            onDismiss={handleClosePress}
+            backdropComponent={renderBackdrop}
+            snapPoints={['90%']}
+            index={0}
+            enablePanDownToClose>
+            <BottomSheetScrollView>
+              <View className="flex flex-col px-4 pb-8 gap-1">
+                {data.map((d, index) => (
+                  <View key={index} className="flex flex-row items-center">
+                    <CheckBox
+                      boxType="circle"
+                      style={{transform: [{scaleX: 0.7}, {scaleY: 0.7}]}}
+                      value={
+                        watch('locations').find(l => l.value === d) !==
+                        undefined
                       }
-                    }}
-                  />
-                  <Text className="mb-1">{d}</Text>
-                </View>
-              ))}
-            </View>
-          </BottomSheetScrollView>
-        </BottomSheetModal>
-      </SafeAreaContainer>
+                      onValueChange={() => {
+                        const searchIndex = watch('locations').findIndex(
+                          l => l.value === d,
+                        );
+                        if (searchIndex !== -1) {
+                          removeLocation(searchIndex);
+                        } else {
+                          appendLocation({value: d});
+                        }
+                      }}
+                    />
+                    <Text className="mb-1">{d}</Text>
+                  </View>
+                ))}
+              </View>
+            </BottomSheetScrollView>
+          </BottomSheetModal>
+        </SafeAreaContainer>
+      </PageWithBackButton>
     </BottomSheetModalProvider>
   );
 };

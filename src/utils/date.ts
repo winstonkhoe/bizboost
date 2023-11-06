@@ -1,7 +1,7 @@
 import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
 
 export const getDate = (
-  timestamp: FirebaseFirestoreTypes.Timestamp | number,
+  timestamp: FirebaseFirestoreTypes.Timestamp | number | Date,
 ): Date => {
   console.log(timestamp);
   if (
@@ -10,6 +10,10 @@ export const getDate = (
   ) {
     return timestamp.toDate();
   }
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+
   let date = new Date(timestamp);
   if (date.getFullYear() <= 1970) {
     date = new Date(timestamp * 1000);
@@ -29,4 +33,13 @@ export const formatDate = (date: Date, format: string): string => {
   });
 
   return formattedDate;
+};
+
+export const formatDateToTime12Hrs = (date: Date): string => {
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  let ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  return `${hours}:${`${minutes}`.padStart(2, '0')} ${ampm}`;
 };

@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {setUser} from '../redux/slices/userSlice';
+import {setUser, switchRole} from '../redux/slices/userSlice';
 import {
   BusinessPeople,
   ContentCreator,
@@ -32,15 +32,23 @@ export const useUser = () => {
   );
 
   useEffect(() => {
-    const updateUserState = (u: User | null, unsubscribe: () => void) => {
+    const updateUserState = (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
-        return unsubscribe;
+        if (!activeRole && u.contentCreator?.fullname) {
+          dispatch(switchRole(UserRole.ContentCreator));
+        } else {
+          dispatch(switchRole(UserRole.BusinessPeople));
+        }
       }
     };
     if (!user && uid) {
-      User.getUserDataReactive(uid, updateUserState);
+      const unsubscribe = User.getUserDataReactive(uid, updateUserState);
+      return unsubscribe;
     }
-  }, [user, uid, dispatch]);
+    if (user && !uid) {
+      dispatch(setUser(null));
+    }
+  }, [user, uid, dispatch, activeRole]);
   return {uid, user, activeRole, activeData};
 };

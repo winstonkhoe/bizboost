@@ -56,6 +56,7 @@ export const COLOR = {
   white: '#ffffff',
   text: {
     neutral: {
+      default: `${black[90]}`,
       high: `${black[90]}`,
       med: `${black[90]}b3`,
       low: `${black[90]}66`,
@@ -76,7 +77,7 @@ export const COLOR = {
     neutral: {
       default: `${black[0]}`,
       low: `${black[1]}`,
-      med: `${black[5]}`,
+      med: `${black[40]}b3`,
       high: `${black[80]}`,
       disabled: `${black[10]}`,
     },
@@ -98,6 +99,7 @@ export const COLOR = {
       low: `${red[5]}`,
       med: `${red[40]}`,
       high: `${red[50]}`,
+      disabled: `${red[50]}66`,
     },
     light: '#ffffff',
   },

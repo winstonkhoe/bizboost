@@ -25,6 +25,8 @@ const userSlice = createSlice({
         state.activeRole = UserRole.ContentCreator;
       } else if (action.payload?.businessPeople) {
         state.activeRole = UserRole.BusinessPeople;
+      } else if (action.payload?.isAdmin === true) {
+        state.activeRole = UserRole.Admin;
       }
     },
     setUserUid(state, action) {

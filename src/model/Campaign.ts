@@ -13,10 +13,10 @@ export enum CampaignType {
 
 export type CampaignTypes = CampaignType.Public | CampaignType.Private;
 
-const CAMPAIGN_COLLECTION = 'campaigns';
+export const CAMPAIGN_COLLECTION = 'campaigns';
 
 export class Campaign extends BaseModel {
-  id?: string = '';
+  id?: string;
   userId?: string;
   title?: string;
   description?: string;
@@ -145,18 +145,17 @@ export class Campaign extends BaseModel {
       const subscriber = this.getCampaignCollections()
         .where('userId', '==', userRef)
         .onSnapshot(
-          (
-            querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
-          ) => {
+          querySnapshots => {
             const userCampaigns = this.fromQuerySnapshot(querySnapshots);
             callback(userCampaigns, subscriber);
           },
           (error: Error) => {
-            throw Error(error.message);
+            callback([], subscriber);
+            console.log('getUserCampaignsReactive', error.message);
           },
         );
     } catch (error) {
-      throw Error('Error!');
+      console.log('getUserCampaignsReactive', error);
     }
   }
   static getDocumentReference(

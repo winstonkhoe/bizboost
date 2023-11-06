@@ -55,7 +55,10 @@ const ChatWidget = ({options, handleImageUpload}: Props) => {
       className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center"
       style={gap.default}>
       {/* Send Photo Button */}
-      <MediaUploader options={options} callback={imageSelected}>
+      <MediaUploader
+        targetFolder="chats"
+        options={options}
+        onMediaSelected={imageSelected}>
         <View style={[flex.flexCol]} className="justify-center items-center">
           <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
             <PhotosIcon width={30} height={30} />

@@ -6,6 +6,16 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {ErrorMessage} from '../constants/errorMessage';
 import {handleError} from '../utils/error';
 import {BaseModel} from './BaseModel';
+import {
+  AccessToken,
+  GraphRequest,
+  GraphRequestManager,
+  LoginManager,
+  LoginResult,
+} from 'react-native-fbsdk-next';
+import {AuthMethod, Provider, Providers} from './AuthMethod';
+import {Category} from './Category';
+import {Location} from './Location';
 
 const USER_COLLECTION = 'users';
 
@@ -15,21 +25,62 @@ export enum UserRole {
   Admin = 'Admin',
 }
 
+export enum SocialPlatform {
+  Instagram = 'Instagram',
+  Tiktok = 'Tiktok',
+}
+
+export enum UserStatus {
+  Active = 'Active',
+  Suspended = 'Suspended',
+}
+
+export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
+
 export type UserRoles =
   | UserRole.ContentCreator
   | UserRole.BusinessPeople
   | UserRole.Admin
   | undefined;
 
-export type ContentCreator = {
+export interface ContentCreatorPreference {
+  contentRevisionLimit?: number;
+  postingSchedules: Date[] | FirebaseFirestoreTypes.Timestamp[];
+  preferences: string[];
+}
+
+export type BaseUserData = {
   fullname: string;
   profilePicture?: string;
 };
 
-export type BusinessPeople = {
-  fullname: string;
-  profilePicture?: string;
+export type ContentCreator = BaseUserData &
+  ContentCreatorPreference & {
+    specializedCategoryIds: string[];
+    preferredLocationIds: string[];
+  };
+
+export type BusinessPeople = BaseUserData;
+
+export type SocialData = {
+  username?: string;
+  followersCount?: number;
 };
+
+export interface UserAuthProviderData {
+  token: string;
+  id: string;
+  email?: string;
+  name?: string;
+  photo?: string;
+  instagram?: SocialData;
+}
+
+export interface SignupContentCreatorProps extends Partial<User> {
+  token: string | null;
+  providerId?: string;
+  provider: Providers;
+}
 
 export class User extends BaseModel {
   id?: string;
@@ -38,7 +89,11 @@ export class User extends BaseModel {
   phone?: string;
   contentCreator?: ContentCreator;
   businessPeople?: BusinessPeople;
+  instagram?: SocialData;
+  tiktok?: SocialData;
   joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
+  isAdmin?: boolean;
+  status?: UserStatus;
 
   constructor({
     id,
@@ -48,6 +103,10 @@ export class User extends BaseModel {
     contentCreator,
     businessPeople,
     joinedAt,
+    isAdmin,
+    status,
+    instagram,
+    tiktok,
   }: Partial<User>) {
     super();
     this.id = id;
@@ -57,6 +116,10 @@ export class User extends BaseModel {
     this.contentCreator = contentCreator;
     this.businessPeople = businessPeople;
     this.joinedAt = joinedAt;
+    this.isAdmin = isAdmin;
+    this.status = status;
+    this.instagram = instagram;
+    this.tiktok = tiktok;
     // Add your non-static methods here
   }
 
@@ -71,9 +134,26 @@ export class User extends BaseModel {
         id: doc.id,
         email: data?.email,
         phone: data?.phone,
-        contentCreator: data?.contentCreator,
+        contentCreator: {
+          ...data.contentCreator,
+          postingSchedules: data.contentCreator.postingSchedules.map(
+            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
+          ),
+          specializedCategoryIds:
+            data.contentCreator?.specializedCategoryIds.map(
+              (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
+                categoryId.id,
+            ) || [],
+          preferredLocationIds:
+            data.contentCreator?.preferredLocationIds.map(
+              (locationId: FirebaseFirestoreTypes.DocumentReference) =>
+                locationId.id,
+            ) || [],
+        },
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt?.seconds,
+        isAdmin: data?.isAdmin,
+        status: data?.status || UserStatus.Active,
       });
     }
 
@@ -97,40 +177,91 @@ export class User extends BaseModel {
     return await auth().createUserWithEmailAndPassword(email, password);
   }
 
+  private static mappingUserFields(data: User) {
+    return {
+      ...data,
+      email: data.email?.toLocaleLowerCase(),
+      contentCreator: data.contentCreator && {
+        ...data.contentCreator,
+        specializedCategoryIds: data.contentCreator?.specializedCategoryIds.map(
+          categoryId => Category.getDocumentReference(categoryId),
+        ),
+        preferredLocationIds: data.contentCreator?.preferredLocationIds.map(
+          locationId => Location.getDocumentReference(locationId),
+        ),
+      },
+    };
+  }
+
   static async setUserData(documentId: string, data: User): Promise<void> {
     await this.getDocumentReference(documentId).set({
-      ...data,
+      ...this.mappingUserFields(data),
       joinedAt: firestore.Timestamp.now(),
     });
   }
 
   static async updateUserData(documentId: string, data: User): Promise<void> {
-    await this.getDocumentReference(documentId).update(data);
+    await this.getDocumentReference(documentId).update(
+      this.mappingUserFields(data),
+    );
   }
 
-  static getUserData(
-    documentId: string,
-    callback: (user: User | null) => void,
-  ): void {
-    this.getDocumentReference(documentId)
-      .get()
-      .then(documentSnapshot => {
-        console.log('User exists: ', documentSnapshot.exists);
-        if (documentSnapshot.exists) {
-          const userData = documentSnapshot.data();
-          console.log('User data: ', userData);
-          const user = new User({
-            email: userData?.email,
-            phone: userData?.phone,
-            contentCreator: userData?.contentCreator,
-            businessPeople: userData?.businessPeople,
-            joinedAt: userData?.joinedAt?.seconds,
-          });
-          callback(user);
-        } else {
-          callback(null);
-        }
+  // static async getAll(): Promise<User[]> {
+  //   try {
+  //     const users = await firestore()
+  //       .collection(USER_COLLECTION)
+  //       // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja?
+  //       // .where('isAdmin', '!=', true)
+  //       .get();
+  //     if (users.empty) {
+  //       throw Error('No Users!');
+  //     }
+  //     return users.docs.map(doc => this.fromSnapshot(doc));
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw Error('Error!');
+  //   }
+  // }
+
+  static getAll(onComplete: (users: User[]) => void) {
+    const unsubscribe = firestore()
+      .collection(USER_COLLECTION)
+      // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja?
+      // .where('isAdmin', '!=', true)
+      .onSnapshot(
+        querySnapshot => {
+          let users: User[] = [];
+          if (querySnapshot.empty) {
+            return;
+          }
+          users = querySnapshot.docs.map(doc => this.fromSnapshot(doc));
+
+          onComplete(users);
+        },
+        error => {
+          console.log(error);
+        },
+      );
+
+    return unsubscribe;
+  }
+
+  static async getById(documentId: string): Promise<User | undefined> {
+    const snapshot = await this.getDocumentReference(documentId).get();
+    if (snapshot.exists) {
+      const userData = snapshot.data();
+      const user = new User({
+        id: snapshot.id,
+        email: userData?.email,
+        phone: userData?.phone,
+        contentCreator: userData?.contentCreator,
+        businessPeople: userData?.businessPeople,
+        joinedAt: userData?.joinedAt?.seconds,
+        isAdmin: userData?.isAdmin,
       });
+
+      return user;
+    }
   }
 
   static async getUser(documentId: string): Promise<User | null> {
@@ -150,6 +281,7 @@ export class User extends BaseModel {
           contentCreator: userData?.contentCreator,
           businessPeople: userData?.businessPeople,
           joinedAt: userData?.joinedAt?.seconds,
+          isAdmin: userData?.isAdmin,
         });
 
         return user;
@@ -161,47 +293,92 @@ export class User extends BaseModel {
     }
   }
 
+  // TODO: fix callback and unsubscribe return
   static getUserDataReactive(
     documentId: string,
-    callback: (user: User | null, unsubscribe: () => void) => void,
-  ): void {
+    callback: (user: User | null) => void,
+  ) {
     try {
-      const subscriber = this.getDocumentReference(documentId).onSnapshot(
+      const unsubscribe = this.getDocumentReference(documentId).onSnapshot(
         (
           documentSnapshot: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
         ) => {
           const user = this.fromSnapshot(documentSnapshot);
-          callback(user, subscriber);
+          callback(user);
         },
         (error: Error) => {
-          throw Error(error.message);
+          console.log(error);
         },
       );
+      return unsubscribe;
     } catch (error) {
       throw Error('Error!');
     }
   }
 
-  static async signUpContentCreator({
-    email,
-    password,
-    phone,
-    contentCreator,
-  }: User) {
+  static async signUp({
+    token,
+    provider,
+    providerId,
+    ...user
+  }: SignupContentCreatorProps) {
     try {
-      if (!password || !email) {
-        throw Error(ErrorMessage.MISSING_FIELDS);
-      }
-      const userCredential = await this.createUserWithEmailAndPassword(
-        email,
-        password,
-      );
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: user.email,
+        password: user.password,
+      });
+
       await this.setUserData(
         userCredential.user.uid,
         new User({
-          email: email.toLowerCase(),
-          phone: phone,
-          contentCreator: contentCreator,
+          ...user,
+          password: undefined,
+        }),
+      );
+
+      console.log('signup providerId', {
+        providerId: providerId,
+        email: user.email,
+        method: provider,
+      });
+
+      await AuthMethod.setAuthMethod(
+        userCredential.user.uid,
+        new AuthMethod({
+          providerId: providerId,
+          email: user.email,
+          method: provider,
+        }),
+      );
+
+      return true;
+    } catch (error: any) {
+      console.log(error);
+      handleError(error.code);
+
+      return false;
+    }
+  }
+
+  static async signUpContentCreator({
+    token,
+    provider,
+    ...user
+  }: SignupContentCreatorProps) {
+    try {
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: user.email,
+        password: user.password,
+      });
+
+      await this.setUserData(
+        userCredential.user.uid,
+        new User({
+          ...user,
         }),
       );
 
@@ -287,6 +464,145 @@ export class User extends BaseModel {
     }
   }
 
+  static async signUpWithFacebook(finishCallback: (result: boolean) => void) {
+    const result: LoginResult = await LoginManager.logInWithPermissions([
+      'pages_show_list',
+      'instagram_basic',
+      'business_management',
+    ]);
+
+    if (result.isCancelled) {
+      throw Error(ErrorMessage.FACEBOOK_SIGN_IN_CANCEL);
+    }
+
+    const fbAccessToken: AccessToken | null =
+      await AccessToken.getCurrentAccessToken();
+
+    if (!fbAccessToken) {
+      throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
+    }
+
+    const facebookCredential = auth.FacebookAuthProvider.credential(
+      fbAccessToken.accessToken,
+    );
+    const userCredential: FirebaseAuthTypes.UserCredential =
+      await auth().signInWithCredential(facebookCredential);
+
+    console.log('lewatin ini');
+    if (!userCredential.additionalUserInfo?.isNewUser) {
+      console.log('lewatin 1');
+      throw Error(ErrorMessage.USER_EXISTS);
+    } else {
+      console.log('lewatin 2');
+      const user = userCredential.user;
+      console.log(userCredential.user);
+
+      const instagramDataCallback = async (error?: Object, result?: any) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          return false;
+        } else {
+          const fullname = user.displayName;
+          const followersCount = result?.followers_count;
+          const instagramUsername = result?.username;
+          const instagramName = result?.name;
+          // const instagramMediaIds = result?.media.data;
+          const profilePicture = result?.profile_picture_url;
+          try {
+            await this.setUserData(
+              user.uid,
+              new User({
+                instagram: {
+                  username: instagramUsername,
+                  followersCount: followersCount,
+                },
+                businessPeople: {
+                  fullname: fullname || instagramName,
+                  profilePicture: profilePicture,
+                },
+              }),
+            );
+            console.log('before callback success');
+            finishCallback(true);
+          } catch (error) {
+            finishCallback(false);
+          }
+          console.log(result);
+        }
+      };
+
+      const userInstagramBusinessAccountCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(false);
+        } else {
+          const instagramBusinessAccount = result?.instagram_business_account;
+          const instagramId = instagramBusinessAccount?.id;
+          const getInstagramDataRequest = new GraphRequest(
+            `/${instagramId}`,
+            {
+              parameters: {
+                fields: {
+                  string:
+                    'id,followers_count,media_count,username,website,biography,name,media,profile_picture_url',
+                },
+              },
+            },
+            instagramDataCallback,
+          );
+          await new GraphRequestManager()
+            .addRequest(getInstagramDataRequest)
+            .start();
+        }
+      };
+
+      const userFacebookPagesListCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(false);
+        } else {
+          const data = result?.data;
+          if (data && data?.length > 0) {
+            const page = data?.[0];
+            if (page) {
+              const page_id = page?.id;
+              const getInstagramBusinessAccountRequest = new GraphRequest(
+                `/${page_id}`,
+                {
+                  parameters: {
+                    fields: {
+                      string: 'instagram_business_account',
+                    },
+                  },
+                },
+                userInstagramBusinessAccountCallback,
+              );
+              await new GraphRequestManager()
+                .addRequest(getInstagramBusinessAccountRequest)
+                .start();
+            }
+          }
+          console.log(result);
+        }
+      };
+      const getUserFacebookPagesListRequest = new GraphRequest(
+        '/me/accounts',
+        {},
+        userFacebookPagesListCallback,
+      );
+
+      await new GraphRequestManager()
+        .addRequest(getUserFacebookPagesListRequest)
+        .start();
+    }
+  }
+
   static async login(email: string, password: string) {
     try {
       await auth().signInWithEmailAndPassword(email, password);
@@ -295,6 +611,161 @@ export class User extends BaseModel {
     } catch (error: any) {
       console.log('err: ' + error);
       handleError(error.code, ErrorMessage.LOGIN_FAILED);
+    }
+  }
+
+  static async continueWithGoogle(): Promise<UserAuthProviderData> {
+    try {
+      const {
+        idToken,
+        user: {id, name, email, photo},
+      } = await GoogleSignin.signIn();
+      const authMethod = await AuthMethod.getByProviderId(id);
+      if (authMethod) {
+        await AuthMethod.getUserCredentialByProvider({
+          provider: Provider.GOOGLE,
+          token: idToken,
+        });
+      }
+      return {
+        id: id,
+        token: idToken!!,
+        name: name!!,
+        email: email,
+        photo: photo!!,
+      };
+    } catch (error) {
+      console.log(error);
+    }
+    return {id: '', token: ''};
+  }
+
+  static async continueWithFacebook(
+    finishCallback: (data: UserAuthProviderData) => void,
+  ): Promise<void> {
+    const result: LoginResult = await LoginManager.logInWithPermissions([
+      'pages_show_list',
+      'instagram_basic',
+      'business_management',
+      // 'email',
+    ]);
+
+    if (result.isCancelled) {
+      throw Error(ErrorMessage.FACEBOOK_SIGN_IN_CANCEL);
+    }
+
+    const fbAccessToken: AccessToken | null =
+      await AccessToken.getCurrentAccessToken();
+
+    if (!fbAccessToken) {
+      throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
+    } else {
+      const data = {
+        id: '',
+        token: fbAccessToken.accessToken,
+      };
+      const instagramDataCallback = async (error?: Object, result?: any) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(data);
+        } else {
+          const facebookId = result?.id;
+          const followersCount = result?.followers_count;
+          const instagramUsername = result?.username;
+          const instagramName = result?.name;
+          // const instagramMediaIds = result?.media.data;
+          const profilePicture = result?.profile_picture_url;
+          const authMethod = await AuthMethod.getByProviderId(facebookId);
+          if (authMethod) {
+            await AuthMethod.getUserCredentialByProvider({
+              provider: Provider.FACEBOOK,
+              token: data.token,
+            });
+          } else {
+            finishCallback({
+              ...data,
+              id: facebookId,
+              name: instagramName,
+              photo: profilePicture,
+              instagram: {
+                username: instagramUsername,
+                followersCount: followersCount,
+              },
+            });
+            console.log(result);
+          }
+        }
+      };
+
+      const userInstagramBusinessAccountCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(data);
+        } else {
+          const instagramBusinessAccount = result?.instagram_business_account;
+          const instagramId = instagramBusinessAccount?.id;
+          const getInstagramDataRequest = new GraphRequest(
+            `/${instagramId}`,
+            {
+              parameters: {
+                fields: {
+                  string:
+                    'id,followers_count,media_count,username,website,biography,name,media,profile_picture_url',
+                },
+              },
+            },
+            instagramDataCallback,
+          );
+          await new GraphRequestManager()
+            .addRequest(getInstagramDataRequest)
+            .start();
+        }
+      };
+
+      const userFacebookPagesListCallback = async (
+        error?: Object,
+        result?: any,
+      ) => {
+        if (error) {
+          console.log('Error fetching data: ' + error.toString());
+          finishCallback(data);
+        } else {
+          const data = result?.data;
+          if (data && data?.length > 0) {
+            const page = data?.[0];
+            if (page) {
+              const page_id = page?.id;
+              const getInstagramBusinessAccountRequest = new GraphRequest(
+                `/${page_id}`,
+                {
+                  parameters: {
+                    fields: {
+                      string: 'instagram_business_account',
+                    },
+                  },
+                },
+                userInstagramBusinessAccountCallback,
+              );
+              await new GraphRequestManager()
+                .addRequest(getInstagramBusinessAccountRequest)
+                .start();
+            }
+          }
+          console.log(result);
+        }
+      };
+      const getUserFacebookPagesListRequest = new GraphRequest(
+        '/me/accounts',
+        {},
+        userFacebookPagesListCallback,
+      );
+
+      await new GraphRequestManager()
+        .addRequest(getUserFacebookPagesListRequest)
+        .start();
     }
   }
 
@@ -325,9 +796,7 @@ export class User extends BaseModel {
     }
   }
 
-  static signOut() {
-    auth()
-      .signOut()
-      .then(() => console.log('User signed out!'));
+  static async signOut() {
+    await auth().signOut();
   }
 }
