@@ -28,31 +28,11 @@ const WelcomeScreen = () => {
 
   const continueWithGoogle = async () => {
     const data = await User.continueWithGoogle();
-    dispatch(
-      updateSignupData(
-        new User({
-          email: data.email,
-        }).toJSON(),
-      ),
-    );
-    dispatch(
-      updateTemporarySignupData({
-        fullname: data.name,
-        profilePicture: data.photo,
-        token: data.token,
-      }),
-    );
-    dispatch(setSignupProvider(Provider.GOOGLE));
-    navigateToSignupPage();
-  };
-
-  const continueWithFacebook = () => {
-    User.continueWithFacebook((data: UserAuthProviderData) => {
+    if (data.token && data.token !== '') {
       dispatch(
         updateSignupData(
           new User({
             email: data.email,
-            instagram: data.instagram,
           }).toJSON(),
         ),
       );
@@ -63,9 +43,35 @@ const WelcomeScreen = () => {
           token: data.token,
         }),
       );
-      dispatch(setSignupProvider(Provider.FACEBOOK));
+      dispatch(setSignupProvider(Provider.GOOGLE));
       navigateToSignupPage();
-    }).catch(err => console.log('err nih', err));
+    }
+  };
+
+  const continueWithFacebook = () => {
+    try {
+      User.continueWithFacebook((data: UserAuthProviderData) => {
+        dispatch(
+          updateSignupData(
+            new User({
+              email: data.email,
+              instagram: data.instagram,
+            }).toJSON(),
+          ),
+        );
+        dispatch(
+          updateTemporarySignupData({
+            fullname: data.name,
+            profilePicture: data.photo,
+            token: data.token,
+          }),
+        );
+        dispatch(setSignupProvider(Provider.FACEBOOK));
+        navigateToSignupPage();
+      }).catch(err => console.log('err nih', err));
+    } catch (error) {
+      console.log('trycatch fb', error);
+    }
   };
 
   const handleEmailSignup = () => {
