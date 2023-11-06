@@ -5,6 +5,7 @@ import {
   KeyboardTypeOptions,
   Pressable,
   PressableProps,
+  TextInputProps,
 } from 'react-native';
 import {TextInput} from 'react-native';
 import {Text} from 'react-native';
@@ -36,12 +37,17 @@ import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {AddIcon, MinusIcon} from './Icon';
+import {font} from '../../styles/Font';
+import uuid from 'react-native-uuid';
+import storage from '@react-native-firebase/storage';
+import {ProgressBar} from './ProgressBar';
 
 interface Props extends UseControllerProps {
   label: string;
   placeholder?: string;
   multiline?: boolean;
   hideInputText?: boolean;
+  forceLowercase?: boolean;
   keyboardType?: KeyboardTypeOptions;
   inputType?: 'default' | 'number' | 'price';
   prefix?: string;
@@ -52,6 +58,7 @@ export const CustomTextInput = ({
   placeholder = label,
   multiline = false,
   hideInputText = false,
+  forceLowercase = false,
   keyboardType,
   inputType = 'default',
   prefix,
@@ -116,6 +123,9 @@ export const CustomTextInput = ({
           actual = '0';
         }
       }
+    }
+    if (forceLowercase) {
+      actual = actual.toLocaleLowerCase();
     }
     onChange(actual);
   };
@@ -312,11 +322,10 @@ export const CustomNumberInput = ({
     let actual = text.replaceAll('.', '');
     const parsedNumber = parseInt(actual, 10);
     if (!isNaN(parsedNumber)) {
-      actual = `${updateValue(actual, 0)}`;
+      onChange(updateValue(actual, 0));
     } else {
-      actual = type === 'field' ? '' : '0';
+      onChange(type === 'field' ? '' : '0');
     }
-    onChange(actual);
   };
 
   const decrement = (actual: string, onChange: (...event: any[]) => void) => {
@@ -494,23 +503,64 @@ const IncrementDecrementButton = ({
 
 interface MediaUploaderProps {
   options: Options;
+  targetFolder: string;
+  showUploadProgress?: boolean;
   children?: React.ReactNode;
-  callback: (media: ImageOrVideo) => void;
+  onMediaSelected?: (media: ImageOrVideo) => void;
+  onUploadSuccess?: (url: string) => void;
+  onUploadFail?: (err?: any) => void;
 }
 
 export const MediaUploader = ({
   options,
-  onUploadComplete,
+  targetFolder,
+  showUploadProgress = false,
+  onUploadSuccess,
+  onUploadFail,
   children,
-  callback,
+  onMediaSelected,
 }: MediaUploaderProps) => {
+  const [uploadProgress, setUploadProgress] = useState<number | undefined>(
+    undefined,
+  );
   const handleImageUpload = () => {
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
-        callback(media);
+        onMediaSelected && onMediaSelected(media);
+        const imageType = media.mime.split('/')[1];
+        const filename = `${targetFolder}/${uuid.v4()}.${imageType}`;
+
+        const reference = storage().ref(filename);
+        const task = reference.putFile(media.path);
+        task.on('state_changed', taskSnapshot => {
+          setUploadProgress(
+            taskSnapshot.bytesTransferred / taskSnapshot.totalBytes,
+          );
+        });
+        task.then(() => {
+          try {
+            reference
+              .getDownloadURL()
+              .then(url => {
+                onUploadSuccess && onUploadSuccess(url);
+                console.log(url);
+                console.log('Image uploaded to the bucket!');
+              })
+              .catch(err => {
+                onUploadFail && onUploadFail(err);
+                setUploadProgress(undefined);
+                console.log(err);
+              });
+          } catch (e) {
+            onUploadFail && onUploadFail(e);
+            setUploadProgress(undefined);
+            console.log(e);
+          }
+        });
       })
       .catch(err => {
         console.log(err);
+        setUploadProgress(undefined);
       });
   };
 
@@ -519,6 +569,218 @@ export const MediaUploader = ({
       <View style={[flex.flexRow]} className="items-center">
         {children || <CustomButton text="Upload image" rounded={'small'} />}
       </View>
+      {showUploadProgress &&
+        uploadProgress !== undefined &&
+        uploadProgress < 1 && (
+          <ProgressBar currentProgress={uploadProgress} showProgressNumber />
+        )}
     </TouchableOpacity>
+  );
+};
+
+interface FormlessTextInputProps extends TextInputProps {
+  label?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  error?: boolean;
+  success?: boolean;
+  description?: string;
+  counter?: boolean;
+  max?: number;
+  inputType?: 'default' | 'number' | 'price';
+  prefix?: string;
+  focus?: boolean;
+  onChangeText?: (text: string) => void;
+}
+
+export const FormlessTextInput = ({
+  label,
+  placeholder = label,
+  disabled = false,
+  error,
+  success,
+  description,
+  counter,
+  max,
+  inputType = 'default',
+  prefix,
+  focus = false,
+  onChangeText,
+  ...props
+}: FormlessTextInputProps) => {
+  const fieldRef = useRef<TextInput>(null);
+  const [fieldValue, setFieldValue] = useState(props.defaultValue || '');
+  const maxTranslateX = 40;
+  const animationDuration = 400;
+  const translateX = useSharedValue(maxTranslateX);
+  const [parentWidth, setParentWidth] = useState<number>(0);
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedWidth, {
+      toValue: !error && focus ? 1 : 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [focus, animatedWidth, error, props]);
+
+  useEffect(() => {
+    if (fieldValue?.length > 0 || disabled) {
+      translateX.value = 0;
+    } else {
+      translateX.value = maxTranslateX;
+    }
+  }, [fieldValue, translateX, disabled]);
+
+  useEffect(() => {
+    if (onChangeText) {
+      onChangeText(fieldValue);
+    }
+  }, [fieldValue, onChangeText]);
+
+  useEffect(() => {
+    if (focus) {
+      fieldRef.current?.focus();
+    } else {
+      fieldRef.current?.blur();
+    }
+  }, [focus]);
+
+  const animatedStyles = useAnimatedStyle(() => ({
+    opacity: withTiming(fieldValue?.length > 0 || disabled ? 1 : 0, {
+      duration: animationDuration,
+    }),
+    transform: [
+      {
+        translateX: withSpring(translateX.value * 2),
+      },
+    ],
+  }));
+
+  const handleChangeText = (text: string) => {
+    let actual = text;
+    if (!max || (max && actual.length <= max)) {
+      if (inputType === 'price' || inputType === 'number') {
+        if (text !== '') {
+          actual = actual.replaceAll('.', '');
+          const parsedNumber = parseInt(actual, 10);
+          if (!isNaN(parsedNumber)) {
+            actual = `${parsedNumber}`;
+          } else {
+            actual = '0';
+          }
+        }
+      }
+      setFieldValue(actual);
+    }
+  };
+
+  return (
+    <View style={[flex.flexCol, gap.small]}>
+      <Reanimated.View style={[animatedStyles]}>
+        <Text
+          className="text-base font-medium"
+          style={[textColor(COLOR.text.neutral.high)]}>
+          {label}
+        </Text>
+      </Reanimated.View>
+      <View
+        style={[
+          flex.flexRow,
+          justify.start,
+          gap.default,
+          disabled && rounded.default,
+          disabled && horizontalPadding.small,
+          disabled && background(COLOR.background.neutral.disabled),
+        ]}>
+        {(prefix || inputType === 'price') && (
+          <View
+            style={[
+              flex.flexRow,
+              verticalPadding.xsmall2,
+              justify.start,
+              items.end,
+            ]}>
+            <Text
+              className="text-base font-semibold"
+              style={[textColor(COLOR.text.neutral.low)]}>
+              {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
+            </Text>
+          </View>
+        )}
+        <TextInput
+          ref={fieldRef}
+          {...props}
+          keyboardType={
+            props.keyboardType
+              ? props.keyboardType
+              : inputType === 'number' || inputType === 'price'
+              ? 'number-pad'
+              : undefined
+          }
+          style={[
+            textColor(
+              disabled ? COLOR.text.neutral.low : COLOR.text.neutral.high,
+            ),
+            font.size[30],
+            font.lineHeight[30],
+          ]}
+          value={
+            inputType === 'number' || inputType === 'price'
+              ? `${formatNumberWithThousandSeparator(parseInt(fieldValue, 10))}`
+              : fieldValue
+          }
+          editable={!disabled}
+          onChangeText={text => handleChangeText(text)}
+          placeholder={placeholder}
+          className="w-full font-medium"
+        />
+      </View>
+      {!disabled && (
+        <View
+          onLayout={event => {
+            const {width} = event.nativeEvent.layout;
+            setParentWidth(width);
+          }}
+          className="relative w-full overflow-hidden"
+          style={[
+            {height: 1},
+            error ? background(COLOR.red.error) : background(COLOR.black[100]),
+          ]}>
+          <Animated.View
+            className="absolute top-0 left-0 w-full h-full bg-green-700"
+            style={{
+              transform: [
+                {
+                  translateX: animatedWidth.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-parentWidth, 0],
+                  }),
+                },
+              ],
+            }}
+          />
+        </View>
+      )}
+      <View style={[flex.flexRow, gap.medium, justify.between]}>
+        <Text
+          className="text-xs"
+          style={[
+            flex.flex1,
+            flex.grow,
+            textColor(COLOR.text.neutral.med),
+            error && textColor(COLOR.text.danger.default),
+          ]}>
+          {description}
+        </Text>
+        {counter && (
+          <Text
+            className="text-xs"
+            style={[textColor(COLOR.text.neutral.med)]}>{`${
+            fieldValue.length
+          } / ${parseInt(`${max}`, 10)}`}</Text>
+        )}
+      </View>
+    </View>
   );
 };

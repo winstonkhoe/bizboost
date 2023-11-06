@@ -9,9 +9,8 @@ import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {User, UserAuthProviderData} from '../model/User';
 import {useAppDispatch} from '../redux/hooks';
-import GoogleLogo from '../assets/vectors/google-color-logo.svg';
-import FacebookLogo from '../assets/vectors/facebook-logo.svg';
 import {
+  setProviderId,
   setSignupProvider,
   updateSignupData,
   updateTemporarySignupData,
@@ -22,6 +21,7 @@ import {
   GuestNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
 
 const WelcomeScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -29,31 +29,11 @@ const WelcomeScreen = () => {
 
   const continueWithGoogle = async () => {
     const data = await User.continueWithGoogle();
-    dispatch(
-      updateSignupData(
-        new User({
-          email: data.email,
-        }).toJSON(),
-      ),
-    );
-    dispatch(
-      updateTemporarySignupData({
-        fullname: data.name,
-        profilePicture: data.photo,
-        token: data.token,
-      }),
-    );
-    dispatch(setSignupProvider(Provider.GOOGLE));
-    navigateToSignupPage();
-  };
-
-  const continueWithFacebook = () => {
-    User.continueWithFacebook((data: UserAuthProviderData) => {
+    if (data.token && data.token !== '') {
       dispatch(
         updateSignupData(
           new User({
             email: data.email,
-            instagram: data.instagram,
           }).toJSON(),
         ),
       );
@@ -64,9 +44,37 @@ const WelcomeScreen = () => {
           token: data.token,
         }),
       );
-      dispatch(setSignupProvider(Provider.FACEBOOK));
+      dispatch(setProviderId(data.id));
+      dispatch(setSignupProvider(Provider.GOOGLE));
       navigateToSignupPage();
-    }).catch(err => console.log('err nih', err));
+    }
+  };
+
+  const continueWithFacebook = () => {
+    try {
+      User.continueWithFacebook((data: UserAuthProviderData) => {
+        dispatch(
+          updateSignupData(
+            new User({
+              email: data.email,
+              instagram: data.instagram,
+            }).toJSON(),
+          ),
+        );
+        dispatch(
+          updateTemporarySignupData({
+            fullname: data.name,
+            profilePicture: data.photo,
+            token: data.token,
+          }),
+        );
+        dispatch(setProviderId(data.id));
+        dispatch(setSignupProvider(Provider.FACEBOOK));
+        navigateToSignupPage();
+      }).catch(err => console.log('err nih', err));
+    } catch (error) {
+      console.log('trycatch fb', error);
+    }
   };
 
   const handleEmailSignup = () => {
@@ -106,34 +114,18 @@ const WelcomeScreen = () => {
                 rounded="max"
                 onPress={handleEmailSignup}
               />
-              <CustomButton
-                text="Continue with Google"
-                rounded="max"
-                inverted
-                logo={
-                  <View>
-                    <GoogleLogo width={25} height={25} />
-                  </View>
-                }
+              <AuthProviderButton
+                provider={Provider.GOOGLE}
                 onPress={async () => await continueWithGoogle()}
               />
-
-              <CustomButton
-                text="Continue with Facebook"
-                rounded="max"
-                inverted
-                logo={
-                  <View>
-                    <FacebookLogo width={35} height={35} color="#0F90F3" />
-                  </View>
-                }
+              <AuthProviderButton
+                provider={Provider.FACEBOOK}
                 onPress={continueWithFacebook}
               />
 
-              <CustomButton
-                text="Log in"
-                rounded="max"
-                inverted
+              <AuthProviderButton
+                provider={Provider.EMAIL}
+                type="tertiary"
                 onPress={() => {
                   navigation.navigate(GuestNavigation.Login);
                 }}

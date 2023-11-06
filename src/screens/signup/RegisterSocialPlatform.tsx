@@ -28,6 +28,7 @@ import {dimension} from '../../styles/Dimension';
 import {CustomNumberInput, CustomTextInput} from '../../components/atoms/Input';
 import InstagramLogo from '../../assets/vectors/instagram.svg';
 import TiktokLogo from '../../assets/vectors/tiktok.svg';
+import {Label} from '../../components/atoms/Label';
 
 type FormData = {
   instagramUsername: string;
@@ -63,8 +64,12 @@ export const RegisterSocialPlatform = ({
   });
 
   const {getFieldState, watch, formState, setValue, getValues} = methods;
+  const finishedSetDefaultValue = useRef<boolean>(false);
   const updateSocialCarouselIndexRef = useRef<boolean>(true);
   const carouselRef = useRef<ICarouselInstance>(null);
+  const [verifiedPlatforms, setVerifiedPlatforms] = useState<SocialPlatform[]>(
+    [],
+  );
   const [selectedSocialPlatforms, setSelectedSocialPlatforms] = useState<
     SocialPlatform[]
   >([]);
@@ -97,26 +102,77 @@ export const RegisterSocialPlatform = ({
     [setValue],
   );
 
-  useEffect(() => {
-    if (initialData) {
-      if (initialData.instagramUsername) {
-        toggleSelectPlatform(SocialPlatform.Instagram);
-      }
-      if (initialData.tiktokUsername) {
-        toggleSelectPlatform(SocialPlatform.Tiktok);
-      }
-      setFieldValue('instagramUsername', initialData.instagramUsername);
-      setFieldValue('instagramFollowers', initialData.instagramFollowers);
-      setFieldValue('tiktokUsername', initialData.tiktokUsername);
-      setFieldValue('tiktokFollowers', initialData.tiktokFollowers);
+  const isValidInitialData = useCallback((field: any) => {
+    return (
+      field && field !== '' && field !== undefined && field !== 'undefined'
+    );
+  }, []);
+
+  const getFallbackField = (value: any) => {
+    if (value === undefined || value === 'undefined') {
+      return '';
     }
-  }, [initialData, setFieldValue, toggleSelectPlatform]);
+    return value;
+  };
 
   useEffect(() => {
-    setFieldValue('instagramUsername', getValues('instagramUsername'));
-    setFieldValue('instagramFollowers', getValues('instagramFollowers'));
-    setFieldValue('tiktokUsername', getValues('tiktokUsername'));
-    setFieldValue('tiktokFollowers', getValues('tiktokFollowers'));
+    if (initialData) {
+      if (isValidInitialData(initialData.instagramUsername)) {
+        if (
+          isValidInitialData(initialData.instagramFollowers) &&
+          !verifiedPlatforms.includes(SocialPlatform.Instagram)
+        ) {
+          setVerifiedPlatforms([
+            ...verifiedPlatforms,
+            SocialPlatform.Instagram,
+          ]);
+        }
+      }
+      if (isValidInitialData(initialData.tiktokUsername)) {
+        if (
+          isValidInitialData(initialData.tiktokFollowers) &&
+          !verifiedPlatforms.includes(SocialPlatform.Tiktok)
+        ) {
+          setVerifiedPlatforms([...verifiedPlatforms, SocialPlatform.Tiktok]);
+        }
+      }
+      setFieldValue(
+        'instagramUsername',
+        getFallbackField(initialData.instagramUsername),
+      );
+      setFieldValue(
+        'instagramFollowers',
+        getFallbackField(initialData.instagramFollowers),
+      );
+      setFieldValue(
+        'tiktokUsername',
+        getFallbackField(initialData.tiktokUsername),
+      );
+      setFieldValue(
+        'tiktokFollowers',
+        getFallbackField(initialData.tiktokFollowers),
+      );
+      finishedSetDefaultValue.current = true;
+    }
+  }, [initialData, setFieldValue, isValidInitialData, verifiedPlatforms]);
+
+  useEffect(() => {
+    setFieldValue(
+      'instagramUsername',
+      getFallbackField(getValues('instagramUsername')),
+    );
+    setFieldValue(
+      'instagramFollowers',
+      getFallbackField(getValues('instagramFollowers')),
+    );
+    setFieldValue(
+      'tiktokUsername',
+      getFallbackField(getValues('tiktokUsername')),
+    );
+    setFieldValue(
+      'tiktokFollowers',
+      getFallbackField(getValues('tiktokFollowers')),
+    );
     const platformDatas: PlatformData[] = selectedSocialPlatforms.reduce(
       (acc, platform) => {
         if (platform === SocialPlatform.Instagram) {
@@ -142,26 +198,38 @@ export const RegisterSocialPlatform = ({
       [] as PlatformData[],
     );
     onChangeSocialData(platformDatas);
-  }, [
-    watch,
-    onChangeSocialData,
-    selectedSocialPlatforms,
-    setFieldValue,
-    getValues,
-  ]);
+  }, [watch, onChangeSocialData, selectedSocialPlatforms, setValue, getValues]);
 
   useEffect(() => {
     const isDisable =
       (selectedSocialPlatforms.includes(SocialPlatform.Instagram)
-        ? !isValidField(getFieldState('instagramUsername', formState), true) ||
-          !isValidField(getFieldState('instagramFollowers', formState), true)
+        ? !isValidField(
+            getFieldState('instagramUsername', formState),
+            !verifiedPlatforms.includes(SocialPlatform.Instagram),
+          ) ||
+          !isValidField(
+            getFieldState('instagramFollowers', formState),
+            !verifiedPlatforms.includes(SocialPlatform.Instagram),
+          )
         : false) ||
       (selectedSocialPlatforms.includes(SocialPlatform.Tiktok)
-        ? !isValidField(getFieldState('tiktokUsername', formState), true) ||
-          !isValidField(getFieldState('tiktokFollowers', formState), true)
+        ? !isValidField(
+            getFieldState('tiktokUsername', formState),
+            !verifiedPlatforms.includes(SocialPlatform.Tiktok),
+          ) ||
+          !isValidField(
+            getFieldState('tiktokFollowers', formState),
+            !verifiedPlatforms.includes(SocialPlatform.Tiktok),
+          )
         : false);
     onValidRegistration(!isDisable);
-  }, [formState, onValidRegistration, getFieldState, selectedSocialPlatforms]);
+  }, [
+    formState,
+    onValidRegistration,
+    getFieldState,
+    selectedSocialPlatforms,
+    verifiedPlatforms,
+  ]);
 
   useEffect(() => {
     const currentCarouselIndex = carouselRef.current?.getCurrentIndex();
@@ -192,11 +260,11 @@ export const RegisterSocialPlatform = ({
                 error={
                   !isValidField(
                     getFieldState('instagramUsername', formState),
-                    true,
+                    !verifiedPlatforms.includes(SocialPlatform.Instagram),
                   ) ||
                   !isValidField(
                     getFieldState('instagramFollowers', formState),
-                    true,
+                    !verifiedPlatforms.includes(SocialPlatform.Instagram),
                   )
                 }
                 onPress={() => {
@@ -211,11 +279,11 @@ export const RegisterSocialPlatform = ({
                 error={
                   !isValidField(
                     getFieldState('tiktokUsername', formState),
-                    true,
+                    !verifiedPlatforms.includes(SocialPlatform.Tiktok),
                   ) ||
                   !isValidField(
                     getFieldState('tiktokFollowers', formState),
-                    true,
+                    !verifiedPlatforms.includes(SocialPlatform.Tiktok),
                   )
                 }
                 onPress={() => {
@@ -266,6 +334,7 @@ export const RegisterSocialPlatform = ({
                 <SocialCard
                   platform={item}
                   isActive={activeCarouselIndex === index}
+                  isVerified={verifiedPlatforms.includes(item)}
                   onPress={() => scrollToSocialCard(index)}
                 />
               )}
@@ -304,9 +373,15 @@ export const RegisterSocialPlatform = ({
 interface SocialCardProps extends PressableProps {
   platform: SocialPlatforms;
   isActive: boolean;
+  isVerified?: boolean;
 }
 
-const SocialCard = ({platform, isActive, ...props}: SocialCardProps) => {
+const SocialCard = ({
+  platform,
+  isActive,
+  isVerified = false,
+  ...props
+}: SocialCardProps) => {
   const {getFieldState, formState} = useFormContext();
   const currentFields = useMemo(() => {
     return {
@@ -323,13 +398,19 @@ const SocialCard = ({platform, isActive, ...props}: SocialCardProps) => {
 
   const getTargetValue = useCallback(() => {
     const isError =
-      !isValidField(getFieldState(currentFields.username, formState), true) ||
-      !isValidField(getFieldState(currentFields.followers, formState), true);
+      !isValidField(
+        getFieldState(currentFields.username, formState),
+        !isVerified,
+      ) ||
+      !isValidField(
+        getFieldState(currentFields.followers, formState),
+        !isVerified,
+      );
     if (isError) {
       return -1;
     }
     return isActive ? 1 : 0;
-  }, [getFieldState, formState, currentFields, isActive]);
+  }, [getFieldState, formState, currentFields, isActive, isVerified]);
 
   const openCardProgress = useSharedValue(getTargetValue());
   useEffect(() => {
@@ -371,30 +452,33 @@ const SocialCard = ({platform, isActive, ...props}: SocialCardProps) => {
       <Animated.View
         style={[
           flex.flexRow,
-          padding.vertical.xsmall,
+          padding.top.default,
           padding.horizontal.default,
           justify.between,
           items.center,
         ]}>
-        <View style={[flex.flexRow, gap.small, items.center]}>
-          <View
-            style={[
-              background(COLOR.black[0]),
-              padding.xsmall,
-              rounded.default,
-            ]}>
-            {SocialPlatform.Instagram === platform && (
-              <InstagramLogo width={25} height={25} />
-            )}
-            {SocialPlatform.Tiktok === platform && (
-              <TiktokLogo width={25} height={25} />
-            )}
+        <View style={[flex.flexRow, justify.between, items.center]}>
+          <View style={[flex.flex1, flex.flexRow, gap.small, items.center]}>
+            <View
+              style={[
+                background(COLOR.black[0]),
+                padding.xsmall,
+                rounded.default,
+              ]}>
+              {SocialPlatform.Instagram === platform && (
+                <InstagramLogo width={25} height={25} />
+              )}
+              {SocialPlatform.Tiktok === platform && (
+                <TiktokLogo width={25} height={25} />
+              )}
+            </View>
+            <Text
+              className="font-semibold text-lg"
+              style={[textColor(COLOR.text.neutral.high)]}>
+              {platform}
+            </Text>
           </View>
-          <Text
-            className="font-semibold text-lg"
-            style={[textColor(COLOR.text.neutral.high)]}>
-            {platform}
-          </Text>
+          {isVerified && <Label text="Verified" fontSize={40} />}
         </View>
       </Animated.View>
       <Animated.View className="overflow-hidden" style={[flex.flexCol]}>
@@ -403,6 +487,8 @@ const SocialCard = ({platform, isActive, ...props}: SocialCardProps) => {
             label="Username"
             name={currentFields.username}
             prefix="@"
+            forceLowercase
+            disabled={isVerified}
             rules={{
               required: 'Username cannot be empty',
             }}
@@ -411,7 +497,7 @@ const SocialCard = ({platform, isActive, ...props}: SocialCardProps) => {
             label="Followers"
             type="field"
             min={1}
-            defaultValue={''}
+            disabled={isVerified}
             name={currentFields.followers}
             rules={{
               required: 'Follower cannot be 0',

@@ -145,7 +145,7 @@ export class Chat extends BaseModel {
             callback(userChats, subscriber);
           },
           (error: Error) => {
-            throw Error(error.message);
+            console.log('getUserChatsReactive error', error.message);
           },
         );
     } catch (error) {

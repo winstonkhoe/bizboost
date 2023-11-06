@@ -77,7 +77,7 @@ export const COLOR = {
     neutral: {
       default: `${black[0]}`,
       low: `${black[1]}`,
-      med: `${black[5]}`,
+      med: `${black[40]}b3`,
       high: `${black[80]}`,
       disabled: `${black[10]}`,
     },

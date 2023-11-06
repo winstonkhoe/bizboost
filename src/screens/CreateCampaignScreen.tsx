@@ -243,13 +243,14 @@ const CreateCampaignScreen = () => {
                       <View className="flex flex-col">
                         <Text className="text-black mb-3">Campaign Image</Text>
                         <MediaUploader
+                          targetFolder="campaigns"
                           options={{
                             width: 400,
                             height: 400,
                             cropping: true,
                             includeBase64: true,
                           }}
-                          callback={imageSelected}>
+                          onMediaSelected={imageSelected}>
                           {value ? (
                             <Image
                               className="w-16 h-16 rounded-lg"

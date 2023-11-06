@@ -73,7 +73,7 @@ const SearchBar = () => {
         style={[
           horizontalPadding.small,
           rounded.default,
-          background(COLOR.background.neutral.med),
+          background(COLOR.black[5]),
         ]}
         onPress={() => {
           dispatch(openSearchPage());

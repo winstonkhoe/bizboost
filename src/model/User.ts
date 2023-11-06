@@ -13,6 +13,9 @@ import {
   LoginManager,
   LoginResult,
 } from 'react-native-fbsdk-next';
+import {AuthMethod, Provider, Providers} from './AuthMethod';
+import {Category} from './Category';
+import {Location} from './Location';
 
 const USER_COLLECTION = 'users';
 
@@ -40,15 +43,24 @@ export type UserRoles =
   | UserRole.Admin
   | undefined;
 
-export type ContentCreator = {
+export interface ContentCreatorPreference {
+  contentRevisionLimit?: number;
+  postingSchedules: Date[] | FirebaseFirestoreTypes.Timestamp[];
+  preferences: string[];
+}
+
+export type BaseUserData = {
   fullname: string;
   profilePicture?: string;
 };
 
-export type BusinessPeople = {
-  fullname: string;
-  profilePicture?: string;
-};
+export type ContentCreator = BaseUserData &
+  ContentCreatorPreference & {
+    specializedCategoryIds: string[];
+    preferredLocationIds: string[];
+  };
+
+export type BusinessPeople = BaseUserData;
 
 export type SocialData = {
   username?: string;
@@ -57,10 +69,17 @@ export type SocialData = {
 
 export interface UserAuthProviderData {
   token: string;
+  id: string;
   email?: string;
   name?: string;
   photo?: string;
   instagram?: SocialData;
+}
+
+export interface SignupContentCreatorProps extends Partial<User> {
+  token: string | null;
+  providerId?: string;
+  provider: Providers;
 }
 
 export class User extends BaseModel {
@@ -115,7 +134,22 @@ export class User extends BaseModel {
         id: doc.id,
         email: data?.email,
         phone: data?.phone,
-        contentCreator: data?.contentCreator,
+        contentCreator: {
+          ...data.contentCreator,
+          postingSchedules: data.contentCreator.postingSchedules.map(
+            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
+          ),
+          specializedCategoryIds:
+            data.contentCreator?.specializedCategoryIds.map(
+              (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
+                categoryId.id,
+            ) || [],
+          preferredLocationIds:
+            data.contentCreator?.preferredLocationIds.map(
+              (locationId: FirebaseFirestoreTypes.DocumentReference) =>
+                locationId.id,
+            ) || [],
+        },
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt?.seconds,
         isAdmin: data?.isAdmin,
@@ -143,15 +177,33 @@ export class User extends BaseModel {
     return await auth().createUserWithEmailAndPassword(email, password);
   }
 
+  private static mappingUserFields(data: User) {
+    return {
+      ...data,
+      email: data.email?.toLocaleLowerCase(),
+      contentCreator: data.contentCreator && {
+        ...data.contentCreator,
+        specializedCategoryIds: data.contentCreator?.specializedCategoryIds.map(
+          categoryId => Category.getDocumentReference(categoryId),
+        ),
+        preferredLocationIds: data.contentCreator?.preferredLocationIds.map(
+          locationId => Location.getDocumentReference(locationId),
+        ),
+      },
+    };
+  }
+
   static async setUserData(documentId: string, data: User): Promise<void> {
     await this.getDocumentReference(documentId).set({
-      ...data,
+      ...this.mappingUserFields(data),
       joinedAt: firestore.Timestamp.now(),
     });
   }
 
   static async updateUserData(documentId: string, data: User): Promise<void> {
-    await this.getDocumentReference(documentId).update(data);
+    await this.getDocumentReference(documentId).update(
+      this.mappingUserFields(data),
+    );
   }
 
   // static async getAll(): Promise<User[]> {
@@ -264,26 +316,69 @@ export class User extends BaseModel {
     }
   }
 
-  static async signUpContentCreator({
-    email,
-    password,
-    phone,
-    contentCreator,
-  }: User) {
+  static async signUp({
+    token,
+    provider,
+    providerId,
+    ...user
+  }: SignupContentCreatorProps) {
     try {
-      if (!password || !email) {
-        throw Error(ErrorMessage.MISSING_FIELDS);
-      }
-      const userCredential = await this.createUserWithEmailAndPassword(
-        email,
-        password,
-      );
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: user.email,
+        password: user.password,
+      });
+
       await this.setUserData(
         userCredential.user.uid,
         new User({
-          email: email.toLowerCase(),
-          phone: phone,
-          contentCreator: contentCreator,
+          ...user,
+          password: undefined,
+        }),
+      );
+
+      console.log('signup providerId', {
+        providerId: providerId,
+        email: user.email,
+        method: provider,
+      });
+
+      await AuthMethod.setAuthMethod(
+        userCredential.user.uid,
+        new AuthMethod({
+          providerId: providerId,
+          email: user.email,
+          method: provider,
+        }),
+      );
+
+      return true;
+    } catch (error: any) {
+      console.log(error);
+      handleError(error.code);
+
+      return false;
+    }
+  }
+
+  static async signUpContentCreator({
+    token,
+    provider,
+    ...user
+  }: SignupContentCreatorProps) {
+    try {
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: user.email,
+        password: user.password,
+      });
+
+      await this.setUserData(
+        userCredential.user.uid,
+        new User({
+          ...user,
         }),
       );
 
@@ -523,13 +618,26 @@ export class User extends BaseModel {
     try {
       const {
         idToken,
-        user: {name, email, photo},
+        user: {id, name, email, photo},
       } = await GoogleSignin.signIn();
-      return {token: idToken!!, name: name!!, email: email, photo: photo!!};
+      const authMethod = await AuthMethod.getByProviderId(id);
+      if (authMethod) {
+        await AuthMethod.getUserCredentialByProvider({
+          provider: Provider.GOOGLE,
+          token: idToken,
+        });
+      }
+      return {
+        id: id,
+        token: idToken!!,
+        name: name!!,
+        email: email,
+        photo: photo!!,
+      };
     } catch (error) {
       console.log(error);
     }
-    return {token: ''};
+    return {id: '', token: ''};
   }
 
   static async continueWithFacebook(
@@ -553,6 +661,7 @@ export class User extends BaseModel {
       throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
     } else {
       const data = {
+        id: '',
         token: fbAccessToken.accessToken,
       };
       const instagramDataCallback = async (error?: Object, result?: any) => {
@@ -560,25 +669,31 @@ export class User extends BaseModel {
           console.log('Error fetching data: ' + error.toString());
           finishCallback(data);
         } else {
-          // console.log('masuk');
-          // console.log(result);
-          // console.log(result.email);
+          const facebookId = result?.id;
           const followersCount = result?.followers_count;
           const instagramUsername = result?.username;
           const instagramName = result?.name;
           // const instagramMediaIds = result?.media.data;
           const profilePicture = result?.profile_picture_url;
-
-          finishCallback({
-            ...data,
-            name: instagramName,
-            photo: profilePicture,
-            instagram: {
-              username: instagramUsername,
-              followersCount: followersCount,
-            },
-          });
-          console.log(result);
+          const authMethod = await AuthMethod.getByProviderId(facebookId);
+          if (authMethod) {
+            await AuthMethod.getUserCredentialByProvider({
+              provider: Provider.FACEBOOK,
+              token: data.token,
+            });
+          } else {
+            finishCallback({
+              ...data,
+              id: facebookId,
+              name: instagramName,
+              photo: profilePicture,
+              instagram: {
+                username: instagramUsername,
+                followersCount: followersCount,
+              },
+            });
+            console.log(result);
+          }
         }
       };
 

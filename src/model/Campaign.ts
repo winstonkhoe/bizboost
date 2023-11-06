@@ -151,11 +151,11 @@ export class Campaign extends BaseModel {
           },
           (error: Error) => {
             callback([], subscriber);
-            console.error('getUserCampaignsReactive', error.message);
+            console.log('getUserCampaignsReactive', error.message);
           },
         );
     } catch (error) {
-      throw Error('Error!');
+      console.log('getUserCampaignsReactive', error);
     }
   }
   static getDocumentReference(

@@ -21,10 +21,14 @@ export const flex = StyleSheet.create({
     flex: 1,
   },
   growShrink: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   grow: {
     flexGrow: 1,
+  },
+  shrink: {
+    flexShrink: 1,
   },
   wrap: {
     flexWrap: 'wrap',

@@ -1,12 +1,19 @@
 import {Alert, Text, View} from 'react-native';
-import {User, UserRole, UserRoles} from '../model/User';
+import {
+  ContentCreatorPreference,
+  SignupContentCreatorProps,
+  SocialPlatform,
+  User,
+  UserRole,
+  UserRoles,
+} from '../model/User';
 import {useForm, FormProvider} from 'react-hook-form';
 import {CustomTextInput} from '../components/atoms/Input';
 import {
   HorizontalPadding,
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
-import {flex} from '../styles/Flex';
+import {flex, items, justify} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {textColor} from '../styles/Text';
 import {COLOR} from '../styles/Color';
@@ -18,12 +25,9 @@ import {isValidField} from '../utils/form';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {verticalPadding} from '../styles/Padding';
 import {Stepper} from '../components/atoms/Stepper';
-import {Provider} from '../model/AuthMethod';
+import {AuthMethod, Provider, Providers} from '../model/AuthMethod';
 import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
-import {useNavigation} from '@react-navigation/native';
-import {NavigationStackProps} from '../navigation/StackNavigation';
 import {Location} from '../model/Location';
-import {openLocationModal} from '../utils/modal';
 import {Category} from '../model/Category';
 import {ChooseRole} from './signup/ChooseRole';
 import {
@@ -33,19 +37,27 @@ import {
 import {RegisterFocusCategory} from './signup/RegisterFocusCategory';
 import {RegisterLocation} from './signup/RegisterLocation';
 import {RegisterContentCreatorPreferences} from './signup/RegisterContentCreatorPreferences';
+import {RegisterProfilePicture} from './signup/RegisterProfilePicture';
+import {CustomModal} from '../components/atoms/CustomModal';
+import {font} from '../styles/Font';
+import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
+import {dimension} from '../styles/Dimension';
+import firestore from '@react-native-firebase/firestore';
+import {useNavigation} from '@react-navigation/native';
+import {GuestNavigation, NavigationStackProps} from '../navigation/StackNavigation';
 
 type FormData = {
   email: string;
-  password: string;
-  confirmPassword: string;
+  password?: string;
+  confirmPassword?: string;
   fullname: string;
   phone: string;
 };
 
 enum SignupStep {
-  EMAIL = 0,
-  PASSWORD = 1,
-  ROLE = 2,
+  ROLE = 0,
+  EMAIL = 1,
+  PASSWORD = 2,
   NAME_PHONE = 3,
   SOCIAL_PLATFORM = 4,
   FAVORITE_CATEGORY = 5,
@@ -55,17 +67,26 @@ enum SignupStep {
 }
 
 const SignUpScreen = () => {
+  const navigation = useNavigation<NavigationStackProps>();
+  const [loginAuthMethod, setLoginAuthMethod] = useState<Providers | undefined>(
+    undefined,
+  );
+  const [isLoginModalOpened, setIsLoginModalOpened] = useState<boolean>(false);
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(
+    undefined,
+  );
+  const [contentCreatorPreference, setContentCreatorPreference] =
+    useState<ContentCreatorPreference>();
   const [platformDatas, setPlatformDatas] = useState<PlatformData[]>([]);
   const [isValidPlatformData, setIsValidPlatformData] =
     useState<boolean>(false);
   const [focusCategories, setFocusCategories] = useState<Category[]>([]);
   const [preferredLocations, setPreferredLocations] = useState<Location[]>([]);
-  const generalNavigation = useNavigation<NavigationStackProps>();
   const {
     temporaryData: temporaryUserSignupData,
     data: userSignupData,
     provider,
-    role,
+    providerId,
   } = useAppSelector(select => select.signup);
   const [currentRole, setCurrentRole] = useState<UserRoles | undefined>(
     undefined,
@@ -73,7 +94,7 @@ const SignUpScreen = () => {
   const [activePosition, setActivePosition] = useState<number>(0);
   const [actionText, setActionText] = useState<string>('Next');
   const steps = useMemo(() => {
-    let commonSteps = [SignupStep.ROLE, SignupStep.NAME_PHONE];
+    let commonSteps = [SignupStep.NAME_PHONE];
     if (Provider.GOOGLE === provider) {
       if (!userSignupData?.email) {
         commonSteps = [SignupStep.EMAIL, ...commonSteps];
@@ -84,7 +105,7 @@ const SignUpScreen = () => {
       commonSteps = [SignupStep.EMAIL, SignupStep.PASSWORD, ...commonSteps];
     }
 
-    if (UserRole.ContentCreator === role) {
+    if (UserRole.ContentCreator === currentRole) {
       commonSteps = [
         ...commonSteps,
         SignupStep.SOCIAL_PLATFORM,
@@ -94,13 +115,9 @@ const SignUpScreen = () => {
       ];
     }
 
-    commonSteps = [
-      SignupStep.SOCIAL_PLATFORM,
-      ...commonSteps,
-      SignupStep.PROFILE_PICTURE,
-    ];
+    commonSteps = [SignupStep.ROLE, ...commonSteps, SignupStep.PROFILE_PICTURE];
     return commonSteps;
-  }, [provider, userSignupData, role]);
+  }, [provider, userSignupData, currentRole]);
 
   const pagerViewRef = useRef<PagerView>(null);
   const methods = useForm<FormData>({
@@ -108,20 +125,68 @@ const SignUpScreen = () => {
     defaultValues: {},
   });
 
-  const {handleSubmit, getFieldState, watch, formState, setValue} = methods;
+  const {getFieldState, watch, formState, setValue, getValues} = methods;
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {confirmPassword, ...rest} = data;
-    const signUpData: User = {
-      email: rest.email,
+    const commonUserData: User = new User({
+      email: rest.email || userSignupData?.email,
       password: rest.password,
       phone: rest.phone,
-      businessPeople: {
-        fullname: rest.fullname,
-      },
+    });
+
+    let signupData: SignupContentCreatorProps = {
+      ...commonUserData.toJSON(),
+      providerId: providerId === '' ? undefined : providerId,
+      provider: provider || Provider.EMAIL,
+      token: temporaryUserSignupData?.token!!,
+      tiktok: platformDatas.find(
+        platform => platform.platform === SocialPlatform.Tiktok,
+      )?.data,
+      instagram: platformDatas.find(
+        platform => platform.platform === SocialPlatform.Instagram,
+      )?.data,
     };
-    User.signUpBusinessPeople(signUpData).catch(error => {
+
+    if (UserRole.BusinessPeople === currentRole) {
+      signupData = {
+        ...signupData,
+        businessPeople: {
+          fullname: rest.fullname,
+          profilePicture: profilePicture,
+        },
+      };
+    }
+
+    if (UserRole.ContentCreator === currentRole) {
+      signupData = {
+        ...signupData,
+        contentCreator: {
+          fullname: rest.fullname,
+          profilePicture: profilePicture,
+          specializedCategoryIds: (
+            focusCategories.map(category => category.id) || []
+          ).filter((item): item is string => item !== undefined),
+          preferredLocationIds: (
+            preferredLocations.map(location => location.id) || []
+          ).filter((item): item is string => item !== undefined),
+          postingSchedules:
+            contentCreatorPreference?.postingSchedules.map(postingSchedule => {
+              if (postingSchedule instanceof Date) {
+                return firestore.Timestamp.fromDate(postingSchedule);
+              }
+              return postingSchedule;
+            }) || [],
+          preferences: contentCreatorPreference?.preferences || [],
+          contentRevisionLimit:
+            contentCreatorPreference?.contentRevisionLimit || 0,
+        },
+      };
+    }
+    try {
+      await User.signUp(signupData);
+    } catch (error: any) {
       Alert.alert('Error!', error.message, [
         {
           text: 'OK',
@@ -129,18 +194,18 @@ const SignUpScreen = () => {
           style: 'cancel',
         },
       ]);
-    });
+    }
   };
 
   const hasNext = useCallback(() => {
     return activePosition + 1 < steps.length;
   }, [activePosition, steps]);
 
-  const nextPage = () => {
+  const nextPage = async () => {
     if (hasNext()) {
       pagerViewRef.current?.setPage(steps[activePosition + 1]);
     } else {
-      handleSubmit(onSubmit);
+      await onSubmit(getValues());
     }
   };
 
@@ -159,6 +224,28 @@ const SignUpScreen = () => {
     },
     [setValue],
   );
+
+  const emailCheck = async () => {
+    const email = getValues('email');
+    const authMethod = await AuthMethod.getByEmail(email);
+    if (authMethod) {
+      setLoginAuthMethod(authMethod.method);
+      setIsLoginModalOpened(true);
+    } else {
+      nextPage();
+    }
+  };
+
+  const handleLogin = () => {
+    if (loginAuthMethod === Provider.GOOGLE) {
+      User.continueWithGoogle();
+    } else if (loginAuthMethod === Provider.FACEBOOK) {
+      User.continueWithFacebook(() => {});
+    } else {
+      navigation.navigate(GuestNavigation.Login);
+      // TODO: (additional) navigate to login page and set email with value here
+    }
+  };
 
   useEffect(() => {
     if (steps.includes(SignupStep.EMAIL)) {
@@ -198,10 +285,15 @@ const SignUpScreen = () => {
           style={[flex.flexCol, verticalPadding.default]}>
           <HorizontalPadding paddingSize="large">
             <VerticalPadding>
-              <Stepper
-                currentPosition={activePosition}
-                maxPosition={steps.length}
-              />
+              <View
+                style={[dimension.height.xlarge, flex.flexCol, justify.center]}>
+                {activePosition > 0 && (
+                  <Stepper
+                    currentPosition={activePosition + 1}
+                    maxPosition={steps.length}
+                  />
+                )}
+              </View>
             </VerticalPadding>
           </HorizontalPadding>
           <PagerView
@@ -211,11 +303,19 @@ const SignUpScreen = () => {
             scrollEnabled={false}
             onPageSelected={e => {
               const position = e.nativeEvent.position;
-              console.log(e.nativeEvent);
-              console.log('position', position);
-
               setActivePosition(steps.findIndex(step => step === position));
             }}>
+            <View key={SignupStep.ROLE}>
+              <View className="items-center" style={[flex.flexCol, gap.small]}>
+                <ChooseRole onChangeRole={setCurrentRole} />
+                <CustomButton
+                  text={actionText}
+                  rounded="max"
+                  minimumWidth
+                  onPress={nextPage}
+                />
+              </View>
+            </View>
             <View key={SignupStep.EMAIL}>
               <VerticalPadding paddingSize="large">
                 <HorizontalPadding paddingSize="large">
@@ -238,8 +338,41 @@ const SignUpScreen = () => {
                       disabled={
                         !isValidField(getFieldState('email', formState))
                       }
-                      onPress={nextPage}
+                      onPress={emailCheck}
                     />
+                    <CustomModal
+                      transparent={true}
+                      visible={isLoginModalOpened}>
+                      <HorizontalPadding paddingSize="xlarge">
+                        <VerticalPadding paddingSize="xlarge">
+                          <View style={[flex.flexCol, gap.large]}>
+                            <Text
+                              className="self-center text-center font-bold"
+                              style={[font.size[40]]}>
+                              This email is already connected to an account
+                            </Text>
+                            <Text
+                              className="self-center text-center"
+                              style={[font.size[40]]}>
+                              Do you want to log in instead?
+                            </Text>
+                            <View style={[flex.flexCol, gap.default]}>
+                              <AuthProviderButton
+                                provider={loginAuthMethod || Provider.EMAIL}
+                                customTextSize="text-sm"
+                                onPress={handleLogin}
+                              />
+                              <CustomButton
+                                text="Dismiss"
+                                type="tertiary"
+                                rounded="large"
+                                onPress={() => setIsLoginModalOpened(false)}
+                              />
+                            </View>
+                          </View>
+                        </VerticalPadding>
+                      </HorizontalPadding>
+                    </CustomModal>
                   </View>
                 </HorizontalPadding>
               </VerticalPadding>
@@ -288,17 +421,6 @@ const SignUpScreen = () => {
                 </HorizontalPadding>
               </VerticalPadding>
             </View>
-            <View key={SignupStep.ROLE}>
-              <View className="items-center" style={[flex.flexCol, gap.small]}>
-                <ChooseRole onChangeRole={setCurrentRole} />
-                <CustomButton
-                  text={actionText}
-                  rounded="max"
-                  minimumWidth
-                  onPress={nextPage}
-                />
-              </View>
-            </View>
             <View key={SignupStep.NAME_PHONE}>
               <VerticalPadding paddingSize="large">
                 <HorizontalPadding paddingSize="large">
@@ -340,6 +462,12 @@ const SignUpScreen = () => {
               <KeyboardAvoidingContainer>
                 <View style={[flex.flexCol, gap.xlarge3]}>
                   <RegisterSocialPlatform
+                    initialData={{
+                      instagramFollowers: `${userSignupData?.instagram?.followersCount}`,
+                      instagramUsername: userSignupData?.instagram?.username,
+                      tiktokFollowers: `${userSignupData?.tiktok?.followersCount}`,
+                      tiktokUsername: userSignupData?.tiktok?.username,
+                    }}
                     onChangeSocialData={setPlatformDatas}
                     onValidRegistration={setIsValidPlatformData}
                   />
@@ -385,10 +513,31 @@ const SignUpScreen = () => {
               <KeyboardAvoidingContainer>
                 <View style={[flex.flexCol, gap.xlarge2]}>
                   <RegisterContentCreatorPreferences
-                    onLocationsChange={setPreferredLocations}
+                    onPreferenceChange={setContentCreatorPreference}
                   />
                   <CustomButton
-                    text={preferredLocations.length === 0 ? 'Skip' : actionText}
+                    text={actionText}
+                    rounded="max"
+                    minimumWidth
+                    disabled={
+                      contentCreatorPreference?.contentRevisionLimit ===
+                        undefined ||
+                      contentCreatorPreference.contentRevisionLimit < 0
+                    }
+                    onPress={nextPage}
+                  />
+                </View>
+              </KeyboardAvoidingContainer>
+            </View>
+            <View key={SignupStep.PROFILE_PICTURE}>
+              <KeyboardAvoidingContainer>
+                <View style={[flex.flexCol, gap.xlarge2]}>
+                  <RegisterProfilePicture
+                    defaultProfile={temporaryUserSignupData?.profilePicture}
+                    onProfilePictureChange={setProfilePicture}
+                  />
+                  <CustomButton
+                    text={actionText}
                     rounded="max"
                     minimumWidth
                     onPress={nextPage}

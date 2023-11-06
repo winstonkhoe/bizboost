@@ -266,7 +266,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               customBackgroundColor={COLOR.background.neutral}
               customTextColor={COLOR.text.neutral}
               verticalPadding="small"
-              inverted
+              type="secondary"
               text={
                 isMoreInfoVisible ? 'Hide Information' : 'Read More Information'
               }
