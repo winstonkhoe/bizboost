@@ -39,6 +39,7 @@ import {RegisterProfilePicture} from './signup/RegisterProfilePicture';
 import {CustomModal} from '../components/atoms/CustomModal';
 import {font} from '../styles/Font';
 import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
+import {dimension} from '../styles/Dimension';
 
 type FormData = {
   email: string;
@@ -49,9 +50,9 @@ type FormData = {
 };
 
 enum SignupStep {
-  EMAIL = 0,
-  PASSWORD = 1,
-  ROLE = 2,
+  ROLE = 0,
+  EMAIL = 1,
+  PASSWORD = 2,
   NAME_PHONE = 3,
   SOCIAL_PLATFORM = 4,
   FAVORITE_CATEGORY = 5,
@@ -88,7 +89,7 @@ const SignUpScreen = () => {
   const [activePosition, setActivePosition] = useState<number>(0);
   const [actionText, setActionText] = useState<string>('Next');
   const steps = useMemo(() => {
-    let commonSteps = [SignupStep.ROLE, SignupStep.NAME_PHONE];
+    let commonSteps = [SignupStep.NAME_PHONE];
     if (Provider.GOOGLE === provider) {
       if (!userSignupData?.email) {
         commonSteps = [SignupStep.EMAIL, ...commonSteps];
@@ -109,7 +110,7 @@ const SignUpScreen = () => {
       ];
     }
 
-    commonSteps = [...commonSteps, SignupStep.PROFILE_PICTURE];
+    commonSteps = [SignupStep.ROLE, ...commonSteps, SignupStep.PROFILE_PICTURE];
     return commonSteps;
   }, [provider, userSignupData, currentRole]);
 
@@ -221,10 +222,15 @@ const SignUpScreen = () => {
           style={[flex.flexCol, verticalPadding.default]}>
           <HorizontalPadding paddingSize="large">
             <VerticalPadding>
-              <Stepper
-                currentPosition={activePosition}
-                maxPosition={steps.length}
-              />
+              <View
+                style={[dimension.height.xlarge, flex.flexCol, justify.center]}>
+                {activePosition > 0 && (
+                  <Stepper
+                    currentPosition={activePosition + 1}
+                    maxPosition={steps.length}
+                  />
+                )}
+              </View>
             </VerticalPadding>
           </HorizontalPadding>
           <PagerView
@@ -236,6 +242,17 @@ const SignUpScreen = () => {
               const position = e.nativeEvent.position;
               setActivePosition(steps.findIndex(step => step === position));
             }}>
+            <View key={SignupStep.ROLE}>
+              <View className="items-center" style={[flex.flexCol, gap.small]}>
+                <ChooseRole onChangeRole={setCurrentRole} />
+                <CustomButton
+                  text={actionText}
+                  rounded="max"
+                  minimumWidth
+                  onPress={nextPage}
+                />
+              </View>
+            </View>
             <View key={SignupStep.EMAIL}>
               <VerticalPadding paddingSize="large">
                 <HorizontalPadding paddingSize="large">
@@ -339,17 +356,6 @@ const SignUpScreen = () => {
                   </View>
                 </HorizontalPadding>
               </VerticalPadding>
-            </View>
-            <View key={SignupStep.ROLE}>
-              <View className="items-center" style={[flex.flexCol, gap.small]}>
-                <ChooseRole onChangeRole={setCurrentRole} />
-                <CustomButton
-                  text={actionText}
-                  rounded="max"
-                  minimumWidth
-                  onPress={nextPage}
-                />
-              </View>
             </View>
             <View key={SignupStep.NAME_PHONE}>
               <VerticalPadding paddingSize="large">
