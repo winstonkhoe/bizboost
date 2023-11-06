@@ -16,14 +16,16 @@ import {rounded} from '../../styles/BorderRadius';
 import {useEffect, useState} from 'react';
 
 interface RegisterProfilePictureProps {
+  defaultProfile?: string;
   onProfilePictureChange: (profilePicture: string) => void;
 }
 
 export const RegisterProfilePicture = ({
+  defaultProfile,
   onProfilePictureChange,
 }: RegisterProfilePictureProps) => {
   const [uploadedImage, setUploadedImage] = useState<string | undefined>(
-    undefined,
+    defaultProfile,
   );
 
   useEffect(() => {
