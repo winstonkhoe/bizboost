@@ -51,7 +51,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
         flex.flexRow,
         rounded.default,
         gap.default,
-        active ? background(COLOR.blue[100], 0.6) : null,
+        active ? background(COLOR.green[5]) : null,
       ]}
       onPress={handlePress}>
       <View
@@ -86,7 +86,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           className="text-base font-bold"
           numberOfLines={1}
           style={[
-            active ? textColor(COLOR.blue[200]) : textColor(COLOR.black[100]),
+            active ? textColor(COLOR.green[60]) : textColor(COLOR.black[100]),
           ]}>
           {isValidUser() ? data?.fullname : 'Create account'}
         </Text>
@@ -94,7 +94,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           className="text-xs font-medium"
           numberOfLines={1}
           style={[
-            active ? textColor(COLOR.blue[200]) : textColor(COLOR.black[100]),
+            active ? textColor(COLOR.green[60]) : textColor(COLOR.black[100]),
           ]}>
           {role}
         </Text>
