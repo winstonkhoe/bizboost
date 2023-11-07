@@ -1,9 +1,9 @@
-import {Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
-import Carousel from 'react-native-reanimated-carousel';
+import Carousel, {ICarouselInstance} from 'react-native-reanimated-carousel';
 import {Dimensions} from 'react-native';
 import ContentCreator from '../../assets/vectors/content-creator.svg';
 import BusinessPeople from '../../assets/vectors/business-people.svg';
@@ -20,8 +20,8 @@ import {background} from '../../styles/BackgroundColor';
 import {shadow} from '../../styles/Shadow';
 import {rounded} from '../../styles/BorderRadius';
 import {HorizontalPadding} from '../../components/atoms/ViewPadding';
-import {useEffect, useState} from 'react';
-import { font } from '../../styles/Font';
+import {useEffect, useRef, useState} from 'react';
+import {font} from '../../styles/Font';
 
 interface RoleCard {
   role: UserRoles;
@@ -47,12 +47,21 @@ interface ChooseRoleProps {
 }
 
 export const ChooseRole = ({onChangeRole}: ChooseRoleProps) => {
+  const carouselRef = useRef<ICarouselInstance>(null);
+  const updateRoleCarouselIndexRef = useRef<boolean>(true);
   const [activeCarouselIndex, setActiveCarouselIndex] = useState<number>(0);
   const width = Dimensions.get('window').width;
 
   useEffect(() => {
     onChangeRole(data[activeCarouselIndex].role);
   }, [activeCarouselIndex, onChangeRole]);
+
+  const scrollToRole = (index: number) => {
+    carouselRef.current?.scrollTo({
+      index: index,
+      animated: true,
+    });
+  };
 
   return (
     <View className="items-center" style={[flex.flexCol, gap.medium]}>
@@ -62,15 +71,13 @@ export const ChooseRole = ({onChangeRole}: ChooseRoleProps) => {
         Choose your Role
       </Text>
       <Carousel
+        ref={carouselRef}
         loop={false}
         width={width}
         mode="parallax"
         height={width * 1.25}
         data={data}
         scrollAnimationDuration={300}
-        onScrollBegin={() =>
-          setActiveCarouselIndex(activeCarouselIndex === 0 ? 1 : 0)
-        }
         modeConfig={{
           parallaxScrollingScale: 0.75,
           parallaxScrollingOffset: 180,
@@ -78,13 +85,29 @@ export const ChooseRole = ({onChangeRole}: ChooseRoleProps) => {
         onSnapToItem={index => {
           setActiveCarouselIndex(index);
         }}
+        onProgressChange={(offsetProgress, absoluteProgress) => {
+          if (
+            updateRoleCarouselIndexRef.current &&
+            absoluteProgress % 1 !== 0
+          ) {
+            setActiveCarouselIndex(activeCarouselIndex === 0 ? 1 : 0);
+            updateRoleCarouselIndexRef.current = false;
+          }
+          if (absoluteProgress % 1 === 0) {
+            updateRoleCarouselIndexRef.current = true;
+          }
+        }}
         renderItem={({index, item}) => (
-          <RoleCard
+          <Pressable
             key={index}
-            index={index}
-            roleCard={item}
-            activeIndex={activeCarouselIndex}
-          />
+            onPress={() => scrollToRole(index)}
+            style={[flex.flex1]}>
+            <RoleCard
+              index={index}
+              roleCard={item}
+              activeIndex={activeCarouselIndex}
+            />
+          </Pressable>
         )}
       />
     </View>
@@ -101,14 +124,14 @@ const RoleCard = ({roleCard, index, activeIndex}: RoleCardProps) => {
   const progress = useSharedValue(activeIndex);
 
   useEffect(() => {
-    progress.value = withTiming(activeIndex, {duration: 500});
+    progress.value = withTiming(activeIndex, {duration: 300});
   }, [activeIndex, progress]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       borderColor: interpolateColor(
         progress.value,
-        [0, 1],
+        [0.3, 0.7],
         [...Array(2)].map((_, i) =>
           i === index ? COLOR.green[20] : COLOR.background.neutral.disabled,
         ),
@@ -147,7 +170,7 @@ const RoleCard = ({roleCard, index, activeIndex}: RoleCardProps) => {
         },
         animatedStyle,
         background(COLOR.black[0]),
-        shadow.large,
+        shadow.medium,
         rounded.xlarge,
       ]}>
       <View
@@ -155,7 +178,7 @@ const RoleCard = ({roleCard, index, activeIndex}: RoleCardProps) => {
         style={[
           flex.flexCol,
           activeIndex !== index && {
-            opacity: 0.6,
+            opacity: 0.5,
           },
           gap.xlarge,
         ]}>
