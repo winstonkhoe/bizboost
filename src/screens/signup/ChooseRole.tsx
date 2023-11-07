@@ -21,6 +21,7 @@ import {shadow} from '../../styles/Shadow';
 import {rounded} from '../../styles/BorderRadius';
 import {HorizontalPadding} from '../../components/atoms/ViewPadding';
 import {useEffect, useState} from 'react';
+import { font } from '../../styles/Font';
 
 interface RoleCard {
   role: UserRoles;
@@ -56,8 +57,8 @@ export const ChooseRole = ({onChangeRole}: ChooseRoleProps) => {
   return (
     <View className="items-center" style={[flex.flexCol, gap.medium]}>
       <Text
-        className="text-2xl font-bold"
-        style={[textColor(COLOR.text.neutral.high)]}>
+        className="font-bold"
+        style={[textColor(COLOR.text.neutral.high), font.size[70]]}>
         Choose your Role
       </Text>
       <Carousel
