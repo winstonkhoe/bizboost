@@ -44,7 +44,11 @@ import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
 import {dimension} from '../styles/Dimension';
 import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
-import {GuestNavigation, NavigationStackProps} from '../navigation/StackNavigation';
+import {
+  GuestNavigation,
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
+import {FadeInOut} from '../containers/FadeInOut';
 
 type FormData = {
   email: string;
@@ -204,6 +208,7 @@ const SignUpScreen = () => {
   const nextPage = async () => {
     if (hasNext()) {
       pagerViewRef.current?.setPage(steps[activePosition + 1]);
+      setActivePosition(activePosition + 1);
     } else {
       await onSubmit(getValues());
     }
@@ -211,6 +216,7 @@ const SignUpScreen = () => {
 
   const previousPage = () => {
     pagerViewRef.current?.setPage(steps[activePosition - 1]);
+    setActivePosition(activePosition - 1);
   };
 
   const setFieldValue = useCallback(
@@ -285,15 +291,12 @@ const SignUpScreen = () => {
           style={[flex.flexCol, verticalPadding.default]}>
           <HorizontalPadding paddingSize="large">
             <VerticalPadding>
-              <View
-                style={[dimension.height.xlarge, flex.flexCol, justify.center]}>
-                {activePosition > 0 && (
-                  <Stepper
-                    currentPosition={activePosition + 1}
-                    maxPosition={steps.length}
-                  />
-                )}
-              </View>
+              <FadeInOut visible={activePosition > 0}>
+                <Stepper
+                  currentPosition={activePosition + 1}
+                  maxPosition={steps.length}
+                />
+              </FadeInOut>
             </VerticalPadding>
           </HorizontalPadding>
           <PagerView
