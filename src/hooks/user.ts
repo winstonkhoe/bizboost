@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {setUser, switchRole} from '../redux/slices/userSlice';
 import {
@@ -10,6 +10,7 @@ import {
 } from '../model/User';
 
 export const useUser = () => {
+  const unsubscribe = useRef<(() => void) | undefined>(undefined);
   const {user, activeRole, uid} = useAppSelector(state => state.user);
   const dispatch = useAppDispatch();
   const getData = (
@@ -31,24 +32,56 @@ export const useUser = () => {
     activeRole,
   );
 
-  useEffect(() => {
-    const updateUserState = (u: User | null) => {
+  const updateUserState = useCallback(
+    (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
-        if (!activeRole && u.contentCreator?.fullname) {
+      }
+    },
+    [dispatch],
+  );
+
+  useEffect(() => {
+    if (!user && uid) {
+      const unsubscribeUserDataReactive = User.getUserDataReactive(
+        uid,
+        updateUserState,
+        () => {
+          if (uid) {
+            User.signOut().then(() => {
+              dispatch(setUser(null));
+            });
+          }
+        },
+      );
+      unsubscribe.current = unsubscribeUserDataReactive;
+    }
+
+    return () => {
+      if (!uid && unsubscribe.current) {
+        unsubscribe.current();
+        unsubscribe.current = undefined;
+      }
+    };
+  }, [user, uid, dispatch, updateUserState]);
+
+  useEffect(() => {
+    if (!user || !uid) {
+      if (activeRole) {
+        dispatch(switchRole(undefined));
+      }
+    }
+    if (user && uid) {
+      if (!activeRole) {
+        if (
+          user.contentCreator?.fullname &&
+          activeRole !== UserRole.ContentCreator
+        ) {
           dispatch(switchRole(UserRole.ContentCreator));
-        } else {
+        } else if (activeRole !== UserRole.BusinessPeople) {
           dispatch(switchRole(UserRole.BusinessPeople));
         }
       }
-    };
-    if (!user && uid) {
-      const unsubscribe = User.getUserDataReactive(uid, updateUserState, () => {
-        User.signOut().then(() => {
-          dispatch(setUser(null));
-        });
-      });
-      return unsubscribe;
     }
     if (user && !uid) {
       dispatch(setUser(null));
