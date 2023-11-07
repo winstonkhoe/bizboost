@@ -323,6 +323,7 @@ const SignUpScreen = () => {
                     <CustomTextInput
                       label="Email"
                       name="email"
+                      forceLowercase
                       rules={{
                         required: 'Email is required',
                         pattern: {
