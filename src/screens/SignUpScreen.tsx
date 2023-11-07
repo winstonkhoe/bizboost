@@ -290,14 +290,12 @@ const SignUpScreen = () => {
           className="flex-1"
           style={[flex.flexCol, verticalPadding.default]}>
           <HorizontalPadding paddingSize="large">
-            <VerticalPadding>
-              <FadeInOut visible={activePosition > 0}>
-                <Stepper
-                  currentPosition={activePosition + 1}
-                  maxPosition={steps.length}
-                />
-              </FadeInOut>
-            </VerticalPadding>
+            <FadeInOut visible={activePosition > 0}>
+              <Stepper
+                currentPosition={activePosition + 1}
+                maxPosition={steps.length}
+              />
+            </FadeInOut>
           </HorizontalPadding>
           <PagerView
             ref={pagerViewRef}
