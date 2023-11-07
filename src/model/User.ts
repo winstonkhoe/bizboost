@@ -440,6 +440,7 @@ export class User extends BaseModel {
               provider: Provider.FACEBOOK,
               token: data.token,
             });
+            console.log('facebook account detected');
           } else {
             finishCallback({
               ...data,
@@ -451,7 +452,7 @@ export class User extends BaseModel {
                 followersCount: followersCount,
               },
             });
-            console.log(result);
+            console.log('instagramDataCallback', result);
           }
         }
       };
@@ -481,6 +482,7 @@ export class User extends BaseModel {
           await new GraphRequestManager()
             .addRequest(getInstagramDataRequest)
             .start();
+          console.log('userInstagramBusinessAccountCallback', result);
         }
       };
 
@@ -513,7 +515,7 @@ export class User extends BaseModel {
                 .start();
             }
           }
-          console.log(result);
+          console.log('userFacebookPagesListCallback', result);
         }
       };
       const getUserFacebookPagesListRequest = new GraphRequest(
