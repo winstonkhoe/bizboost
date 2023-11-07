@@ -58,13 +58,24 @@ export const RegisterSocialPlatform = ({
   onValidRegistration,
 }: RegisterSocialPlatformProps) => {
   const width = Dimensions.get('window').width;
+  const getFallbackField = (value: any) => {
+    if (value === undefined || value === 'undefined') {
+      return '';
+    }
+    return value;
+  };
   const methods = useForm<FormData>({
     mode: 'all',
-    defaultValues: {},
+    defaultValues: {
+      instagramUsername: getFallbackField(initialData?.instagramUsername),
+      instagramFollowers: getFallbackField(initialData?.instagramFollowers),
+      tiktokUsername: getFallbackField(initialData?.tiktokUsername),
+      tiktokFollowers: getFallbackField(initialData?.tiktokFollowers),
+    },
   });
 
-  const {getFieldState, watch, formState, setValue, getValues} = methods;
-  const finishedSetDefaultValue = useRef<boolean>(false);
+  const {getFieldState, watch, formState} = methods;
+
   const updateSocialCarouselIndexRef = useRef<boolean>(true);
   const carouselRef = useRef<ICarouselInstance>(null);
   const [verifiedPlatforms, setVerifiedPlatforms] = useState<SocialPlatform[]>(
@@ -90,30 +101,11 @@ export const RegisterSocialPlatform = ({
     [selectedSocialPlatforms],
   );
 
-  const setFieldValue = useCallback(
-    (field: keyof FormData, data?: string) => {
-      data &&
-        setValue(field, data, {
-          shouldValidate: true,
-          shouldTouch: true,
-          shouldDirty: true,
-        });
-    },
-    [setValue],
-  );
-
   const isValidInitialData = useCallback((field: any) => {
     return (
       field && field !== '' && field !== undefined && field !== 'undefined'
     );
   }, []);
-
-  const getFallbackField = (value: any) => {
-    if (value === undefined || value === 'undefined') {
-      return '';
-    }
-    return value;
-  };
 
   useEffect(() => {
     if (initialData) {
@@ -136,44 +128,8 @@ export const RegisterSocialPlatform = ({
           setVerifiedPlatforms([...verifiedPlatforms, SocialPlatform.Tiktok]);
         }
       }
-      setFieldValue(
-        'instagramUsername',
-        getFallbackField(initialData.instagramUsername),
-      );
-      setFieldValue(
-        'instagramFollowers',
-        getFallbackField(initialData.instagramFollowers),
-      );
-      setFieldValue(
-        'tiktokUsername',
-        getFallbackField(initialData.tiktokUsername),
-      );
-      setFieldValue(
-        'tiktokFollowers',
-        getFallbackField(initialData.tiktokFollowers),
-      );
-      finishedSetDefaultValue.current = true;
     }
-  }, [initialData, setFieldValue, isValidInitialData, verifiedPlatforms]);
-
-  useEffect(() => {
-    setFieldValue(
-      'instagramUsername',
-      getFallbackField(getValues('instagramUsername')),
-    );
-    setFieldValue(
-      'instagramFollowers',
-      getFallbackField(getValues('instagramFollowers')),
-    );
-    setFieldValue(
-      'tiktokUsername',
-      getFallbackField(getValues('tiktokUsername')),
-    );
-    setFieldValue(
-      'tiktokFollowers',
-      getFallbackField(getValues('tiktokFollowers')),
-    );
-  }, [selectedSocialPlatforms, setFieldValue, getValues]);
+  }, [initialData, isValidInitialData, verifiedPlatforms]);
 
   useEffect(() => {
     const subscription = watch(value => {
@@ -183,9 +139,14 @@ export const RegisterSocialPlatform = ({
             acc.push({
               platform: SocialPlatform.Instagram,
               data: {
-                username: value.instagramUsername,
+                username:
+                  value.instagramUsername || initialData?.instagramUsername,
                 followersCount: parseInt(
-                  `${value.instagramFollowers || 0}`,
+                  `${
+                    value.instagramFollowers ||
+                    initialData?.instagramFollowers ||
+                    0
+                  }`,
                   10,
                 ),
               },
@@ -195,8 +156,13 @@ export const RegisterSocialPlatform = ({
             acc.push({
               platform: SocialPlatform.Tiktok,
               data: {
-                username: value.tiktokUsername,
-                followersCount: parseInt(`${value.tiktokFollowers || 0}`, 10),
+                username: value.tiktokUsername || initialData?.tiktokUsername,
+                followersCount: parseInt(
+                  `${
+                    value.tiktokFollowers || initialData?.tiktokFollowers || 0
+                  }`,
+                  10,
+                ),
               },
             });
           }
@@ -208,7 +174,7 @@ export const RegisterSocialPlatform = ({
     });
 
     return () => subscription.unsubscribe();
-  }, [watch, onChangeSocialData, selectedSocialPlatforms]);
+  }, [watch, onChangeSocialData, selectedSocialPlatforms, initialData]);
 
   useEffect(() => {
     const isDisable =
@@ -342,7 +308,9 @@ export const RegisterSocialPlatform = ({
               }}
               renderItem={({index, item}) => (
                 <SocialCard
+                  key={item}
                   platform={item}
+                  index={index}
                   isActive={activeCarouselIndex === index}
                   isVerified={verifiedPlatforms.includes(item)}
                   onPress={() => scrollToSocialCard(index)}
@@ -384,15 +352,17 @@ interface SocialCardProps extends PressableProps {
   platform: SocialPlatforms;
   isActive: boolean;
   isVerified?: boolean;
+  index: number;
 }
 
 const SocialCard = ({
   platform,
   isActive,
   isVerified = false,
+  index,
   ...props
 }: SocialCardProps) => {
-  const {getFieldState, formState} = useFormContext();
+  const {getFieldState, formState, setValue, getValues} = useFormContext();
   const currentFields = useMemo(() => {
     return {
       username:
