@@ -34,6 +34,7 @@ import {useKeyboard} from '../../hooks/keyboard';
 import {StringObject} from '../../utils/stringObject';
 import {FormLabel} from '../../components/atoms/FormLabel';
 import {ContentCreatorPreference} from '../../model/User';
+import {Platform} from 'react-native';
 
 interface RegisterContentCreatorPreferencesProps {
   onPreferenceChange: (preference: ContentCreatorPreference) => void;
@@ -460,7 +461,7 @@ export const RegisterContentCreatorPreferences = ({
                   </View>
                   <View
                     style={[
-                      {
+                      Platform.OS !== 'android' && {
                         paddingBottom: keyboardHeight,
                       },
                     ]}
@@ -531,7 +532,7 @@ export const RegisterContentCreatorPreferences = ({
                   </View>
                   <View
                     style={[
-                      {
+                      Platform.OS !== 'android' && {
                         paddingBottom: keyboardHeight,
                       },
                     ]}
