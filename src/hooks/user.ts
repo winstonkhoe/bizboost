@@ -78,7 +78,10 @@ export const useUser = () => {
           activeRole !== UserRole.ContentCreator
         ) {
           dispatch(switchRole(UserRole.ContentCreator));
-        } else if (activeRole !== UserRole.BusinessPeople) {
+        } else if (
+          user.businessPeople?.fullname &&
+          activeRole !== UserRole.BusinessPeople
+        ) {
           dispatch(switchRole(UserRole.BusinessPeople));
         }
       }
