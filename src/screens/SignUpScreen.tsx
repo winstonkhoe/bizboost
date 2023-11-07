@@ -175,13 +175,7 @@ const SignUpScreen = () => {
           preferredLocationIds: (
             preferredLocations.map(location => location.id) || []
           ).filter((item): item is string => item !== undefined),
-          postingSchedules:
-            contentCreatorPreference?.postingSchedules.map(postingSchedule => {
-              if (postingSchedule instanceof Date) {
-                return firestore.Timestamp.fromDate(postingSchedule);
-              }
-              return postingSchedule;
-            }) || [],
+          postingSchedules: contentCreatorPreference?.postingSchedules || [],
           preferences: contentCreatorPreference?.preferences || [],
           contentRevisionLimit:
             contentCreatorPreference?.contentRevisionLimit || 0,

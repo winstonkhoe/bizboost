@@ -15,7 +15,7 @@ export type Message = {
   message: string;
   type: MessageTypes;
   sender: string;
-  createdAt: FirebaseFirestoreTypes.Timestamp | number | Date;
+  createdAt: number;
 };
 
 export type Participant = {

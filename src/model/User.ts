@@ -45,7 +45,7 @@ export type UserRoles =
 
 export interface ContentCreatorPreference {
   contentRevisionLimit?: number;
-  postingSchedules: Date[] | FirebaseFirestoreTypes.Timestamp[];
+  postingSchedules: number[];
   preferences: string[];
 }
 
@@ -91,7 +91,7 @@ export class User extends BaseModel {
   businessPeople?: BusinessPeople;
   instagram?: SocialData;
   tiktok?: SocialData;
-  joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
+  joinedAt?: number;
   isAdmin?: boolean;
   status?: UserStatus;
 
@@ -136,9 +136,6 @@ export class User extends BaseModel {
         phone: data?.phone,
         contentCreator: {
           ...data.contentCreator,
-          postingSchedules: data.contentCreator?.postingSchedules?.map(
-            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
-          ),
           specializedCategoryIds:
             data.contentCreator?.specializedCategoryIds?.map(
               (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
@@ -180,6 +177,7 @@ export class User extends BaseModel {
   private static mappingUserFields(data: User) {
     return {
       ...data,
+      id: undefined,
       email: data.email?.toLocaleLowerCase(),
       contentCreator: data.contentCreator && {
         ...data.contentCreator,
@@ -196,7 +194,7 @@ export class User extends BaseModel {
   static async setUserData(documentId: string, data: User): Promise<void> {
     await this.getDocumentReference(documentId).set({
       ...this.mappingUserFields(data),
-      joinedAt: firestore.Timestamp.now(),
+      joinedAt: new Date().getTime(),
     });
   }
 

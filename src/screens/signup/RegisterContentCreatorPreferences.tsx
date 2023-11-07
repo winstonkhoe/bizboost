@@ -42,7 +42,7 @@ interface RegisterContentCreatorPreferencesProps {
 
 export type ContentCreatorPreferencesFormData = {
   contentRevisionLimit: number | string;
-  postingSchedules: {value: Date}[];
+  postingSchedules: {value: number}[];
   preferences: StringObject[];
 };
 
@@ -58,7 +58,9 @@ export const RegisterContentCreatorPreferences = ({
   const [updatePreferenceIndex, setUpdatePreferenceIndex] = useState<
     number | undefined
   >(undefined);
-  const [temporaryDate, setTemporaryDate] = useState<Date>(new Date());
+  const [temporaryDate, setTemporaryDate] = useState<number>(
+    new Date().getTime(),
+  );
   const [temporaryPreference, setTemporaryPreference] = useState<string>('');
 
   const methods = useForm<ContentCreatorPreferencesFormData>({
@@ -95,7 +97,7 @@ export const RegisterContentCreatorPreferences = ({
   };
 
   const resetDatePickerSheetModal = useCallback(() => {
-    setTemporaryDate(new Date());
+    setTemporaryDate(new Date().getTime());
     if (updatePostingSchedulesIndex !== undefined) {
       setUpdatePostingSchedulesIndex(undefined);
     }
@@ -137,7 +139,7 @@ export const RegisterContentCreatorPreferences = ({
         contentRevisionLimit: contentRevisionLimit,
         postingSchedules: (
           value?.postingSchedules?.map(item => item?.value) || []
-        ).filter((item): item is Date => item !== undefined),
+        ).filter((item): item is number => item !== undefined),
         preferences: (
           value?.preferences?.map(item => item?.value) || []
         ).filter((item): item is string => item !== undefined),
@@ -248,7 +250,9 @@ export const RegisterContentCreatorPreferences = ({
                             className="font-semibold"
                             style={[textColor(COLOR.green[60]), font.size[30]]}>
                             {formatDateToTime12Hrs(
-                              watch(`postingSchedules.${index}.value`),
+                              new Date(
+                                watch(`postingSchedules.${index}.value`),
+                              ),
                             )}
                           </Text>
                         </View>
@@ -436,8 +440,8 @@ export const RegisterContentCreatorPreferences = ({
                         render={({field: {value: date, onChange}}) => (
                           <View style={[flex.flexCol]}>
                             <PostingScheduleDatePicker
-                              date={date}
-                              onDateChange={setTemporaryDate}
+                              date={new Date(date)}
+                              onDateChange={d => setTemporaryDate(d.getTime())}
                             />
                             <CustomButton
                               text="Update"
@@ -449,8 +453,8 @@ export const RegisterContentCreatorPreferences = ({
                     ) : (
                       <View style={[flex.flexCol]}>
                         <PostingScheduleDatePicker
-                          date={temporaryDate}
-                          onDateChange={setTemporaryDate}
+                          date={new Date(temporaryDate)}
+                          onDateChange={d => setTemporaryDate(d.getTime())}
                         />
                         <CustomButton
                           text="Save"
