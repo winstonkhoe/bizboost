@@ -147,8 +147,10 @@ export class User extends BaseModel {
                 locationId.id,
             ) || [],
         },
+        tiktok: data?.tiktok,
+        instagram: data?.instagram,
         businessPeople: data?.businessPeople,
-        joinedAt: data?.joinedAt?.seconds,
+        joinedAt: data?.joinedAt,
         isAdmin: data?.isAdmin,
         status: data?.status || UserStatus.Active,
       });
