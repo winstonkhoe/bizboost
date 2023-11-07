@@ -1,5 +1,5 @@
-import {Image, Pressable, Text, View} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {Image, Text, View} from 'react-native';
+import {flex, items} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
@@ -22,6 +22,10 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
+import {AnimatedPressable} from '../atoms/AnimatedPressable';
+import {padding} from '../../styles/Padding';
+import {dimension} from '../../styles/Dimension';
+import {font} from '../../styles/Font';
 
 interface Props {
   data?: BusinessPeople | ContentCreator;
@@ -32,7 +36,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const dispatch = useAppDispatch();
   const isValidUser = () => {
-    return !!data;
+    return !!data?.fullname;
   };
   const handlePress = () => {
     if (isValidUser()) {
@@ -45,12 +49,15 @@ const AccountListCard = ({data, active = false, role}: Props) => {
     }
   };
   return (
-    <Pressable
-      className="w-full h-20 p-3 items-center"
+    <AnimatedPressable
+      scale={0.9}
       style={[
         flex.flexRow,
+        items.center,
         rounded.default,
         gap.default,
+        padding.default,
+        dimension.height.xlarge5,
         active ? background(COLOR.green[5]) : null,
       ]}
       onPress={handlePress}>
@@ -62,13 +69,12 @@ const AccountListCard = ({data, active = false, role}: Props) => {
           !isValidUser() &&
             border({
               borderWidth: 0.7,
-              color: COLOR.black[100],
-              opacity: 0.4,
+              color: COLOR.background.neutral.med,
             }),
         ]}>
         {isValidUser() ? (
           <Image
-            className="w-full h-full object-cover"
+            style={[dimension.full]}
             source={
               isValidUser() && data?.profilePicture
                 ? {
@@ -76,30 +82,33 @@ const AccountListCard = ({data, active = false, role}: Props) => {
                   }
                 : require('../../assets/images/bizboost-avatar.png')
             }
+            resizeMode="cover"
           />
         ) : (
           <Add width={25} height={25} color={COLOR.black[100]} />
         )}
       </View>
-      <View className="flex-1" style={[flex.flexCol, gap.xsmall2]}>
+      <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
         <Text
-          className="text-base font-bold"
+          className="font-bold"
           numberOfLines={1}
           style={[
+            font.size[40],
             active ? textColor(COLOR.green[60]) : textColor(COLOR.black[100]),
           ]}>
           {isValidUser() ? data?.fullname : 'Create account'}
         </Text>
         <Text
-          className="text-xs font-medium"
+          className="font-medium"
           numberOfLines={1}
           style={[
+            font.size[20],
             active ? textColor(COLOR.green[60]) : textColor(COLOR.black[100]),
           ]}>
           {role}
         </Text>
       </View>
-    </Pressable>
+    </AnimatedPressable>
   );
 };
 
