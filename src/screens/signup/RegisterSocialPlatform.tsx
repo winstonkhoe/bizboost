@@ -173,32 +173,42 @@ export const RegisterSocialPlatform = ({
       'tiktokFollowers',
       getFallbackField(getValues('tiktokFollowers')),
     );
-    const platformDatas: PlatformData[] = selectedSocialPlatforms.reduce(
-      (acc, platform) => {
-        if (platform === SocialPlatform.Instagram) {
-          acc.push({
-            platform: SocialPlatform.Instagram,
-            data: {
-              username: watch('instagramUsername'),
-              followersCount: parseInt(watch('instagramFollowers'), 10),
-            },
-          });
-        }
-        if (platform === SocialPlatform.Tiktok) {
-          acc.push({
-            platform: SocialPlatform.Tiktok,
-            data: {
-              username: watch('tiktokUsername'),
-              followersCount: parseInt(watch('tiktokFollowers'), 10),
-            },
-          });
-        }
-        return acc;
-      },
-      [] as PlatformData[],
-    );
-    onChangeSocialData(platformDatas);
-  }, [watch, onChangeSocialData, selectedSocialPlatforms, setValue, getValues]);
+  }, [selectedSocialPlatforms, setFieldValue, getValues]);
+
+  useEffect(() => {
+    const subscription = watch(value => {
+      const platformDatas: PlatformData[] = selectedSocialPlatforms.reduce(
+        (acc, platform) => {
+          if (platform === SocialPlatform.Instagram) {
+            acc.push({
+              platform: SocialPlatform.Instagram,
+              data: {
+                username: value.instagramUsername,
+                followersCount: parseInt(
+                  `${value.instagramFollowers || 0}`,
+                  10,
+                ),
+              },
+            });
+          }
+          if (platform === SocialPlatform.Tiktok) {
+            acc.push({
+              platform: SocialPlatform.Tiktok,
+              data: {
+                username: value.tiktokUsername,
+                followersCount: parseInt(`${value.tiktokFollowers || 0}`, 10),
+              },
+            });
+          }
+          return acc;
+        },
+        [] as PlatformData[],
+      );
+      onChangeSocialData(platformDatas);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, onChangeSocialData, selectedSocialPlatforms]);
 
   useEffect(() => {
     const isDisable =
