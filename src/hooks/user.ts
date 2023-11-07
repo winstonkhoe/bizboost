@@ -43,7 +43,11 @@ export const useUser = () => {
       }
     };
     if (!user && uid) {
-      const unsubscribe = User.getUserDataReactive(uid, updateUserState);
+      const unsubscribe = User.getUserDataReactive(uid, updateUserState, () => {
+        User.signOut().then(() => {
+          dispatch(setUser(null));
+        });
+      });
       return unsubscribe;
     }
     if (user && !uid) {
