@@ -198,7 +198,7 @@ export const CreateAdditionalAccountScreen = () => {
   return (
     <FormProvider {...methods}>
       <PageWithBackButton
-        icon="close"
+        icon={activePosition === 0 ? 'close' : 'back'}
         fullHeight
         onPress={previousPage}
         backButtonPlaceholder={
