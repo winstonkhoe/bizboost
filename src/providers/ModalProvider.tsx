@@ -14,6 +14,7 @@ import {
   UserRoles,
 } from '../model/User';
 import {SheetModal} from '../containers/SheetModal';
+import {padding} from '../styles/Padding';
 
 export const SwitchUserModalProvider = () => {
   const dispatch = useAppDispatch();
@@ -45,7 +46,13 @@ export const SwitchUserModalProvider = () => {
   return (
     <SheetModal open={modalOpenState} onDismiss={() => dispatch(closeModal())}>
       <HorizontalPadding>
-        <View className="pt-2 pb-6" style={[flex.flexCol, gap.default]}>
+        <View
+          style={[
+            flex.flexCol,
+            gap.default,
+            padding.top.default,
+            padding.bottom.medium,
+          ]}>
           <AccountListCard
             data={getData(user, activeRole)}
             active
