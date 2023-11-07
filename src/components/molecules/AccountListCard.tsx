@@ -41,12 +41,11 @@ const AccountListCard = ({data, active = false, role}: Props) => {
   const handlePress = () => {
     if (isValidUser()) {
       dispatch(switchRole(role));
-      dispatch(closeModal());
     } else {
       dispatch(setRole(role));
       navigation.navigate(AuthenticatedNavigation.CreateAdditionalAccount);
-      dispatch(closeModal());
     }
+    dispatch(closeModal());
   };
   return (
     <AnimatedPressable
