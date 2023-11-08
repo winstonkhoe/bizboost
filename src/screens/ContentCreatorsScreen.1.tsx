@@ -1,12 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
+import {View, Text, ScrollView, Pressable} from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -14,7 +7,6 @@ import {
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
-
 import Filter from '../assets/vectors/filter.svg';
 import {flex} from '../styles/Flex';
 import {COLOR} from '../styles/Color';
@@ -25,22 +17,12 @@ import {Category} from '../model/Category';
 import {background} from '../styles/BackgroundColor';
 import {CustomButton} from '../components/atoms/Button';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
+import {SelectedFilters, styles} from './ContentCreatorsScreen';
 
-interface SelectedFilters {
-  locations: string[]; // Store selected locations in an array of strings
-  minPrice: number; // Set default minimum price as a number
-  maxPrice: number; // Set default maximum price as a number
-  categories: string[]; // Store selected categories in an array of strings
-}
-
-const ContentCreatorsScreen: React.FC = () => {
+export const ContentCreatorsScreen: React.FC = () => {
   const [contentCreators, setContentCreators] = useState<User[]>([]);
   const [filterModalState, setFilterModalState] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-
-  const [filteredContentCreators, setFilteredContentCreators] = useState<
-    User[]
-  >([]);
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     locations: [],
     minPrice: 0,
@@ -49,28 +31,11 @@ const ContentCreatorsScreen: React.FC = () => {
   });
 
   useEffect(() => {
-    User.getContentCreators().then(contentCreatorsData => {
-      setContentCreators(contentCreatorsData);
-      setFilteredContentCreators(contentCreatorsData);
-    });
+    User.getContentCreators().then(contentCreatorsData =>
+      setContentCreators(contentCreatorsData),
+    );
     Category.getAll().then(categoriesData => setCategories(categoriesData));
   }, []);
-
-  useEffect(() => {
-    if (selectedFilters.categories.length) {
-      setFilteredContentCreators(
-        contentCreators.filter(
-          contentCreator =>
-            contentCreator.contentCreator?.specializedCategoryIds?.length > 0 &&
-            contentCreator.contentCreator?.specializedCategoryIds.some(cat =>
-              selectedFilters.categories.includes(cat),
-            ),
-        ),
-      );
-    } else {
-      setFilteredContentCreators(contentCreators);
-    }
-  }, [selectedFilters, contentCreators]);
 
   const modalRef = useRef<BottomSheetModal>(null);
   const handleClosePress = () => setFilterModalState(false);
@@ -104,11 +69,13 @@ const ContentCreatorsScreen: React.FC = () => {
 
   const handleCategoryPress = category => {
     if (selectedFilters.categories.includes(category)) {
+      // If category is already selected, remove it
       setSelectedFilters(prevState => ({
         ...prevState,
         categories: prevState.categories.filter(cat => cat !== category),
       }));
     } else {
+      // If category is not selected, add it
       setSelectedFilters(prevState => ({
         ...prevState,
         categories: [...prevState.categories, category],
@@ -121,7 +88,9 @@ const ContentCreatorsScreen: React.FC = () => {
       <SafeAreaContainer>
         <ScrollView className="flex-1">
           {/* Navbar */}
-          <View style={flex.flexCol} className="h-14 px-4 justify-start">
+          <View
+            style={flex.flexCol}
+            className="h-20 px-4 pb-2 pt-2 justify-start">
             <Text className="text-black text-xl font-bold">
               Perfect content creators
             </Text>
@@ -132,77 +101,59 @@ const ContentCreatorsScreen: React.FC = () => {
 
           {/* Search Bar */}
           <PageWithSearchBar>
-            <View className="px-4">
-              <View style={flex.flexRow} className="pb-2 items-center">
+            <View>
+              <View style={flex.flexRow} className="pb-2 items-center px-4">
                 <Pressable
                   onPress={() => setFilterModalState(true)}
                   style={flex.flexRow}
-                  className="rounded-md border justify-between items-center px-2">
-                  <Filter width={12} height={12} color={COLOR.white} />
-                  <Text className="pl-2 text-xs">Filter</Text>
+                  className="px-4 rounded-md border justify-start items-center">
+                  <Filter width={15} height={15} color={COLOR.white} />
+                  <Text style={font}>Filter</Text>
                 </Pressable>
                 <ScrollView horizontal style={styles.categoriesContainer}>
-                  <View style={flex.flexRow} className="gap-x-1 items-center">
+                  <View style={flex.flexRow} className="pt-1 gap-x-1">
                     {selectedFilters.categories &&
                       selectedFilters.categories.map((category, idx) => (
-                        <View
-                          key={idx}
-                          style={flex.flexRow}
-                          className="items-center justify-between bg-black rounded-md px-1">
+                        <View key={idx} style={styles.categoryContainer}>
                           <Text style={styles.category}>{category}</Text>
-                          <Pressable
-                            className="pl-2"
-                            onPress={() => handleCategoryPress(category)}>
-                            <Text className="text-white">x</Text>
-                          </Pressable>
                         </View>
                       ))}
                   </View>
                 </ScrollView>
               </View>
 
-              {filteredContentCreators.length > 0 ? (
-                <View style={flex.flexRow} className="justify-between">
-                  <View style={(flex.flexCol, gap.small)}>
-                    {filteredContentCreators.map((item, index) =>
-                      index % 2 === 0 ? (
-                        <ContentCreatorCard
-                          key={item.id?.toString()}
-                          name={item.contentCreator?.fullname ?? ''}
-                          categories={
-                            item.contentCreator?.specializedCategoryIds
-                          }
-                          imageUrl={
-                            item.contentCreator?.profilePicture ??
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
-                          }
-                        />
-                      ) : null,
-                    )}
-                  </View>
-                  <View style={(flex.flexCol, gap.small)}>
-                    {filteredContentCreators.map((item, index) =>
-                      index % 2 !== 0 ? (
-                        <ContentCreatorCard
-                          key={item.id?.toString()}
-                          name={item.contentCreator?.fullname ?? ''}
-                          categories={
-                            item.contentCreator?.specializedCategoryIds
-                          }
-                          imageUrl={
-                            item.contentCreator?.profilePicture ??
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
-                          }
-                        />
-                      ) : null,
-                    )}
-                  </View>
+              <View style={flex.flexRow} className="px-4 justify-between">
+                <View style={(flex.flexCol, gap.small)}>
+                  {contentCreators.map((item, index) =>
+                    index % 2 !== 0 ? (
+                      <ContentCreatorCard
+                        key={item.id?.toString()}
+                        name={item.contentCreator?.fullname ?? ''}
+                        categories={item.contentCreator?.specializedCategoryIds}
+                        imageUrl={
+                          item.contentCreator?.profilePicture ??
+                          'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
+                        }
+                      />
+                    ) : null,
+                  )}
                 </View>
-              ) : (
-                <View>
-                  <Text>No content creators</Text>
+                <View style={(flex.flexCol, gap.small)}>
+                  {contentCreators.map((item, index) =>
+                    index % 2 === 0 ? (
+                      <ContentCreatorCard
+                        key={item.id?.toString()}
+                        name={item.contentCreator?.fullname ?? ''}
+                        categories={item.contentCreator?.specializedCategoryIds}
+                        imageUrl={
+                          item.contentCreator?.profilePicture ??
+                          'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
+                        }
+                      />
+                    ) : null,
+                  )}
                 </View>
-              )}
+              </View>
             </View>
           </PageWithSearchBar>
         </ScrollView>
@@ -263,18 +214,3 @@ const ContentCreatorsScreen: React.FC = () => {
     </BottomSheetModalProvider>
   );
 };
-
-export default ContentCreatorsScreen;
-
-const styles = StyleSheet.create({
-  categoriesContainer: {
-    width: 185,
-    marginLeft: 5,
-    paddingVertical: 5,
-  },
-  category: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'normal',
-  },
-});

@@ -121,6 +121,15 @@ export const TabNavigator = () => {
           }}
         />
       )}
+      {UserRole.BusinessPeople === activeRole && (
+        <Tab.Screen
+          name={TabNavigation.ContentCreators}
+          component={ContentCreatorsScreen}
+          options={{
+            tabBarIcon: ({focused}) => listIcon(focused),
+          }}
+        />
+      )}
       {UserRole.ContentCreator === activeRole && (
         <Tab.Screen
           name={TabNavigation.Campaigns}
