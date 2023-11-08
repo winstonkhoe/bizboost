@@ -62,9 +62,9 @@ const ChatScreen = ({route}: Props) => {
     if (message !== '') {
       const newMessage: Message = {
         message: message,
-        sender: uid,
+        sender: uid!!,
         type: MessageType.Text,
-        createdAt: new Date(),
+        createdAt: new Date().getTime(),
       };
       await new Chat(chat.chat).insertMessage(newMessage);
       setChatMessages([...chatMessages, newMessage]);
@@ -90,8 +90,8 @@ const ChatScreen = ({route}: Props) => {
     const newMessage: Message = {
       message: downloadURL,
       type: MessageType.Photo,
-      sender: uid,
-      createdAt: new Date(),
+      sender: uid!!,
+      createdAt: new Date().getTime(),
     };
 
     // Add the new message to the chatMessages state

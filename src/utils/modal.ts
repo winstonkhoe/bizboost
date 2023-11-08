@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import {Category} from '../model/Category';
 import {Location} from '../model/Location';
 import {
@@ -24,14 +25,11 @@ export const openLocationModal = ({
 
   const listener = DeviceEventEmitter.addListener(eventType, locations => {
     setPreferredLocations(locations);
-    console.log('selected locations', locations);
   });
 
   const closeListener = DeviceEventEmitter.addListener('close.location', () => {
-    console.log('removing all listener');
     listener.remove();
     closeListener.remove();
-    console.log('removed all listener');
   });
 };
 
@@ -53,13 +51,23 @@ export const openCategoryModal = ({
 
   const listener = DeviceEventEmitter.addListener(eventType, categories => {
     setFavoriteCategories(categories);
-    console.log('selected categories', categories);
   });
 
   const closeListener = DeviceEventEmitter.addListener('close.category', () => {
-    console.log('removing all listener');
     listener.remove();
     closeListener.remove();
-    console.log('removed all listener');
   });
+};
+
+interface CloseModalProps {
+  triggerEventOnClose: string;
+  navigation: NavigationStackProps;
+}
+
+export const closeModal = ({
+  triggerEventOnClose,
+  navigation,
+}: CloseModalProps) => {
+  triggerEventOnClose && DeviceEventEmitter.emit(triggerEventOnClose);
+  navigation.goBack();
 };

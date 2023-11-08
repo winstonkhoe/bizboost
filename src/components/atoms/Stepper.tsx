@@ -81,8 +81,8 @@ const SimpleStepperBar = ({barIndex, currentPosition}: SimpleStepperBar) => {
 
   useEffect(() => {
     progress.value = withTiming(currentPosition > barIndex ? 1 : 0, {
-      duration: 500,
-      easing: Easing.inOut(Easing.exp),
+      duration: 150,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
     });
   }, [currentPosition, barIndex, progress]);
 

@@ -19,6 +19,7 @@ const SafeAreaContainer = ({children, customInsets}: Props) => {
           paddingTop: insets.top + additionalOffset,
           paddingLeft: insets.left,
           paddingRight: insets.right,
+          paddingBottom: insets.bottom,
         },
         background(COLOR.background.light),
       ]}>

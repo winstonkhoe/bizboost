@@ -107,7 +107,9 @@ const ProfileScreen = () => {
               <HorizontalPadding>
                 <CustomButton
                   onPress={() => {
-                    User.signOut().then(() => dispatch(disableAccess()));
+                    User.signOut()
+                      .then(() => dispatch(disableAccess()))
+                      .catch(err => console.log('logout error', err));
                   }}
                   rounded="default"
                   text="Sign out"

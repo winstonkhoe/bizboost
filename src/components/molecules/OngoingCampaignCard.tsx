@@ -16,6 +16,12 @@ type Props = {
 
 const OngoingCampaignCard = ({campaign}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
+
+  const onViewCampaignDetailButtonClicked = () => {
+    navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
+      campaignId: campaign.id || '',
+    });
+  };
   return (
     <View className="bg-white" style={[shadow.default, rounded.medium]}>
       <View
@@ -29,17 +35,19 @@ const OngoingCampaignCard = ({campaign}: Props) => {
             }),
           ]}>
           <Text className="font-bold text-white text-xs">
-            {getDate(campaign.start).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}{' '}
+            {campaign.start &&
+              getDate(campaign.start).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}{' '}
             -{' '}
-            {getDate(campaign.end).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+            {campaign.end &&
+              getDate(campaign.end).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
           </Text>
         </View>
         <View className="px-4 py-8 w-full h-full" style={flex.flexCol}>
@@ -58,11 +66,8 @@ const OngoingCampaignCard = ({campaign}: Props) => {
                 {campaign.title}
               </Text>
               <Pressable
-                onPress={() =>
-                  navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
-                    campaignId: campaign.id || '',
-                  })
-                }>
+                // onViewCampaignDetailButtonClicked()
+                onPress={onViewCampaignDetailButtonClicked}>
                 <View className="rounded-3xl bg-black px-3 py-2">
                   <Text className="font-bold text-white">Detail</Text>
                 </View>

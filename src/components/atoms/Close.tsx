@@ -6,7 +6,9 @@ import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {border} from '../../styles/Border';
 import {useNavigation} from '@react-navigation/native';
-import {DeviceEventEmitter, Pressable} from 'react-native';
+import {Pressable} from 'react-native';
+import {closeModal} from '../../utils/modal';
+import {NavigationStackProps} from '../../navigation/StackNavigation';
 
 interface CloseStackProps {
   showBorder?: boolean;
@@ -14,12 +16,14 @@ interface CloseStackProps {
 }
 
 export const CloseModal = ({showBorder, closeEventType}: CloseStackProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationStackProps>();
   return (
     <Pressable
       onPress={() => {
-        closeEventType && DeviceEventEmitter.emit(`close.${closeEventType}`);
-        navigation.goBack();
+        closeModal({
+          navigation: navigation,
+          triggerEventOnClose: `close.${closeEventType}`,
+        });
       }}
       className="w-11 h-11 justify-center items-center"
       style={[

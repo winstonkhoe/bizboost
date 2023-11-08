@@ -13,7 +13,7 @@ const initialState = {
   activeRole: undefined,
 } as UserState;
 
-export const switchRole = createAction<UserRoles>('switchRole');
+export const switchRole = createAction<UserRoles | undefined>('switchRole');
 
 const userSlice = createSlice({
   name: 'user',
@@ -25,6 +25,8 @@ const userSlice = createSlice({
         state.activeRole = UserRole.ContentCreator;
       } else if (action.payload?.businessPeople) {
         state.activeRole = UserRole.BusinessPeople;
+      } else if (action.payload?.isAdmin === true) {
+        state.activeRole = UserRole.Admin;
       }
     },
     setUserUid(state, action) {

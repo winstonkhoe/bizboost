@@ -1,6 +1,6 @@
-import {useEffect} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {setUser} from '../redux/slices/userSlice';
+import {setUser, switchRole} from '../redux/slices/userSlice';
 import {
   BusinessPeople,
   ContentCreator,
@@ -10,6 +10,7 @@ import {
 } from '../model/User';
 
 export const useUser = () => {
+  const unsubscribe = useRef<(() => void) | undefined>(undefined);
   const {user, activeRole, uid} = useAppSelector(state => state.user);
   const dispatch = useAppDispatch();
   const getData = (
@@ -31,16 +32,63 @@ export const useUser = () => {
     activeRole,
   );
 
-  useEffect(() => {
-    const updateUserState = (u: User | null, unsubscribe: () => void) => {
+  const updateUserState = useCallback(
+    (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
-        return unsubscribe;
+      }
+    },
+    [dispatch],
+  );
+
+  useEffect(() => {
+    if (!user && uid) {
+      const unsubscribeUserDataReactive = User.getUserDataReactive(
+        uid,
+        updateUserState,
+        () => {
+          if (uid) {
+            User.signOut().then(() => {
+              dispatch(setUser(null));
+            });
+          }
+        },
+      );
+      unsubscribe.current = unsubscribeUserDataReactive;
+    }
+
+    return () => {
+      if (!uid && unsubscribe.current) {
+        unsubscribe.current();
+        unsubscribe.current = undefined;
       }
     };
-    if (!user && uid) {
-      User.getUserDataReactive(uid, updateUserState);
+  }, [user, uid, dispatch, updateUserState]);
+
+  useEffect(() => {
+    if (!user || !uid) {
+      if (activeRole) {
+        dispatch(switchRole(undefined));
+      }
     }
-  }, [user, uid, dispatch]);
+    if (user && uid) {
+      if (!activeRole) {
+        if (
+          user.contentCreator?.fullname &&
+          activeRole !== UserRole.ContentCreator
+        ) {
+          dispatch(switchRole(UserRole.ContentCreator));
+        } else if (
+          user.businessPeople?.fullname &&
+          activeRole !== UserRole.BusinessPeople
+        ) {
+          dispatch(switchRole(UserRole.BusinessPeople));
+        }
+      }
+    }
+    if (user && !uid) {
+      dispatch(setUser(null));
+    }
+  }, [user, uid, dispatch, activeRole]);
   return {uid, user, activeRole, activeData};
 };

@@ -47,8 +47,8 @@ export type CampaignFormData = {
   importantInformation: StringObject[];
   locations: StringObject[];
   image: ImageType;
-  startDate: Date;
-  endDate: Date;
+  startDate: number;
+  endDate: number;
 };
 const CreateCampaignScreen = () => {
   const {uid} = useUser();
@@ -105,8 +105,8 @@ const CreateCampaignScreen = () => {
       locations: [],
       importantInformation: [{value: ''}],
       criterias: [{value: ''}],
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate: new Date().getTime(),
+      endDate: new Date().getTime(),
     },
   });
   const {
@@ -114,10 +114,10 @@ const CreateCampaignScreen = () => {
     setValue,
     watch,
     control,
-    formState: {errors},
+    // formState: {errors},
   } = methods;
 
-  const onSubmit = (d: CampaignFormData) => {
+  const onSubmitButtonClicked = (d: CampaignFormData) => {
     setIsUploading(true);
 
     // TODO: extract to utility function
@@ -243,13 +243,14 @@ const CreateCampaignScreen = () => {
                       <View className="flex flex-col">
                         <Text className="text-black mb-3">Campaign Image</Text>
                         <MediaUploader
+                          targetFolder="campaigns"
                           options={{
                             width: 400,
                             height: 400,
                             cropping: true,
                             includeBase64: true,
                           }}
-                          callback={imageSelected}>
+                          onMediaSelected={imageSelected}>
                           {value ? (
                             <Image
                               className="w-16 h-16 rounded-lg"
@@ -482,7 +483,8 @@ const CreateCampaignScreen = () => {
                       rules={{
                         required: 'Start Date is required!',
                         validate: d =>
-                          d >= new Date() || 'Date must be after today!',
+                          d >= new Date().getTime() ||
+                          'Date must be after today!',
                       }}
                       render={({
                         field: {name, value: startDate},
@@ -494,7 +496,9 @@ const CreateCampaignScreen = () => {
                               <Text>Start Date</Text>
                             </View>
                             <SelectableTag
-                              text={`${startDate.toLocaleDateString()}`}
+                              text={`${new Date(
+                                startDate,
+                              ).toLocaleDateString()}`}
                               onPress={() => setIsStartDateSheetOpened(true)}
                             />
                           </View>
@@ -502,10 +506,10 @@ const CreateCampaignScreen = () => {
                             modal
                             mode={'date'}
                             open={isStartDateSheetOpened}
-                            date={startDate}
+                            date={new Date(startDate)}
                             onConfirm={d => {
                               setIsStartDateSheetOpened(false);
-                              setValue(name, d);
+                              setValue(name, d.getTime());
                             }}
                             onCancel={() => {
                               setIsStartDateSheetOpened(false);
@@ -540,7 +544,7 @@ const CreateCampaignScreen = () => {
                               <Text>End Date</Text>
                             </View>
                             <SelectableTag
-                              text={`${endDate.toLocaleDateString()}`}
+                              text={`${new Date(endDate).toLocaleDateString()}`}
                               onPress={() => setIsEndDateSheetOpened(true)}
                             />
                           </View>
@@ -548,10 +552,10 @@ const CreateCampaignScreen = () => {
                             modal
                             mode={'date'}
                             open={isEndDateSheetOpened}
-                            date={endDate}
+                            date={new Date(endDate)}
                             onConfirm={d => {
                               setIsEndDateSheetOpened(false);
-                              setValue(name, d);
+                              setValue(name, d.getTime());
                             }}
                             onCancel={() => {
                               setIsEndDateSheetOpened(false);
@@ -570,7 +574,7 @@ const CreateCampaignScreen = () => {
                   <CustomButton
                     text="Submit"
                     rounded="default"
-                    onPress={handleSubmit(onSubmit)}
+                    onPress={handleSubmit(onSubmitButtonClicked)}
                   />
                 </View>
               </HorizontalPadding>

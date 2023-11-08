@@ -15,7 +15,7 @@ export type Message = {
   message: string;
   type: MessageTypes;
   sender: string;
-  createdAt: FirebaseFirestoreTypes.Timestamp | number | Date;
+  createdAt: number;
 };
 
 export type Participant = {
@@ -145,7 +145,7 @@ export class Chat extends BaseModel {
             callback(userChats, subscriber);
           },
           (error: Error) => {
-            throw Error(error.message);
+            console.log('getUserChatsReactive error', error.message);
           },
         );
     } catch (error) {

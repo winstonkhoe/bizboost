@@ -25,8 +25,8 @@ export const AuthProvider = () => {
   }
   return (
     <NavigationContainer>
-      <StackNavigator />
       <BottomSheetModalProvider>
+        <StackNavigator />
         <SwitchUserModalProvider />
       </BottomSheetModalProvider>
     </NavigationContainer>

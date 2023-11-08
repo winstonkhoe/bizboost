@@ -27,9 +27,9 @@ export class Campaign extends BaseModel {
   criterias?: string[];
   slot?: number;
   image?: string;
-  start?: FirebaseFirestoreTypes.Timestamp | number | Date;
-  end?: FirebaseFirestoreTypes.Timestamp | number | Date;
-  createdAt?: FirebaseFirestoreTypes.Timestamp | number | Date;
+  start?: number;
+  end?: number;
+  createdAt?: number;
   importantInformation?: string[];
 
   constructor({
@@ -151,11 +151,11 @@ export class Campaign extends BaseModel {
           },
           (error: Error) => {
             callback([], subscriber);
-            console.error('getUserCampaignsReactive', error.message);
+            console.log('getUserCampaignsReactive', error.message);
           },
         );
     } catch (error) {
-      throw Error('Error!');
+      console.log('getUserCampaignsReactive', error);
     }
   }
   static getDocumentReference(
@@ -182,7 +182,7 @@ export class Campaign extends BaseModel {
       const data = {
         ...rest,
         userId: User.getDocumentReference(this.userId ?? ''),
-        createdAt: new Date(),
+        createdAt: new Date().getTime(),
       };
 
       await Campaign.getCampaignCollections().add(data);

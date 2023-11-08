@@ -112,20 +112,15 @@ export const TabNavigator = () => {
           tabBarIcon: ({focused}) => homeIcon(focused),
         }}
       />
-      <Tab.Screen
-        name={TabNavigation.Chat}
-        component={ChatListScreen}
-        options={{
-          tabBarIcon: ({focused}) => chatIcon(focused),
-        }}
-      />
-      <Tab.Screen
-        name={TabNavigation.ContentCreators}
-        component={ContentCreatorsScreen}
-        options={{
-          tabBarIcon: ({focused}) => listIcon(focused),
-        }}
-      />
+      {UserRole.Admin !== activeRole && (
+        <Tab.Screen
+          name={TabNavigation.Chat}
+          component={ChatListScreen}
+          options={{
+            tabBarIcon: ({focused}) => chatIcon(focused),
+          }}
+        />
+      )}
       {UserRole.ContentCreator === activeRole && (
         <Tab.Screen
           name={TabNavigation.Campaigns}

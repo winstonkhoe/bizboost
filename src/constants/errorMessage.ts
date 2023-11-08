@@ -16,5 +16,6 @@ export enum ErrorMessage {
   FACEBOOK_ACCESS_TOKEN_ERROR = 'Failed retrieving facebook access token',
   LOGIN_FAILED = 'Login failed!',
   USER_EXISTS = 'User already exists',
+  PROVIDER_ERROR = 'Provider error!',
   DEFAULT = 'Error!',
 }
