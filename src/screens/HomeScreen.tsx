@@ -24,13 +24,14 @@ import {Text} from 'react-native';
 import {FAB} from 'react-native-elements';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import Edit from '../assets/vectors/edit.svg';
+import {Transaction} from '../model/Transaction';
 
 const HomeScreen = () => {
-  const {activeRole} = useUser();
+  const {uid, activeRole} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
 
   const {campaigns} = useOngoingCampaign();
-
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
   // TODO: kalo klik see all apa mending pindah page?
@@ -38,6 +39,15 @@ const HomeScreen = () => {
   const [ongoingCampaignsLimit, setOngoingCampaignsLimit] = useState(3);
   useEffect(() => {
     const unsubscribe = User.getAll(u => setUsers(u));
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = Transaction.getAllBusinessPeopleTransactions(
+      uid || '',
+      t => setTransactions(t),
+    );
 
     return unsubscribe;
   }, []);
@@ -81,6 +91,28 @@ const HomeScreen = () => {
                     .map((c: Campaign, index: number) => (
                       <OngoingCampaignCard campaign={c} key={index} />
                     ))}
+                </View>
+              </HorizontalPadding>
+            </View>
+
+            <View className="my-6" style={[flex.flexCol]}>
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header="Ongoing Offers"
+                  link={'See All'}
+                  // onPressLink={() =>
+                  // setOngoingCampaignsLimit(
+                  //   ongoingCampaignsLimit === 3 ? campaigns.length : 3,
+                  // )
+                  // }
+                />
+              </HorizontalPadding>
+              <View className="mt-3" />
+              <HorizontalPadding>
+                <View style={[flex.flexCol, gap.medium]}>
+                  {transactions.map((t, index) => (
+                    <Text key={index}>{t.status}</Text>
+                  ))}
                 </View>
               </HorizontalPadding>
             </View>
