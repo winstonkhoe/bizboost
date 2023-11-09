@@ -39,7 +39,7 @@ const DefaultProgressBar = ({...props}: BaseProgressBarProps) => {
 
   useEffect(() => {
     progressValue.value = withTiming(props.currentProgress, {
-      duration: 150,
+      duration: 200,
     });
   }, [props.currentProgress, progressValue]);
 
