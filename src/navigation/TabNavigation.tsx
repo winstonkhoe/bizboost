@@ -83,51 +83,109 @@ export const TabNavigator = () => {
   );
 
   return (
-    <Tab.Navigator screenOptions={{headerShown: false}}>
-      <Tab.Screen
-        name={TabNavigation.Home}
-        component={HomeScreen}
-        listeners={{
-          tabPress: () => {
-            resetSearchState();
-          },
-        }}
-        options={{
-          tabBarIcon: ({focused}) => homeIcon(focused),
-        }}
-      />
-      {UserRole.Admin !== activeRole && (
-        <Tab.Screen
-          name={TabNavigation.Chat}
-          component={ChatListScreen}
-          options={{
-            tabBarIcon: ({focused}) => chatIcon(focused),
-          }}
-        />
-      )}
+    <Tab.Navigator>
       {UserRole.ContentCreator === activeRole && (
-        <Tab.Screen
-          name={TabNavigation.Campaigns}
-          component={CampaignsScreen}
-          listeners={{
-            tabPress: () => {
-              resetSearchState();
-            },
-          }}
-        />
+        <Tab.Group screenOptions={{headerShown: false}}>
+          <Tab.Screen
+            name={TabNavigation.Home}
+            component={HomeScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => homeIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Chat}
+            component={ChatListScreen}
+            options={{
+              tabBarIcon: ({focused}) => chatIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Campaigns}
+            component={CampaignsScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Profile}
+            component={ProfileScreen}
+            listeners={{
+              tabLongPress: () => {
+                dispatch(openModal());
+              },
+            }}
+            options={{
+              tabBarIcon: profileIcon,
+            }}
+          />
+        </Tab.Group>
       )}
-      <Tab.Screen
-        name={TabNavigation.Profile}
-        component={ProfileScreen}
-        listeners={{
-          tabLongPress: () => {
-            dispatch(openModal());
-          },
-        }}
-        options={{
-          tabBarIcon: profileIcon,
-        }}
-      />
+      {UserRole.BusinessPeople === activeRole && (
+        <Tab.Group screenOptions={{headerShown: false}}>
+          <Tab.Screen
+            name={TabNavigation.Home}
+            component={HomeScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => homeIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Chat}
+            component={ChatListScreen}
+            options={{
+              tabBarIcon: ({focused}) => chatIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Profile}
+            component={ProfileScreen}
+            listeners={{
+              tabLongPress: () => {
+                dispatch(openModal());
+              },
+            }}
+            options={{
+              tabBarIcon: profileIcon,
+            }}
+          />
+        </Tab.Group>
+      )}
+      {UserRole.Admin === activeRole && (
+        <Tab.Group screenOptions={{headerShown: false}}>
+          <Tab.Screen
+            name={TabNavigation.Home}
+            component={HomeScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => homeIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Profile}
+            component={ProfileScreen}
+            options={{
+              tabBarIcon: profileIcon,
+            }}
+          />
+        </Tab.Group>
+      )}
     </Tab.Navigator>
   );
 };
