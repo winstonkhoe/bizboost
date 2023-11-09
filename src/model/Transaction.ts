@@ -20,15 +20,22 @@ export class Transaction extends BaseModel {
   id?: string; // CampaignId + ContentCreatorId
   contentCreatorId?: string;
   campaignId?: string;
+  businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   status?: TransactionStatus;
 
-  constructor({contentCreatorId, campaignId, status}: Partial<Transaction>) {
+  constructor({
+    contentCreatorId,
+    campaignId,
+    businessPeopleId,
+    status,
+  }: Partial<Transaction>) {
     super();
     // this.id = id;
     if (campaignId && contentCreatorId) {
       this.id = campaignId + contentCreatorId;
     }
     this.contentCreatorId = contentCreatorId;
+    this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
     this.status = status;
   }
@@ -66,6 +73,9 @@ export class Transaction extends BaseModel {
           this.contentCreatorId ?? '',
         ),
         campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
+        businessPeopleId: User.getDocumentReference(
+          this.businessPeopleId ?? '',
+        ),
         status: status,
       };
 
