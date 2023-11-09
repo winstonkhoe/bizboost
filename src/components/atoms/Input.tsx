@@ -526,6 +526,19 @@ export const MediaUploader = ({
   const [uploadProgress, setUploadProgress] = useState<number | undefined>(
     undefined,
   );
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | undefined;
+    if (uploadProgress === 1) {
+      timeoutId = setTimeout(() => {
+        setUploadProgress(undefined);
+      }, 1000);
+    }
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [uploadProgress]);
   const handleImageUpload = () => {
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
@@ -572,11 +585,9 @@ export const MediaUploader = ({
       <View style={[flex.flexRow]} className="items-center">
         {children || <CustomButton text="Upload image" rounded={'small'} />}
       </View>
-      {showUploadProgress &&
-        uploadProgress !== undefined &&
-        uploadProgress < 1 && (
-          <ProgressBar currentProgress={uploadProgress} showProgressNumber />
-        )}
+      {showUploadProgress && uploadProgress !== undefined && (
+        <ProgressBar currentProgress={uploadProgress} showProgressNumber />
+      )}
     </TouchableOpacity>
   );
 };
