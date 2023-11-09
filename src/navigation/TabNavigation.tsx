@@ -5,6 +5,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
 import ChatLogo from '../assets/vectors/chat.svg';
+import SearchLogo from '../assets/vectors/search.svg';
 import {Image} from 'react-native';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
@@ -16,6 +17,7 @@ import {COLOR} from '../styles/Color';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import {NavigationProp} from '@react-navigation/native';
 import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
+import ExploreScreen from '../screens/ExploreScreen';
 const Tab = createBottomTabNavigator();
 
 export enum TabNavigation {
@@ -23,13 +25,16 @@ export enum TabNavigation {
   Chat = 'Chat',
   Home = 'Home',
   Profile = 'Profile',
+  Explore = 'Explore',
 }
 
 type TabNavigationParamList = {
   [TabNavigation.Home]: undefined;
   [TabNavigation.Chat]: undefined;
-  [TabNavigation.Campaigns]: undefined;
   [TabNavigation.Profile]: undefined;
+
+  [TabNavigation.Campaigns]: undefined;
+  [TabNavigation.Explore]: undefined;
 };
 
 export type TabNavigationProps = NavigationProp<TabNavigationParamList>;
@@ -78,6 +83,16 @@ export const TabNavigator = () => {
         <ChatLogo width={30} height={30} color={COLOR.black[100]} />
       ) : (
         <ChatLogo width={30} height={30} color={COLOR.black[100]} />
+      ),
+    [],
+  );
+
+  const searchIcon = useCallback(
+    (focused: boolean) =>
+      focused ? (
+        <SearchLogo width={30} height={30} color={COLOR.green[50]} />
+      ) : (
+        <SearchLogo width={30} height={30} color={COLOR.green[80]} />
       ),
     [],
   );
@@ -147,6 +162,13 @@ export const TabNavigator = () => {
             component={ChatListScreen}
             options={{
               tabBarIcon: ({focused}) => chatIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Explore}
+            component={ExploreScreen}
+            options={{
+              tabBarIcon: ({focused}) => searchIcon(focused),
             }}
           />
           <Tab.Screen
