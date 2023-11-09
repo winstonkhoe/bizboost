@@ -1,6 +1,7 @@
 import {ViewStyle} from 'react-native';
 
 export type SizeType =
+  | 'zero'
   | 'xsmall2'
   | 'xsmall'
   | 'small'
@@ -24,6 +25,7 @@ export type SizeStyle = {
 };
 
 export const size: Size = {
+  zero: 0,
   xsmall2: 2,
   xsmall: 4,
   small: 6,

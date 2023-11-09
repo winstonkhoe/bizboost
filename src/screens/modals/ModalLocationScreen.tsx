@@ -88,7 +88,7 @@ const ModalLocationScreen = ({route}: Props) => {
             </HorizontalPadding>
           </VerticalPadding>
         </ScrollView>
-        <View style={[flex.flexCol, gap.default, padding.top.medium]}>
+        <View style={[flex.flexCol, gap.default, padding.vertical.default]}>
           <HorizontalPadding>
             <CustomButton
               text={

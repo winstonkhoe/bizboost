@@ -45,7 +45,7 @@ export type UserRoles =
 
 export interface ContentCreatorPreference {
   contentRevisionLimit?: number;
-  postingSchedules: Date[] | FirebaseFirestoreTypes.Timestamp[];
+  postingSchedules: number[];
   preferences: string[];
 }
 
@@ -91,7 +91,7 @@ export class User extends BaseModel {
   businessPeople?: BusinessPeople;
   instagram?: SocialData;
   tiktok?: SocialData;
-  joinedAt?: FirebaseFirestoreTypes.Timestamp | number;
+  joinedAt?: number;
   isAdmin?: boolean;
   status?: UserStatus;
 
@@ -136,22 +136,21 @@ export class User extends BaseModel {
         phone: data?.phone,
         contentCreator: {
           ...data.contentCreator,
-          postingSchedules: data.contentCreator.postingSchedules.map(
-            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
-          ),
           specializedCategoryIds:
-            data.contentCreator?.specializedCategoryIds.map(
+            data.contentCreator?.specializedCategoryIds?.map(
               (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
                 categoryId.id,
             ) || [],
           preferredLocationIds:
-            data.contentCreator?.preferredLocationIds.map(
+            data.contentCreator?.preferredLocationIds?.map(
               (locationId: FirebaseFirestoreTypes.DocumentReference) =>
                 locationId.id,
             ) || [],
         },
+        tiktok: data?.tiktok,
+        instagram: data?.instagram,
         businessPeople: data?.businessPeople,
-        joinedAt: data?.joinedAt?.seconds,
+        joinedAt: data?.joinedAt,
         isAdmin: data?.isAdmin,
         status: data?.status || UserStatus.Active,
       });
@@ -180,6 +179,7 @@ export class User extends BaseModel {
   private static mappingUserFields(data: User) {
     return {
       ...data,
+      id: undefined,
       email: data.email?.toLocaleLowerCase(),
       contentCreator: data.contentCreator && {
         ...data.contentCreator,
@@ -196,7 +196,7 @@ export class User extends BaseModel {
   static async setUserData(documentId: string, data: User): Promise<void> {
     await this.getDocumentReference(documentId).set({
       ...this.mappingUserFields(data),
-      joinedAt: firestore.Timestamp.now(),
+      joinedAt: new Date().getTime(),
     });
   }
 
@@ -297,22 +297,28 @@ export class User extends BaseModel {
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null) => void,
+    onError?: (error?: any) => void,
   ) {
     try {
       const unsubscribe = this.getDocumentReference(documentId).onSnapshot(
         (
           documentSnapshot: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
         ) => {
-          const user = this.fromSnapshot(documentSnapshot);
-          callback(user);
+          try {
+            const user = this.fromSnapshot(documentSnapshot);
+            callback(user);
+          } catch (error) {
+            onError && onError(error);
+          }
         },
         (error: Error) => {
+          onError && onError(error);
           console.log(error);
         },
       );
       return unsubscribe;
     } catch (error) {
-      throw Error('Error!');
+      onError && onError(error);
     }
   }
 
@@ -338,12 +344,6 @@ export class User extends BaseModel {
         }),
       );
 
-      console.log('signup providerId', {
-        providerId: providerId,
-        email: user.email,
-        method: provider,
-      });
-
       await AuthMethod.setAuthMethod(
         userCredential.user.uid,
         new AuthMethod({
@@ -359,247 +359,6 @@ export class User extends BaseModel {
       handleError(error.code);
 
       return false;
-    }
-  }
-
-  static async signUpContentCreator({
-    token,
-    provider,
-    ...user
-  }: SignupContentCreatorProps) {
-    try {
-      const userCredential = await AuthMethod.getUserCredentialByProvider({
-        provider: provider,
-        token: token,
-        email: user.email,
-        password: user.password,
-      });
-
-      await this.setUserData(
-        userCredential.user.uid,
-        new User({
-          ...user,
-        }),
-      );
-
-      return true;
-    } catch (error: any) {
-      console.log(error);
-      handleError(error.code);
-
-      return false;
-    }
-  }
-
-  static async signUpBusinessPeople({
-    email,
-    password,
-    phone,
-    businessPeople,
-  }: User) {
-    try {
-      if (!password || !email) {
-        throw Error(ErrorMessage.MISSING_FIELDS);
-      }
-      const userCredential = await auth().createUserWithEmailAndPassword(
-        email,
-        password,
-      );
-      await this.setUserData(
-        userCredential.user.uid,
-        new User({
-          email: email.toLowerCase(),
-          phone: phone,
-          businessPeople: businessPeople,
-        }),
-      );
-
-      return true;
-    } catch (error: any) {
-      console.log(error);
-      handleError(error.code);
-
-      return false;
-    }
-  }
-
-  static async signUpWithGoogle() {
-    const {idToken} = await GoogleSignin.signIn();
-
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
-    try {
-      const userCredential = await auth().signInWithCredential(
-        googleCredential,
-      );
-      if (!userCredential.additionalUserInfo?.isNewUser) {
-        console.log('User Exists');
-      } else {
-        console.log("User doesn't exist");
-
-        const user = userCredential.user;
-        const email = user.email;
-        const fullname = user.displayName;
-        const profilePicture = user.photoURL;
-        if (!email || !fullname || !profilePicture) {
-          throw Error(ErrorMessage.GOOGLE_ERROR);
-        }
-        await this.setUserData(
-          user.uid,
-          new User({
-            email: email,
-            businessPeople: {
-              fullname: fullname,
-              profilePicture: profilePicture,
-            },
-          }),
-        );
-      }
-
-      return true;
-    } catch (error: any) {
-      console.log(error);
-      handleError(error.code);
-      return false;
-    }
-  }
-
-  static async signUpWithFacebook(finishCallback: (result: boolean) => void) {
-    const result: LoginResult = await LoginManager.logInWithPermissions([
-      'pages_show_list',
-      'instagram_basic',
-      'business_management',
-    ]);
-
-    if (result.isCancelled) {
-      throw Error(ErrorMessage.FACEBOOK_SIGN_IN_CANCEL);
-    }
-
-    const fbAccessToken: AccessToken | null =
-      await AccessToken.getCurrentAccessToken();
-
-    if (!fbAccessToken) {
-      throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
-    }
-
-    const facebookCredential = auth.FacebookAuthProvider.credential(
-      fbAccessToken.accessToken,
-    );
-    const userCredential: FirebaseAuthTypes.UserCredential =
-      await auth().signInWithCredential(facebookCredential);
-
-    console.log('lewatin ini');
-    if (!userCredential.additionalUserInfo?.isNewUser) {
-      console.log('lewatin 1');
-      throw Error(ErrorMessage.USER_EXISTS);
-    } else {
-      console.log('lewatin 2');
-      const user = userCredential.user;
-      console.log(userCredential.user);
-
-      const instagramDataCallback = async (error?: Object, result?: any) => {
-        if (error) {
-          console.log('Error fetching data: ' + error.toString());
-          return false;
-        } else {
-          const fullname = user.displayName;
-          const followersCount = result?.followers_count;
-          const instagramUsername = result?.username;
-          const instagramName = result?.name;
-          // const instagramMediaIds = result?.media.data;
-          const profilePicture = result?.profile_picture_url;
-          try {
-            await this.setUserData(
-              user.uid,
-              new User({
-                instagram: {
-                  username: instagramUsername,
-                  followersCount: followersCount,
-                },
-                businessPeople: {
-                  fullname: fullname || instagramName,
-                  profilePicture: profilePicture,
-                },
-              }),
-            );
-            console.log('before callback success');
-            finishCallback(true);
-          } catch (error) {
-            finishCallback(false);
-          }
-          console.log(result);
-        }
-      };
-
-      const userInstagramBusinessAccountCallback = async (
-        error?: Object,
-        result?: any,
-      ) => {
-        if (error) {
-          console.log('Error fetching data: ' + error.toString());
-          finishCallback(false);
-        } else {
-          const instagramBusinessAccount = result?.instagram_business_account;
-          const instagramId = instagramBusinessAccount?.id;
-          const getInstagramDataRequest = new GraphRequest(
-            `/${instagramId}`,
-            {
-              parameters: {
-                fields: {
-                  string:
-                    'id,followers_count,media_count,username,website,biography,name,media,profile_picture_url',
-                },
-              },
-            },
-            instagramDataCallback,
-          );
-          await new GraphRequestManager()
-            .addRequest(getInstagramDataRequest)
-            .start();
-        }
-      };
-
-      const userFacebookPagesListCallback = async (
-        error?: Object,
-        result?: any,
-      ) => {
-        if (error) {
-          console.log('Error fetching data: ' + error.toString());
-          finishCallback(false);
-        } else {
-          const data = result?.data;
-          if (data && data?.length > 0) {
-            const page = data?.[0];
-            if (page) {
-              const page_id = page?.id;
-              const getInstagramBusinessAccountRequest = new GraphRequest(
-                `/${page_id}`,
-                {
-                  parameters: {
-                    fields: {
-                      string: 'instagram_business_account',
-                    },
-                  },
-                },
-                userInstagramBusinessAccountCallback,
-              );
-              await new GraphRequestManager()
-                .addRequest(getInstagramBusinessAccountRequest)
-                .start();
-            }
-          }
-          console.log(result);
-        }
-      };
-      const getUserFacebookPagesListRequest = new GraphRequest(
-        '/me/accounts',
-        {},
-        userFacebookPagesListCallback,
-      );
-
-      await new GraphRequestManager()
-        .addRequest(getUserFacebookPagesListRequest)
-        .start();
     }
   }
 
@@ -681,6 +440,7 @@ export class User extends BaseModel {
               provider: Provider.FACEBOOK,
               token: data.token,
             });
+            console.log('facebook account detected');
           } else {
             finishCallback({
               ...data,
@@ -692,7 +452,7 @@ export class User extends BaseModel {
                 followersCount: followersCount,
               },
             });
-            console.log(result);
+            console.log('instagramDataCallback', result);
           }
         }
       };
@@ -722,6 +482,7 @@ export class User extends BaseModel {
           await new GraphRequestManager()
             .addRequest(getInstagramDataRequest)
             .start();
+          console.log('userInstagramBusinessAccountCallback', result);
         }
       };
 
@@ -754,7 +515,7 @@ export class User extends BaseModel {
                 .start();
             }
           }
-          console.log(result);
+          console.log('userFacebookPagesListCallback', result);
         }
       };
       const getUserFacebookPagesListRequest = new GraphRequest(
@@ -766,33 +527,6 @@ export class User extends BaseModel {
       await new GraphRequestManager()
         .addRequest(getUserFacebookPagesListRequest)
         .start();
-    }
-  }
-
-  static async loginWithGoogle() {
-    const {idToken} = await GoogleSignin.signIn();
-
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
-    try {
-      const userCredential = await auth().signInWithCredential(
-        googleCredential,
-      );
-
-      if (!userCredential.additionalUserInfo?.isNewUser) {
-        console.log('User Exists');
-
-        return true;
-      } else {
-        // TODO: optimize? (redirect to register page after signing in with google acc that doesn't exist)
-        userCredential.user.delete();
-        console.log('user gaada, acc diapus lg');
-        throw Error("User doesn't exist");
-      }
-    } catch (error: any) {
-      console.log(error);
-
-      return false;
     }
   }
 

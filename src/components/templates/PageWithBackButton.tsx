@@ -9,6 +9,7 @@ import {PressableProps} from 'react-native';
 
 interface Props extends PressableProps {
   children: ReactNode;
+  icon?: 'back' | 'close';
   backButtonPlaceholder?: ReactNode;
   fullHeight?: boolean;
   disableDefaultOnPress?: boolean;
@@ -16,6 +17,7 @@ interface Props extends PressableProps {
 
 export const PageWithBackButton = ({
   children,
+  icon = 'back',
   backButtonPlaceholder,
   fullHeight = false,
   disableDefaultOnPress = false,
@@ -30,6 +32,7 @@ export const PageWithBackButton = ({
         style={[flex.flexCol]}>
         <HorizontalPadding>
           <BackButtonPlaceholder
+            icon={icon}
             onPress={
               disableDefaultOnPress
                 ? props.onPress

@@ -18,9 +18,9 @@ export const AnimatedPressable = ({
   ...props
 }: AnimatedPressableProps) => {
   return (
-    <Pressable {...props}>
-      <AnimatedTap scale={scale}>{children}</AnimatedTap>
-    </Pressable>
+    <AnimatedTap scale={props.disabled ? 1 : scale}>
+      <Pressable {...props}>{children}</Pressable>
+    </AnimatedTap>
   );
 };
 
