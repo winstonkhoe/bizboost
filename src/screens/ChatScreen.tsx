@@ -135,6 +135,7 @@ const ChatScreen = ({route}: Props) => {
         </View>
 
         {/* Floating Tab */}
+        {/* if there is offer then add margin top for the chats */}
         <FloatingOffer />
 
         {/* Chat Messages */}

@@ -24,17 +24,18 @@ const ChatListScreen = () => {
 
   const navigation = useNavigation<NavigationStackProps>();
 
-  console.log('Chat Objects:', chats.chats);
+  const profilePictureSource = require('../assets/images/sample-influencer.jpeg');
 
   return (
     <SafeAreaContainer>
       <View style={flex.flexCol} className="bg-white">
-        <Text className="text-2xl font-bold p-4">Chat List</Text>
+        <Text className="text-black text-2xl font-bold p-4">Chat List</Text>
         <ScrollView style={flex.flexCol}>
-          {chats.chat ? (
+          {chats.chats ? (
             chats.chats.map((item, idx) => {
               const recipient = item.recipient;
               const chat = item.chat;
+              console.log(recipient);
 
               if (!recipient) {
                 return;
@@ -50,9 +51,15 @@ const ChatListScreen = () => {
                   }}>
                   <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
                     <View style={gap.medium} className="flex flex-row h-full">
-                      <View className="w-12 h-full rounded-full overflow-hidden">
+                      <View className="w-12 h-12 rounded-full overflow-hidden">
                         <Image
-                          source={require('../assets/images/sample-influencer.jpeg')}
+                          source={
+                            item.recipient?.profilePicture
+                              ? {
+                                  uri: item.recipient?.profilePicture,
+                                }
+                              : profilePictureSource
+                          }
                           alt=""
                           className="w-full h-full object-cover"
                         />
@@ -101,7 +108,7 @@ const ChatListScreen = () => {
                 height={300}
                 alt="Default No Chat"
               />
-              <Text>No chat available</Text>
+              <Text className="text-black">No chat available</Text>
             </View>
           )}
         </ScrollView>

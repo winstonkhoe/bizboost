@@ -1,35 +1,58 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, Dimensions, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  Pressable,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import ScaledImage from './ScaledImage';
 import {flex} from '../../styles/Flex';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
+import {useNavigation} from '@react-navigation/native';
 
 interface ContentCreatorCardProps {
+  id: string;
   name: string;
   imageUrl: string;
   categories?: string[];
 }
 
 const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
+  id,
   name,
   imageUrl,
   categories,
 }) => {
+  const navigation = useNavigation<NavigationStackProps>();
+
   return (
     <View style={[styles.cardContainer]}>
-      <View>
-        <ScaledImage
-          uri={imageUrl}
-          style={styles.image}
-          width={Dimensions.get('window').width * 0.45}
-        />
-        <LinearGradient
-          colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
-          style={styles.nameContainer}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.location}>Tangerang, Indonesia</Text>
-        </LinearGradient>
-      </View>
+      <Pressable
+        onPress={() => {
+          navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
+            contentCreatorId: id,
+          });
+        }}>
+        <View style={{width: Dimensions.get('window').width * 0.45}}>
+          <ScaledImage
+            uri={imageUrl}
+            style={styles.image}
+            width={Dimensions.get('window').width * 0.45}
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
+            style={styles.nameContainer}>
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.location}>Tangerang, Indonesia</Text>
+          </LinearGradient>
+        </View>
+      </Pressable>
       <ScrollView horizontal style={styles.categoriesContainer}>
         <View style={flex.flexRow} className="pt-1 gap-x-1">
           {categories &&
@@ -46,7 +69,7 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: '100%',
+    width: Dimensions.get('window').width * 0.45,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
@@ -62,13 +85,13 @@ const styles = StyleSheet.create({
   nameContainer: {
     position: 'absolute',
     bottom: 0,
-    width: '100%',
+    width: Dimensions.get('window').width * 0.45,
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },
   categoriesContainer: {
-    width: 185,
+    width: Dimensions.get('window').width * 0.45,
     paddingVertical: 5,
   },
   categoryContainer: {

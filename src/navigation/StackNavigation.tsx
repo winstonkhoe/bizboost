@@ -19,6 +19,7 @@ import {Category} from '../model/Category';
 import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
 import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
+import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -38,6 +39,7 @@ export enum AuthenticatedNavigation {
   ChatList = 'Chat List',
   CampaignRegistrants = 'Campaign Registrants',
   UserDetail = 'User Detail',
+  ContentCreatorDetail = 'Content Creator Detail',
 }
 
 export enum GeneralNavigation {
@@ -64,6 +66,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
+  [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
 };
 
 interface LocationModalProps {
@@ -145,6 +148,10 @@ const StackNavigator = () => {
             <Stack.Screen
               name={AuthenticatedNavigation.ChatDetail}
               component={ChatScreen}
+            />
+            <Stack.Screen
+              name={AuthenticatedNavigation.ContentCreatorDetail}
+              component={ContentCreatorDetailScreen}
             />
             <Stack.Screen
               name={AuthenticatedNavigation.CampaignRegistrants}

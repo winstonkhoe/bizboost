@@ -1,12 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
+import {View, Text, ScrollView, Pressable, StyleSheet} from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -121,7 +114,7 @@ const ContentCreatorsScreen: React.FC = () => {
       <SafeAreaContainer>
         <ScrollView className="flex-1">
           {/* Navbar */}
-          <View style={flex.flexCol} className="h-14 px-4 justify-start">
+          <View style={flex.flexCol} className="h-14 px-3 justify-start">
             <Text className="text-black text-xl font-bold">
               Perfect content creators
             </Text>
@@ -132,14 +125,14 @@ const ContentCreatorsScreen: React.FC = () => {
 
           {/* Search Bar */}
           <PageWithSearchBar>
-            <View className="px-4">
+            <View className="px-3">
               <View style={flex.flexRow} className="pb-2 items-center">
                 <Pressable
                   onPress={() => setFilterModalState(true)}
                   style={flex.flexRow}
                   className="rounded-md border justify-between items-center px-2">
-                  <Filter width={12} height={12} color={COLOR.white} />
-                  <Text className="pl-2 text-xs">Filter</Text>
+                  <Filter width={12} height={12} color={COLOR.black} />
+                  <Text className="text-black pl-2 text-xs">Filter</Text>
                 </Pressable>
                 <ScrollView horizontal style={styles.categoriesContainer}>
                   <View style={flex.flexRow} className="gap-x-1 items-center">
@@ -167,7 +160,8 @@ const ContentCreatorsScreen: React.FC = () => {
                     {filteredContentCreators.map((item, index) =>
                       index % 2 === 0 ? (
                         <ContentCreatorCard
-                          key={item.id?.toString()}
+                          key={index}
+                          id={item.id?.toString()}
                           name={item.contentCreator?.fullname ?? ''}
                           categories={
                             item.contentCreator?.specializedCategoryIds
@@ -184,7 +178,8 @@ const ContentCreatorsScreen: React.FC = () => {
                     {filteredContentCreators.map((item, index) =>
                       index % 2 !== 0 ? (
                         <ContentCreatorCard
-                          key={item.id?.toString()}
+                          key={index}
+                          id={item.id?.toString()}
                           name={item.contentCreator?.fullname ?? ''}
                           categories={
                             item.contentCreator?.specializedCategoryIds
