@@ -19,6 +19,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {gap} from '../../styles/Gap';
+import {border} from '../../styles/Border';
 
 interface Props extends PressableProps {
   children: ReactNode;
@@ -97,6 +98,12 @@ export const PageWithBackButton = ({
             paddingTop: insets.top,
           },
           menuStyle,
+          exceedThreshold &&
+            border({
+              borderWidth: 0.5,
+              color: COLOR.black[100],
+              opacity: 0.2,
+            }),
         ]}>
         <View
           style={[
