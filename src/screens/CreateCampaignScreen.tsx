@@ -224,7 +224,7 @@ const CreateCampaignScreen = () => {
   return (
     <BottomSheetModalProvider>
       <PageWithBackButton>
-        <SafeAreaContainer customInsets={{top: 0}}>
+        <SafeAreaContainer customInsets={{top: 0}} enable>
           <ScrollView
             bounces={false}
             className="relative h-full"

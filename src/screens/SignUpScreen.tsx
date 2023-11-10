@@ -269,6 +269,7 @@ const SignUpScreen = () => {
     <FormProvider {...methods}>
       <PageWithBackButton
         fullHeight
+        enableSafeAreaContainer
         onPress={previousPage}
         backButtonPlaceholder={
           <View className="justify-center" style={[flex.flexRow]}>

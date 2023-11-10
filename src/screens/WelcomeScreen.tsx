@@ -87,7 +87,7 @@ const WelcomeScreen = () => {
   };
 
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <View className="flex-1 items-center" style={[flex.flexCol]}>
         <View
           className="flex-1 justify-between items-center pt-6 px-3"

@@ -24,7 +24,7 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
     );
   }, [campaignId]);
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <CloseModal />
       <HorizontalPadding>
         <Text className="text-lg font-bold">Registrants</Text>

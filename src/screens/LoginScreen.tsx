@@ -108,7 +108,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <PageWithBackButton>
+    <PageWithBackButton enableSafeAreaContainer fullHeight>
       <View className="h-full">
         <FormProvider {...methods}>
           <VerticalPadding paddingSize="large">

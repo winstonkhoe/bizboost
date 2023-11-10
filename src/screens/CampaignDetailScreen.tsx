@@ -102,9 +102,9 @@ const CampaignDetailScreen = ({route}: Props) => {
   }
 
   return (
-    <PageWithBackButton>
-      <View className="">
-        <View className="w-full h-60 overflow-hidden ">
+    <PageWithBackButton fullHeight threshold={180}>
+      <View className="flex-1">
+        <View className="w-full h-72 overflow-hidden ">
           <Image
             className="w-full h-full object-cover"
             source={{uri: campaign.image}}
