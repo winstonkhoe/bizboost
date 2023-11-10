@@ -78,6 +78,10 @@ const CampaignDetailScreen = ({route}: Props) => {
     User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
   }, [campaign]);
 
+  const userIsCampaignOwner = () => {
+    return campaign?.userId === uid;
+  };
+
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
     const data = new Transaction({
@@ -275,14 +279,12 @@ const CampaignDetailScreen = ({route}: Props) => {
             />
           </View>
           {/* <Text>{transactionStatus}</Text> */}
-          {uid !== campaign.userId &&
+          {!userIsCampaignOwner() &&
             transactionStatus === TransactionStatus.notRegistered && (
               <View className="py-2">
                 {/* TODO: validate join only for CC */}
 
                 <CustomButton
-                  customBackgroundColor={COLOR.background.neutral}
-                  customTextColor={COLOR.text.neutral}
                   text="Join Campaign"
                   rounded="default"
                   onPress={handleJoinCampaign}
@@ -290,7 +292,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               </View>
             )}
           {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
-          {uid === campaign.userId && (
+          {userIsCampaignOwner() && (
             <View className="py-2">
               <CustomButton
                 customBackgroundColor={COLOR.background.neutral}
