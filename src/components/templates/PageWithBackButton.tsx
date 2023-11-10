@@ -5,7 +5,7 @@ import {flex} from '../../styles/Flex';
 import {ScrollView} from 'react-native-gesture-handler';
 import {BackButtonPlaceholder} from '../molecules/BackButtonPlaceholder';
 import {useNavigation} from '@react-navigation/native';
-import {PressableProps} from 'react-native';
+import {PressableProps, View} from 'react-native';
 
 interface Props extends PressableProps {
   children: ReactNode;
@@ -25,11 +25,12 @@ export const PageWithBackButton = ({
 }: Props) => {
   const navigation = useNavigation();
   return (
-    <SafeAreaContainer>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={fullHeight && {flexGrow: 1}}
-        style={[flex.flexCol]}>
+    <ScrollView
+      bounces={false}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={fullHeight && {flexGrow: 1}}
+      style={[flex.flexCol]}>
+      <SafeAreaContainer>
         <HorizontalPadding>
           <BackButtonPlaceholder
             icon={icon}
@@ -44,7 +45,7 @@ export const PageWithBackButton = ({
           </BackButtonPlaceholder>
         </HorizontalPadding>
         {children}
-      </ScrollView>
-    </SafeAreaContainer>
+      </SafeAreaContainer>
+    </ScrollView>
   );
 };

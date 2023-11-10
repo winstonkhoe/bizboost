@@ -103,7 +103,7 @@ const CampaignDetailScreen = ({route}: Props) => {
 
   return (
     <PageWithBackButton>
-      <View className="w-full pt-4">
+      <View className="">
         <View className="w-full h-60 overflow-hidden ">
           <Image
             className="w-full h-full object-cover"
@@ -267,8 +267,6 @@ const CampaignDetailScreen = ({route}: Props) => {
           )}
           <View>
             <CustomButton
-              customBackgroundColor={COLOR.background.neutral}
-              customTextColor={COLOR.text.neutral}
               verticalPadding="small"
               type="secondary"
               text={
@@ -281,13 +279,24 @@ const CampaignDetailScreen = ({route}: Props) => {
           {/* <Text>{transactionStatus}</Text> */}
           {!userIsCampaignOwner() &&
             transactionStatus === TransactionStatus.notRegistered && (
-              <View className="py-2">
+              <View className="py-2" style={[flex.flexCol, gap.default]}>
                 {/* TODO: validate join only for CC */}
 
                 <CustomButton
                   text="Join Campaign"
                   rounded="default"
                   onPress={handleJoinCampaign}
+                />
+                <CustomButton
+                  text="Campaign Timeline"
+                  rounded="default"
+                  type="secondary"
+                  onPress={() =>
+                    navigation.navigate(
+                      AuthenticatedNavigation.CampaignTimeline,
+                      {campaignId: campaignId},
+                    )
+                  }
                 />
               </View>
             )}
