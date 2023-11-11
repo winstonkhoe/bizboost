@@ -10,10 +10,11 @@ import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
 import {shadow} from '../../styles/Shadow';
-import {Campaign} from '../../model/Campaign';
+import {Campaign, CampaignType} from '../../model/Campaign';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import ChevronRight from '../../assets/vectors/chevron-right.svg';
+import Lock from '../../assets/vectors/lock.svg';
 import StatusTag from './StatusTag';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -21,6 +22,7 @@ import {
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {getTimeAgo} from '../../utils/date';
+import {gap} from '../../styles/Gap';
 
 type Props = {
   transaction: Transaction;
@@ -53,9 +55,14 @@ const RegisteredUserListCard = ({transaction}: Props) => {
           }}
           className="flex flex-row justify-between items-center border-b pb-2 px-3 "
           style={[border({color: COLOR.black[20]})]}>
-          <Text style={[textColor(COLOR.green[50]), font.size[20]]}>
-            {campaign?.title}
-          </Text>
+          <View className="flex flex-row items-center" style={[gap.xsmall]}>
+            {campaign?.type === CampaignType.Private && (
+              <Lock width={15} height={15} stroke={COLOR.black[40]} />
+            )}
+            <Text style={[textColor(COLOR.green[50]), font.size[20]]}>
+              {campaign?.title}
+            </Text>
+          </View>
           <Text style={[textColor(COLOR.black[30]), font.size[20]]}>
             {getTimeAgo(transaction.updatedAt || 0)}
           </Text>
