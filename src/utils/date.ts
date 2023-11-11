@@ -21,6 +21,24 @@ export const getDate = (
   return date;
 };
 
+export const isEqualDate = (date1?: Date, date2?: Date) => {
+  if (!date1 || !date2) {
+    return false;
+  }
+  const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+  const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+  return d1.getTime() === d2.getTime();
+};
+
+export const isEqualMonthYear = (d1: Date, d2: Date): boolean => {
+  if (!d1 || !d2) {
+    return false;
+  }
+  return (
+    d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth()
+  );
+};
+
 export const formatDate = (date: Date, format: string): string => {
   const formatPlaceholders: Record<string, number> = {
     dd: date.getDate(),
@@ -33,6 +51,11 @@ export const formatDate = (date: Date, format: string): string => {
   });
 
   return formattedDate;
+};
+
+export const formatDateToDayMonthYear = (date: Date): string => {
+  const options = {day: 'numeric', month: 'short', year: 'numeric'} as const;
+  return date.toLocaleDateString('en-US', options);
 };
 
 export const formatDateToTime12Hrs = (date: Date): string => {
