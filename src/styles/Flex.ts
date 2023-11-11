@@ -76,3 +76,21 @@ export const items = StyleSheet.create({
     alignItems: 'stretch',
   },
 });
+
+export const self = StyleSheet.create({
+  start: {
+    alignSelf: 'flex-start',
+  },
+  end: {
+    alignSelf: 'flex-end',
+  },
+  center: {
+    alignSelf: 'center',
+  },
+  baseline: {
+    alignSelf: 'baseline',
+  },
+  stretch: {
+    alignSelf: 'stretch',
+  },
+});
