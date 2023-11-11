@@ -78,6 +78,10 @@ const CampaignDetailScreen = ({route}: Props) => {
     User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
   }, [campaign]);
 
+  const userIsCampaignOwner = () => {
+    return campaign?.userId === uid;
+  };
+
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
     const data = new Transaction({
@@ -98,9 +102,9 @@ const CampaignDetailScreen = ({route}: Props) => {
   }
 
   return (
-    <PageWithBackButton>
-      <View className="w-full pt-4">
-        <View className="w-full h-60 overflow-hidden ">
+    <PageWithBackButton fullHeight threshold={180}>
+      <View className="flex-1">
+        <View className="w-full h-72 overflow-hidden ">
           <Image
             className="w-full h-full object-cover"
             source={{uri: campaign.image}}
@@ -263,8 +267,6 @@ const CampaignDetailScreen = ({route}: Props) => {
           )}
           <View>
             <CustomButton
-              customBackgroundColor={COLOR.background.neutral}
-              customTextColor={COLOR.text.neutral}
               verticalPadding="small"
               type="secondary"
               text={
@@ -275,22 +277,31 @@ const CampaignDetailScreen = ({route}: Props) => {
             />
           </View>
           {/* <Text>{transactionStatus}</Text> */}
-          {uid !== campaign.userId &&
+          {!userIsCampaignOwner() &&
             transactionStatus === TransactionStatus.notRegistered && (
-              <View className="py-2">
+              <View className="py-2" style={[flex.flexCol, gap.default]}>
                 {/* TODO: validate join only for CC */}
 
                 <CustomButton
-                  customBackgroundColor={COLOR.background.neutral}
-                  customTextColor={COLOR.text.neutral}
                   text="Join Campaign"
                   rounded="default"
                   onPress={handleJoinCampaign}
                 />
+                <CustomButton
+                  text="Campaign Timeline"
+                  rounded="default"
+                  type="secondary"
+                  onPress={() =>
+                    navigation.navigate(
+                      AuthenticatedNavigation.CampaignTimeline,
+                      {campaignId: campaignId},
+                    )
+                  }
+                />
               </View>
             )}
           {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
-          {uid === campaign.userId && (
+          {userIsCampaignOwner() && (
             <View className="py-2">
               <CustomButton
                 customBackgroundColor={COLOR.background.neutral}
