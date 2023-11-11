@@ -15,11 +15,17 @@ import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import StatusTag from './StatusTag';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 type Props = {
   transaction: Transaction;
 };
 const RegisteredUserListCard = ({transaction}: Props) => {
+  const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User>();
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
@@ -37,7 +43,13 @@ const RegisteredUserListCard = ({transaction}: Props) => {
       <View
         className="bg-white flex flex-col pt-4 overflow-hidden"
         style={[rounded.medium]}>
-        <View
+        <Pressable
+          onPress={() => {
+            console.log('open campaign detail / BP detail');
+            navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
+              campaignId: campaign?.id || '',
+            });
+          }}
           className="flex flex-row justify-between items-center border-b pb-2 px-3 "
           style={[border({color: COLOR.black[20]})]}>
           <Text style={[textColor(COLOR.green[50]), font.size[20]]}>
@@ -46,10 +58,11 @@ const RegisteredUserListCard = ({transaction}: Props) => {
           <Text style={[textColor(COLOR.black[30]), font.size[20]]}>
             [] hours ago
           </Text>
-        </View>
+        </Pressable>
         <Pressable
           onPress={() => {
             console.log('open CC detail / campaign detail');
+            // navigation.navigate(AuthenticatedNavigation.)
           }}
           className="flex flex-row items-center px-3 py-4 justify-between">
           <View className="flex flex-row items-center">
