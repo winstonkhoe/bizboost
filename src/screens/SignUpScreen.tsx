@@ -44,7 +44,10 @@ import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
 import {dimension} from '../styles/Dimension';
 import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
-import {GuestNavigation, NavigationStackProps} from '../navigation/StackNavigation';
+import {
+  GuestNavigation,
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
 type FormData = {
   email: string;
@@ -359,7 +362,7 @@ const SignUpScreen = () => {
                             <View style={[flex.flexCol, gap.default]}>
                               <AuthProviderButton
                                 provider={loginAuthMethod || Provider.EMAIL}
-                                customTextSize="text-sm"
+                                // customTextSize="text-sm"
                                 onPress={handleLogin}
                               />
                               <CustomButton

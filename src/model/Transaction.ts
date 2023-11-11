@@ -38,6 +38,7 @@ export class Transaction extends BaseModel {
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
     this.status = status;
+    // TODO: tanggal last update
   }
 
   private static fromSnapshot(

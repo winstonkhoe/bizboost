@@ -25,6 +25,8 @@ import {FAB} from 'react-native-elements';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import Edit from '../assets/vectors/edit.svg';
 import {Transaction} from '../model/Transaction';
+import OngoingTransactionListCard from '../components/molecules/OngoingTransactionListCard';
+import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 
 const HomeScreen = () => {
   const {uid, activeRole} = useUser();
@@ -50,7 +52,7 @@ const HomeScreen = () => {
     );
 
     return unsubscribe;
-  }, []);
+  }, [uid]);
 
   return (
     <PageWithSearchBar>
@@ -98,7 +100,7 @@ const HomeScreen = () => {
             <View className="my-6" style={[flex.flexCol]}>
               <HorizontalPadding>
                 <HomeSectionHeader
-                  header="Ongoing Offers"
+                  header="Ongoing Transactions"
                   link={'See All'}
                   // onPressLink={() =>
                   // setOngoingCampaignsLimit(
@@ -111,7 +113,7 @@ const HomeScreen = () => {
               <HorizontalPadding>
                 <View style={[flex.flexCol, gap.medium]}>
                   {transactions.map((t, index) => (
-                    <Text key={index}>{t.status}</Text>
+                    <RegisteredUserListCard key={index} transaction={t} />
                   ))}
                 </View>
               </HorizontalPadding>
