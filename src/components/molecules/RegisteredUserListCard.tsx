@@ -83,8 +83,7 @@ const RegisteredUserListCard = ({transaction}: Props) => {
             </View>
             <View className="flex flex-col items-start w-3/4">
               <Text className="font-semibold text-base " numberOfLines={1}>
-                {contentCreator?.contentCreator?.fullname} asd dsad dsadas
-                dsadsa
+                {contentCreator?.contentCreator?.fullname}
               </Text>
               <View>
                 <StatusTag status={transaction.status || ''} />
