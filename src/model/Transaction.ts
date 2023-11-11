@@ -3,7 +3,7 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
 import {User} from './User';
-import {CAMPAIGN_COLLECTION, Campaign} from './Campaign';
+import {Campaign} from './Campaign';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -53,6 +53,7 @@ export class Transaction extends BaseModel {
       return new Transaction({
         id: doc.id,
         contentCreatorId: data.contentCreatorId.id,
+        businessPeopleId: data.businessPeopleId.id,
         campaignId: data.campaignId.id,
         status: data.status,
         updatedAt: data.updatedAt,
@@ -83,7 +84,6 @@ export class Transaction extends BaseModel {
         status: status,
         updatedAt: firestore.Timestamp.now().seconds,
       };
-
       await firestore().collection(TRANSACTION_COLLECTION).doc(id).set(data);
       return true;
     } catch (error) {
