@@ -82,7 +82,7 @@ export class Transaction extends BaseModel {
           this.businessPeopleId ?? '',
         ),
         status: status,
-        updatedAt: firestore.Timestamp.now().seconds,
+        updatedAt: new Date().getTime(),
       };
       await firestore().collection(TRANSACTION_COLLECTION).doc(id).set(data);
       return true;
