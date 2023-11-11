@@ -26,6 +26,9 @@ import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
 import PagerView from 'react-native-pager-view';
 import {Content} from '../model/Content';
+import Video from 'react-native-video';
+import {ActivityIndicator} from 'react-native';
+import ScaledImage from '../components/atoms/ScaledImage';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -35,34 +38,39 @@ type Props = NativeStackScreenProps<
 const ContentCreatorDetailScreen = ({route}: Props) => {
   const param = route.params;
   const [contentCreator, setContentCreator] = useState<User>();
-  const [contents, setContents] = useState<Content>();
+  const [contents, setContents] = useState<Content[]>();
   const [index, setIndex] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(0);
 
   useEffect(() => {
     User.getById(param.contentCreatorId).then(user => setContentCreator(user));
-    Content.getById(param.contentCreatorId).then(content =>
-      setContents(content),
-    );
+    Content.getByUserId(param.contentCreatorId).then(content => {
+      setContents(content);
+    });
   }, [param]);
 
   const profilePictureSource = require('../assets/images/sample-influencer.jpeg');
 
   const pagerViewRef = useRef<PagerView>(null);
+  const videoRef = useRef<Video>(null);
 
   const goToInfoTab = () => {
     pagerViewRef.current?.setPage(0);
     setIndex(0);
+    setSelectedTab(0);
   };
+
   const goToPortfolioTab = () => {
     pagerViewRef.current?.setPage(1);
     setIndex(1);
+    setSelectedTab(1);
   };
 
   return (
     <PageWithBackButton fullHeight={true}>
       <View
         style={(flex.flex1, flex.grow, flex.flexCol)}
-        className="bg-red-500 px-3 justify-between">
+        className="flex-1 px-3 justify-between">
         <View style={flex.flexCol} className="justify-center items-center">
           <View
             style={{
@@ -82,7 +90,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
               }
             />
           </View>
-          <Text style={font.size[60]} className="pt-1 font-bold">
+          <Text style={font.size[60]} className="pt-1 font-bold text-black">
             {contentCreator?.contentCreator?.fullname}
           </Text>
           <Text style={font.size[30]}>Content Creator</Text>
@@ -114,26 +122,43 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
               </Text>
             </View>
           </View>
-          <View style={flex.flexRow} className="py-3 gap-x-2">
+          <View style={flex.flexRow} className="py-3">
             <Pressable
-              style={flex.flexRow}
-              className="bg-primary rounded-md p-2 justify-center items-center text-center"
+              style={(flex.flexRow, styles.button)}
+              className={`${
+                selectedTab === 0 ? 'bg-primary' : 'border border-zinc-200'
+              } rounded-l-md p-2 justify-center items-center text-center`}
               onPress={goToInfoTab}>
-              <Text className="text-white">Info</Text>
+              <Text
+                className={`${
+                  selectedTab === 0 ? 'text-white' : 'text-black'
+                }`}>
+                Info
+              </Text>
             </Pressable>
             <Pressable
-              style={flex.flexRow}
-              className="bg-primary rounded-md p-2 justify-center items-center text-center"
+              style={(flex.flexRow, styles.button)}
+              className={`${
+                selectedTab === 1 ? 'bg-primary' : 'border border-zinc-200'
+              } rounded-r-md p-2 justify-center items-center text-center`}
               onPress={goToPortfolioTab}>
-              <Text className="text-white">Portfolio</Text>
+              <Text
+                className={`${
+                  selectedTab === 1 ? 'text-white' : 'text-black'
+                }`}>
+                Portfolio
+              </Text>
             </Pressable>
           </View>
           <PagerView
             ref={pagerViewRef}
             style={(flex.flexCol, styles.pagerView)}
             initialPage={index}
-            onPageSelected={e => setIndex(e.nativeEvent.position)}>
-            <ScrollView style={flex.flexCol} key="1">
+            onPageSelected={e => {
+              setIndex(e.nativeEvent.position);
+              setSelectedTab(e.nativeEvent.position);
+            }}>
+            <ScrollView style={flex.flexCol} className="gap-y-1" key="1">
               <View>
                 <Text className="text-black font-bold">About Me</Text>
                 <Text>
@@ -149,18 +174,32 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                   digital expression.
                 </Text>
               </View>
-              {contentCreator?.contentCreator?.preferences && (
-                <View>
-                  <Text className="text-black font-bold">Preferences</Text>
-                </View>
-              )}
-              {contentCreator?.contentCreator?.preferredLocationIds && (
-                <View>
-                  <Text className="text-black font-bold">
-                    Preferred Locations
-                  </Text>
-                </View>
-              )}
+              {contentCreator?.contentCreator?.preferences &&
+                contentCreator.contentCreator.preferences.length > 0 && (
+                  <View>
+                    <Text className="text-black font-bold">Preferences</Text>
+                    {contentCreator.contentCreator.preferences.map(
+                      (preference, index) => (
+                        <Text key={index}>{preference}</Text>
+                      ),
+                    )}
+                  </View>
+                )}
+
+              {contentCreator?.contentCreator?.preferredLocationIds &&
+                contentCreator?.contentCreator?.preferredLocationIds.length >
+                  0 && (
+                  <View>
+                    <Text className="text-black font-bold">
+                      Preferred Locations
+                    </Text>
+                    {contentCreator.contentCreator.preferredLocationIds.map(
+                      (loc, index) => (
+                        <Text key={index}>{loc.id}</Text>
+                      ),
+                    )}
+                  </View>
+                )}
               {contentCreator?.contentCreator?.postingSchedules && (
                 <View>
                   <Text className="text-black font-bold">
@@ -169,8 +208,45 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                 </View>
               )}
             </ScrollView>
-            <ScrollView key="2">
-              <Text>Portfolio Tab Content</Text>
+            <ScrollView style={flex.flexRow} key="2">
+              <View style={flex.flexCol}>
+                {contents?.map(
+                  (content, idx) =>
+                    idx % 2 === 0 && (
+                      <View key={content.id}>
+                        <Video
+                          ref={videoRef}
+                          source={{uri: content.uri}}
+                          style={styles.video}
+                          paused={true}
+                          onLoad={data => {
+                            const seekTime = 1;
+                            videoRef.current?.seek(seekTime);
+                          }}
+                        />
+                      </View>
+                    ),
+                )}
+              </View>
+              <View style={flex.flexCol}>
+                {contents?.map(
+                  (content, idx) =>
+                    idx % 2 !== 0 && (
+                      <View key={content.id}>
+                        <Video
+                          ref={videoRef}
+                          source={{uri: content.uri}}
+                          style={styles.video}
+                          paused={true}
+                          onLoad={data => {
+                            const seekTime = 1;
+                            videoRef.current?.seek(seekTime);
+                          }}
+                        />
+                      </View>
+                    ),
+                )}
+              </View>
             </ScrollView>
           </PagerView>
         </View>
@@ -188,5 +264,13 @@ const styles = StyleSheet.create({
   pagerView: {
     width: '100%',
     height: '50%',
+  },
+  button: {
+    width: Dimensions.get('window').width * 0.45,
+  },
+  video: {
+    width: Dimensions.get('window').width * 0.45,
+    height: 200,
+    borderRadius: 10,
   },
 });
