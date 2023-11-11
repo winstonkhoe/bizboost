@@ -20,6 +20,7 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
+import {getTimeAgo} from '../../utils/date';
 
 type Props = {
   transaction: Transaction;
@@ -56,7 +57,7 @@ const RegisteredUserListCard = ({transaction}: Props) => {
             {campaign?.title}
           </Text>
           <Text style={[textColor(COLOR.black[30]), font.size[20]]}>
-            [] hours ago
+            {getTimeAgo(transaction.updatedAt || 0)}
           </Text>
         </Pressable>
         <Pressable

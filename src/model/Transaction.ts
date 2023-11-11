@@ -22,12 +22,14 @@ export class Transaction extends BaseModel {
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   status?: TransactionStatus;
+  updatedAt?: number;
 
   constructor({
     contentCreatorId,
     campaignId,
     businessPeopleId,
     status,
+    updatedAt,
   }: Partial<Transaction>) {
     super();
     // this.id = id;
@@ -38,7 +40,7 @@ export class Transaction extends BaseModel {
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
     this.status = status;
-    // TODO: tanggal last update
+    this.updatedAt = updatedAt;
   }
 
   private static fromSnapshot(
@@ -53,6 +55,7 @@ export class Transaction extends BaseModel {
         contentCreatorId: data.contentCreatorId.id,
         campaignId: data.campaignId.id,
         status: data.status,
+        updatedAt: data.updatedAt,
       });
     }
 
@@ -78,6 +81,7 @@ export class Transaction extends BaseModel {
           this.businessPeopleId ?? '',
         ),
         status: status,
+        updatedAt: firestore.Timestamp.now().seconds,
       };
 
       await firestore().collection(TRANSACTION_COLLECTION).doc(id).set(data);
