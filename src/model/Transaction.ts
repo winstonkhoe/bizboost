@@ -2,8 +2,8 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
-import {User} from './User';
-import {CAMPAIGN_COLLECTION, Campaign} from './Campaign';
+import {User, UserRole, UserRoles} from './User';
+import {Campaign} from './Campaign';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -20,17 +20,27 @@ export class Transaction extends BaseModel {
   id?: string; // CampaignId + ContentCreatorId
   contentCreatorId?: string;
   campaignId?: string;
+  businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   status?: TransactionStatus;
+  updatedAt?: number;
 
-  constructor({contentCreatorId, campaignId, status}: Partial<Transaction>) {
+  constructor({
+    contentCreatorId,
+    campaignId,
+    businessPeopleId,
+    status,
+    updatedAt,
+  }: Partial<Transaction>) {
     super();
     // this.id = id;
     if (campaignId && contentCreatorId) {
       this.id = campaignId + contentCreatorId;
     }
     this.contentCreatorId = contentCreatorId;
+    this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
     this.status = status;
+    this.updatedAt = updatedAt;
   }
 
   private static fromSnapshot(
@@ -43,8 +53,10 @@ export class Transaction extends BaseModel {
       return new Transaction({
         id: doc.id,
         contentCreatorId: data.contentCreatorId.id,
+        businessPeopleId: data.businessPeopleId.id,
         campaignId: data.campaignId.id,
         status: data.status,
+        updatedAt: data.updatedAt,
       });
     }
 
@@ -66,9 +78,12 @@ export class Transaction extends BaseModel {
           this.contentCreatorId ?? '',
         ),
         campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
+        businessPeopleId: User.getDocumentReference(
+          this.businessPeopleId ?? '',
+        ),
         status: status,
+        updatedAt: new Date().getTime(),
       };
-
       await firestore().collection(TRANSACTION_COLLECTION).doc(id).set(data);
       return true;
     } catch (error) {
@@ -88,6 +103,41 @@ export class Transaction extends BaseModel {
           'campaignId',
           '==',
           firestore().collection('campaigns').doc(campaignId),
+        )
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete([]);
+            }
+
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAllTransactionsByRole(
+    userId: string,
+    role: UserRoles,
+    onComplete: (transactions: Transaction[]) => void,
+  ) {
+    try {
+      const unsubscribe = firestore()
+        .collection(TRANSACTION_COLLECTION)
+        .where(
+          role === UserRole.BusinessPeople
+            ? 'businessPeopleId'
+            : 'contentCreatorId',
+          '==',
+          firestore().collection('users').doc(userId),
         )
         .onSnapshot(
           querySnapshot => {

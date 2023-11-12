@@ -355,7 +355,7 @@ const SignUpScreen = () => {
                             <View style={[flex.flexCol, gap.default]}>
                               <AuthProviderButton
                                 provider={loginAuthMethod || Provider.EMAIL}
-                                customTextSize="text-sm"
+                                // customTextSize="text-sm"
                                 onPress={handleLogin}
                               />
                               <CustomButton
