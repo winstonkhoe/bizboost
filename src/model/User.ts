@@ -389,6 +389,10 @@ export class User extends BaseModel {
           provider: Provider.GOOGLE,
           token: idToken,
         });
+        return {
+          id: id,
+          token: '',
+        };
       }
       return {
         id: id,
