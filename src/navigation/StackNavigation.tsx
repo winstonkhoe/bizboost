@@ -98,6 +98,9 @@ export type NavigationStackProps = NavigationProp<CombinedStack>;
 
 const Stack = createStackNavigator<CombinedStack>();
 
+const splashScreenDuration = 1500;
+const splashDissolveDuration = 500;
+
 const StackNavigator = () => {
   const {user} = useUser();
   const [showSplash, setShowSplash] = useState(true);
@@ -106,7 +109,7 @@ const StackNavigator = () => {
   useEffect(() => {
     const splashVisibleTimer = setTimeout(() => {
       setSplashVisible(false);
-    }, 1500);
+    }, splashScreenDuration);
     return () => {
       clearTimeout(splashVisibleTimer);
     };
@@ -115,7 +118,7 @@ const StackNavigator = () => {
   useEffect(() => {
     const showSplashTimer = setTimeout(() => {
       setShowSplash(false);
-    }, 1700);
+    }, splashScreenDuration + splashDissolveDuration);
     return () => {
       clearTimeout(showSplashTimer);
     };
@@ -123,7 +126,12 @@ const StackNavigator = () => {
 
   return (
     <>
-      {showSplash && <SplashScreen visible={splashVisible} />}
+      {showSplash && (
+        <SplashScreen
+          visible={splashVisible}
+          dissolveDuration={splashDissolveDuration}
+        />
+      )}
       {!splashVisible && (
         <Stack.Navigator>
           {!user ? (

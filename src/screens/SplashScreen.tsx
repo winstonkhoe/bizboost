@@ -15,9 +15,10 @@ import {useEffect} from 'react';
 
 interface SplashScreenProps {
   visible: boolean;
+  dissolveDuration?: number;
 }
 
-const SplashScreen = ({visible}: SplashScreenProps) => {
+const SplashScreen = ({visible, dissolveDuration = 500}: SplashScreenProps) => {
   const windowDimension = useWindowDimensions();
   const opacity = useSharedValue(visible ? 1 : 0);
 
@@ -28,8 +29,8 @@ const SplashScreen = ({visible}: SplashScreenProps) => {
   });
 
   useEffect(() => {
-    opacity.value = withTiming(visible ? 1 : 0, {duration: 200});
-  }, [visible, opacity]);
+    opacity.value = withTiming(visible ? 1 : 0, {duration: dissolveDuration});
+  }, [visible, opacity, dissolveDuration]);
 
   return (
     <Animated.View
