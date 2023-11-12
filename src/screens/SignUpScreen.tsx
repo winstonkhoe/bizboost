@@ -48,6 +48,7 @@ import {
   GuestNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {FadeInOut} from '../containers/FadeInOut';
 
 type FormData = {
   email: string;
@@ -174,13 +175,7 @@ const SignUpScreen = () => {
           preferredLocationIds: (
             preferredLocations.map(location => location.id) || []
           ).filter((item): item is string => item !== undefined),
-          postingSchedules:
-            contentCreatorPreference?.postingSchedules.map(postingSchedule => {
-              if (postingSchedule instanceof Date) {
-                return firestore.Timestamp.fromDate(postingSchedule);
-              }
-              return postingSchedule;
-            }) || [],
+          postingSchedules: contentCreatorPreference?.postingSchedules || [],
           preferences: contentCreatorPreference?.preferences || [],
           contentRevisionLimit:
             contentCreatorPreference?.contentRevisionLimit || 0,
@@ -207,6 +202,7 @@ const SignUpScreen = () => {
   const nextPage = async () => {
     if (hasNext()) {
       pagerViewRef.current?.setPage(steps[activePosition + 1]);
+      setActivePosition(activePosition + 1);
     } else {
       await onSubmit(getValues());
     }
@@ -214,6 +210,7 @@ const SignUpScreen = () => {
 
   const previousPage = () => {
     pagerViewRef.current?.setPage(steps[activePosition - 1]);
+    setActivePosition(activePosition - 1);
   };
 
   const setFieldValue = useCallback(
@@ -287,17 +284,12 @@ const SignUpScreen = () => {
           className="flex-1"
           style={[flex.flexCol, verticalPadding.default]}>
           <HorizontalPadding paddingSize="large">
-            <VerticalPadding>
-              <View
-                style={[dimension.height.xlarge, flex.flexCol, justify.center]}>
-                {activePosition > 0 && (
-                  <Stepper
-                    currentPosition={activePosition + 1}
-                    maxPosition={steps.length}
-                  />
-                )}
-              </View>
-            </VerticalPadding>
+            <FadeInOut visible={activePosition > 0}>
+              <Stepper
+                currentPosition={activePosition + 1}
+                maxPosition={steps.length}
+              />
+            </FadeInOut>
           </HorizontalPadding>
           <PagerView
             ref={pagerViewRef}
@@ -326,6 +318,7 @@ const SignUpScreen = () => {
                     <CustomTextInput
                       label="Email"
                       name="email"
+                      forceLowercase
                       rules={{
                         required: 'Email is required',
                         pattern: {

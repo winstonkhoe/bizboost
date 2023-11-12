@@ -3,7 +3,6 @@ import {
   PressableProps,
   Text,
   DeviceEventEmitter,
-  Image,
 } from 'react-native';
 import {CloseModal} from '../../components/atoms/Close';
 import SafeAreaContainer from '../../containers/SafeAreaContainer';
@@ -22,26 +21,17 @@ import {
   GeneralStack,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
-import {Checkbox} from '../../components/atoms/Checkbox';
 import {ScrollView} from 'react-native-gesture-handler';
-import {textColor} from '../../styles/Text';
-import {COLOR} from '../../styles/Color';
 import {rounded} from '../../styles/BorderRadius';
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
-import {horizontalPadding, verticalPadding} from '../../styles/Padding';
-import {background} from '../../styles/BackgroundColor';
+import Animated from 'react-native-reanimated';
+import {padding} from '../../styles/Padding';
 import {CustomButton} from '../../components/atoms/Button';
 import {dimension} from '../../styles/Dimension';
 import {useNavigation} from '@react-navigation/native';
 import {closeModal} from '../../utils/modal';
 import {SimpleImageCard} from '../../components/molecules/ImageCard';
-import {Label} from '../../components/atoms/Label';
 import {ImageCounterChip} from '../../components/atoms/Chip';
+import FastImage from 'react-native-fast-image';
 
 type Props = StackScreenProps<GeneralStack, GeneralNavigation.CategoryModal>;
 
@@ -120,7 +110,7 @@ const ModalCategoryScreen = ({route}: Props) => {
             </HorizontalPadding>
           </VerticalPadding>
         </ScrollView>
-        <View style={[flex.flexCol, gap.default]}>
+        <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <HorizontalPadding>
               <View style={[flex.flexRow, gap.default]}>
@@ -188,11 +178,13 @@ const CategorySelectedPreview = ({category}: CategorySelectedPreviewProps) => {
     <View
       className="overflow-hidden"
       style={[dimension.square.xlarge3, rounded.small]}>
-      <Image
+      <FastImage
         style={[dimension.full]}
         source={{
           uri: category?.image,
+          priority: FastImage.priority.normal,
         }}
+        resizeMode={FastImage.resizeMode.cover}
       />
     </View>
   );

@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {setUser, switchRole} from '../redux/slices/userSlice';
 import {
@@ -10,6 +10,7 @@ import {
 } from '../model/User';
 
 export const useUser = () => {
+  const unsubscribe = useRef<(() => void) | undefined>(undefined);
   const {user, activeRole, uid} = useAppSelector(state => state.user);
   const dispatch = useAppDispatch();
   const getData = (
@@ -31,24 +32,69 @@ export const useUser = () => {
     activeRole,
   );
 
-  useEffect(() => {
-    const updateUserState = (u: User | null) => {
+  const updateUserRole = useCallback(
+    (u: User) => {
+      if (
+        u.contentCreator?.fullname &&
+        activeRole !== UserRole.ContentCreator
+      ) {
+        dispatch(switchRole(UserRole.ContentCreator));
+      } else if (
+        u.businessPeople?.fullname &&
+        activeRole !== UserRole.BusinessPeople
+      ) {
+        dispatch(switchRole(UserRole.BusinessPeople));
+      }
+    },
+    [dispatch, activeRole],
+  );
+
+  const updateUserState = useCallback(
+    (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
-        if (!activeRole && u.contentCreator?.fullname) {
-          dispatch(switchRole(UserRole.ContentCreator));
-        } else {
-          dispatch(switchRole(UserRole.BusinessPeople));
-        }
+        updateUserRole(u);
+      }
+    },
+    [dispatch, updateUserRole],
+  );
+
+  useEffect(() => {
+    if (!user && uid) {
+      const unsubscribeUserDataReactive = User.getUserDataReactive(
+        uid,
+        updateUserState,
+        () => {
+          if (uid) {
+            User.signOut().then(() => {
+              dispatch(setUser(null));
+            });
+          }
+        },
+      );
+      unsubscribe.current = unsubscribeUserDataReactive;
+    }
+
+    return () => {
+      if (!uid && unsubscribe.current) {
+        unsubscribe.current();
+        unsubscribe.current = undefined;
       }
     };
-    if (!user && uid) {
-      const unsubscribe = User.getUserDataReactive(uid, updateUserState);
-      return unsubscribe;
+  }, [user, uid, dispatch, updateUserState]);
+
+  useEffect(() => {
+    if (!user || !uid) {
+      if (activeRole) {
+        dispatch(switchRole(undefined));
+      }
+    }
+    if (user && uid && !activeRole) {
+      updateUserRole(user);
     }
     if (user && !uid) {
       dispatch(setUser(null));
     }
-  }, [user, uid, dispatch, activeRole]);
+  }, [user, uid, dispatch, updateUserRole, activeRole]);
   return {uid, user, activeRole, activeData};
 };

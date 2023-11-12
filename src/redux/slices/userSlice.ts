@@ -13,7 +13,7 @@ const initialState = {
   activeRole: undefined,
 } as UserState;
 
-export const switchRole = createAction<UserRoles>('switchRole');
+export const switchRole = createAction<UserRoles | undefined>('switchRole');
 
 const userSlice = createSlice({
   name: 'user',

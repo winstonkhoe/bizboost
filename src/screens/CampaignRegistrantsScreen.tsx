@@ -12,6 +12,7 @@ import {Transaction} from '../model/Transaction';
 import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
+import {UserRole} from '../model/User';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants
@@ -35,7 +36,11 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
             <Text>No Content Creator has joined this campaign!</Text>
           ) : (
             transactions.map((t, index) => (
-              <RegisteredUserListCard transaction={t} key={index} />
+              <RegisteredUserListCard
+                transaction={t}
+                role={UserRole.BusinessPeople}
+                key={index}
+              />
             ))
           )}
         </View>

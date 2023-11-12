@@ -19,6 +19,8 @@ import {AddIcon} from '../../components/atoms/Icon';
 import {openCategoryModal} from '../../utils/modal';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationStackProps} from '../../navigation/StackNavigation';
+import {FlatList} from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 interface RegisterFocusCategoryProps {
   onCategoriesChange: (categories: Category[]) => void;
@@ -110,11 +112,13 @@ export const RegisterFocusCategory = ({
                   <View
                     className="overflow-hidden"
                     style={[dimension.full, rounded.default]}>
-                    <Image
+                    <FastImage
                       style={[dimension.full]}
                       source={{
                         uri: category.image,
+                        priority: FastImage.priority.high,
                       }}
+                      resizeMode={'cover'}
                     />
                   </View>
                 </View>

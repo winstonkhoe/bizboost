@@ -131,117 +131,117 @@ export const CustomTextInput = ({
   };
 
   return (
-    <View style={[flex.flexCol, gap.small]}>
+    <View style={[flex.flexCol, gap.xsmall2]}>
       <Reanimated.View style={[animatedStyles]}>
         <Text
-          className="text-base font-medium"
-          style={[textColor(COLOR.text.neutral.high)]}>
+          className="font-medium"
+          style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
           {label}
         </Text>
       </Reanimated.View>
-      <Controller
-        {...controllerProps}
-        control={control}
-        render={({field: {onChange, onBlur, value}}) => (
-          <View
-            style={[
-              flex.flexRow,
-              justify.start,
-              gap.default,
-              controllerProps.disabled && rounded.default,
-              controllerProps.disabled && horizontalPadding.small,
-              controllerProps.disabled &&
-                background(COLOR.background.neutral.disabled),
-            ]}>
-            {(prefix || inputType === 'price') && (
-              <View
-                style={[
-                  flex.flexRow,
-                  verticalPadding.xsmall2,
-                  justify.start,
-                  items.end,
-                ]}>
-                <Text
-                  className="text-base font-semibold"
-                  style={[textColor(COLOR.text.neutral.low)]}>
-                  {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
-                </Text>
-              </View>
-            )}
-            <TextInput
-              keyboardType={
-                keyboardType
-                  ? keyboardType
-                  : inputType === 'number' || inputType === 'price'
-                  ? 'number-pad'
-                  : undefined
-              }
-              secureTextEntry={hideInputText}
-              multiline={multiline}
-              onContentSizeChange={event =>
-                setHeight(event.nativeEvent.contentSize.height + 15)
-              }
+      <View style={[flex.flexCol]}>
+        <Controller
+          {...controllerProps}
+          control={control}
+          render={({field: {onChange, onBlur, value}}) => (
+            <View
               style={[
-                {height: Math.max(35, height)},
-                textColor(
-                  controllerProps.disabled
-                    ? COLOR.text.neutral.low
-                    : COLOR.text.neutral.high,
-                ),
-              ]}
-              value={
-                inputType === 'number' || inputType === 'price'
-                  ? formatNumberWithThousandSeparator(value)
-                  : value
-              }
-              onFocus={() => {
-                setIsFocus(true);
+                flex.flexRow,
+                justify.start,
+                gap.default,
+                controllerProps.disabled && rounded.default,
+                controllerProps.disabled && horizontalPadding.small,
+                controllerProps.disabled &&
+                  background(COLOR.background.neutral.disabled),
+              ]}>
+              {(prefix || inputType === 'price') && (
+                <View style={[flex.flexRow, justify.start, items.center]}>
+                  <Text
+                    className="font-semibold"
+                    style={[textColor(COLOR.text.neutral.low), font.size[30]]}>
+                    {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
+                  </Text>
+                </View>
+              )}
+              <TextInput
+                keyboardType={
+                  keyboardType
+                    ? keyboardType
+                    : inputType === 'number' || inputType === 'price'
+                    ? 'number-pad'
+                    : undefined
+                }
+                secureTextEntry={hideInputText}
+                multiline={multiline}
+                onContentSizeChange={event =>
+                  setHeight(event.nativeEvent.contentSize.height + 15)
+                }
+                style={[
+                  font.size[30],
+                  padding.vertical.zero,
+                  padding.horizontal.zero,
+                  {height: Math.max(35, height)},
+                  textColor(
+                    controllerProps.disabled
+                      ? COLOR.text.neutral.low
+                      : COLOR.text.neutral.high,
+                  ),
+                ]}
+                value={
+                  inputType === 'number' || inputType === 'price'
+                    ? formatNumberWithThousandSeparator(value)
+                    : value
+                }
+                onFocus={() => {
+                  setIsFocus(true);
+                }}
+                onBlur={() => {
+                  onBlur();
+                  setIsFocus(false);
+                }}
+                editable={!controllerProps.disabled}
+                onChangeText={text => handleChangeText(text, onChange)}
+                placeholder={placeholder}
+                className="w-full font-medium"
+              />
+            </View>
+          )}
+          name={controllerProps.name}
+        />
+        {!controllerProps.disabled && (
+          <View
+            onLayout={event => {
+              const {width} = event.nativeEvent.layout;
+              setParentWidth(width);
+            }}
+            className="relative w-full overflow-hidden"
+            style={[
+              {height: 1},
+              errors?.[controllerProps.name]
+                ? background(COLOR.red.error)
+                : background(COLOR.black[100]),
+            ]}>
+            <Animated.View
+              className="absolute top-0 left-0 w-full h-full bg-green-700"
+              style={{
+                transform: [
+                  {
+                    translateX: animatedWidth.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-parentWidth, 0],
+                    }),
+                  },
+                ],
               }}
-              onBlur={() => {
-                onBlur();
-                setIsFocus(false);
-              }}
-              editable={!controllerProps.disabled}
-              onChangeText={text => handleChangeText(text, onChange)}
-              placeholder={placeholder}
-              className="w-full text-base font-medium"
             />
           </View>
         )}
-        name={controllerProps.name}
-      />
-      {!controllerProps.disabled && (
-        <View
-          onLayout={event => {
-            const {width} = event.nativeEvent.layout;
-            setParentWidth(width);
-          }}
-          className="relative w-full overflow-hidden"
-          style={[
-            {height: 1},
-            errors?.[controllerProps.name]
-              ? background(COLOR.red.error)
-              : background(COLOR.black[100]),
-          ]}>
-          <Animated.View
-            className="absolute top-0 left-0 w-full h-full bg-green-700"
-            style={{
-              transform: [
-                {
-                  translateX: animatedWidth.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-parentWidth, 0],
-                  }),
-                },
-              ],
-            }}
-          />
-        </View>
-      )}
-
-      <Text className="text-xs mt-2 font-medium text-red-500">
-        {`${errors?.[controllerProps.name]?.message || ''}`}
-      </Text>
+        <Text
+          className="text-xs mt-2 font-medium"
+          style={[textColor(COLOR.text.danger.default)]}>
+          {`${errors?.[controllerProps.name]?.message || ''}`}
+        </Text>
+      </View>
     </View>
   );
 };
@@ -375,6 +375,9 @@ export const CustomNumberInput = ({
               <View style={[flex.flexCol, flex.growShrink]}>
                 <TextInput
                   style={[
+                    font.size[30],
+                    padding.vertical.zero,
+                    padding.horizontal.zero,
                     textColor(
                       controllerProps.disabled
                         ? COLOR.text.neutral.disabled
@@ -392,7 +395,7 @@ export const CustomNumberInput = ({
                   }}
                   editable={!controllerProps.disabled}
                   onChangeText={text => handleChangeText(text, onChange)}
-                  className="text-base font-medium text-center pb-2"
+                  className="font-medium text-center align-center"
                 />
               </View>
             ) : (
@@ -523,6 +526,19 @@ export const MediaUploader = ({
   const [uploadProgress, setUploadProgress] = useState<number | undefined>(
     undefined,
   );
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | undefined;
+    if (uploadProgress === 1) {
+      timeoutId = setTimeout(() => {
+        setUploadProgress(undefined);
+      }, 1000);
+    }
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [uploadProgress]);
   const handleImageUpload = () => {
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
@@ -569,11 +585,9 @@ export const MediaUploader = ({
       <View style={[flex.flexRow]} className="items-center">
         {children || <CustomButton text="Upload image" rounded={'small'} />}
       </View>
-      {showUploadProgress &&
-        uploadProgress !== undefined &&
-        uploadProgress < 1 && (
-          <ProgressBar currentProgress={uploadProgress} showProgressNumber />
-        )}
+      {showUploadProgress && uploadProgress !== undefined && (
+        <ProgressBar currentProgress={uploadProgress} showProgressNumber />
+      )}
     </TouchableOpacity>
   );
 };
