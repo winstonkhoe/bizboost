@@ -20,6 +20,14 @@ import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
 import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import CampaignTimelineScreen from '../screens/CampaignTimeline';
+import {CustomModal} from '../components/atoms/CustomModal';
+import {View} from 'react-native';
+import {Text} from 'react-native';
+import {flex, items, justify} from '../styles/Flex';
+import {useEffect, useState} from 'react';
+import {background} from '../styles/BackgroundColor';
+import {COLOR} from '../styles/Color';
+import SplashScreen from '../screens/SplashScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -92,99 +100,127 @@ const Stack = createStackNavigator<CombinedStack>();
 
 const StackNavigator = () => {
   const {user} = useUser();
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashVisible, setSplashVisible] = useState(true);
+
+  useEffect(() => {
+    const splashVisibleTimer = setTimeout(() => {
+      setSplashVisible(false);
+    }, 1500);
+    return () => {
+      clearTimeout(splashVisibleTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const showSplashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1700);
+    return () => {
+      clearTimeout(showSplashTimer);
+    };
+  }, []);
 
   return (
-    <Stack.Navigator>
-      {!user ? (
-        <Stack.Group screenOptions={{headerShown: false}}>
-          <Stack.Screen
-            name={GuestNavigation.Welcome}
-            component={WelcomeScreen}
-          />
-          <Stack.Screen name={GuestNavigation.Login} component={LoginScreen} />
-          <Stack.Screen
-            name={GuestNavigation.Signup}
-            component={SignUpScreen}
-          />
-        </Stack.Group>
-      ) : (
-        <Stack.Group
-          screenOptions={{
-            headerShown: false,
-          }}>
-          <Stack.Group>
-            <Stack.Screen
-              name={AuthenticatedNavigation.Main}
-              component={TabNavigator}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.ChatList}
-              component={ChatListScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.CampaignDetail}
-              component={CampaignDetailScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.CampaignTimeline}
-              component={CampaignTimelineScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.BusinessPeopleDetail}
-              component={BusinessPeopleDetailScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.UserDetail}
-              component={UserDetailScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.CreateCampaign}
-              component={CreateCampaignScreen}
-            />
-          </Stack.Group>
+    <>
+      {showSplash && <SplashScreen visible={splashVisible} />}
+      {!splashVisible && (
+        <Stack.Navigator>
+          {!user ? (
+            <Stack.Group screenOptions={{headerShown: false}}>
+              <Stack.Screen
+                name={GuestNavigation.Welcome}
+                component={WelcomeScreen}
+              />
+              <Stack.Screen
+                name={GuestNavigation.Login}
+                component={LoginScreen}
+              />
+              <Stack.Screen
+                name={GuestNavigation.Signup}
+                component={SignUpScreen}
+              />
+            </Stack.Group>
+          ) : (
+            <Stack.Group
+              screenOptions={{
+                headerShown: false,
+              }}>
+              <Stack.Group>
+                <Stack.Screen
+                  name={AuthenticatedNavigation.Main}
+                  component={TabNavigator}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.ChatList}
+                  component={ChatListScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.CampaignDetail}
+                  component={CampaignDetailScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.CampaignTimeline}
+                  component={CampaignTimelineScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.BusinessPeopleDetail}
+                  component={BusinessPeopleDetailScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.UserDetail}
+                  component={UserDetailScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.CreateCampaign}
+                  component={CreateCampaignScreen}
+                />
+              </Stack.Group>
 
+              <Stack.Group
+                screenOptions={{
+                  presentation: 'modal',
+                  cardOverlayEnabled: true,
+                  ...TransitionPresets.ModalSlideFromBottomIOS,
+                }}>
+                <Stack.Screen
+                  name={AuthenticatedNavigation.ChatDetail}
+                  component={ChatScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.CampaignRegistrants}
+                  component={CampaignRegistrantsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.CreateAdditionalAccount}
+                  component={CreateAdditionalAccountScreen}
+                />
+              </Stack.Group>
+            </Stack.Group>
+          )}
           <Stack.Group
             screenOptions={{
-              presentation: 'modal',
-              cardOverlayEnabled: true,
-              ...TransitionPresets.ModalSlideFromBottomIOS,
+              headerShown: false,
             }}>
-            <Stack.Screen
-              name={AuthenticatedNavigation.ChatDetail}
-              component={ChatScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.CampaignRegistrants}
-              component={CampaignRegistrantsScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.CreateAdditionalAccount}
-              component={CreateAdditionalAccountScreen}
-            />
+            <Stack.Group
+              screenOptions={{
+                presentation: 'modal',
+                cardOverlayEnabled: true,
+                ...TransitionPresets.ModalSlideFromBottomIOS,
+              }}>
+              <Stack.Screen
+                name={GeneralNavigation.LocationModal}
+                component={ModalLocationScreen}
+              />
+              <Stack.Screen
+                name={GeneralNavigation.CategoryModal}
+                component={ModalCategoryScreen}
+              />
+            </Stack.Group>
           </Stack.Group>
-        </Stack.Group>
+        </Stack.Navigator>
       )}
-      <Stack.Group
-        screenOptions={{
-          headerShown: false,
-        }}>
-        <Stack.Group
-          screenOptions={{
-            presentation: 'modal',
-            cardOverlayEnabled: true,
-            ...TransitionPresets.ModalSlideFromBottomIOS,
-          }}>
-          <Stack.Screen
-            name={GeneralNavigation.LocationModal}
-            component={ModalLocationScreen}
-          />
-          <Stack.Screen
-            name={GeneralNavigation.CategoryModal}
-            component={ModalCategoryScreen}
-          />
-        </Stack.Group>
-      </Stack.Group>
-    </Stack.Navigator>
+    </>
   );
 };
 
