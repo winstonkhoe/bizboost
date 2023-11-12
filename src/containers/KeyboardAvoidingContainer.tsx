@@ -18,7 +18,9 @@ export const KeyboardAvoidingContainer = ({
       {children}
     </KeyboardAvoidingView>
   ) : (
-    <KeyboardAwareScrollView>{children}</KeyboardAwareScrollView>
+    <KeyboardAwareScrollView bounces={false}>
+      {children}
+    </KeyboardAwareScrollView>
   );
 };
 
