@@ -30,6 +30,7 @@ import {AddIcon} from './Icon';
 import {border} from '../../styles/Border';
 import {
   formatDateToDayMonthYear,
+  getDateDiff,
   isEqualDate,
   isEqualMonthYear,
 } from '../../utils/date';
@@ -244,7 +245,7 @@ const DatePicker = ({
               <Text
                 className="font-semibold"
                 style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                Start date
+                {singleDate ? 'Chosen date' : 'Start date'}
               </Text>
               {dateRange.start ? (
                 <Text
@@ -263,33 +264,43 @@ const DatePicker = ({
                 </Text>
               )}
             </View>
-            <View style={[flex.flexCol, items.end]}>
-              <Text
-                className="font-semibold"
-                style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                End date
-              </Text>
-              {dateRange.end ? (
+            {!singleDate && (
+              <View style={[flex.flexCol, items.end]}>
                 <Text
-                  className="font-bold"
-                  style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
-                  {formatDateToDayMonthYear(dateRange.end)}
+                  className="font-semibold"
+                  style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                  End date
                 </Text>
-              ) : (
-                <Text
-                  className="font-bold"
-                  style={[
-                    font.size[50],
-                    textColor(COLOR.text.success.default),
-                  ]}>
-                  Choose date
-                </Text>
-              )}
-            </View>
+                {dateRange.end ? (
+                  <Text
+                    className="font-bold"
+                    style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                    {formatDateToDayMonthYear(dateRange.end)}
+                  </Text>
+                ) : (
+                  <Text
+                    className="font-bold"
+                    style={[
+                      font.size[50],
+                      textColor(COLOR.text.success.default),
+                    ]}>
+                    Choose date
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
           <CustomButton
-            text="Save"
-            disabled={!dateRange.start || !dateRange.end}
+            text={
+              !singleDate && dateRange.start && dateRange.end
+                ? `Save (${getDateDiff(dateRange.start, dateRange.end)} day)`
+                : 'Save'
+            }
+            disabled={
+              !singleDate
+                ? !dateRange.start || !dateRange.end
+                : !dateRange.start
+            }
             onPress={handleSaveButton}
           />
         </View>
@@ -438,10 +449,6 @@ const Month = ({
       firstDayOfMonth.getFullYear(),
       firstDayOfMonth.getMonth(),
       date,
-      0,
-      0,
-      0,
-      0,
     );
   };
 
@@ -474,15 +481,15 @@ const Month = ({
   };
 
   const cellIsActive = (date?: number): ActiveState => {
-    if (!date || !endDate) {
+    if (!date || !endDate || startDate?.getTime() === endDate?.getTime()) {
       return {
         start: false,
         end: false,
       };
     }
     const cellDate = createDateFromNumber(date);
-    const isActiveStart = startDate && isEqualDate(cellDate, startDate);
-    const isActiveEnd = endDate && isEqualDate(cellDate, endDate);
+    const isActiveStart = startDate?.getTime() === cellDate.getTime();
+    const isActiveEnd = endDate?.getTime() === cellDate.getTime();
     const isActiveCenter =
       startDate && cellDate > startDate && endDate && cellDate < endDate;
 
