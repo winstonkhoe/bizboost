@@ -1,9 +1,6 @@
 import {Text, View} from 'react-native';
-import {background} from '../../styles/BackgroundColor';
-import {COLOR} from '../../styles/Color';
 import {font} from '../../styles/Font';
 import {rounded} from '../../styles/BorderRadius';
-import {textColor} from '../../styles/Text';
 
 type Props = {
   status: string;
@@ -16,10 +13,10 @@ const StatusTag = ({status}: Props) => {
         // background(COLOR.background.green.low),
         rounded.small,
       ]}
-      className="px-2 py-1 bg-yellow-200">
+      className="px-2 py-1 bg-yellow-200 border border-yellow-400">
       <Text
         style={[
-          font.size[20],
+          font.size[10],
           // textColor(COLOR.text.green.default)
         ]}
         className="font-semibold text-yellow-600">

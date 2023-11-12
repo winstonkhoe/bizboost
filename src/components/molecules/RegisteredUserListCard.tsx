@@ -17,7 +17,7 @@ import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import Private from '../../assets/vectors/private.svg';
 import Public from '../../assets/vectors/public.svg';
 import Business from '../../assets/vectors/business.svg';
-import StatusTag from './StatusTag';
+import StatusTag from '../atoms/StatusTag';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -25,7 +25,6 @@ import {
 } from '../../navigation/StackNavigation';
 import {getTimeAgo} from '../../utils/date';
 import {gap} from '../../styles/Gap';
-import {SvgProps} from 'react-native-svg';
 
 type Props = {
   transaction: Transaction;
@@ -57,7 +56,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         campaign?.type === CampaignType.Private ? (
           <Private width={15} height={15} stroke={COLOR.green[50]} />
         ) : (
-          <Public width={15} height={15} fill={COLOR.green[50]} />
+          <Public width={15} height={15} stroke={COLOR.green[50]} />
         )
       }
       headerTextLeading={campaign?.title || ''}
