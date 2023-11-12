@@ -7,6 +7,7 @@ export const shadow = StyleSheet.create<SizeStyle>(
     return {
       ...acc,
       [key]: {
+        backgroundColor: COLOR.black[0],
         shadowColor: COLOR.black[100],
         shadowOffset: {
           width: 0,
