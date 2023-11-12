@@ -2,7 +2,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
-import {User} from './User';
+import {User, UserRole, UserRoles} from './User';
 import {Campaign} from './Campaign';
 
 export const TRANSACTION_COLLECTION = 'transactions';
@@ -124,17 +124,20 @@ export class Transaction extends BaseModel {
     }
   }
 
-  static getAllBusinessPeopleTransactions(
-    businessPeopleId: string,
+  static getAllTransactionsByRole(
+    userId: string,
+    role: UserRoles,
     onComplete: (transactions: Transaction[]) => void,
   ) {
     try {
       const unsubscribe = firestore()
         .collection(TRANSACTION_COLLECTION)
         .where(
-          'businessPeopleId',
+          role === UserRole.BusinessPeople
+            ? 'businessPeopleId'
+            : 'contentCreatorId',
           '==',
-          firestore().collection('users').doc(businessPeopleId),
+          firestore().collection('users').doc(userId),
         )
         .onSnapshot(
           querySnapshot => {

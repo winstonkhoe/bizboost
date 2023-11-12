@@ -37,6 +37,7 @@ export enum UserStatus {
 
 export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
 
+// TODO: @win win kayaknya ini mayan memusingkan deh ada UserRoles dan UserRole, kenapa ga yang di UserRole tambah undefined aja?
 export type UserRoles =
   | UserRole.ContentCreator
   | UserRole.BusinessPeople

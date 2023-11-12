@@ -1,4 +1,4 @@
-import {Button, Pressable, View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
@@ -19,13 +19,10 @@ import {useEffect, useState} from 'react';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import UserListCard from '../components/molecules/UserListCard';
-import {TouchableOpacity} from 'react-native';
-import {Text} from 'react-native';
 import {FAB} from 'react-native-elements';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import Edit from '../assets/vectors/edit.svg';
 import {Transaction} from '../model/Transaction';
-import OngoingTransactionListCard from '../components/molecules/OngoingTransactionListCard';
 import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 
 const HomeScreen = () => {
@@ -46,13 +43,14 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = Transaction.getAllBusinessPeopleTransactions(
+    const unsubscribe = Transaction.getAllTransactionsByRole(
       uid || '',
+      activeRole,
       t => setTransactions(t),
     );
 
     return unsubscribe;
-  }, [uid]);
+  }, [uid, activeRole]);
 
   return (
     <PageWithSearchBar>
