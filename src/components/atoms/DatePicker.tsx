@@ -9,7 +9,6 @@ import React, {
 import {
   View,
   Text,
-  FlatList,
   useWindowDimensions,
   StyleSheet,
   PressableProps,
@@ -29,8 +28,17 @@ import {BackButtonPlaceholder} from '../molecules/BackButtonPlaceholder';
 import {AnimatedPressable} from './AnimatedPressable';
 import {AddIcon} from './Icon';
 import {border} from '../../styles/Border';
-import {formatDateToDayMonthYear, isEqualMonthYear} from '../../utils/date';
+import {
+  formatDateToDayMonthYear,
+  isEqualDate,
+  isEqualMonthYear,
+} from '../../utils/date';
 import EditIcon from '../../assets/vectors/edit.svg';
+import {inlineStyles} from 'react-native-svg';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {CustomButton} from './Button';
+import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import {FlatList} from 'react-native-gesture-handler';
 
 interface DatePickerProps {
   onDateChange: (startDate: Date | null, endDate: Date | null) => void;
@@ -51,21 +59,20 @@ const DatePicker = ({
   singleDate = false,
   children,
 }: DatePickerProps) => {
+  const insets = useSafeAreaInsets();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>(() => ({
+  const [finalDateRange, setFinalDateRange] = useState<DateRange>(() => ({
     start: new Date(),
     end: null,
   }));
-  const flatListRef = useRef<FlatList>(null);
+  const [dateRange, setDateRange] = useState<DateRange>(() => ({
+    ...finalDateRange,
+  }));
   const windowDimension = useWindowDimensions();
   const cellWidth = useMemo(
     () => (windowDimension.width - horizontalPaddingSize * 2) / 7,
     [windowDimension],
   );
-
-  useEffect(() => {
-    onDateChange(dateRange.start, dateRange.end);
-  }, [dateRange, onDateChange]);
 
   const handleDateChange = (date: Date) => {
     setDateRange(prevDateRange => {
@@ -87,14 +94,26 @@ const DatePicker = ({
     });
   };
 
-  const getDate = () => {
-    if (singleDate && dateRange.start) {
-      return formatDateToDayMonthYear(dateRange.start);
+  useEffect(() => {
+    if (isSheetOpen) {
+      setDateRange({...finalDateRange});
     }
-    if (dateRange.start && dateRange.end) {
+  }, [isSheetOpen, finalDateRange]);
+
+  const handleSaveButton = () => {
+    setFinalDateRange({...dateRange});
+    onDateChange(dateRange.start, dateRange.end);
+    setIsSheetOpen(false);
+  };
+
+  const getDate = () => {
+    if (singleDate && finalDateRange.start) {
+      return formatDateToDayMonthYear(finalDateRange.start);
+    }
+    if (finalDateRange.start && finalDateRange.end) {
       return `${formatDateToDayMonthYear(
-        dateRange.start,
-      )} - ${formatDateToDayMonthYear(dateRange.end)}`;
+        finalDateRange.start,
+      )} - ${formatDateToDayMonthYear(finalDateRange.end)}`;
     }
     return 'Set date';
   };
@@ -126,7 +145,7 @@ const DatePicker = ({
                 style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
                 {getDate()}
               </Text>
-              {!dateRange.end ? (
+              {!finalDateRange.end ? (
                 <View
                   style={[
                     rounded.max,
@@ -158,7 +177,15 @@ const DatePicker = ({
               onPress={() => setIsSheetOpen(false)}
             />
           </View>
-          <View style={[flex.flexRow, padding.bottom.default]}>
+          <View
+            style={[
+              flex.flexRow,
+              padding.bottom.default,
+              {
+                borderBottomColor: COLOR.black[20],
+                borderBottomWidth: 1,
+              },
+            ]}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
               (day, index) => (
                 <View
@@ -185,7 +212,8 @@ const DatePicker = ({
           </View>
         </View>
         <FlatList
-          ref={flatListRef}
+          style={[flex.grow, {flexGrow: 1}]}
+          contentContainerStyle={[flex.grow, {flexGrow: 1}]}
           data={[...Array(12)]}
           renderItem={({index}) => (
             <MonthMemo
@@ -197,35 +225,129 @@ const DatePicker = ({
             />
           )}
         />
+        <View
+          style={[
+            flex.flexCol,
+            gap.medium,
+            padding.large,
+            {
+              paddingBottom: Math.max(insets.bottom, size.large),
+            },
+            {
+              backgroundColor: COLOR.black[0],
+              borderTopWidth: 1,
+              borderTopColor: COLOR.black[20],
+            },
+          ]}>
+          <View style={[flex.flexRow, justify.between]}>
+            <View style={[flex.flexCol, items.start]}>
+              <Text
+                className="font-semibold"
+                style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                Start date
+              </Text>
+              {dateRange.start ? (
+                <Text
+                  className="font-bold"
+                  style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                  {formatDateToDayMonthYear(dateRange.start)}
+                </Text>
+              ) : (
+                <Text
+                  className="font-bold"
+                  style={[
+                    font.size[50],
+                    textColor(COLOR.text.success.default),
+                  ]}>
+                  Choose date
+                </Text>
+              )}
+            </View>
+            <View style={[flex.flexCol, items.end]}>
+              <Text
+                className="font-semibold"
+                style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                End date
+              </Text>
+              {dateRange.end ? (
+                <Text
+                  className="font-bold"
+                  style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                  {formatDateToDayMonthYear(dateRange.end)}
+                </Text>
+              ) : (
+                <Text
+                  className="font-bold"
+                  style={[
+                    font.size[50],
+                    textColor(COLOR.text.success.default),
+                  ]}>
+                  Choose date
+                </Text>
+              )}
+            </View>
+          </View>
+          <CustomButton
+            text="Save"
+            disabled={!dateRange.start || !dateRange.end}
+            onPress={handleSaveButton}
+          />
+        </View>
       </SheetModal>
     </View>
   );
 };
 
-const isWithinRange = (month: number, startDate?: Date, endDate?: Date) => {
-  if (!startDate || !endDate) {
-    return true;
+const isWithinRange = (
+  today: Date,
+  month: number,
+  startDate?: Date,
+  endDate?: Date,
+) => {
+  if (!startDate) {
+    return false;
   }
-  const today = new Date();
-  today.setMonth(today.getMonth() + month);
-  const start = new Date(startDate.getFullYear(), startDate.getMonth());
-  const end = new Date(endDate.getFullYear(), endDate.getMonth());
-  const check = new Date(today.getFullYear(), today.getMonth());
-  return check >= start && check <= end;
+
+  const currentMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() + month,
+    1,
+    0,
+    0,
+    0,
+    0,
+  );
+  const start = new Date(
+    startDate.getFullYear(),
+    startDate.getMonth(),
+    1,
+    0,
+    0,
+    0,
+    0,
+  );
+  const end = endDate
+    ? new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0, 0, 0, 0, 0)
+    : start;
+
+  return currentMonth >= start && currentMonth <= end;
 };
 
 const areEqual = (prevProps: MonthProps, nextProps: MonthProps) => {
+  const today = new Date();
   const wasInRange = isWithinRange(
+    today,
     prevProps.monthOffset,
     prevProps.startDate,
     prevProps.endDate,
   );
   const isInRange = isWithinRange(
+    today,
     nextProps.monthOffset,
     nextProps.startDate,
     nextProps.endDate,
   );
-  return wasInRange === isInRange;
+  return wasInRange || isInRange;
 };
 
 const MonthMemo = memo(
@@ -250,6 +372,8 @@ const MonthMemo = memo(
   (prevProps, nextProps) => {
     return (
       !areEqual(prevProps, nextProps) &&
+      //   prevProps.startDate === nextProps.startDate &&
+      //   prevProps.endDate === nextProps.endDate &&
       prevProps.monthOffset === nextProps.monthOffset &&
       prevProps.cellWidth === nextProps.cellWidth
     );
@@ -349,17 +473,23 @@ const Month = ({
     return d < today.getDate();
   };
 
-  const cellIsActive = (date?: number) => {
-    if (!date) {
-      return false;
+  const cellIsActive = (date?: number): ActiveState => {
+    if (!date || !endDate) {
+      return {
+        start: false,
+        end: false,
+      };
     }
     const cellDate = createDateFromNumber(date);
-    if (startDate && cellDate >= startDate) {
-      if (endDate) {
-        return cellDate <= endDate;
-      }
-    }
-    return false;
+    const isActiveStart = startDate && isEqualDate(cellDate, startDate);
+    const isActiveEnd = endDate && isEqualDate(cellDate, endDate);
+    const isActiveCenter =
+      startDate && cellDate > startDate && endDate && cellDate < endDate;
+
+    return {
+      start: isActiveEnd || isActiveCenter || false,
+      end: isActiveStart || isActiveCenter || false,
+    };
   };
 
   const isExactDate = (date?: number) => {
@@ -422,10 +552,15 @@ const Month = ({
   );
 };
 
+interface ActiveState {
+  start: boolean;
+  end: boolean;
+}
+
 interface DateCellProps extends PressableProps {
   date?: number;
   cellWidth: number;
-  active?: boolean;
+  active?: ActiveState;
   exactDate?: boolean;
   disabled?: boolean;
   isToday?: boolean;
@@ -461,7 +596,8 @@ const DateCellMemo = memo(
       prevProps.date === nextProps.date &&
       prevProps.cellWidth === nextProps.cellWidth &&
       prevProps.disabled === nextProps.disabled &&
-      prevProps.active === nextProps.active &&
+      prevProps.active?.start === nextProps.active?.start &&
+      prevProps.active?.end === nextProps.active?.end &&
       prevProps.exactDate === nextProps.exactDate &&
       prevProps.isToday === nextProps.isToday &&
       prevProps.isRed === nextProps.isRed
@@ -473,7 +609,10 @@ const DateCell = ({
   date,
   cellWidth,
   disabled = false,
-  active = false,
+  active = {
+    start: false,
+    end: false,
+  },
   exactDate = false,
   isToday = false,
   isRed = false,
@@ -482,11 +621,19 @@ const DateCell = ({
   const cellStyle = useMemo(
     () =>
       StyleSheet.create({
-        cell: {
+        emptyCell: {
           width: cellWidth,
           height: cellWidth,
         },
-      }).cell,
+        cell: {
+          width: (cellWidth * 4) / 5,
+          height: cellWidth,
+        },
+        cellGap: {
+          width: (cellWidth * 1) / 10,
+          height: cellWidth,
+        },
+      }),
     [cellWidth],
   );
 
@@ -495,7 +642,7 @@ const DateCell = ({
       {...props}
       disabled={disabled}
       className="mt-2"
-      style={[cellStyle, !disabled && active && background(COLOR.green[5])]}>
+      style={[flex.flexRow, cellStyle.emptyCell]}>
       {isToday && (
         <View
           className="absolute -top-4"
@@ -509,29 +656,50 @@ const DateCell = ({
       )}
       <View
         style={[
-          flex.flex1,
-          flex.grow,
-          flex.flexRow,
-          justify.center,
-          items.center,
-          rounded.default,
-          !disabled && exactDate && background(COLOR.green[60]),
+          cellStyle.cellGap,
+          !disabled && active.start && background(COLOR.green[5]),
+        ]}
+      />
+      <View
+        style={[
+          !disabled &&
+            (active.start || active.end) &&
+            background(COLOR.green[5]),
         ]}>
-        <Text
-          className="font-bold"
+        <View
+          className="overflow-hidden"
           style={[
-            textColor(
-              isRed ? COLOR.text.danger.default : COLOR.text.neutral.med,
-            ),
-            exactDate && textColor(COLOR.black[0]),
-            disabled && textColor(COLOR.text.neutral.low),
+            cellStyle.cell,
+            flex.flex1,
+            flex.grow,
+            flex.flexRow,
+            justify.center,
+            items.center,
+            rounded.default,
+            !disabled && exactDate && background(COLOR.green[60]),
           ]}>
-          {date}
-        </Text>
+          <Text
+            className="font-bold"
+            style={[
+              textColor(
+                isRed ? COLOR.text.danger.default : COLOR.text.neutral.med,
+              ),
+              exactDate && textColor(COLOR.black[0]),
+              disabled && textColor(COLOR.text.neutral.low),
+            ]}>
+            {date}
+          </Text>
+        </View>
       </View>
+      <View
+        style={[
+          cellStyle.cellGap,
+          !disabled && active.end && background(COLOR.green[5]),
+        ]}
+      />
     </AnimatedPressable>
   ) : (
-    <View style={[cellStyle]} />
+    <View style={[cellStyle.emptyCell]} />
   );
 };
 
