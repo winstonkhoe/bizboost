@@ -8,10 +8,11 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {useWindowDimensions} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import { flex } from '../styles/Flex';
+import {flex} from '../styles/Flex';
 
 interface SheetModalProps {
   open: boolean;
+  fullHeight?: boolean;
   children: ReactNode;
   maxHeight?: number;
   onDismiss?: () => void;
@@ -19,6 +20,7 @@ interface SheetModalProps {
 
 export const SheetModal = ({
   open = false,
+  fullHeight = false,
   onDismiss,
   maxHeight,
   children,
@@ -59,7 +61,9 @@ export const SheetModal = ({
       }
       enableDynamicSizing
       enablePanDownToClose>
-      <BottomSheetView style={[flex.flex1]}>{children}</BottomSheetView>
+      <BottomSheetView style={[fullHeight && flex.flex1]}>
+        {children}
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };

@@ -164,7 +164,10 @@ const DatePicker = ({
       ) : (
         children
       )}
-      <SheetModal open={isSheetOpen} onDismiss={() => setIsSheetOpen(false)}>
+      <SheetModal
+        open={isSheetOpen}
+        onDismiss={() => setIsSheetOpen(false)}
+        fullHeight>
         <View style={[flex.flexCol, horizontalPadding]}>
           <View
             style={[
