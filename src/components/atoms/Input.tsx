@@ -581,10 +581,10 @@ export const MediaUploader = ({
   };
 
   return (
-    <TouchableOpacity onPress={handleImageUpload}>
-      <View style={[flex.flexRow]} className="items-center">
-        {children || <CustomButton text="Upload image" rounded={'small'} />}
-      </View>
+    <TouchableOpacity
+      containerStyle={[flex.flexCol, items.center]}
+      onPress={handleImageUpload}>
+      {children || <CustomButton text="Upload image" rounded={'small'} />}
       {showUploadProgress && uploadProgress !== undefined && (
         <ProgressBar currentProgress={uploadProgress} showProgressNumber />
       )}
