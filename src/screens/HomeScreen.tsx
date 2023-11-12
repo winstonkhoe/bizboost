@@ -111,7 +111,11 @@ const HomeScreen = () => {
               <HorizontalPadding>
                 <View style={[flex.flexCol, gap.medium]}>
                   {transactions.map((t, index) => (
-                    <RegisteredUserListCard key={index} transaction={t} />
+                    <RegisteredUserListCard
+                      key={index}
+                      transaction={t}
+                      role={activeRole}
+                    />
                   ))}
                 </View>
               </HorizontalPadding>
