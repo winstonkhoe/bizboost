@@ -5,7 +5,7 @@ import {rounded} from '../../styles/BorderRadius';
 import {Image} from 'react-native';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
 import {User, UserRole, UserRoles} from '../../model/User';
-import {useEffect, useState} from 'react';
+import {ReactNode, useEffect, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
@@ -14,7 +14,9 @@ import {Campaign, CampaignType} from '../../model/Campaign';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import ChevronRight from '../../assets/vectors/chevron-right.svg';
-import Lock from '../../assets/vectors/lock.svg';
+import Private from '../../assets/vectors/private.svg';
+import Public from '../../assets/vectors/public.svg';
+import Business from '../../assets/vectors/business.svg';
 import StatusTag from './StatusTag';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -23,6 +25,7 @@ import {
 } from '../../navigation/StackNavigation';
 import {getTimeAgo} from '../../utils/date';
 import {gap} from '../../styles/Gap';
+import {SvgProps} from 'react-native-svg';
 
 type Props = {
   transaction: Transaction;
@@ -50,7 +53,13 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           campaignId: campaign?.id || '',
         });
       }}
-      isPrivate={campaign?.type === CampaignType.Private}
+      icon={
+        campaign?.type === CampaignType.Private ? (
+          <Private width={15} height={15} stroke={COLOR.green[50]} />
+        ) : (
+          <Public width={15} height={15} fill={COLOR.green[50]} />
+        )
+      }
       headerTextLeading={campaign?.title || ''}
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
@@ -101,6 +110,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
           businessPeopleId: businessPeople?.id || '',
         });
       }}
+      icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
       headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
@@ -124,7 +134,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
 // MARK: kalo mau edit base card dari sini
 type BaseCardProps = {
   handleClickHeader: () => void;
-  isPrivate?: boolean;
+  icon?: ReactNode;
   headerTextLeading: string;
   headerTextTrailing: string;
   handleClickBody: () => void;
@@ -137,7 +147,7 @@ type BaseCardProps = {
 };
 const BaseCard = ({
   handleClickHeader,
-  isPrivate = false,
+  icon,
   headerTextLeading,
   headerTextTrailing,
   handleClickBody,
@@ -151,16 +161,17 @@ const BaseCard = ({
   return (
     <View style={[shadow.default, rounded.medium]}>
       <View
-        className="bg-white flex flex-col pt-4 overflow-hidden"
+        className="bg-white flex flex-col pt-3 overflow-hidden"
         style={[rounded.medium]}>
         <Pressable
           onPress={handleClickHeader}
           className="flex flex-row justify-between items-center border-b pb-2 px-3 "
           style={[border({color: COLOR.black[20]})]}>
           <View className="flex flex-row items-center" style={[gap.xsmall]}>
-            {isPrivate && (
-              <Lock width={15} height={15} stroke={COLOR.black[40]} />
-            )}
+            {icon}
+            {/* {isPrivate && (
+              <Private width={15} height={15} stroke={COLOR.black[40]} />
+            )} */}
             <Text style={[textColor(COLOR.green[50]), font.size[20]]}>
               {headerTextLeading}
             </Text>
