@@ -79,19 +79,61 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
   );
 };
 
+const ContentCreatorTransactionCard = ({transaction}: Props) => {
+  const navigation = useNavigation<NavigationStackProps>();
+  const [campaign, setCampaign] = useState<Campaign>();
+  useEffect(() => {
+    Campaign.getById(transaction.campaignId || '').then(c => setCampaign(c));
+  }, [transaction]);
+
+  const [businessPeople, setBusinessPeople] = useState<User>();
+
+  useEffect(() => {
+    User.getById(transaction.businessPeopleId || '').then(u =>
+      setBusinessPeople(u),
+    );
+  }, [transaction]);
+
+  return (
+    <BaseCard
+      handleClickHeader={() => {
+        navigation.navigate(AuthenticatedNavigation.BusinessPeopleDetail, {
+          businessPeopleId: businessPeople?.id || '',
+        });
+      }}
+      headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
+      headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+      handleClickBody={() => {
+        navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
+          campaignId: campaign?.id || '',
+        });
+      }}
+      imageSource={
+        campaign?.image
+          ? {
+              uri: campaign?.image,
+            }
+          : require('../../assets/images/bizboost-avatar.png')
+      }
+      bodyText={campaign?.title || ''}
+      statusText={transaction.status || ''}
+    />
+  );
+};
+
 // MARK: kalo mau edit base card dari sini
 type BaseCardProps = {
   handleClickHeader: () => void;
-  isPrivate: boolean;
+  isPrivate?: boolean;
   headerTextLeading: string;
   headerTextTrailing: string;
   handleClickBody: () => void;
   imageSource: ImageSourcePropType;
   bodyText: string;
   statusText: string;
-  doesNeedApproval: boolean;
-  handleClickAccept: () => void;
-  handleClickReject: () => void;
+  doesNeedApproval?: boolean;
+  handleClickAccept?: () => void;
+  handleClickReject?: () => void;
 };
 const BaseCard = ({
   handleClickHeader,
@@ -184,8 +226,7 @@ const RegisteredUserListCard = ({transaction, role}: Props) => {
   if (role === UserRole.BusinessPeople) {
     return <BusinessPeopleTransactionsCard transaction={transaction} />;
   } else {
-    // TODO: card buat CC
-    return <></>;
+    return <ContentCreatorTransactionCard transaction={transaction} />;
   }
 };
 
