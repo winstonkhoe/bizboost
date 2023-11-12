@@ -1,5 +1,5 @@
 import {FirebaseFirestoreTypes} from '@react-native-firebase/firestore';
-
+import TimeAgo from 'javascript-time-ago';
 export const getDate = (
   timestamp: FirebaseFirestoreTypes.Timestamp | number | Date,
 ): Date => {
@@ -76,4 +76,10 @@ export const formatDateToTime12Hrs = (date: Date): string => {
   hours = hours % 12;
   hours = hours ? hours : 12; // the hour '0' should be '12'
   return `${hours}:${`${minutes}`.padStart(2, '0')} ${ampm}`;
+};
+
+export const getTimeAgo = (date: Date | number) => {
+  const timeAgo = new TimeAgo('en-US');
+  date = date instanceof Date ? date : new Date(date);
+  return timeAgo.format(date);
 };

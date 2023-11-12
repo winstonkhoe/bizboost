@@ -87,6 +87,7 @@ const CampaignDetailScreen = ({route}: Props) => {
     const data = new Transaction({
       contentCreatorId: uid || '',
       campaignId: campaignId,
+      businessPeopleId: campaign?.userId,
       status: TransactionStatus.registrationPending,
     });
 

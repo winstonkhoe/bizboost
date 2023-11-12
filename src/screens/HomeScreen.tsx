@@ -1,4 +1,4 @@
-import {Button, Pressable, View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
@@ -19,27 +19,38 @@ import {useEffect, useState} from 'react';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import UserListCard from '../components/molecules/UserListCard';
-import {TouchableOpacity} from 'react-native';
-import {Text} from 'react-native';
 import {FAB} from 'react-native-elements';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import Edit from '../assets/vectors/edit.svg';
+import {Transaction} from '../model/Transaction';
+import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 
 const HomeScreen = () => {
-  const {activeRole} = useUser();
+  const {uid, activeRole} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
 
   const {campaigns} = useOngoingCampaign();
-
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
   // TODO: kalo klik see all apa mending pindah page?
   const [userLimit, setUserLimit] = useState(3);
+  const [ongoingCampaignsLimit, setOngoingCampaignsLimit] = useState(3);
   useEffect(() => {
     const unsubscribe = User.getAll(u => setUsers(u));
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = Transaction.getAllTransactionsByRole(
+      uid || '',
+      activeRole,
+      t => setTransactions(t),
+    );
+
+    return unsubscribe;
+  }, [uid, activeRole]);
 
   return (
     <PageWithSearchBar>
@@ -62,13 +73,49 @@ const HomeScreen = () => {
             </View>
             <View className="my-6" style={[flex.flexCol]}>
               <HorizontalPadding>
-                <HomeSectionHeader header="Ongoing Campaigns" link="See All" />
+                <HomeSectionHeader
+                  header="Ongoing Campaigns"
+                  link={ongoingCampaignsLimit === 3 ? 'See All' : 'Collapse'}
+                  onPressLink={() =>
+                    setOngoingCampaignsLimit(
+                      ongoingCampaignsLimit === 3 ? campaigns.length : 3,
+                    )
+                  }
+                />
               </HorizontalPadding>
               <View className="mt-3" />
               <HorizontalPadding>
                 <View style={[flex.flexCol, gap.medium]}>
-                  {campaigns.map((c: Campaign, index: number) => (
-                    <OngoingCampaignCard campaign={c} key={index} />
+                  {campaigns
+                    .slice(0, ongoingCampaignsLimit)
+                    .map((c: Campaign, index: number) => (
+                      <OngoingCampaignCard campaign={c} key={index} />
+                    ))}
+                </View>
+              </HorizontalPadding>
+            </View>
+
+            <View className="my-6" style={[flex.flexCol]}>
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header="Ongoing Transactions"
+                  link={'See All'}
+                  // onPressLink={() =>
+                  // setOngoingCampaignsLimit(
+                  //   ongoingCampaignsLimit === 3 ? campaigns.length : 3,
+                  // )
+                  // }
+                />
+              </HorizontalPadding>
+              <View className="mt-3" />
+              <HorizontalPadding>
+                <View style={[flex.flexCol, gap.medium]}>
+                  {transactions.map((t, index) => (
+                    <RegisteredUserListCard
+                      key={index}
+                      transaction={t}
+                      role={activeRole}
+                    />
                   ))}
                 </View>
               </HorizontalPadding>

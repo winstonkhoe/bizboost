@@ -14,7 +14,9 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {store} from './src/redux/store';
 import {AuthProvider} from './src/providers/AuthProvider';
 import {Settings} from 'react-native-fbsdk-next';
+import TimeAgo from 'javascript-time-ago';
 
+import en from 'javascript-time-ago/locale/en';
 // Ask for consent first if necessary
 // Possibly only do this for iOS if no need to handle a GDPR-type flow
 
@@ -24,6 +26,7 @@ GoogleSignin.configure({
 });
 const App = () => {
   Settings.initializeSDK();
+  TimeAgo.addDefaultLocale(en);
   return (
     <Provider store={store}>
       <GestureHandlerRootView style={{flex: 1}}>
