@@ -52,8 +52,8 @@ export class Transaction extends BaseModel {
     if (data && doc.exists) {
       return new Transaction({
         id: doc.id,
-        contentCreatorId: data.contentCreatorId.id,
-        businessPeopleId: data.businessPeopleId.id,
+        contentCreatorId: data.contentCreatorId?.id,
+        businessPeopleId: data.businessPeopleId?.id,
         campaignId: data.campaignId.id,
         status: data.status,
         updatedAt: data.updatedAt,
