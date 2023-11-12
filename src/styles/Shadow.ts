@@ -12,9 +12,9 @@ export const shadow = StyleSheet.create<SizeStyle>(
           width: 0,
           height: 0,
         },
-        shadowOpacity: 0.15,
-        shadowRadius: value,
-        elevation: value,
+        shadowOpacity: 0.2,
+        shadowRadius: value * 0.25,
+        elevation: value * 0.25,
       } as ViewStyle,
     };
   }, {} as Record<keyof SizeType, ViewStyle>),
