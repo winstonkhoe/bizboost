@@ -97,6 +97,10 @@ export const TabNavigator = () => {
     [],
   );
 
+  if (!user || !activeRole) {
+    return null;
+  }
+
   return (
     <Tab.Navigator>
       {UserRole.ContentCreator === activeRole && (
