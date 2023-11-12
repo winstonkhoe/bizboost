@@ -8,6 +8,7 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {useWindowDimensions} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { flex } from '../styles/Flex';
 
 interface SheetModalProps {
   open: boolean;
@@ -58,7 +59,7 @@ export const SheetModal = ({
       }
       enableDynamicSizing
       enablePanDownToClose>
-      <BottomSheetView>{children}</BottomSheetView>
+      <BottomSheetView style={[flex.flex1]}>{children}</BottomSheetView>
     </BottomSheetModal>
   );
 };
