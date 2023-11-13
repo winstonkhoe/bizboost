@@ -29,6 +29,7 @@ import {Content} from '../model/Content';
 import Video from 'react-native-video';
 import {ActivityIndicator} from 'react-native';
 import ScaledImage from '../components/atoms/ScaledImage';
+import {getDate} from '../utils/date';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -179,8 +180,8 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                   <View>
                     <Text className="text-black font-bold">Preferences</Text>
                     {contentCreator.contentCreator.preferences.map(
-                      (preference, index) => (
-                        <Text key={index}>{preference}</Text>
+                      (preference, idx) => (
+                        <Text key={idx}>• {preference}</Text>
                       ),
                     )}
                   </View>
@@ -194,19 +195,32 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                       Preferred Locations
                     </Text>
                     {contentCreator.contentCreator.preferredLocationIds.map(
-                      (loc, index) => (
-                        <Text key={index}>{loc.id}</Text>
+                      (loc, idx) => (
+                        <Text key={idx}>• {loc.id}</Text>
                       ),
                     )}
                   </View>
                 )}
-              {contentCreator?.contentCreator?.postingSchedules && (
-                <View>
-                  <Text className="text-black font-bold">
-                    Posting Schedules
-                  </Text>
-                </View>
-              )}
+              {contentCreator?.contentCreator?.postingSchedules &&
+                contentCreator?.contentCreator?.postingSchedules.length > 0 && (
+                  <View>
+                    <Text className="text-black font-bold">
+                      Posting Schedules
+                    </Text>
+                    {contentCreator?.contentCreator?.postingSchedules.map(
+                      (sched, idx) => (
+                        <Text key={idx}>
+                          •{' '}
+                          {getDate(sched).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </Text>
+                      ),
+                    )}
+                  </View>
+                )}
             </ScrollView>
             <ScrollView style={flex.flexRow} key="2">
               <View style={flex.flexCol}>
@@ -263,7 +277,7 @@ export default ContentCreatorDetailScreen;
 const styles = StyleSheet.create({
   pagerView: {
     width: '100%',
-    height: '50%',
+    height: '60%',
   },
   button: {
     width: Dimensions.get('window').width * 0.45,
