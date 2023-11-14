@@ -6,10 +6,14 @@ import {CustomButton} from '../components/atoms/Button';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import PhotosIcon from '../assets/vectors/photos.svg';
-import {flex} from '../styles/Flex';
+import {flex, items, justify} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {COLOR} from '../styles/Color';
-import {CustomTextInput, MediaUploader} from '../components/atoms/Input';
+import {
+  CustomNumberInput,
+  CustomTextInput,
+  MediaUploader,
+} from '../components/atoms/Input';
 import {
   Controller,
   FormProvider,
@@ -17,25 +21,47 @@ import {
   useForm,
 } from 'react-hook-form';
 import SelectableTag from '../components/atoms/SelectableTag';
-import {Campaign, CampaignType, CampaignTypes} from '../model/Campaign';
+import {
+  Campaign,
+  CampaignStep,
+  CampaignSteps,
+  CampaignTimeline,
+  CampaignType,
+  CampaignTypes,
+} from '../model/Campaign';
 import FieldArray from '../components/organisms/FieldArray';
 import uuid from 'react-native-uuid';
-import DatePicker from 'react-native-date-picker';
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetModalProvider,
-  BottomSheetScrollView,
-} from '@gorhom/bottom-sheet';
-import {background} from '../styles/BackgroundColor';
-import CheckBox from '@react-native-community/checkbox';
 import {useUser} from '../hooks/user';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
-import storage from '@react-native-firebase/storage';
 
-import {Image as ImageType} from 'react-native-image-crop-picker';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
+import {Location} from '../model/Location';
+import {dimension} from '../styles/Dimension';
+import {rounded} from '../styles/BorderRadius';
+import {background} from '../styles/BackgroundColor';
+import {border} from '../styles/Border';
+import {FormFieldHelper} from '../components/atoms/FormLabel';
+import PagerView from 'react-native-pager-view';
+import {Stepper} from '../components/atoms/Stepper';
+import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
+import {padding} from '../styles/Padding';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../styles/Size';
+import {isValidField} from '../utils/form';
+import {font} from '../styles/Font';
+import {textColor} from '../styles/Text';
+import {formatNumberWithThousandSeparator} from '../utils/number';
+import {InternalLink} from '../components/atoms/Link';
+import {openLocationModal} from '../utils/modal';
+import {RemovableChip} from '../components/atoms/Chip';
+import {NavigationStackProps} from '../navigation/StackNavigation';
+import DatePicker, {
+  DefaultDatePickerPlaceholder,
+} from '../components/atoms/DatePicker';
+import {AddIcon} from '../components/atoms/Icon';
+import {formatDateToDayMonthYear} from '../utils/date';
+
 export type CampaignFormData = {
   title: string;
   description: string;
@@ -45,134 +71,104 @@ export type CampaignFormData = {
   criterias: StringObject[]; // workaround soalnnya fieldarray harus array of object
   platforms: {name: string; tasks: StringObject[]}[]; // tasks: {value: string}[] itu workaround jg, harusnya ini bisa CampaignPlatform[] lgsg
   importantInformation: StringObject[];
-  locations: StringObject[];
-  image: ImageType;
-  startDate: number;
-  endDate: number;
+  locations: {value: Location}[];
+  image: string;
+  timeline: CampaignTimeline[];
 };
+
+const campaignTimeline = [
+  {
+    step: CampaignStep.Registration,
+    optional: false,
+    description:
+      'This is where the content creator registers, and gets shortlisted by you.',
+  },
+  {
+    step: CampaignStep.Brainstorming,
+    optional: true,
+    description:
+      'In this step, the content creator can share their ideas and suggestions for the task with you. You can then provide feedback and guidance to help the content creator refine their work.',
+  },
+  {
+    step: CampaignStep.ContentSubmission,
+    optional: false,
+    description:
+      'Content creator can submit their final work for the task. You can then review the work and either accept it or ask for revisions.',
+  },
+  {
+    step: CampaignStep.EngagementResultSubmission,
+    optional: false,
+    description:
+      'Content creators can submit their engagement results for evaluation, including verifying the originality of the proof of task completion. Once reviewed, campaign earnings will be deposited into their accounts.',
+  },
+];
+
+const maxPage = 5;
+
 const CreateCampaignScreen = () => {
   const {uid} = useUser();
-  const [isLocationSheetOpened, setIsLocationSheetOpened] = useState(false);
-  const [isStartDateSheetOpened, setIsStartDateSheetOpened] = useState(false);
-  const [isEndDateSheetOpened, setIsEndDateSheetOpened] = useState(false);
+  const safeAreaInsets = useSafeAreaInsets();
+  const pagerViewRef = useRef<PagerView>(null);
+  const [activePosition, setActivePosition] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
-  const navigation = useNavigation();
-  //TODO: tidy up (extract to const?), source: Wikipedia
-  const data = [
-    'Aceh',
-    'Bali',
-    'Kapulauan Bangka Belitung',
-    'Banten',
-    'Bengkulu',
-    'Jawa Tengah',
-    'Kalimantan Tengah',
-    'Sulawesi Tengah',
-    'Jawa Timur',
-    'Kalimantan Timur',
-    'Nusa Tenggara Timur',
-    'Gorontalo',
-    'DKI Jakarta',
-    'Jambi',
-    'Lampung',
-    'Maluku',
-    'Kalimantan Utara',
-    'Maluku Utara',
-    'Sulawesi Utara',
-    'Sumatera Utara',
-    'Papua',
-    'Riau',
-    'Kapulauan Riau',
-    'Sulawesi Tenggara',
-    'Kalimantan Selatan',
-    'Sulawesi Selatan',
-    'Sumatera Selatan',
-    'Jawa Barat',
-    'Kalimantan Barat',
-    'Nusa Tenggara Barat',
-    'Papua Barat',
-    'Sulawesi Barat',
-    'Sumatera Barat',
-    'Daerah Istimewa Yogyakarta',
-    'Papua Selatan',
-    'Papua Tengah',
-    'Papua Pegunungan',
-    'Papua Barat Daya',
-  ];
+  const navigation = useNavigation<NavigationStackProps>();
   const methods = useForm<CampaignFormData>({
     mode: 'all',
     defaultValues: {
       platforms: [],
       locations: [],
-      importantInformation: [{value: ''}],
-      criterias: [{value: ''}],
-      startDate: new Date().getTime(),
-      endDate: new Date().getTime(),
+      importantInformation: [],
+      criterias: [],
+      timeline: [],
     },
   });
   const {
     handleSubmit,
     setValue,
     watch,
+    getValues,
     control,
-    // formState: {errors},
+    getFieldState,
+    formState,
+    trigger,
   } = methods;
 
   const onSubmitButtonClicked = (d: CampaignFormData) => {
     setIsUploading(true);
 
-    // TODO: extract to utility function
-    const imageType = d.image.mime.split('/')[1];
-    const filename = `campaigns/${uuid.v4()}.${imageType}`;
+    try {
+      const campaign = new Campaign({
+        userId: uid ?? '',
+        title: d.title,
+        description: d.description,
+        type: d.type,
+        fee: d.fee,
+        slot: d.slot,
+        criterias: d.criterias.map(getStringObjectValue),
+        platforms: d.platforms.map(p => ({
+          name: p.name,
+          tasks: p.tasks.map(getStringObjectValue),
+        })),
+        importantInformation: d.importantInformation.map(getStringObjectValue),
+        locations: d.locations
+          .map(loc => loc.value.id)
+          .filter((loc): loc is string => loc !== undefined),
+        // TODO: start date end date, picture
+        timeline: d.timeline,
+        image: d.image,
+      });
 
-    const reference = storage().ref(filename);
-    const task = reference.putFile(d.image.path);
+      console.log(campaign);
+      campaign.insert().then(isSuccess => {
+        setIsUploading(false);
 
-    task.on('state_changed', taskSnapshot => {
-      console.log(
-        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
-      );
-    });
-
-    task.then(() => {
-      try {
-        reference.getDownloadURL().then(url => {
-          console.log(url);
-          console.log('Image uploaded to the bucket!');
-
-          const campaign = new Campaign({
-            userId: uid ?? '',
-            title: d.title,
-            description: d.description,
-            type: d.type,
-            fee: d.fee,
-            slot: d.slot,
-            criterias: d.criterias.map(getStringObjectValue),
-            platforms: d.platforms.map(p => ({
-              name: p.name,
-              tasks: p.tasks.map(getStringObjectValue),
-            })),
-            importantInformation:
-              d.importantInformation.map(getStringObjectValue),
-            locations: d.locations.map(getStringObjectValue),
-            // TODO: start date end date, picture
-            start: d.startDate,
-            end: d.endDate,
-            image: url,
-          });
-
-          console.log(campaign);
-          campaign.insert().then(isSuccess => {
-            setIsUploading(false);
-
-            if (isSuccess) {
-              navigation.goBack();
-            }
-          });
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    });
+        if (isSuccess) {
+          navigation.goBack();
+        }
+      });
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const {
@@ -189,31 +185,86 @@ const CreateCampaignScreen = () => {
     control,
   });
 
-  // Location bottom sheet
-  const sheetRef = useRef<BottomSheetModal>(null);
-  const handleClosePress = () => setIsLocationSheetOpened(false);
+  const {
+    fields: fieldsTimeline,
+    append: appendTimeline,
+    remove: removeTimeline,
+    update: updateTimeline,
+  } = useFieldArray({
+    name: 'timeline',
+    control,
+  });
 
-  const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        opacity={1}
-        style={[props.style, background(COLOR.black[100])]}
-      />
-    ),
-    [],
-  );
-  useEffect(() => {
-    if (isLocationSheetOpened) {
-      sheetRef.current?.present();
+  const imageSelected = (url: string) => {
+    setValue('image', url);
+  };
+
+  const nextPage = async () => {
+    if (activePosition < maxPage) {
+      pagerViewRef.current?.setPage(activePosition + 1);
+      setActivePosition(activePosition + 1);
     } else {
-      sheetRef.current?.close();
+      await handleSubmit(onSubmitButtonClicked)();
     }
-  }, [isLocationSheetOpened]);
+  };
 
-  const imageSelected = (media: ImageType) => {
-    setValue('image', media);
+  const previousPage = () => {
+    pagerViewRef.current?.setPage(activePosition - 1);
+    setActivePosition(activePosition - 1);
+  };
+
+  const getCampaignTimelineIndex = (campaignStep: CampaignSteps) => {
+    return getValues('timeline').findIndex(t => t.step === campaignStep);
+  };
+
+  const updateCampaignTimeline = (
+    startDate: Date | null,
+    endDate: Date | null,
+    campaignStep: CampaignSteps,
+  ) => {
+    if (startDate?.getTime() && endDate?.getTime()) {
+      const updateIndex = getCampaignTimelineIndex(campaignStep);
+      const timeline = {
+        step: campaignStep,
+        start: startDate.getTime(),
+        end: endDate.getTime(),
+      };
+      if (updateIndex >= 0) {
+        updateTimeline(updateIndex, timeline);
+        return;
+      }
+      appendTimeline(timeline);
+    }
+  };
+
+  const getNearestPreviousTimelineEnd = (currentIndex: number): Date | null => {
+    if (currentIndex === 0) {
+      return null;
+    }
+    const previousTimelines = [
+      ...campaignTimeline.slice(0, currentIndex).reverse(),
+    ];
+    const previousEndDates = previousTimelines
+      .map(timeline => {
+        if (campaignTimeline[currentIndex].step !== timeline.step) {
+          const timelineIndex = getCampaignTimelineIndex(timeline.step);
+          if (timelineIndex >= 0) {
+            const endDateUnix = getValues(`timeline.${timelineIndex}`).end;
+            if (typeof endDateUnix === 'number') {
+              const endDate = new Date(endDateUnix);
+              return new Date(
+                endDate.getFullYear(),
+                endDate.getMonth(),
+                endDate.getDate() + 1,
+              );
+            }
+          }
+        }
+        return null;
+      })
+      .filter(timeline => timeline !== null);
+
+    return previousEndDates.length === 0 ? null : previousEndDates[0];
   };
 
   if (isUploading) {
@@ -222,184 +273,366 @@ const CreateCampaignScreen = () => {
 
   //TODO: start date end date, picture
   return (
-    <BottomSheetModalProvider>
-      <PageWithBackButton>
-        <SafeAreaContainer customInsets={{top: 0}} enable>
-          <ScrollView
-            bounces={false}
-            className="relative h-full"
-            // style={[background(COLOR.background.light)]}
-          >
-            <FormProvider {...methods}>
-              <HorizontalPadding paddingSize="large">
-                <View
-                  className="w-full flex flex-col justify-between py-5"
-                  style={[flex.flexCol, gap.xlarge]}>
-                  <Controller
-                    control={control}
-                    name="image"
-                    rules={{required: 'Image is required!'}}
-                    render={({field: {value}, fieldState: {error}}) => (
-                      <View className="flex flex-col">
-                        <Text className="text-black mb-3">Campaign Image</Text>
-                        <MediaUploader
-                          targetFolder="campaigns"
-                          options={{
-                            width: 400,
-                            height: 400,
-                            cropping: true,
-                            includeBase64: true,
-                          }}
-                          onMediaSelected={imageSelected}>
-                          {value ? (
-                            <Image
-                              className="w-16 h-16 rounded-lg"
-                              source={{
-                                uri: `data:${value.mime};base64,${value.data}`,
+    <FormProvider {...methods}>
+      <PageWithBackButton
+        fullHeight
+        onPress={previousPage}
+        disableDefaultOnPress={activePosition > 0}>
+        <View
+          className="flex-1"
+          style={[
+            flex.flexCol,
+            gap.default,
+            {
+              paddingTop: Math.max(safeAreaInsets.top, size.large),
+            },
+          ]}>
+          <HorizontalPadding paddingSize="large">
+            <Stepper
+              currentPosition={activePosition + 1}
+              maxPosition={maxPage}
+            />
+          </HorizontalPadding>
+          <PagerView
+            ref={pagerViewRef}
+            initialPage={1}
+            className="flex-1"
+            scrollEnabled={false}>
+            <View key={0}>
+              <KeyboardAvoidingContainer>
+                <HorizontalPadding paddingSize="large">
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                    ]}>
+                    <Controller
+                      control={control}
+                      name="image"
+                      rules={{required: 'Image is required!'}}
+                      render={({field: {value}, fieldState: {error}}) => (
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper title="Campaign Image" />
+                          <View style={[flex.flexRow, justify.start]}>
+                            <MediaUploader
+                              targetFolder="campaigns"
+                              options={{
+                                width: 400,
+                                height: 400,
+                                cropping: true,
+                                includeBase64: true,
                               }}
-                            />
-                          ) : (
-                            <View
-                              style={[flex.flexCol]}
-                              className="justify-center items-center">
+                              showUploadProgress
+                              onUploadSuccess={imageSelected}>
                               <View
-                                className={`w-16 h-16 bg-[#E7F3F8] rounded-lg flex justify-center items-center ${
-                                  error && 'border border-red-500'
-                                }`}>
-                                <PhotosIcon width={30} height={30} />
+                                className="overflow-hidden"
+                                style={[
+                                  dimension.square.xlarge5,
+                                  rounded.default,
+                                ]}>
+                                {value ? (
+                                  <Image
+                                    className=""
+                                    style={[dimension.full]}
+                                    source={{
+                                      uri: value,
+                                    }}
+                                  />
+                                ) : (
+                                  <View
+                                    style={[
+                                      dimension.full,
+                                      flex.flexRow,
+                                      justify.center,
+                                      items.center,
+                                      background(COLOR.background.neutral.med),
+                                      error &&
+                                        border({
+                                          borderWidth: 1,
+                                          color:
+                                            COLOR.background.danger.default,
+                                        }),
+                                    ]}>
+                                    <PhotosIcon width={30} height={30} />
+                                  </View>
+                                )}
                               </View>
-                            </View>
+                            </MediaUploader>
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {`${error?.message}`}
+                            </Text>
                           )}
-                        </MediaUploader>
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            {`${error?.message}`}
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-                  <CustomTextInput
-                    label="Campaign Title"
-                    name="title"
-                    rules={{
-                      required: 'Title is required',
-                    }}
-                  />
-                  <CustomTextInput
-                    label="Campaign Description"
-                    name="description"
-                    multiline={true}
-                    rules={{
-                      required: 'Description is required',
-                    }}
-                  />
-                  <Controller
-                    control={control}
-                    name="type"
-                    rules={{required: 'Type is required!'}}
-                    render={({field: {value, name}, fieldState: {error}}) => (
-                      <View>
-                        <Text className="text-black mb-3">Campaign Type</Text>
-                        <View className="flex flex-row gap-2">
-                          {Object.values(CampaignType).map((type, index) => (
-                            <View key={index}>
-                              <SelectableTag
-                                text={type}
-                                isSelected={value === type}
-                                onPress={() => setValue(name, type)}
-                              />
-                            </View>
-                          ))}
                         </View>
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            {`${error?.message}`}
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-
-                  {watch('type') === 'Public' ? (
-                    <>
+                      )}
+                    />
+                    <View style={[flex.flexCol, gap.default]}>
+                      <FormFieldHelper title="Your campaign title" />
                       <CustomTextInput
-                        label="Campaign Fee"
-                        name="fee"
+                        label="Campaign Title"
+                        name="title"
                         rules={{
-                          required: 'Fee is required',
+                          required: 'Title is required',
                         }}
-                      />
-
-                      <CustomTextInput
-                        label="Campaign Slot"
-                        name="slot"
-                        rules={{
-                          required: 'Slot is required',
-                        }}
-                      />
-                    </>
-                  ) : null}
-
-                  <Controller
-                    control={control}
-                    name="platforms"
-                    rules={{required: 'Platform is required!'}}
-                    render={({
-                      field: {value: platforms},
-                      fieldState: {error},
-                    }) => (
-                      <View>
-                        <Text className="text-black mb-3">
-                          Campaign Platfroms
-                        </Text>
-                        <View className="flex flex-row gap-2">
-                          {['Instagram', 'TikTok'].map((value, index) => (
-                            <View key={index}>
-                              <SelectableTag
-                                text={value}
-                                isSelected={
-                                  platforms.find(p => p.name === value) !==
-                                  undefined
-                                }
-                                onPress={() => {
-                                  const searchIndex = platforms.findIndex(
-                                    p => p.name === value,
-                                  );
-                                  if (searchIndex !== -1) {
-                                    removePlatform(searchIndex);
-                                  } else {
-                                    appendPlatform({
-                                      name: value,
-                                      tasks: [{value: ''}],
-                                    });
-                                  }
-                                }}
-                              />
-                            </View>
-                          ))}
-                        </View>
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            {/* {`${error}`} */}
-                            Platform is required!
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-                  {fieldsPlatform.map((fp, index) => (
-                    <View key={fp.id}>
-                      <FieldArray
-                        control={control}
-                        title={`${fp.name}'s Task`}
-                        parentName={`platforms.${index}.tasks`}
-                        childName="value"
-                        placeholder="Add task"
                       />
                     </View>
-                  ))}
+                    <View style={[flex.flexCol, gap.default]}>
+                      <FormFieldHelper title="Your campaign description" />
+                      <CustomTextInput
+                        label="Campaign Description"
+                        name="description"
+                        multiline={true}
+                        rules={{
+                          required: 'Description is required',
+                        }}
+                      />
+                    </View>
+                    <CustomButton
+                      text="Next"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('title', formState)) ||
+                        !isValidField(
+                          getFieldState('description', formState),
+                        ) ||
+                        !watch('image')
+                      }
+                      onPress={nextPage}
+                    />
+                  </View>
+                </HorizontalPadding>
+              </KeyboardAvoidingContainer>
+            </View>
+            <View key={1}>
+              <KeyboardAvoidingContainer>
+                <HorizontalPadding paddingSize="large">
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                    ]}>
+                    <Controller
+                      control={control}
+                      name="type"
+                      rules={{required: 'Type is required!'}}
+                      render={({field: {value, name}, fieldState: {error}}) => (
+                        <View style={[flex.flexCol, gap.default]}>
+                          <View style={[flex.flexCol, gap.xsmall]}>
+                            <FormFieldHelper title="Campaign type" />
+                            {CampaignType.Public === value ? (
+                              <FormFieldHelper description="Public campaigns are accessible to all content creators, and you will later shortlist each registrant." />
+                            ) : CampaignType.Private === value ? (
+                              <FormFieldHelper description="For private campaigns, it is necessary to individually contact each content creator privately." />
+                            ) : null}
+                          </View>
+                          <View style={[flex.flexRow, gap.small]}>
+                            {Object.values(CampaignType).map((type, index) => (
+                              <View key={index}>
+                                <SelectableTag
+                                  text={type}
+                                  isSelected={value === type}
+                                  onPress={() =>
+                                    setValue(name, type, {
+                                      shouldValidate: true,
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                    })
+                                  }
+                                />
+                              </View>
+                            ))}
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {`${error?.message}`}
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
 
+                    {watch('type') === 'Public' ? (
+                      <View style={[flex.flexCol, gap.medium]}>
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper
+                            title="Campaign fee"
+                            description="This will be the total earnings for each content creator if they finish all the tasks."
+                          />
+                          <CustomTextInput
+                            label="Campaign Fee"
+                            name="fee"
+                            inputType="price"
+                            rules={{
+                              required: 'Fee is required',
+                              validate: value => {
+                                return (
+                                  parseInt(value, 10) >= 50000 ||
+                                  'Minimum fee is Rp50.000'
+                                );
+                              },
+                            }}
+                          />
+                        </View>
+
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper title="Total open slot" />
+                          <CustomNumberInput
+                            label="Campaign Slot"
+                            name="slot"
+                            type="field"
+                            min={1}
+                            rules={{
+                              required: 'Slot is required',
+                            }}
+                          />
+                        </View>
+                        <View style={[flex.flexCol, items.start]}>
+                          <Text
+                            className="font-semibold"
+                            style={[
+                              font.size[30],
+                              textColor(COLOR.text.neutral.med),
+                            ]}>
+                            Total campaign fee
+                          </Text>
+                          <Text
+                            className="font-bold"
+                            style={[
+                              font.size[50],
+                              textColor(COLOR.text.neutral.high),
+                            ]}>
+                            {`Rp ${
+                              formatNumberWithThousandSeparator(
+                                watch('fee') * watch('slot'),
+                              ) || 0
+                            }`}
+                          </Text>
+                        </View>
+                      </View>
+                    ) : null}
+
+                    <CustomButton
+                      text="Next"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('type', formState)) ||
+                        (watch('type') === CampaignType.Public &&
+                          (!isValidField(getFieldState('fee', formState)) ||
+                            !isValidField(
+                              getFieldState('slot', formState),
+                              false,
+                            )))
+                      }
+                      onPress={nextPage}
+                    />
+                  </View>
+                </HorizontalPadding>
+              </KeyboardAvoidingContainer>
+            </View>
+            <View key={2}>
+              <KeyboardAvoidingContainer>
+                <HorizontalPadding paddingSize="large">
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                    ]}>
+                    <Controller
+                      control={control}
+                      name="platforms"
+                      rules={{required: 'Platform is required!'}}
+                      render={({
+                        field: {value: platforms},
+                        fieldState: {error},
+                      }) => (
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper
+                            title="Campaign platforms"
+                            description="Choose platforms for the campaign tasks."
+                          />
+                          <View className="flex flex-row gap-2">
+                            {['Instagram', 'TikTok'].map((value, index) => (
+                              <View key={index}>
+                                <SelectableTag
+                                  text={value}
+                                  isSelected={
+                                    platforms.find(p => p.name === value) !==
+                                    undefined
+                                  }
+                                  onPress={() => {
+                                    const searchIndex = platforms.findIndex(
+                                      p => p.name === value,
+                                    );
+                                    if (searchIndex !== -1) {
+                                      removePlatform(searchIndex);
+                                    } else {
+                                      appendPlatform({
+                                        name: value,
+                                        tasks: [],
+                                      });
+                                    }
+                                  }}
+                                />
+                              </View>
+                            ))}
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {/* {`${error}`} */}
+                              Platform is required!
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
+                    {fieldsPlatform.map((fp, index) => (
+                      <View key={fp.id}>
+                        <FieldArray
+                          control={control}
+                          title={`${fp.name}'s Task`}
+                          maxFieldLength={50}
+                          parentName={`platforms.${index}.tasks`}
+                          helperText='Ex. "2 story video (minimum 30s / story)"'
+                          childName="value"
+                          placeholder="Add task"
+                        />
+                      </View>
+                    ))}
+                    <CustomButton
+                      text="Next"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('platforms', formState)) ||
+                        fieldsPlatform.filter(
+                          (f, index) =>
+                            getValues(`platforms.${index}.tasks`).length === 0,
+                        ).length > 0
+                      }
+                      onPress={nextPage}
+                    />
+                  </View>
+                </HorizontalPadding>
+              </KeyboardAvoidingContainer>
+            </View>
+            <View key={3}>
+              <HorizontalPadding paddingSize="large">
+                <View
+                  style={[
+                    flex.flexCol,
+                    gap.xlarge,
+                    padding.top.medium,
+                    padding.bottom.xlarge2,
+                  ]}>
                   <Controller
                     control={control}
                     name="criterias"
@@ -411,6 +644,8 @@ const CreateCampaignScreen = () => {
                           title="Campaign Criterias"
                           parentName="criterias"
                           childName="value"
+                          placeholder="Add criteria"
+                          helperText='Ex. "Minimal 100k followers"'
                         />
                         {error && (
                           <Text className="text-xs mt-2 font-medium text-red-500">
@@ -432,6 +667,9 @@ const CreateCampaignScreen = () => {
                           parentName="importantInformation"
                           childName="value"
                           placeholder="Add dos and/or don'ts"
+                          helperText={
+                            'Ex. "Don\'t use profanity", "Be natural"'
+                          }
                         />
                         {error && (
                           <Text className="text-xs mt-2 font-medium text-red-500">
@@ -451,20 +689,46 @@ const CreateCampaignScreen = () => {
                       fieldState: {error},
                     }) => (
                       <View className="flex flex-col">
-                        <View className="flex flex-row justify-between items-center">
-                          <Text>Location</Text>
-
-                          <Pressable
-                            onPress={() => setIsLocationSheetOpened(true)}>
-                            <Text className="font-bold text-md">+</Text>
-                          </Pressable>
+                        <View style={[flex.flexRow, items.center]}>
+                          <View style={[flex.flex1]}>
+                            <FormFieldHelper
+                              title="Location"
+                              description="Campaign's target impacted locations"
+                            />
+                          </View>
+                          <InternalLink
+                            text="Add"
+                            onPress={() => {
+                              openLocationModal({
+                                preferredLocations: getValues('locations').map(
+                                  loc => loc.value,
+                                ),
+                                setPreferredLocations: locations => {
+                                  setValue('locations', []);
+                                  appendLocation(
+                                    locations.map(loc => {
+                                      return {
+                                        value: loc,
+                                      };
+                                    }),
+                                  );
+                                },
+                                navigation: navigation,
+                              });
+                            }}
+                          />
                         </View>
                         <View className="flex flex-row flex-wrap gap-2 mt-3">
-                          {locations.map((l, index: number) => (
-                            <View key={index}>
-                              <SelectableTag text={l.value} isSelected={true} />
-                            </View>
-                          ))}
+                          {locations.map((l, index: number) =>
+                            l.value.id ? (
+                              <View key={index}>
+                                <RemovableChip
+                                  text={l.value.id}
+                                  onPress={() => removeLocation(index)}
+                                />
+                              </View>
+                            ) : null,
+                          )}
                         </View>
                         {error && (
                           <Text className="text-xs mt-2 font-medium text-red-500">
@@ -474,151 +738,180 @@ const CreateCampaignScreen = () => {
                       </View>
                     )}
                   />
-
-                  {/* TODO: validate date, extract to component */}
-                  <View className="flex flex-row justify-between">
-                    <Controller
-                      control={control}
-                      name="startDate"
-                      rules={{
-                        required: 'Start Date is required!',
-                        validate: d =>
-                          d >= new Date().getTime() ||
-                          'Date must be after today!',
-                      }}
-                      render={({
-                        field: {name, value: startDate},
-                        fieldState: {error},
-                      }) => (
-                        <View className="">
-                          <View className="flex flex-col items-start ">
-                            <View className="flex flex-row justify-between items-center mb-3">
-                              <Text>Start Date</Text>
-                            </View>
-                            <SelectableTag
-                              text={`${new Date(
-                                startDate,
-                              ).toLocaleDateString()}`}
-                              onPress={() => setIsStartDateSheetOpened(true)}
-                            />
-                          </View>
-                          <DatePicker
-                            modal
-                            mode={'date'}
-                            open={isStartDateSheetOpened}
-                            date={new Date(startDate)}
-                            onConfirm={d => {
-                              setIsStartDateSheetOpened(false);
-                              setValue(name, d.getTime());
-                            }}
-                            onCancel={() => {
-                              setIsStartDateSheetOpened(false);
-                            }}
-                          />
-
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              {error.message}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                    />
-
-                    <Controller
-                      control={control}
-                      name="endDate"
-                      rules={{
-                        required: 'End Date is required!',
-                        validate: d =>
-                          d > watch('startDate') ||
-                          'End Date must be after start date!',
-                      }}
-                      render={({
-                        field: {name, value: endDate},
-                        fieldState: {error},
-                      }) => (
-                        <View className="">
-                          <View className="flex flex-col items-start ">
-                            <View className="flex flex-row justify-between items-center mb-3">
-                              <Text>End Date</Text>
-                            </View>
-                            <SelectableTag
-                              text={`${new Date(endDate).toLocaleDateString()}`}
-                              onPress={() => setIsEndDateSheetOpened(true)}
-                            />
-                          </View>
-                          <DatePicker
-                            modal
-                            mode={'date'}
-                            open={isEndDateSheetOpened}
-                            date={new Date(endDate)}
-                            onConfirm={d => {
-                              setIsEndDateSheetOpened(false);
-                              setValue(name, d.getTime());
-                            }}
-                            onCancel={() => {
-                              setIsEndDateSheetOpened(false);
-                            }}
-                          />
-
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              {error.message}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                    />
-                  </View>
                   <CustomButton
-                    text="Submit"
-                    rounded="default"
-                    onPress={handleSubmit(onSubmitButtonClicked)}
+                    text="Next"
+                    rounded="max"
+                    minimumWidth
+                    disabled={
+                      !isValidField(getFieldState('criterias', formState)) ||
+                      !isValidField(
+                        getFieldState('importantInformation', formState),
+                      ) ||
+                      !isValidField(getFieldState('locations', formState)) ||
+                      getValues('criterias').length === 0 ||
+                      getValues('importantInformation').length === 0 ||
+                      getValues('locations').length === 0
+                    }
+                    onPress={nextPage}
                   />
                 </View>
               </HorizontalPadding>
-            </FormProvider>
-          </ScrollView>
+            </View>
+            <View key={4}>
+              <KeyboardAvoidingContainer>
+                <HorizontalPadding paddingSize="large">
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                    ]}>
+                    {/* TODO: validate date, extract to component */}
+                    {campaignTimeline.map((timeline, index) => {
+                      const campaignTimelineIndex = getCampaignTimelineIndex(
+                        timeline.step,
+                      );
+                      const timelineField = fieldsTimeline.find(
+                        field => field.step === timeline.step,
+                      );
+                      return (
+                        <View
+                          key={timelineField?.id || index}
+                          style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper
+                            title={timeline.step}
+                            description={timeline.description}
+                            type={timeline.optional ? 'optional' : 'required'}
+                          />
+                          <Controller
+                            control={control}
+                            name={`timeline.${campaignTimelineIndex}`}
+                            rules={{
+                              validate: (value: CampaignTimeline) => {
+                                if (
+                                  (timeline.optional && !value?.start) ||
+                                  campaignTimelineIndex === -1
+                                ) {
+                                  return true;
+                                }
+                                const previousTimeline =
+                                  getNearestPreviousTimelineEnd(index);
+                                if (!previousTimeline) {
+                                  return true;
+                                }
+                                return (
+                                  value?.start >= previousTimeline.getTime() ||
+                                  `Date must start at least on ${formatDateToDayMonthYear(
+                                    previousTimeline,
+                                  )}`
+                                );
+                              },
+                            }}
+                            render={({field: {value}, fieldState: {error}}) => (
+                              <View style={[flex.flexCol, gap.small]}>
+                                <View
+                                  style={[
+                                    flex.flexRow,
+                                    gap.default,
+                                    items.start,
+                                  ]}>
+                                  <DatePicker
+                                    minimumDate={
+                                      index > 0
+                                        ? getNearestPreviousTimelineEnd(
+                                            index,
+                                          ) || undefined
+                                        : undefined
+                                    }
+                                    startDate={
+                                      value?.start
+                                        ? new Date(value.start)
+                                        : undefined
+                                    }
+                                    endDate={
+                                      value?.end
+                                        ? new Date(value.end)
+                                        : undefined
+                                    }
+                                    onDateChange={(startDate, endDate) => {
+                                      updateCampaignTimeline(
+                                        startDate,
+                                        endDate,
+                                        timeline.step,
+                                      );
+                                      trigger('timeline');
+                                    }}>
+                                    <DefaultDatePickerPlaceholder
+                                      text={
+                                        campaignTimelineIndex >= 0 && value?.end
+                                          ? `${formatDateToDayMonthYear(
+                                              new Date(value.start),
+                                            )} - ${formatDateToDayMonthYear(
+                                              new Date(value.end),
+                                            )}`
+                                          : 'Add date'
+                                      }
+                                      isEdit={campaignTimelineIndex >= 0}
+                                      isError={error !== undefined}
+                                      helperText={error?.message}
+                                    />
+                                  </DatePicker>
+                                  {timeline.optional &&
+                                    campaignTimelineIndex >= 0 && (
+                                      <Pressable
+                                        className="rotate-45"
+                                        style={[
+                                          flex.flexRow,
+                                          items.center,
+                                          justify.center,
+                                          dimension.square.xlarge,
+                                          rounded.max,
+                                          background(
+                                            COLOR.background.danger.high,
+                                          ),
+                                          padding.xsmall,
+                                        ]}
+                                        onPress={() => {
+                                          removeTimeline(campaignTimelineIndex);
+                                          trigger('timeline');
+                                        }}>
+                                        <AddIcon
+                                          size="default"
+                                          color={COLOR.black[0]}
+                                        />
+                                      </Pressable>
+                                    )}
+                                </View>
+                              </View>
+                            )}
+                          />
+                        </View>
+                      );
+                    })}
 
-          <BottomSheetModal
-            ref={sheetRef}
-            onDismiss={handleClosePress}
-            backdropComponent={renderBackdrop}
-            snapPoints={['90%']}
-            index={0}
-            enablePanDownToClose>
-            <BottomSheetScrollView>
-              <View className="flex flex-col px-4 pb-8 gap-1">
-                {data.map((d, index) => (
-                  <View key={index} className="flex flex-row items-center">
-                    <CheckBox
-                      boxType="circle"
-                      style={{transform: [{scaleX: 0.7}, {scaleY: 0.7}]}}
-                      value={
-                        watch('locations').find(l => l.value === d) !==
-                        undefined
+                    <CustomButton
+                      text="Submit"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('timeline', formState)) ||
+                        campaignTimeline.filter(
+                          timeline =>
+                            getCampaignTimelineIndex(timeline.step) === -1 &&
+                            !timeline.optional,
+                        ).length > 0
                       }
-                      onValueChange={() => {
-                        const searchIndex = watch('locations').findIndex(
-                          l => l.value === d,
-                        );
-                        if (searchIndex !== -1) {
-                          removeLocation(searchIndex);
-                        } else {
-                          appendLocation({value: d});
-                        }
-                      }}
+                      onPress={handleSubmit(onSubmitButtonClicked)}
                     />
-                    <Text className="mb-1">{d}</Text>
                   </View>
-                ))}
-              </View>
-            </BottomSheetScrollView>
-          </BottomSheetModal>
-        </SafeAreaContainer>
+                </HorizontalPadding>
+              </KeyboardAvoidingContainer>
+            </View>
+          </PagerView>
+        </View>
       </PageWithBackButton>
-    </BottomSheetModalProvider>
+    </FormProvider>
   );
 };
 
