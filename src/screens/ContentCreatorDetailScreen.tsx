@@ -265,7 +265,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
           </PagerView>
         </View>
         <View>
-          <CustomButton text="Contact Content Creator" />
+          <CustomButton text="Make Offer" />
         </View>
       </View>
     </PageWithBackButton>

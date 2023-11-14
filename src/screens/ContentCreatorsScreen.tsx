@@ -255,7 +255,7 @@ const ContentCreatorsScreen: React.FC = () => {
                           }
                           imageUrl={
                             item.contentCreator?.profilePicture ??
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
+                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
                           }
                         />
                       ) : null,
@@ -273,7 +273,7 @@ const ContentCreatorsScreen: React.FC = () => {
                           }
                           imageUrl={
                             item.contentCreator?.profilePicture ??
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
+                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
                           }
                         />
                       ) : null,
