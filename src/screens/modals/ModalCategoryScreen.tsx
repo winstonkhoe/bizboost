@@ -86,7 +86,7 @@ const ModalCategoryScreen = ({route}: Props) => {
   };
 
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <View className="flex-1" style={[flex.flexCol, gap.small]}>
         <View className="items-center" style={[flex.flexRow, gap.default]}>
           <CloseModal closeEventType="category" />

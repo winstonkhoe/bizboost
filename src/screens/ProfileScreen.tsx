@@ -29,7 +29,7 @@ const ProfileScreen = () => {
       <ScrollView
         contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}>
-        <SafeAreaContainer>
+        <SafeAreaContainer enable>
           <View className="flex-1 justify-between" style={[flex.flexCol]}>
             <View className="flex-1" style={[flex.flexCol]}>
               <HorizontalPadding>

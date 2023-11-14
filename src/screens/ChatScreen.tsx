@@ -120,7 +120,7 @@ const ChatScreen = ({route}: Props) => {
   };
 
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <View
         className="h-full w-full"
         style={[flex.flexCol, background(COLOR.white)]}>
@@ -135,6 +135,7 @@ const ChatScreen = ({route}: Props) => {
         </View>
 
         {/* Floating Tab */}
+        {/* if there is offer then add margin top for the chats */}
         <FloatingOffer />
 
         {/* Chat Messages */}
