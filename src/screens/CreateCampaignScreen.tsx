@@ -284,7 +284,10 @@ const CreateCampaignScreen = () => {
             flex.flexCol,
             gap.default,
             {
-              paddingTop: Math.max(safeAreaInsets.top, size.large),
+              paddingTop: Math.max(
+                safeAreaInsets.top,
+                safeAreaInsets.top < 10 ? size.large : size.xlarge4,
+              ),
             },
           ]}>
           <HorizontalPadding paddingSize="large">
