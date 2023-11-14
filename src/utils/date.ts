@@ -50,6 +50,10 @@ export const getDateDiff = (date1?: Date, date2?: Date) => {
   return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 };
 
+export const getBiggerDate = (date1: Date, date2: Date) => {
+  return date1 > date2 ? date1 : date2;
+};
+
 export const formatDate = (date: Date, format: string): string => {
   const formatPlaceholders: Record<string, number> = {
     dd: date.getDate(),
