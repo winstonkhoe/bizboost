@@ -37,10 +37,11 @@ import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {AddIcon, MinusIcon} from './Icon';
-import {font} from '../../styles/Font';
+import {font, fontSize, lineHeight} from '../../styles/Font';
 import uuid from 'react-native-uuid';
 import storage from '@react-native-firebase/storage';
 import {ProgressBar} from './ProgressBar';
+import {border} from '../../styles/Border';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -601,6 +602,7 @@ interface FormlessTextInputProps extends TextInputProps {
   description?: string;
   counter?: boolean;
   max?: number;
+  type?: 'default' | 'textarea';
   inputType?: 'default' | 'number' | 'price';
   prefix?: string;
   focus?: boolean;
@@ -616,6 +618,7 @@ export const FormlessTextInput = ({
   description,
   counter,
   max,
+  type = 'default',
   inputType = 'default',
   prefix,
   focus = false,
@@ -703,6 +706,14 @@ export const FormlessTextInput = ({
           flex.flexRow,
           justify.start,
           gap.default,
+          type === 'textarea' && [
+            padding.default,
+            rounded.default,
+            border({
+              borderWidth: 1,
+              color: COLOR.green[50],
+            }),
+          ],
           disabled && rounded.default,
           disabled && horizontalPadding.small,
           disabled && background(COLOR.background.neutral.disabled),
@@ -725,6 +736,7 @@ export const FormlessTextInput = ({
         <TextInput
           ref={fieldRef}
           {...props}
+          multiline={type === 'textarea'}
           keyboardType={
             props.keyboardType
               ? props.keyboardType
@@ -738,6 +750,9 @@ export const FormlessTextInput = ({
             ),
             font.size[30],
             font.lineHeight[30],
+            type === 'textarea' && {
+              minHeight: lineHeight[30] * 3,
+            },
           ]}
           value={
             inputType === 'number' || inputType === 'price'
@@ -750,7 +765,7 @@ export const FormlessTextInput = ({
           className="w-full font-medium"
         />
       </View>
-      {!disabled && (
+      {!disabled && type !== 'textarea' && (
         <View
           onLayout={event => {
             const {width} = event.nativeEvent.layout;
