@@ -295,7 +295,6 @@ const CreateCampaignScreen = () => {
           </HorizontalPadding>
           <PagerView
             ref={pagerViewRef}
-            initialPage={1}
             className="flex-1"
             scrollEnabled={false}>
             <View key={0}>
