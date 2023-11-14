@@ -31,7 +31,7 @@ const ChatListScreen = () => {
       <View style={flex.flexCol} className="bg-white">
         <Text className="text-2xl font-bold p-4">Chat List</Text>
         <ScrollView style={flex.flexCol}>
-          {chats.chat ? (
+          {chats.chats ? (
             chats.chats.map((item, idx) => {
               const recipient = item.recipient;
               const chat = item.chat;
