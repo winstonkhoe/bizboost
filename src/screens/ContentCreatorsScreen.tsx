@@ -26,11 +26,11 @@ import {background} from '../styles/BackgroundColor';
 import {CustomButton} from '../components/atoms/Button';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
 import {Location} from '../model/Location';
+import {useAppSelector} from '../redux/hooks';
+import {getSimilarContentCreators} from '../validations/user';
 
 interface SelectedFilters {
   locations: string[];
-  minPrice: number;
-  maxPrice: number;
   categories: string[];
 }
 
@@ -39,6 +39,7 @@ const ContentCreatorsScreen: React.FC = () => {
   const [filterModalState, setFilterModalState] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const {searchTerm} = useAppSelector(select => select.search);
 
   const [filteredContentCreators, setFilteredContentCreators] = useState<
     User[]
@@ -62,6 +63,13 @@ const ContentCreatorsScreen: React.FC = () => {
   useEffect(() => {
     let sortedContentCreators = [...contentCreators];
 
+    if (searchTerm && searchTerm !== '') {
+      sortedContentCreators = getSimilarContentCreators(
+        sortedContentCreators,
+        searchTerm,
+      );
+    }
+
     if (selectedFilters.categories.length > 0) {
       sortedContentCreators = sortedContentCreators.filter(
         contentCreator =>
@@ -77,15 +85,14 @@ const ContentCreatorsScreen: React.FC = () => {
         const ratingA = a.contentCreator?.rating;
         const ratingB = b.contentCreator?.rating;
 
-        // Handle cases where one of them is null or undefined
         if (ratingA == null && ratingB == null) {
-          return 0; // No change in order if both are null
+          return 0;
         }
         if (ratingA == null) {
-          return sortOrder === -1 ? 1 : -1; // Move null/undefined to the end
+          return sortOrder === -1 ? 1 : -1;
         }
         if (ratingB == null) {
-          return sortOrder === -1 ? -1 : 1; // Move null/undefined to the end
+          return sortOrder === -1 ? -1 : 1;
         }
 
         return sortOrder === -1 ? ratingA - ratingB : ratingB - ratingA;
@@ -97,15 +104,14 @@ const ContentCreatorsScreen: React.FC = () => {
         const followersA = a.instagram?.followersCount;
         const followersB = b.instagram?.followersCount;
 
-        // Handle cases where one of them is null or undefined
         if (followersA == null && followersB == null) {
-          return 0; // No change in order if both are null
+          return 0;
         }
         if (followersA == null) {
-          return sortOrder === -1 ? 1 : -1; // Move null/undefined to the end
+          return sortOrder === -1 ? 1 : -1;
         }
         if (followersB == null) {
-          return sortOrder === -1 ? -1 : 1; // Move null/undefined to the end
+          return sortOrder === -1 ? -1 : 1;
         }
 
         return sortOrder === -1
@@ -119,15 +125,14 @@ const ContentCreatorsScreen: React.FC = () => {
         const followersA = a.tiktok?.followersCount;
         const followersB = b.tiktok?.followersCount;
 
-        // Handle cases where one of them is null or undefined
         if (followersA == null && followersB == null) {
-          return 0; // No change in order if both are null
+          return 0;
         }
         if (followersA == null) {
-          return sortOrder === -1 ? 1 : -1; // Move null/undefined to the end
+          return sortOrder === -1 ? 1 : -1;
         }
         if (followersB == null) {
-          return sortOrder === -1 ? -1 : 1; // Move null/undefined to the end
+          return sortOrder === -1 ? -1 : 1;
         }
 
         return sortOrder === -1
@@ -137,7 +142,7 @@ const ContentCreatorsScreen: React.FC = () => {
     }
 
     setFilteredContentCreators(sortedContentCreators);
-  }, [selectedFilters, sortBy, sortOrder, contentCreators]);
+  }, [selectedFilters, sortBy, sortOrder, searchTerm, contentCreators]);
 
   const modalRef = useRef<BottomSheetModal>(null);
   const handleClosePress = () => setFilterModalState(false);
