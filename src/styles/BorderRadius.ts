@@ -8,6 +8,7 @@ interface BorderRadiusProps {
 }
 
 export type RadiusSizeType =
+  | 'none'
   | 'small'
   | 'default'
   | 'medium'
@@ -38,6 +39,7 @@ export const borderRadius = ({
 };
 
 export const radiusSize: RadiusSize = {
+  none: 0,
   small: 4,
   default: 8,
   medium: 16,

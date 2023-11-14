@@ -37,6 +37,7 @@ export enum UserStatus {
 
 export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
 
+// TODO: @win win kayaknya ini mayan memusingkan deh ada UserRoles dan UserRole, kenapa ga yang di UserRole tambah undefined aja?
 export type UserRoles =
   | UserRole.ContentCreator
   | UserRole.BusinessPeople
@@ -138,6 +139,9 @@ export class User extends BaseModel {
         phone: data?.phone,
         contentCreator: {
           ...data.contentCreator,
+          postingSchedules: data.contentCreator?.postingSchedules?.map(
+            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
+          ),
           specializedCategoryIds:
             data.contentCreator?.specializedCategoryIds?.map(
               (categoryId: FirebaseFirestoreTypes.DocumentReference) =>

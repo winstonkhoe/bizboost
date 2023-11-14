@@ -1,4 +1,4 @@
-import {PressableProps, Text} from 'react-native';
+import {PressableProps, Text, TextStyle} from 'react-native';
 import {RadiusSizeType, rounded} from '../../styles/BorderRadius';
 import {View} from 'react-native';
 import {flex} from '../../styles/Flex';
@@ -11,8 +11,10 @@ import {ReactNode} from 'react';
 import {SizeType} from '../../styles/Size';
 import Animated from 'react-native-reanimated';
 import {AnimatedPressable} from './AnimatedPressable';
+import {font} from '../../styles/Font';
 
-type Prominence = 'primary' | 'secondary' | 'tertiary';
+// TODO: ini alternate buat yg button reject transaction sih, belom tau lebih rapi nya gmn @win
+type Prominence = 'primary' | 'secondary' | 'tertiary' | 'alternate';
 
 export interface CustomButtonProps
   extends PressableProps,
@@ -23,7 +25,7 @@ export interface CustomButtonProps
   verticalPadding?: SizeType;
   customBackgroundColor?: typeof COLOR.background.green;
   customTextColor?: typeof COLOR.text.green;
-  customTextSize?: 'text-base' | 'text-sm' | 'text-xs';
+  customTextSize?: TextStyle;
   minimumWidth?: boolean;
   logo?: ReactNode;
 }
@@ -35,7 +37,7 @@ export const CustomButton = ({
   type = 'primary',
   customBackgroundColor = COLOR.background.green,
   customTextColor = COLOR.text.green,
-  customTextSize = 'text-base',
+  customTextSize = font.size[30],
   minimumWidth = false,
   logo,
   ...props
@@ -59,6 +61,7 @@ export const CustomButton = ({
             }),
           (type === 'secondary' || type === 'tertiary') &&
             background(COLOR.black[0]),
+          type === 'alternate' && background(COLOR.black[5]),
           type === 'primary' &&
             background(
               props.disabled
@@ -74,15 +77,18 @@ export const CustomButton = ({
           </View>
         )}
         <Text
-          className={`font-bold ${customTextSize}`}
+          className={`font-bold`}
           style={[
             type === 'primary'
               ? textColor(COLOR.black[1])
+              : type === 'alternate'
+              ? textColor(COLOR.black[90])
               : textColor(
                   props.disabled
                     ? customTextColor.disabled
                     : customTextColor.default,
                 ),
+            customTextSize,
           ]}>
           {text}
         </Text>
