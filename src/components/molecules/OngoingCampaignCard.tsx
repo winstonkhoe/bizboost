@@ -49,69 +49,75 @@ const OngoingCampaignCard = ({campaign}: Props) => {
   return (
     <AnimatedPressable
       scale={0.95}
-      className="bg-white"
-      style={[flex.flex1, shadow.default, rounded.medium]}
+      style={[
+        flex.flexCol,
+        rounded.medium,
+        padding.default,
+        gap.default,
+        shadow.default,
+        rounded.medium,
+      ]}
       onPress={onViewCampaignDetailButtonClicked}>
       <View
-        style={[flex.flexCol, rounded.medium, padding.default, gap.default]}>
-        <View
-          style={[
-            flex.flexRow,
-            justify.between,
-            items.end,
-            {
-              borderBottomWidth: 1,
-              borderBottomColor: COLOR.black[20],
-            },
-            padding.bottom.default,
-          ]}>
-          <View style={[flex.flexRow, gap.small, justify.start]}>
-            <Text
-              className="font-medium"
-              style={[font.size[40], textColor(COLOR.text.neutral.med)]}>
-              {user?.businessPeople?.fullname}
-            </Text>
-          </View>
-          {firstTimeline && (
-            <Label
-              radius="default"
-              text={`${formatDateToDayMonthYear(
-                new Date(firstTimeline.start),
-              )} - ${formatDateToDayMonthYear(new Date(firstTimeline.end))}`}
-            />
-          )}
+        style={[
+          flex.flexRow,
+          justify.between,
+          items.end,
+          {
+            borderBottomWidth: 1,
+            borderBottomColor: COLOR.black[20],
+          },
+          padding.bottom.default,
+        ]}>
+        <View style={[flex.flexRow, gap.small, justify.start]}>
+          <Text
+            className="font-medium"
+            style={[font.size[40], textColor(COLOR.text.neutral.med)]}>
+            {user?.businessPeople?.fullname}
+          </Text>
         </View>
-        <View style={[flex.flexCol]}>
-          <View style={[flex.flexRow, gap.medium]}>
-            <View
-              className="w-24 h-24 overflow-hidden"
-              style={[rounded.medium]}>
-              <FastImage
-                style={[dimension.full]}
-                source={{uri: campaign.image}}
-              />
+        {firstTimeline && (
+          <Label
+            radius="default"
+            text={`${formatDateToDayMonthYear(
+              new Date(firstTimeline.start),
+            )} - ${formatDateToDayMonthYear(new Date(firstTimeline.end))}`}
+          />
+        )}
+      </View>
+      <View style={[flex.flexCol]}>
+        <View style={[flex.flexRow, gap.medium]}>
+          <View className="w-24 h-24 overflow-hidden" style={[rounded.medium]}>
+            <FastImage
+              style={[dimension.full]}
+              source={{uri: campaign.image}}
+            />
+          </View>
+          <View style={[flex.flex1, flex.flexCol, gap.small]}>
+            <Text
+              className="font-bold"
+              style={[font.size[40]]}
+              numberOfLines={2}>
+              {campaign.title}
+            </Text>
+            <View style={[flex.flexRow, gap.small]}>
+              {campaign?.platforms?.map(platform => (
+                <Label
+                  key={platform.name}
+                  type="danger"
+                  radius="default"
+                  text={platform.name}
+                />
+              ))}
             </View>
             <View style={[flex.flexCol, gap.small]}>
-              <Text
-                className="font-bold"
-                style={[font.size[40]]}
-                numberOfLines={2}>
-                {campaign.title}
-              </Text>
-              <View style={[flex.flexRow, gap.small]}>
-                {campaign?.platforms?.map(platform => (
-                  <Label type="danger" radius="default" text={platform.name} />
-                ))}
-              </View>
-              <View style={[flex.flexCol, gap.small]}>
-                {campaign.fee && (
-                  <Text
-                    className="font-semibold"
-                    style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                    {`Rp${formatNumberWithThousandSeparator(campaign.fee)}`}
-                  </Text>
-                )}
-              </View>
+              {campaign.fee && (
+                <Text
+                  className="font-semibold"
+                  style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                  {`Rp${formatNumberWithThousandSeparator(campaign.fee)}`}
+                </Text>
+              )}
             </View>
           </View>
         </View>
