@@ -63,7 +63,7 @@ export const RegisterProfilePicture = ({
               onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
               <View
                 className="overflow-hidden"
-                style={[dimension.square.xlarge6, rounded.medium]}>
+                style={[dimension.square.xlarge7, rounded.medium]}>
                 <Image
                   style={[dimension.full]}
                   source={

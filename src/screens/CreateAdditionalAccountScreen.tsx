@@ -56,7 +56,6 @@ import {RegisterProfilePicture} from './signup/RegisterProfilePicture';
 
 type FormData = {
   fullname: string;
-  phone: string;
 };
 
 enum CreateAccountStep {
@@ -253,25 +252,12 @@ export const CreateAdditionalAccountScreen = () => {
                         required: 'Fullname is required',
                       }}
                     />
-                    <CustomTextInput
-                      keyboardType="phone-pad"
-                      label="Phone Number"
-                      name="phone"
-                      rules={{
-                        required: 'Phone number is required',
-                        pattern: {
-                          value: /^(^\+62|62|^08)(\d{3,4}-?){2}\d{3,4}$/g,
-                          message: 'Phone number is invalid',
-                        },
-                      }}
-                    />
                     <CustomButton
                       text={actionText}
                       rounded="max"
                       minimumWidth
                       disabled={
-                        !isValidField(getFieldState('fullname', formState)) ||
-                        !isValidField(getFieldState('phone', formState))
+                        !isValidField(getFieldState('fullname', formState))
                       }
                       onPress={nextPage}
                     />

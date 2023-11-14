@@ -16,6 +16,7 @@ import {useAppSelector} from '../redux/hooks';
 import {getSimilarCampaigns} from '../validations/campaign';
 
 const CampaignsScreen = () => {
+  // TODO: validasi, CC gabisa liat campaigns yang punyanya dia sebagai BP
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const {searchTerm} = useAppSelector(select => select.search);
   useEffect(() => {

@@ -32,13 +32,31 @@ export const useUser = () => {
     activeRole,
   );
 
+  const updateUserRole = useCallback(
+    (u: User) => {
+      if (
+        u.contentCreator?.fullname &&
+        activeRole !== UserRole.ContentCreator
+      ) {
+        dispatch(switchRole(UserRole.ContentCreator));
+      } else if (
+        u.businessPeople?.fullname &&
+        activeRole !== UserRole.BusinessPeople
+      ) {
+        dispatch(switchRole(UserRole.BusinessPeople));
+      }
+    },
+    [dispatch, activeRole],
+  );
+
   const updateUserState = useCallback(
     (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
+        updateUserRole(u);
       }
     },
-    [dispatch],
+    [dispatch, updateUserRole],
   );
 
   useEffect(() => {
@@ -71,24 +89,12 @@ export const useUser = () => {
         dispatch(switchRole(undefined));
       }
     }
-    if (user && uid) {
-      if (!activeRole) {
-        if (
-          user.contentCreator?.fullname &&
-          activeRole !== UserRole.ContentCreator
-        ) {
-          dispatch(switchRole(UserRole.ContentCreator));
-        } else if (
-          user.businessPeople?.fullname &&
-          activeRole !== UserRole.BusinessPeople
-        ) {
-          dispatch(switchRole(UserRole.BusinessPeople));
-        }
-      }
+    if (user && uid && !activeRole) {
+      updateUserRole(user);
     }
     if (user && !uid) {
       dispatch(setUser(null));
     }
-  }, [user, uid, dispatch, activeRole]);
+  }, [user, uid, dispatch, updateUserRole, activeRole]);
   return {uid, user, activeRole, activeData};
 };
