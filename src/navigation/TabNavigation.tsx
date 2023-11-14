@@ -22,6 +22,7 @@ import {NavigationProp} from '@react-navigation/native';
 import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
 import ContentCreatorsScreen from '../screens/ContentCreatorsScreen';
 import ExploreScreen from '../screens/ExploreScreen';
+
 const Tab = createBottomTabNavigator();
 
 export enum TabNavigation {
@@ -38,7 +39,6 @@ type TabNavigationParamList = {
   [TabNavigation.Chat]: undefined;
   [TabNavigation.Profile]: undefined;
   [TabNavigation.ContentCreators]: undefined;
-
   [TabNavigation.Campaigns]: undefined;
   [TabNavigation.Explore]: undefined;
 };
