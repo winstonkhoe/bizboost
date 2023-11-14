@@ -19,7 +19,7 @@ export const FormLabel = ({type = 'required'}: FormLabelProps) => {
 };
 
 interface FormFieldHelperProps extends FormLabelProps {
-  title: string;
+  title?: string;
   description?: string;
 }
 
@@ -28,13 +28,15 @@ export const FormFieldHelper = ({
   description,
   ...props
 }: FormFieldHelperProps) => {
-  return (
+  return title || description ? (
     <View style={[flex.flexCol, gap.small]}>
-      <Text
-        className="font-bold"
-        style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-        {title} <FormLabel type={props.type} />
-      </Text>
+      {title && (
+        <Text
+          className="font-bold"
+          style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
+          {title} <FormLabel type={props.type} />
+        </Text>
+      )}
       {description && (
         <Text
           className="font-medium"
@@ -43,5 +45,5 @@ export const FormFieldHelper = ({
         </Text>
       )}
     </View>
-  );
+  ) : null;
 };
