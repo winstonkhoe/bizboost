@@ -27,8 +27,12 @@ import {
   TabNavigation,
   TabNavigationProps,
 } from '../../navigation/TabNavigation';
+import {useUser} from '../../hooks/user';
+import {UserRole} from '../../model/User';
 
 const SearchBar = () => {
+  const {activeRole} = useUser();
+
   const searchInputRef = useRef<TextInput>(null);
   const {searchTerm, isOnSearchPage} = useAppSelector(state => state.search);
   const dispatch = useAppDispatch();
@@ -51,7 +55,11 @@ const SearchBar = () => {
 
   const search = () => {
     dispatch(closeSearchPage());
-    navigation.navigate(TabNavigation.Campaigns);
+    if (activeRole === UserRole.ContentCreator) {
+      navigation.navigate(TabNavigation.Campaigns);
+    } else {
+      navigation.navigate(TabNavigation.ContentCreators);
+    }
   };
 
   return (
