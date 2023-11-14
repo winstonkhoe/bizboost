@@ -1,10 +1,11 @@
 import React, {
   useState,
   useEffect,
-  useRef,
   ReactNode,
   useMemo,
   memo,
+  useRef,
+  useCallback,
 } from 'react';
 import {
   View,
@@ -30,18 +31,19 @@ import {AddIcon} from './Icon';
 import {border} from '../../styles/Border';
 import {
   formatDateToDayMonthYear,
+  getBiggerDate,
   getDateDiff,
-  isEqualDate,
   isEqualMonthYear,
 } from '../../utils/date';
 import EditIcon from '../../assets/vectors/edit.svg';
-import {inlineStyles} from 'react-native-svg';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {CustomButton} from './Button';
-import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import {FlatList} from 'react-native-gesture-handler';
 
 interface DatePickerProps {
+  minimumDate?: Date;
+  startDate?: Date;
+  endDate?: Date;
   onDateChange: (startDate: Date | null, endDate: Date | null) => void;
   singleDate?: boolean;
   children?: ReactNode;
@@ -56,24 +58,73 @@ interface DateRange {
 }
 
 const DatePicker = ({
+  minimumDate,
+  startDate,
+  endDate,
   onDateChange,
   singleDate = false,
   children,
 }: DatePickerProps) => {
   const insets = useSafeAreaInsets();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [finalDateRange, setFinalDateRange] = useState<DateRange>(() => ({
-    start: new Date(),
-    end: null,
-  }));
-  const [dateRange, setDateRange] = useState<DateRange>(() => ({
-    ...finalDateRange,
-  }));
+  const calculateInitialDateRange = useCallback(() => {
+    let minimum, start, end;
+    minimum = start = end = null;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (minimumDate) {
+      minimum = new Date(
+        minimumDate.getFullYear(),
+        minimumDate.getMonth(),
+        minimumDate.getDate(),
+      );
+    }
+    if (startDate) {
+      start = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+      );
+    }
+    if (start && minimum && start < minimum) {
+      start = minimum;
+    }
+    if (endDate) {
+      end = new Date(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate(),
+      );
+    }
+    if (start && end && start.getTime() >= end.getTime()) {
+      end = null;
+    }
+
+    const finalStart = start || minimum || today;
+    return {
+      start: finalStart,
+      end: end,
+    };
+  }, [minimumDate, startDate, endDate]);
+
+  const [finalDateRange, setFinalDateRange] = useState<DateRange>(
+    calculateInitialDateRange,
+  );
+
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    return {...finalDateRange};
+  });
   const windowDimension = useWindowDimensions();
   const cellWidth = useMemo(
     () => (windowDimension.width - horizontalPaddingSize * 2) / 7,
     [windowDimension],
   );
+
+  useEffect(() => {
+    if (isSheetOpen) {
+      setDateRange(calculateInitialDateRange);
+    }
+  }, [isSheetOpen, calculateInitialDateRange]);
 
   const handleDateChange = (date: Date) => {
     setDateRange(prevDateRange => {
@@ -95,12 +146,6 @@ const DatePicker = ({
     });
   };
 
-  useEffect(() => {
-    if (isSheetOpen) {
-      setDateRange({...finalDateRange});
-    }
-  }, [isSheetOpen, finalDateRange]);
-
   const handleSaveButton = () => {
     setFinalDateRange({...dateRange});
     onDateChange(dateRange.start, dateRange.end);
@@ -121,49 +166,16 @@ const DatePicker = ({
 
   return (
     <View>
-      {!children ? (
-        <View>
-          <AnimatedPressable
-            onPress={() => {
-              setIsSheetOpen(true);
-            }}>
-            <View
-              style={[
-                flex.flexRow,
-                self.start,
-                items.center,
-                gap.small,
-                rounded.default,
-                padding.vertical.small,
-                padding.horizontal.default,
-                border({
-                  borderWidth: 1,
-                  color: COLOR.background.neutral.med,
-                }),
-              ]}>
-              <Text
-                className="font-semibold"
-                style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
-                {getDate()}
-              </Text>
-              {!finalDateRange.end ? (
-                <View
-                  style={[
-                    rounded.max,
-                    background(COLOR.background.neutral.high),
-                    padding.xsmall,
-                  ]}>
-                  <AddIcon size="default" color={COLOR.black[0]} />
-                </View>
-              ) : (
-                <EditIcon width={20} height={20} color={COLOR.green[50]} />
-              )}
-            </View>
-          </AnimatedPressable>
-        </View>
-      ) : (
-        children
-      )}
+      <AnimatedPressable onPress={() => setIsSheetOpen(true)}>
+        {!children ? (
+          <DefaultDatePickerPlaceholder
+            text={getDate()}
+            isEdit={!!finalDateRange.end}
+          />
+        ) : (
+          children
+        )}
+      </AnimatedPressable>
       <SheetModal
         open={isSheetOpen}
         onDismiss={() => setIsSheetOpen(false)}
@@ -193,6 +205,7 @@ const DatePicker = ({
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
               (day, index) => (
                 <View
+                  key={index}
                   style={[
                     flex.flexRow,
                     justify.center,
@@ -221,6 +234,8 @@ const DatePicker = ({
           data={[...Array(12)]}
           renderItem={({index}) => (
             <MonthMemo
+              key={index}
+              minimumDate={minimumDate}
               cellWidth={cellWidth}
               monthOffset={index}
               onDateSelected={d => handleDateChange(d)}
@@ -313,7 +328,7 @@ const DatePicker = ({
 };
 
 const isWithinRange = (
-  today: Date,
+  minimumDateMonth: Date,
   month: number,
   startDate?: Date,
   endDate?: Date,
@@ -323,40 +338,44 @@ const isWithinRange = (
   }
 
   const currentMonth = new Date(
-    today.getFullYear(),
-    today.getMonth() + month,
+    minimumDateMonth.getFullYear(),
+    minimumDateMonth.getMonth() + month,
     1,
-    0,
-    0,
-    0,
-    0,
   );
-  const start = new Date(
-    startDate.getFullYear(),
-    startDate.getMonth(),
-    1,
-    0,
-    0,
-    0,
-    0,
-  );
+  const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
   const end = endDate
-    ? new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0, 0, 0, 0, 0)
+    ? new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0)
     : start;
 
   return currentMonth >= start && currentMonth <= end;
 };
 
-const areEqual = (prevProps: MonthProps, nextProps: MonthProps) => {
+const monthGotAffected = (prevProps: MonthProps, nextProps: MonthProps) => {
   const today = new Date();
+  const getMinimumDateMonth = () => {
+    if (!nextProps.minimumDate) {
+      return today;
+    }
+    return new Date(
+      nextProps.minimumDate.getFullYear(),
+      nextProps.minimumDate.getMonth(),
+      nextProps.minimumDate.getDate(),
+    );
+  };
+  const minimumDateMonth = getMinimumDateMonth();
+  const evaluatedMonth = new Date(
+    getBiggerDate(minimumDateMonth, today).getFullYear(),
+    getBiggerDate(minimumDateMonth, today).getMonth(),
+    1,
+  );
   const wasInRange = isWithinRange(
-    today,
+    evaluatedMonth,
     prevProps.monthOffset,
     prevProps.startDate,
     prevProps.endDate,
   );
   const isInRange = isWithinRange(
-    today,
+    evaluatedMonth,
     nextProps.monthOffset,
     nextProps.startDate,
     nextProps.endDate,
@@ -367,6 +386,7 @@ const areEqual = (prevProps: MonthProps, nextProps: MonthProps) => {
 const MonthMemo = memo(
   ({
     monthOffset,
+    minimumDate,
     startDate,
     endDate,
     cellWidth,
@@ -375,6 +395,7 @@ const MonthMemo = memo(
     return (
       <Month
         cellWidth={cellWidth}
+        minimumDate={minimumDate}
         monthOffset={monthOffset}
         onDateSelected={onDateSelected}
         startDate={startDate ?? undefined}
@@ -385,9 +406,8 @@ const MonthMemo = memo(
   // Custom comparison function
   (prevProps, nextProps) => {
     return (
-      !areEqual(prevProps, nextProps) &&
-      //   prevProps.startDate === nextProps.startDate &&
-      //   prevProps.endDate === nextProps.endDate &&
+      !monthGotAffected(prevProps, nextProps) &&
+      prevProps.minimumDate === nextProps.minimumDate &&
       prevProps.monthOffset === nextProps.monthOffset &&
       prevProps.cellWidth === nextProps.cellWidth
     );
@@ -396,6 +416,7 @@ const MonthMemo = memo(
 
 interface MonthProps {
   monthOffset: number;
+  minimumDate?: Date;
   startDate?: Date;
   endDate?: Date;
   cellWidth: number;
@@ -404,37 +425,42 @@ interface MonthProps {
 
 const Month = ({
   monthOffset,
+  minimumDate,
   startDate,
   endDate,
   cellWidth,
   onDateSelected,
 }: MonthProps) => {
   const today = useMemo(() => new Date(), []);
+  const minimumDateMonth = useMemo(() => {
+    if (!minimumDate) {
+      return today;
+    }
+    return new Date(
+      minimumDate.getFullYear(),
+      minimumDate.getMonth(),
+      minimumDate.getDate(),
+    );
+  }, [minimumDate, today]);
+
   const firstDayOfMonth = useMemo(
     () =>
       new Date(
-        today.getFullYear(),
-        today.getMonth() + monthOffset,
+        getBiggerDate(minimumDateMonth, today).getFullYear(),
+        getBiggerDate(minimumDateMonth, today).getMonth() + monthOffset,
         1,
-        0,
-        0,
-        0,
-        0,
       ),
-    [today, monthOffset],
+    [today, monthOffset, minimumDateMonth],
   );
+
   const lastDayOfMonth = useMemo(
     () =>
       new Date(
-        today.getFullYear(),
-        today.getMonth() + monthOffset + 1,
-        0,
-        0,
-        0,
-        0,
+        getBiggerDate(minimumDateMonth, today).getFullYear(),
+        getBiggerDate(minimumDateMonth, today).getMonth() + monthOffset + 1,
         0,
       ),
-    [today, monthOffset],
+    [today, monthOffset, minimumDateMonth],
   );
   const currentMonth = firstDayOfMonth.toLocaleString('default', {
     month: 'short',
@@ -477,10 +503,10 @@ const Month = ({
     if (!d) {
       return true;
     }
-    if (!dateIsCurrentMonth(today)) {
+    if (!dateIsCurrentMonth(minimumDateMonth)) {
       return false;
     }
-    return d < today.getDate();
+    return d < minimumDateMonth.getDate();
   };
 
   const cellIsActive = (date?: number): ActiveState => {
@@ -710,6 +736,88 @@ const DateCell = ({
     </AnimatedPressable>
   ) : (
     <View style={[cellStyle.emptyCell]} />
+  );
+};
+
+interface DefaultDatePickerPlaceholderProps {
+  text?: string;
+  isEdit?: boolean;
+  isError?: boolean;
+  helperText?: string;
+}
+
+export const DefaultDatePickerPlaceholder = ({
+  text = 'Add date',
+  isEdit = false,
+  isError = false,
+  helperText,
+}: DefaultDatePickerPlaceholderProps) => {
+  return (
+    <View style={[flex.flexCol, gap.small]}>
+      <View
+        style={[
+          flex.flexRow,
+          self.start,
+          items.center,
+          gap.small,
+          rounded.default,
+          padding.vertical.small,
+          padding.horizontal.default,
+          border({
+            borderWidth: 1,
+            color: COLOR.background.neutral.high,
+          }),
+          isEdit &&
+            border({
+              borderWidth: 1,
+              color: COLOR.green[50],
+            }),
+          isError &&
+            border({
+              borderWidth: 1,
+              color: COLOR.background.danger.high,
+            }),
+        ]}>
+        <Text
+          className="font-semibold"
+          style={[
+            textColor(COLOR.text.neutral.med),
+            font.size[30],
+            isEdit && textColor(COLOR.green[70]),
+            isError && textColor(COLOR.text.danger.default),
+          ]}>
+          {text}
+        </Text>
+        {!isEdit ? (
+          <View
+            style={[
+              rounded.max,
+              background(COLOR.background.neutral.high),
+              padding.xsmall,
+            ]}>
+            <AddIcon size="default" color={COLOR.black[0]} />
+          </View>
+        ) : (
+          <EditIcon
+            width={20}
+            height={20}
+            color={isError ? COLOR.text.danger.default : COLOR.green[50]}
+          />
+        )}
+      </View>
+      {helperText && helperText.length > 0 && (
+        <Text
+          className="font-medium"
+          style={[
+            font.size[30],
+            textColor(COLOR.text.neutral.med),
+            isEdit && textColor(COLOR.green[70]),
+            isError && textColor(COLOR.text.danger.default),
+          ]}>
+          {helperText}
+        </Text>
+      )}
+    </View>
   );
 };
 
