@@ -1,4 +1,4 @@
-import {Image, Pressable, Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {borderRadius, radiusSize, rounded} from '../../styles/BorderRadius';
@@ -10,6 +10,7 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
+import FastImage from 'react-native-fast-image';
 type Props = {
   campaign: Campaign;
 };
@@ -53,7 +54,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
         <View className="px-4 py-8 w-full h-full" style={flex.flexCol}>
           <View className="w-full" style={[flex.flexRow, gap.medium]}>
             <View className="w-24 h-24 rounded-md overflow-hidden">
-              <Image
+              <FastImage
                 className="w-full h-full object-cover"
                 // source={require('../../assets/images/kopi-nako-logo.jpeg')}
                 source={{uri: campaign.image}}

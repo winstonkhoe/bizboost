@@ -59,6 +59,8 @@ export type ContentCreator = BaseUserData &
   ContentCreatorPreference & {
     specializedCategoryIds: string[];
     preferredLocationIds: string[];
+    rating: number;
+    ratedCount: number;
   };
 
 export type BusinessPeople = BaseUserData;
@@ -260,6 +262,8 @@ export class User extends BaseModel {
         phone: userData?.phone,
         contentCreator: userData?.contentCreator,
         businessPeople: userData?.businessPeople,
+        instagram: userData?.instagram,
+        tiktok: userData?.tiktok,
         joinedAt: userData?.joinedAt?.seconds,
         isAdmin: userData?.isAdmin,
       });

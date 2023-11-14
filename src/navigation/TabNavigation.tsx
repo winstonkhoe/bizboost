@@ -8,6 +8,7 @@ import ChatLogoFilled from '../assets/vectors/chat-filled.svg';
 import ChatLogoOutline from '../assets/vectors/chat-outline.svg';
 import ListLogoFilled from '../assets/vectors/list-box.svg';
 import ListLogoOutline from '../assets/vectors/list-box-line.svg';
+import SearchLogo from '../assets/vectors/search.svg';
 import {Image} from 'react-native';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
@@ -20,6 +21,8 @@ import CampaignsScreen from '../screens/CampaignsScreen';
 import {NavigationProp} from '@react-navigation/native';
 import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
 import ContentCreatorsScreen from '../screens/ContentCreatorsScreen';
+import ExploreScreen from '../screens/ExploreScreen';
+
 const Tab = createBottomTabNavigator();
 
 export enum TabNavigation {
@@ -28,14 +31,16 @@ export enum TabNavigation {
   Home = 'Home',
   Profile = 'Profile',
   ContentCreators = 'Content Creators',
+  Explore = 'Explore',
 }
 
 type TabNavigationParamList = {
   [TabNavigation.Home]: undefined;
   [TabNavigation.Chat]: undefined;
-  [TabNavigation.Campaigns]: undefined;
   [TabNavigation.Profile]: undefined;
   [TabNavigation.ContentCreators]: undefined;
+  [TabNavigation.Campaigns]: undefined;
+  [TabNavigation.Explore]: undefined;
 };
 
 export type TabNavigationProps = NavigationProp<TabNavigationParamList>;
@@ -98,61 +103,134 @@ export const TabNavigator = () => {
     [],
   );
 
+  const searchIcon = useCallback(
+    (focused: boolean) =>
+      focused ? (
+        <SearchLogo width={30} height={30} color={COLOR.green[50]} />
+      ) : (
+        <SearchLogo width={30} height={30} color={COLOR.green[80]} />
+      ),
+    [],
+  );
+
   return (
-    <Tab.Navigator screenOptions={{headerShown: false}}>
-      <Tab.Screen
-        name={TabNavigation.Home}
-        component={HomeScreen}
-        listeners={{
-          tabPress: () => {
-            resetSearchState();
-          },
-        }}
-        options={{
-          tabBarIcon: ({focused}) => homeIcon(focused),
-        }}
-      />
-      {UserRole.Admin !== activeRole && (
-        <Tab.Screen
-          name={TabNavigation.Chat}
-          component={ChatListScreen}
-          options={{
-            tabBarIcon: ({focused}) => chatIcon(focused),
-          }}
-        />
+    <Tab.Navigator>
+      {UserRole.ContentCreator === activeRole && (
+        <Tab.Group screenOptions={{headerShown: false}}>
+          <Tab.Screen
+            name={TabNavigation.Home}
+            component={HomeScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => homeIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Chat}
+            component={ChatListScreen}
+            options={{
+              tabBarIcon: ({focused}) => chatIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Campaigns}
+            component={CampaignsScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Profile}
+            component={ProfileScreen}
+            listeners={{
+              tabLongPress: () => {
+                dispatch(openModal());
+              },
+            }}
+            options={{
+              tabBarIcon: profileIcon,
+            }}
+          />
+        </Tab.Group>
       )}
       {UserRole.BusinessPeople === activeRole && (
-        <Tab.Screen
-          name={TabNavigation.ContentCreators}
-          component={ContentCreatorsScreen}
-          options={{
-            tabBarIcon: ({focused}) => listIcon(focused),
-          }}
-        />
+        <Tab.Group screenOptions={{headerShown: false}}>
+          <Tab.Screen
+            name={TabNavigation.Home}
+            component={HomeScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => homeIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Chat}
+            component={ChatListScreen}
+            options={{
+              tabBarIcon: ({focused}) => chatIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.ContentCreators}
+            component={ContentCreatorsScreen}
+            options={{
+              tabBarIcon: ({focused}) => listIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Explore}
+            component={ExploreScreen}
+            options={{
+              tabBarIcon: ({focused}) => searchIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Profile}
+            component={ProfileScreen}
+            listeners={{
+              tabLongPress: () => {
+                dispatch(openModal());
+              },
+            }}
+            options={{
+              tabBarIcon: profileIcon,
+            }}
+          />
+        </Tab.Group>
       )}
-      {UserRole.ContentCreator === activeRole && (
-        <Tab.Screen
-          name={TabNavigation.Campaigns}
-          component={CampaignsScreen}
-          listeners={{
-            tabPress: () => {
-              resetSearchState();
-            },
-          }}
-        />
+      {UserRole.Admin === activeRole && (
+        <Tab.Group screenOptions={{headerShown: false}}>
+          <Tab.Screen
+            name={TabNavigation.Home}
+            component={HomeScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => homeIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Profile}
+            component={ProfileScreen}
+            options={{
+              tabBarIcon: profileIcon,
+            }}
+          />
+        </Tab.Group>
       )}
-      <Tab.Screen
-        name={TabNavigation.Profile}
-        component={ProfileScreen}
-        listeners={{
-          tabLongPress: () => {
-            dispatch(openModal());
-          },
-        }}
-        options={{
-          tabBarIcon: profileIcon,
-        }}
-      />
     </Tab.Navigator>
   );
 };

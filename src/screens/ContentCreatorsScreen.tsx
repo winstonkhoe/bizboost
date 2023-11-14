@@ -2,10 +2,10 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   Pressable,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import {
   BottomSheetBackdrop,
@@ -25,26 +25,28 @@ import {Category} from '../model/Category';
 import {background} from '../styles/BackgroundColor';
 import {CustomButton} from '../components/atoms/Button';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
+import {Location} from '../model/Location';
 
 interface SelectedFilters {
-  locations: string[]; // Store selected locations in an array of strings
-  minPrice: number; // Set default minimum price as a number
-  maxPrice: number; // Set default maximum price as a number
-  categories: string[]; // Store selected categories in an array of strings
+  locations: string[];
+  minPrice: number;
+  maxPrice: number;
+  categories: string[];
 }
 
 const ContentCreatorsScreen: React.FC = () => {
   const [contentCreators, setContentCreators] = useState<User[]>([]);
   const [filterModalState, setFilterModalState] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
 
   const [filteredContentCreators, setFilteredContentCreators] = useState<
     User[]
   >([]);
+  const [sortBy, setSortBy] = useState<number[]>([]);
+  const [sortOrder, setSortOrder] = useState<number>(-1);
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     locations: [],
-    minPrice: 0,
-    maxPrice: 100,
     categories: [],
   });
 
@@ -54,23 +56,88 @@ const ContentCreatorsScreen: React.FC = () => {
       setFilteredContentCreators(contentCreatorsData);
     });
     Category.getAll().then(categoriesData => setCategories(categoriesData));
+    Location.getAll().then(locationsData => setLocations(locationsData));
   }, []);
 
   useEffect(() => {
-    if (selectedFilters.categories.length) {
-      setFilteredContentCreators(
-        contentCreators.filter(
-          contentCreator =>
-            contentCreator.contentCreator?.specializedCategoryIds?.length > 0 &&
-            contentCreator.contentCreator?.specializedCategoryIds.some(cat =>
-              selectedFilters.categories.includes(cat),
-            ),
-        ),
+    let sortedContentCreators = [...contentCreators];
+
+    if (selectedFilters.categories.length > 0) {
+      sortedContentCreators = sortedContentCreators.filter(
+        contentCreator =>
+          contentCreator.contentCreator?.specializedCategoryIds?.length > 0 &&
+          contentCreator.contentCreator?.specializedCategoryIds.some(cat =>
+            selectedFilters.categories.includes(cat),
+          ),
       );
-    } else {
-      setFilteredContentCreators(contentCreators);
     }
-  }, [selectedFilters, contentCreators]);
+
+    if (sortBy.includes(0)) {
+      sortedContentCreators.sort((a, b) => {
+        const ratingA = a.contentCreator?.rating;
+        const ratingB = b.contentCreator?.rating;
+
+        // Handle cases where one of them is null or undefined
+        if (ratingA == null && ratingB == null) {
+          return 0; // No change in order if both are null
+        }
+        if (ratingA == null) {
+          return sortOrder === -1 ? 1 : -1; // Move null/undefined to the end
+        }
+        if (ratingB == null) {
+          return sortOrder === -1 ? -1 : 1; // Move null/undefined to the end
+        }
+
+        return sortOrder === -1 ? ratingA - ratingB : ratingB - ratingA;
+      });
+    }
+
+    if (sortBy.includes(1)) {
+      sortedContentCreators.sort((a, b) => {
+        const followersA = a.instagram?.followersCount;
+        const followersB = b.instagram?.followersCount;
+
+        // Handle cases where one of them is null or undefined
+        if (followersA == null && followersB == null) {
+          return 0; // No change in order if both are null
+        }
+        if (followersA == null) {
+          return sortOrder === -1 ? 1 : -1; // Move null/undefined to the end
+        }
+        if (followersB == null) {
+          return sortOrder === -1 ? -1 : 1; // Move null/undefined to the end
+        }
+
+        return sortOrder === -1
+          ? followersA - followersB
+          : followersB - followersA;
+      });
+    }
+
+    if (sortBy.includes(2)) {
+      sortedContentCreators.sort((a, b) => {
+        const followersA = a.tiktok?.followersCount;
+        const followersB = b.tiktok?.followersCount;
+
+        // Handle cases where one of them is null or undefined
+        if (followersA == null && followersB == null) {
+          return 0; // No change in order if both are null
+        }
+        if (followersA == null) {
+          return sortOrder === -1 ? 1 : -1; // Move null/undefined to the end
+        }
+        if (followersB == null) {
+          return sortOrder === -1 ? -1 : 1; // Move null/undefined to the end
+        }
+
+        return sortOrder === -1
+          ? followersA - followersB
+          : followersB - followersA;
+      });
+    }
+
+    setFilteredContentCreators(sortedContentCreators);
+  }, [selectedFilters, sortBy, sortOrder, contentCreators]);
 
   const modalRef = useRef<BottomSheetModal>(null);
   const handleClosePress = () => setFilterModalState(false);
@@ -116,12 +183,20 @@ const ContentCreatorsScreen: React.FC = () => {
     }
   };
 
+  const handleSort = sort => {
+    if (sortBy.includes(sort)) {
+      setSortBy(prevState => prevState.filter(s => s !== sort));
+    } else {
+      setSortBy(prevState => [...prevState, sort]);
+    }
+  };
+
   return (
     <BottomSheetModalProvider>
       <SafeAreaContainer>
         <ScrollView className="flex-1">
           {/* Navbar */}
-          <View style={flex.flexCol} className="h-14 px-4 justify-start">
+          <View style={flex.flexCol} className="h-14 px-3 justify-start">
             <Text className="text-black text-xl font-bold">
               Perfect content creators
             </Text>
@@ -132,14 +207,14 @@ const ContentCreatorsScreen: React.FC = () => {
 
           {/* Search Bar */}
           <PageWithSearchBar>
-            <View className="px-4">
+            <View className="px-3">
               <View style={flex.flexRow} className="pb-2 items-center">
                 <Pressable
                   onPress={() => setFilterModalState(true)}
                   style={flex.flexRow}
                   className="rounded-md border justify-between items-center px-2">
-                  <Filter width={12} height={12} color={COLOR.white} />
-                  <Text className="pl-2 text-xs">Filter</Text>
+                  <Filter width={12} height={12} color={COLOR.black} />
+                  <Text className="text-black pl-2 text-xs">Filter</Text>
                 </Pressable>
                 <ScrollView horizontal style={styles.categoriesContainer}>
                   <View style={flex.flexRow} className="gap-x-1 items-center">
@@ -167,7 +242,8 @@ const ContentCreatorsScreen: React.FC = () => {
                     {filteredContentCreators.map((item, index) =>
                       index % 2 === 0 ? (
                         <ContentCreatorCard
-                          key={item.id?.toString()}
+                          key={index}
+                          id={item.id?.toString()}
                           name={item.contentCreator?.fullname ?? ''}
                           categories={
                             item.contentCreator?.specializedCategoryIds
@@ -184,7 +260,8 @@ const ContentCreatorsScreen: React.FC = () => {
                     {filteredContentCreators.map((item, index) =>
                       index % 2 !== 0 ? (
                         <ContentCreatorCard
-                          key={item.id?.toString()}
+                          key={index}
+                          id={item.id?.toString()}
                           name={item.contentCreator?.fullname ?? ''}
                           categories={
                             item.contentCreator?.specializedCategoryIds
@@ -219,6 +296,87 @@ const ContentCreatorsScreen: React.FC = () => {
               <Text className="text-2xl font-bold text-black">Set filters</Text>
             </View>
             <View style={(flex.flexCol, gap.medium)} className="p-4">
+              <View>
+                <Text className="text-lg font-bold text-black">Sort by</Text>
+                <View style={flex.flexRow}>
+                  <Pressable
+                    style={(flex.flexRow, styles.sortButton)}
+                    className={`${
+                      sortBy.includes(0)
+                        ? 'bg-primary'
+                        : 'border border-zinc-200'
+                    } rounded-l-md p-2 justify-center items-center text-center`}
+                    onPress={() => handleSort(0)}>
+                    <Text
+                      className={`${
+                        sortBy.includes(0) ? 'text-white' : 'text-black'
+                      }`}>
+                      Rating
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={(flex.flexRow, styles.sortButton)}
+                    className={`${
+                      sortBy.includes(1)
+                        ? 'bg-primary'
+                        : 'border border-zinc-200'
+                    } p-2 justify-center items-center text-center`}
+                    onPress={() => handleSort(1)}>
+                    <Text
+                      className={`${
+                        sortBy.includes(1) ? 'text-white' : 'text-black'
+                      }`}>
+                      Instagram Followers
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={(flex.flexRow, styles.sortButton)}
+                    className={`${
+                      sortBy.includes(2)
+                        ? 'bg-primary'
+                        : 'border border-zinc-200'
+                    } rounded-r-md p-2 justify-center items-center text-center`}
+                    onPress={() => handleSort(2)}>
+                    <Text
+                      className={`${
+                        sortBy.includes(2) ? 'text-white' : 'text-black'
+                      }`}>
+                      Tiktok Followers
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+              <View>
+                <Text className="text-lg font-bold text-black">Sort order</Text>
+                <View style={flex.flexRow}>
+                  <Pressable
+                    style={(flex.flexRow, styles.sortButton)}
+                    className={`${
+                      sortOrder === -1 ? 'bg-primary' : 'border border-zinc-200'
+                    } rounded-l-md p-2 justify-center items-center text-center`}
+                    onPress={() => setSortOrder(-1)}>
+                    <Text
+                      className={`${
+                        sortOrder === -1 ? 'text-white' : 'text-black'
+                      }`}>
+                      Ascending
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={(flex.flexRow, styles.sortButton)}
+                    className={`${
+                      sortOrder === 0 ? 'bg-primary' : 'border border-zinc-200'
+                    } rounded-r-md p-2 justify-center items-center text-center`}
+                    onPress={() => setSortOrder(0)}>
+                    <Text
+                      className={`${
+                        sortOrder === 0 ? 'text-white' : 'text-black'
+                      }`}>
+                      Descending
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
               <View>
                 <Text className="text-lg font-bold text-black">Location</Text>
               </View>
@@ -276,5 +434,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     fontWeight: 'normal',
+  },
+  sortButton: {
+    width: Dimensions.get('window').width * 0.28,
   },
 });

@@ -19,6 +19,8 @@ import {Category} from '../model/Category';
 import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
 import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
+import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
+import CampaignTimelineScreen from '../screens/CampaignTimeline';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -37,7 +39,9 @@ export enum AuthenticatedNavigation {
   ChatDetail = 'Chat Screen',
   ChatList = 'Chat List',
   CampaignRegistrants = 'Campaign Registrants',
+  CampaignTimeline = 'Campaign Timeline',
   UserDetail = 'User Detail',
+  ContentCreatorDetail = 'Content Creator Detail',
 }
 
 export enum GeneralNavigation {
@@ -63,7 +67,9 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
+  [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
+  [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
 };
 
 interface LocationModalProps {
@@ -123,6 +129,10 @@ const StackNavigator = () => {
               component={CampaignDetailScreen}
             />
             <Stack.Screen
+              name={AuthenticatedNavigation.CampaignTimeline}
+              component={CampaignTimelineScreen}
+            />
+            <Stack.Screen
               name={AuthenticatedNavigation.BusinessPeopleDetail}
               component={BusinessPeopleDetailScreen}
             />
@@ -145,6 +155,10 @@ const StackNavigator = () => {
             <Stack.Screen
               name={AuthenticatedNavigation.ChatDetail}
               component={ChatScreen}
+            />
+            <Stack.Screen
+              name={AuthenticatedNavigation.ContentCreatorDetail}
+              component={ContentCreatorDetailScreen}
             />
             <Stack.Screen
               name={AuthenticatedNavigation.CampaignRegistrants}

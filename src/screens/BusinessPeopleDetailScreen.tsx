@@ -1,18 +1,22 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {Image, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {useEffect, useState} from 'react';
 import {User} from '../model/User';
 import {rounded} from '../styles/BorderRadius';
-import {flex} from '../styles/Flex';
+import {flex, items} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {Campaign} from '../model/Campaign';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
+import FastImage from 'react-native-fast-image';
+import {dimension} from '../styles/Dimension';
+import {font} from '../styles/Font';
+import {textColor} from '../styles/Text';
+import {COLOR} from '../styles/Color';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -30,19 +34,38 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
   useEffect(() => {
     User.getById(businessPeopleId).then(u => setBusinessPeople(u));
   }, [businessPeopleId]);
+
+  const getProfilePicture = () => {
+    if (businessPeople?.businessPeople?.profilePicture) {
+      return {uri: businessPeople.businessPeople.profilePicture};
+    }
+    return require('../assets/images/bizboost-avatar.png');
+  };
+
   return (
-    <PageWithBackButton>
+    <PageWithBackButton
+      enableSafeAreaContainer
+      showBackButtonPlaceholderOnThreshold
+      backButtonPlaceholder={
+        <View style={[flex.flexRow, items.center, gap.default]}>
+          <View
+            className="overflow-hidden"
+            style={[dimension.square.xlarge, rounded.max]}>
+            <FastImage style={[dimension.full]} source={getProfilePicture()} />
+          </View>
+          <Text
+            className="font-bold"
+            numberOfLines={1}
+            style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+            {businessPeople?.businessPeople?.fullname}
+          </Text>
+        </View>
+      }
+      threshold={60}>
       <View className="flex flex-col p-4">
-        <View className="items-center mb-6" style={[flex.flexRow, gap.large]}>
+        <View className="mb-6" style={[flex.flexRow, gap.large, items.center]}>
           <View className="w-24 h-24 overflow-hidden" style={[rounded.max]}>
-            <Image
-              className="w-full flex-1"
-              source={
-                businessPeople?.businessPeople?.profilePicture
-                  ? {uri: businessPeople.businessPeople.profilePicture}
-                  : require('../assets/images/bizboost-avatar.png')
-              }
-            />
+            <FastImage className="w-full flex-1" source={getProfilePicture()} />
           </View>
           <View className="flex-1 items-start" style={[flex.flexCol]}>
             <Text className="text-base font-bold" numberOfLines={1}>
