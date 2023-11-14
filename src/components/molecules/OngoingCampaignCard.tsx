@@ -1,83 +1,122 @@
 import {Pressable, Text, View} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {borderRadius, radiusSize, rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
-import {Campaign} from '../../model/Campaign';
-import {getDate} from '../../utils/date';
+import {Campaign, CampaignStep, CampaignTimeline} from '../../model/Campaign';
+import {formatDateToDayMonthYear, getDate} from '../../utils/date';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import FastImage from 'react-native-fast-image';
+import {padding} from '../../styles/Padding';
+import {Label} from '../atoms/Label';
+import {useEffect, useMemo, useState} from 'react';
+import {COLOR} from '../../styles/Color';
+import {User} from '../../model/User';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
+import {AnimatedPressable} from '../atoms/AnimatedPressable';
+import {dimension} from '../../styles/Dimension';
+import {formatNumberWithThousandSeparator} from '../../utils/number';
 type Props = {
   campaign: Campaign;
 };
 
 const OngoingCampaignCard = ({campaign}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const [user, setUser] = useState<User>();
+
+  useEffect(() => {
+    if (campaign.userId) {
+      User.getById(campaign.userId).then(setUser);
+    }
+  }, [campaign]);
 
   const onViewCampaignDetailButtonClicked = () => {
     navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
       campaignId: campaign.id || '',
     });
   };
+  const firstTimeline: CampaignTimeline | undefined = useMemo(() => {
+    return campaign.timeline?.find(
+      timeline => CampaignStep.Registration === timeline.step,
+    );
+  }, [campaign]);
+
   return (
-    <View className="bg-white" style={[shadow.default, rounded.medium]}>
+    <AnimatedPressable
+      scale={0.95}
+      className="bg-white"
+      style={[flex.flex1, shadow.default, rounded.medium]}
+      onPress={onViewCampaignDetailButtonClicked}>
       <View
-        className="relative w-full h-40 overflow-hidden bg-white"
-        style={[rounded.medium]}>
+        style={[flex.flexCol, rounded.medium, padding.default, gap.default]}>
         <View
-          className="absolute top-0 right-0 px-5 py-1 bg-black overflow-hidden"
           style={[
-            borderRadius({
-              bottomLeft: radiusSize.medium,
-            }),
+            flex.flexRow,
+            justify.between,
+            items.end,
+            {
+              borderBottomWidth: 1,
+              borderBottomColor: COLOR.black[20],
+            },
+            padding.bottom.default,
           ]}>
-          <Text className="font-bold text-white text-xs">
-            {campaign.start &&
-              getDate(campaign.start).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}{' '}
-            -{' '}
-            {campaign.end &&
-              getDate(campaign.end).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}
-          </Text>
+          <View style={[flex.flexRow, gap.small, justify.start]}>
+            <Text
+              className="font-medium"
+              style={[font.size[40], textColor(COLOR.text.neutral.med)]}>
+              {user?.businessPeople?.fullname}
+            </Text>
+          </View>
+          {firstTimeline && (
+            <Label
+              radius="default"
+              text={`${formatDateToDayMonthYear(
+                new Date(firstTimeline.start),
+              )} - ${formatDateToDayMonthYear(new Date(firstTimeline.end))}`}
+            />
+          )}
         </View>
-        <View className="px-4 py-8 w-full h-full" style={flex.flexCol}>
-          <View className="w-full" style={[flex.flexRow, gap.medium]}>
-            <View className="w-24 h-24 rounded-md overflow-hidden">
+        <View style={[flex.flexCol]}>
+          <View style={[flex.flexRow, gap.medium]}>
+            <View
+              className="w-24 h-24 overflow-hidden"
+              style={[rounded.medium]}>
               <FastImage
-                className="w-full h-full object-cover"
-                // source={require('../../assets/images/kopi-nako-logo.jpeg')}
+                style={[dimension.full]}
                 source={{uri: campaign.image}}
               />
             </View>
-            <View
-              className="flex-1 items-start justify-between"
-              style={[flex.flexCol]}>
-              <Text className="font-semibold text-base" numberOfLines={2}>
+            <View style={[flex.flexCol, gap.small]}>
+              <Text
+                className="font-bold"
+                style={[font.size[40]]}
+                numberOfLines={2}>
                 {campaign.title}
               </Text>
-              <Pressable
-                // onViewCampaignDetailButtonClicked()
-                onPress={onViewCampaignDetailButtonClicked}>
-                <View className="rounded-3xl bg-black px-3 py-2">
-                  <Text className="font-bold text-white">Detail</Text>
-                </View>
-              </Pressable>
+              <View style={[flex.flexRow, gap.small]}>
+                {campaign?.platforms?.map(platform => (
+                  <Label type="danger" radius="default" text={platform.name} />
+                ))}
+              </View>
+              <View style={[flex.flexCol, gap.small]}>
+                {campaign.fee && (
+                  <Text
+                    className="font-semibold"
+                    style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                    {`Rp${formatNumberWithThousandSeparator(campaign.fee)}`}
+                  </Text>
+                )}
+              </View>
             </View>
           </View>
         </View>
       </View>
-    </View>
+    </AnimatedPressable>
   );
 };
 
