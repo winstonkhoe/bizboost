@@ -21,6 +21,7 @@ import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
 import CampaignTimelineScreen from '../screens/CampaignTimeline';
+import MakeOfferScreen from '../screens/MakeOfferScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -42,6 +43,7 @@ export enum AuthenticatedNavigation {
   CampaignTimeline = 'Campaign Timeline',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
+  MakeOffer = 'Make Offer',
 }
 
 export enum GeneralNavigation {
@@ -70,6 +72,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
+  [AuthenticatedNavigation.MakeOffer]: undefined;
 };
 
 interface LocationModalProps {
@@ -155,6 +158,10 @@ const StackNavigator = () => {
             <Stack.Screen
               name={AuthenticatedNavigation.ChatDetail}
               component={ChatScreen}
+            />
+            <Stack.Screen
+              name={AuthenticatedNavigation.MakeOffer}
+              component={MakeOfferScreen}
             />
             <Stack.Screen
               name={AuthenticatedNavigation.ContentCreatorDetail}

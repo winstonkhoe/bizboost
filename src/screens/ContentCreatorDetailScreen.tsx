@@ -5,6 +5,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
+  NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {User} from '../model/User';
 import {
@@ -30,6 +31,7 @@ import Video from 'react-native-video';
 import {ActivityIndicator} from 'react-native';
 import ScaledImage from '../components/atoms/ScaledImage';
 import {getDate} from '../utils/date';
+import {useNavigation} from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -42,6 +44,8 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
   const [contents, setContents] = useState<Content[]>();
   const [index, setIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState(0);
+
+  const navigation = useNavigation<NavigationStackProps>();
 
   useEffect(() => {
     User.getById(param.contentCreatorId).then(user => setContentCreator(user));
@@ -265,7 +269,12 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
           </PagerView>
         </View>
         <View>
-          <CustomButton text="Make Offer" />
+          <CustomButton
+            text="Make Offer"
+            onPress={() => {
+              navigation.navigate(AuthenticatedNavigation.MakeOffer);
+            }}
+          />
         </View>
       </View>
     </PageWithBackButton>

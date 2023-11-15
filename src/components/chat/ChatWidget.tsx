@@ -8,6 +8,11 @@ import {flex} from '../../styles/Flex';
 import {Options, ImageOrVideo} from 'react-native-image-crop-picker';
 import storage from '@react-native-firebase/storage';
 import uuid from 'react-native-uuid';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 interface Props {
   options: Options;
@@ -15,9 +20,11 @@ interface Props {
 }
 
 const ChatWidget = ({options, handleImageUpload}: Props) => {
+  const navigation = useNavigation<NavigationStackProps>();
+
   // Handle make offer button
   const onMakeOfferPress = () => {
-    console.log('Make offer widget');
+    navigation.navigate(AuthenticatedNavigation.MakeOffer);
   };
 
   // TODO: extract to utility function
