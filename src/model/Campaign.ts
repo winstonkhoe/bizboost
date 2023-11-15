@@ -1,12 +1,19 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {User} from './User';
+import {SocialPlatforms, User} from './User';
 import {BaseModel} from './BaseModel';
 import {Location} from './Location';
 import {Category} from './Category';
 
-export type CampaignPlatform = {name: string; tasks: string[]};
+export interface CampaignTask {
+  name: string;
+  quantity: number;
+  type?: string;
+  description?: string;
+}
+
+export type CampaignPlatform = {name: SocialPlatforms; tasks: CampaignTask[]};
 
 export enum CampaignStep {
   Registration = 'Registration',

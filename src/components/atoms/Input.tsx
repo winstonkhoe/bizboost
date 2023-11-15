@@ -1,5 +1,12 @@
 import {useEffect, useRef, useState} from 'react';
-import {Controller, UseControllerProps, useFormContext} from 'react-hook-form';
+import {
+  Controller,
+  FormProvider,
+  UseControllerProps,
+  useForm,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
 import {
   Animated,
   KeyboardTypeOptions,
@@ -429,6 +436,36 @@ export const CustomNumberInput = ({
         {`${errors?.[controllerProps.name]?.message || ''}`}
       </Text>
     </View>
+  );
+};
+
+interface FormlessCustomNumberInputProps extends Partial<NumberInputProps> {
+  onChange: (value: number) => void;
+}
+
+type NumberData = {
+  value: number;
+};
+
+export const FormlessCustomNumberInput = ({
+  onChange,
+  ...props
+}: FormlessCustomNumberInputProps) => {
+  const methods = useForm<NumberData>({
+    defaultValues: {
+      value: props?.defaultValue || props?.min || 1,
+    },
+  });
+  const {watch} = methods;
+  const value = watch('value');
+
+  useEffect(() => {
+    onChange(value);
+  }, [value, onChange]);
+  return (
+    <FormProvider {...methods}>
+      <CustomNumberInput {...props} name="value" />
+    </FormProvider>
   );
 };
 
