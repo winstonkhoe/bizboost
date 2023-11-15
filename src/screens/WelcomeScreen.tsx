@@ -110,20 +110,24 @@ const WelcomeScreen = () => {
           <View className="w-full justify-between items-center px-5 py-7">
             <View className="w-full" style={[flex.flexCol, gap.default]}>
               <CustomButton
+                verticalPadding="medium"
                 text="Sign up"
                 rounded="max"
                 onPress={handleEmailSignup}
               />
               <AuthProviderButton
+                verticalPadding="medium"
                 provider={Provider.GOOGLE}
                 onPress={async () => await continueWithGoogle()}
               />
               <AuthProviderButton
+                verticalPadding="medium"
                 provider={Provider.FACEBOOK}
                 onPress={continueWithFacebook}
               />
 
               <AuthProviderButton
+                verticalPadding="medium"
                 provider={Provider.EMAIL}
                 type="tertiary"
                 onPress={() => {

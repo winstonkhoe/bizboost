@@ -1,4 +1,4 @@
-import {Image, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {User} from '../model/User';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
@@ -20,6 +20,7 @@ import {ProfileItem} from '../components/molecules/ProfileItem';
 import {CustomButton} from '../components/atoms/Button';
 import {useAppDispatch} from '../redux/hooks';
 import {disableAccess} from '../redux/slices/authSlice';
+import FastImage from 'react-native-fast-image';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -40,7 +41,7 @@ const ProfileScreen = () => {
                     <View
                       className="w-24 h-24 overflow-hidden"
                       style={[rounded.max]}>
-                      <Image
+                      <FastImage
                         className="w-full flex-1"
                         source={
                           activeData?.profilePicture

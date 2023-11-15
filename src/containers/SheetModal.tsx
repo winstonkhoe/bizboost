@@ -6,19 +6,28 @@ import {
 import {ReactNode, useCallback, useEffect, useRef} from 'react';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
+import {useWindowDimensions} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {flex} from '../styles/Flex';
 
 interface SheetModalProps {
   open: boolean;
+  fullHeight?: boolean;
   children: ReactNode;
+  maxHeight?: number;
   onDismiss?: () => void;
 }
 
 export const SheetModal = ({
   open = false,
+  fullHeight = false,
   onDismiss,
+  maxHeight,
   children,
 }: SheetModalProps) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const windowDimensions = useWindowDimensions();
+  const safeAreaInsets = useSafeAreaInsets();
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -45,9 +54,16 @@ export const SheetModal = ({
       ref={bottomSheetModalRef}
       onDismiss={onDismiss}
       backdropComponent={renderBackdrop}
+      maxDynamicContentSize={
+        maxHeight
+          ? maxHeight
+          : windowDimensions.height - (safeAreaInsets.top + 30)
+      }
       enableDynamicSizing
       enablePanDownToClose>
-      <BottomSheetView>{children}</BottomSheetView>
+      <BottomSheetView style={[fullHeight && flex.flex1]}>
+        {children}
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };

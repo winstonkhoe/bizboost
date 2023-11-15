@@ -71,7 +71,7 @@ export const CustomButton = ({
         ]}>
         {logo && (
           <View
-            className="absolute top-1/2 left-4 w-8 h-full justify-center items-center"
+            className="absolute left-4 w-8 justify-center items-center"
             style={[flex.flexRow]}>
             {logo}
           </View>
