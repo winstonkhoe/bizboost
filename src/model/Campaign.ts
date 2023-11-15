@@ -4,6 +4,7 @@ import firestore, {
 import {User} from './User';
 import {BaseModel} from './BaseModel';
 import {Location} from './Location';
+import {Category} from './Category';
 
 export type CampaignPlatform = {name: string; tasks: string[]};
 
@@ -42,6 +43,7 @@ export class Campaign extends BaseModel {
   description?: string;
   type?: CampaignTypes;
   locations?: string[];
+  categories?: string[];
   platforms?: CampaignPlatform[];
   fee?: number;
   criterias?: string[];
@@ -58,6 +60,7 @@ export class Campaign extends BaseModel {
     description,
     type,
     locations,
+    categories,
     platforms,
     fee,
     criterias,
@@ -74,6 +77,7 @@ export class Campaign extends BaseModel {
     this.description = description;
     this.type = type;
     this.locations = locations;
+    this.categories = categories;
     this.platforms = platforms;
     this.fee = fee;
     this.criterias = criterias;
@@ -98,9 +102,14 @@ export class Campaign extends BaseModel {
         description: data.description,
         type: data.type,
         locations:
-          data.locations.map(
-            (locationId: FirebaseFirestoreTypes.DocumentReference) =>
-              locationId.id,
+          data?.locations?.map(
+            (locationRef: FirebaseFirestoreTypes.DocumentReference) =>
+              locationRef.id,
+          ) || [],
+        categories:
+          data?.categories?.map(
+            (categoryRef: FirebaseFirestoreTypes.DocumentReference) =>
+              categoryRef.id,
           ) || [],
         platforms: data.platforms,
         fee: data.fee,
@@ -204,6 +213,9 @@ export class Campaign extends BaseModel {
         userId: User.getDocumentReference(this.userId ?? ''),
         locations: this.locations?.map(locId =>
           Location.getDocumentReference(locId),
+        ),
+        categories: this.categories?.map(categoryId =>
+          Category.getDocumentReference(categoryId),
         ),
         createdAt: new Date().getTime(),
       };

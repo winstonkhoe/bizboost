@@ -53,7 +53,7 @@ import {font} from '../styles/Font';
 import {textColor} from '../styles/Text';
 import {formatNumberWithThousandSeparator} from '../utils/number';
 import {InternalLink} from '../components/atoms/Link';
-import {openLocationModal} from '../utils/modal';
+import {openCategoryModal, openLocationModal} from '../utils/modal';
 import {RemovableChip} from '../components/atoms/Chip';
 import {NavigationStackProps} from '../navigation/StackNavigation';
 import DatePicker, {
@@ -61,6 +61,9 @@ import DatePicker, {
 } from '../components/atoms/DatePicker';
 import {AddIcon} from '../components/atoms/Icon';
 import {formatDateToDayMonthYear} from '../utils/date';
+import {Category} from '../model/Category';
+import FastImage from 'react-native-fast-image';
+import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 
 export type CampaignFormData = {
   title: string;
@@ -71,7 +74,8 @@ export type CampaignFormData = {
   criterias: StringObject[]; // workaround soalnnya fieldarray harus array of object
   platforms: {name: string; tasks: StringObject[]}[]; // tasks: {value: string}[] itu workaround jg, harusnya ini bisa CampaignPlatform[] lgsg
   importantInformation: StringObject[];
-  locations: {value: Location}[];
+  locations: Location[];
+  categories: Category[];
   image: string;
   timeline: CampaignTimeline[];
 };
@@ -117,6 +121,7 @@ const CreateCampaignScreen = () => {
     defaultValues: {
       platforms: [],
       locations: [],
+      categories: [],
       importantInformation: [],
       criterias: [],
       timeline: [],
@@ -151,8 +156,11 @@ const CreateCampaignScreen = () => {
         })),
         importantInformation: d.importantInformation.map(getStringObjectValue),
         locations: d.locations
-          .map(loc => loc.value.id)
+          .map(loc => loc.id)
           .filter((loc): loc is string => loc !== undefined),
+        categories: d.categories
+          .map(category => category.id)
+          .filter((category): category is string => category !== undefined),
         // TODO: start date end date, picture
         timeline: d.timeline,
         image: d.image,
@@ -182,6 +190,11 @@ const CreateCampaignScreen = () => {
 
   const {append: appendLocation, remove: removeLocation} = useFieldArray({
     name: 'locations',
+    control,
+  });
+
+  const {append: appendCategories, remove: removeCategory} = useFieldArray({
+    name: 'categories',
     control,
   });
 
@@ -627,137 +640,232 @@ const CreateCampaignScreen = () => {
               </KeyboardAvoidingContainer>
             </View>
             <View key={3}>
-              <HorizontalPadding paddingSize="large">
-                <View
-                  style={[
-                    flex.flexCol,
-                    gap.xlarge,
-                    padding.top.medium,
-                    padding.bottom.xlarge2,
-                  ]}>
-                  <Controller
-                    control={control}
-                    name="criterias"
-                    rules={{required: 'Criterias is required!'}}
-                    render={({fieldState: {error}}) => (
-                      <View>
-                        <FieldArray
-                          control={control}
-                          title="Campaign Criterias"
-                          parentName="criterias"
-                          childName="value"
-                          placeholder="Add criteria"
-                          helperText='Ex. "Minimal 100k followers"'
-                        />
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            Criteria is required (at least 1)!
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-                  <Controller
-                    control={control}
-                    name="importantInformation"
-                    rules={{required: 'Information is required!'}}
-                    render={({fieldState: {error}}) => (
-                      <View>
-                        <FieldArray
-                          control={control}
-                          title="Important Informations"
-                          parentName="importantInformation"
-                          childName="value"
-                          placeholder="Add dos and/or don'ts"
-                          helperText={
-                            'Ex. "Don\'t use profanity", "Be natural"'
-                          }
-                        />
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            Information is required (at least 1)!
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-
-                  <Controller
-                    control={control}
-                    name="locations"
-                    rules={{required: 'Locations are required!'}}
-                    render={({
-                      field: {value: locations},
-                      fieldState: {error},
-                    }) => (
-                      <View className="flex flex-col">
-                        <View style={[flex.flexRow, items.center]}>
-                          <View style={[flex.flex1]}>
-                            <FormFieldHelper
-                              title="Location"
-                              description="Campaign's target impacted locations"
-                            />
-                          </View>
-                          <InternalLink
-                            text="Add"
-                            onPress={() => {
-                              openLocationModal({
-                                preferredLocations: getValues('locations').map(
-                                  loc => loc.value,
-                                ),
-                                setPreferredLocations: locations => {
-                                  setValue('locations', []);
-                                  appendLocation(
-                                    locations.map(loc => {
-                                      return {
-                                        value: loc,
-                                      };
-                                    }),
-                                  );
-                                },
-                                navigation: navigation,
-                              });
-                            }}
+              <KeyboardAvoidingContainer>
+                <HorizontalPadding paddingSize="large">
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                    ]}>
+                    <Controller
+                      control={control}
+                      name="criterias"
+                      rules={{required: 'Criterias is required!'}}
+                      render={({fieldState: {error}}) => (
+                        <View>
+                          <FieldArray
+                            control={control}
+                            title="Campaign Criterias"
+                            parentName="criterias"
+                            childName="value"
+                            placeholder="Add criteria"
+                            helperText='Ex. "Minimal 100k followers"'
                           />
-                        </View>
-                        <View className="flex flex-row flex-wrap gap-2 mt-3">
-                          {locations.map((l, index: number) =>
-                            l.value.id ? (
-                              <View key={index}>
-                                <RemovableChip
-                                  text={l.value.id}
-                                  onPress={() => removeLocation(index)}
-                                />
-                              </View>
-                            ) : null,
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Criteria is required (at least 1)!
+                            </Text>
                           )}
                         </View>
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            Locations are required (at least 1)!
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-                  <CustomButton
-                    text="Next"
-                    rounded="max"
-                    minimumWidth
-                    disabled={
-                      !isValidField(getFieldState('criterias', formState)) ||
-                      !isValidField(
-                        getFieldState('importantInformation', formState),
-                      ) ||
-                      !isValidField(getFieldState('locations', formState)) ||
-                      getValues('criterias').length === 0 ||
-                      getValues('importantInformation').length === 0 ||
-                      getValues('locations').length === 0
-                    }
-                    onPress={nextPage}
-                  />
-                </View>
-              </HorizontalPadding>
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="importantInformation"
+                      rules={{required: 'Information is required!'}}
+                      render={({fieldState: {error}}) => (
+                        <View>
+                          <FieldArray
+                            control={control}
+                            title="Important Informations"
+                            parentName="importantInformation"
+                            childName="value"
+                            placeholder="Add dos and/or don'ts"
+                            helperText={
+                              'Ex. "Don\'t use profanity", "Be natural"'
+                            }
+                          />
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Information is required (at least 1)!
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
+
+                    <Controller
+                      control={control}
+                      name="locations"
+                      rules={{required: 'Locations are required!'}}
+                      render={({
+                        field: {value: locations},
+                        fieldState: {error},
+                      }) => (
+                        <View className="flex flex-col">
+                          <View style={[flex.flexRow, items.center]}>
+                            <View style={[flex.flex1]}>
+                              <FormFieldHelper
+                                title="Location"
+                                description="Campaign's target impacted locations"
+                              />
+                            </View>
+                            <InternalLink
+                              text="Add"
+                              onPress={() => {
+                                openLocationModal({
+                                  preferredLocations: getValues('locations'),
+                                  setPreferredLocations: locations => {
+                                    setValue('locations', []);
+                                    appendLocation(locations);
+                                  },
+                                  navigation: navigation,
+                                });
+                              }}
+                            />
+                          </View>
+                          <View className="flex flex-row flex-wrap gap-2 mt-3">
+                            {locations.map((l, index: number) =>
+                              l.id ? (
+                                <View key={index}>
+                                  <RemovableChip
+                                    text={l.id}
+                                    onPress={() => removeLocation(index)}
+                                  />
+                                </View>
+                              ) : null,
+                            )}
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Locations are required (at least 1)!
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="categories"
+                      rules={{required: 'Categories are required!'}}
+                      render={({
+                        field: {value: categories},
+                        fieldState: {error},
+                      }) => (
+                        <View style={[flex.flexCol, gap.medium]}>
+                          <View style={[flex.flexRow, items.center]}>
+                            <View style={[flex.flex1]}>
+                              <FormFieldHelper
+                                title="Category"
+                                description="Choose maximum 2 related category to your campaign"
+                              />
+                            </View>
+                            <InternalLink
+                              text="Add"
+                              onPress={() => {
+                                openCategoryModal({
+                                  favoriteCategories: getValues('categories'),
+                                  setFavoriteCategories: c => {
+                                    setValue('categories', []);
+                                    appendCategories(c);
+                                  },
+                                  maxSelection: 2,
+                                  navigation: navigation,
+                                });
+                              }}
+                            />
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Categories are required (at least 1)!
+                            </Text>
+                          )}
+                          <View style={[flex.flexRow, flex.wrap, gap.default]}>
+                            {categories.map((category, index: number) =>
+                              category.id ? (
+                                <View
+                                  key={index}
+                                  className="relative"
+                                  style={[dimension.square.xlarge5]}>
+                                  <View
+                                    className="absolute z-10 top-0 right-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
+                                    style={[
+                                      dimension.square.xlarge,
+                                      rounded.max,
+                                      padding.xsmall2,
+                                      background(COLOR.black[0]),
+                                      {
+                                        transform: [
+                                          {
+                                            translateX: 10,
+                                          },
+                                          {
+                                            translateY: -10,
+                                          },
+                                        ],
+                                      },
+                                    ]}>
+                                    <AnimatedPressable
+                                      scale={0.9}
+                                      onPress={() => {
+                                        removeCategory(index);
+                                      }}
+                                      className="rotate-45"
+                                      style={[
+                                        flex.flexRow,
+                                        justify.center,
+                                        items.center,
+                                        dimension.full,
+                                        rounded.max,
+                                        background(
+                                          COLOR.background.danger.high,
+                                        ),
+                                      ]}>
+                                      <AddIcon color={COLOR.black[0]} />
+                                    </AnimatedPressable>
+                                  </View>
+                                  <View
+                                    className="overflow-hidden"
+                                    style={[dimension.full, rounded.default]}>
+                                    <FastImage
+                                      style={[dimension.full]}
+                                      source={{
+                                        uri: category.image,
+                                        priority: FastImage.priority.high,
+                                      }}
+                                      resizeMode={'cover'}
+                                    />
+                                  </View>
+                                </View>
+                              ) : null,
+                            )}
+                          </View>
+                        </View>
+                      )}
+                    />
+                    <CustomButton
+                      text="Next"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('criterias', formState)) ||
+                        !isValidField(
+                          getFieldState('importantInformation', formState),
+                        ) ||
+                        !isValidField(getFieldState('locations', formState)) ||
+                        !isValidField(getFieldState('categories', formState)) ||
+                        getValues('criterias').length === 0 ||
+                        getValues('importantInformation').length === 0 ||
+                        getValues('locations').length === 0 ||
+                        getValues('categories').length === 0
+                      }
+                      onPress={nextPage}
+                    />
+                  </View>
+                </HorizontalPadding>
+              </KeyboardAvoidingContainer>
             </View>
             <View key={4}>
               <KeyboardAvoidingContainer>
