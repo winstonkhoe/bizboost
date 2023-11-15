@@ -59,6 +59,8 @@ export type ContentCreator = BaseUserData &
   ContentCreatorPreference & {
     specializedCategoryIds: string[];
     preferredLocationIds: string[];
+    rating: number;
+    ratedCount: number;
   };
 
 export type BusinessPeople = BaseUserData;
@@ -260,6 +262,8 @@ export class User extends BaseModel {
         phone: userData?.phone,
         contentCreator: userData?.contentCreator,
         businessPeople: userData?.businessPeople,
+        instagram: userData?.instagram,
+        tiktok: userData?.tiktok,
         joinedAt: userData?.joinedAt?.seconds,
         isAdmin: userData?.isAdmin,
       });
@@ -323,6 +327,23 @@ export class User extends BaseModel {
       return unsubscribe;
     } catch (error) {
       onError && onError(error);
+    }
+  }
+
+  static async getContentCreators(): Promise<User[]> {
+    try {
+      const users = await firestore()
+        .collection(USER_COLLECTION)
+        .where('contentCreator', '!=', null)
+        .get();
+
+      if (users.empty) {
+        throw Error('No content creators!');
+      }
+
+      return users.docs.map(doc => this.fromSnapshot(doc));
+    } catch (error) {
+      throw error; // Handle the error appropriately
     }
   }
 
