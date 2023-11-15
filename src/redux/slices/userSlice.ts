@@ -21,13 +21,15 @@ const userSlice = createSlice({
   reducers: {
     setUser(state, action) {
       state.user = action.payload;
-      if (action.payload?.contentCreator) {
+      if (action.payload?.isAdmin === true) {
+        state.activeRole = UserRole.Admin;
+      } else if (action.payload?.contentCreator) {
         state.activeRole = UserRole.ContentCreator;
       } else if (action.payload?.businessPeople) {
         state.activeRole = UserRole.BusinessPeople;
-      } else if (action.payload?.isAdmin === true) {
-        state.activeRole = UserRole.Admin;
       }
+      console.log('role: ' + state.activeRole);
+      console.log(action.payload?.contentCreator);
     },
     setUserUid(state, action) {
       state.uid = action.payload;
