@@ -7,7 +7,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Video from 'react-native-video';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {flex, items, justify} from '../styles/Flex';
 import {rounded} from '../styles/BorderRadius';
@@ -22,17 +22,24 @@ import {padding} from '../styles/Padding';
 import {useIsFocused, useNavigation} from '@react-navigation/core';
 import {useContent} from '../hooks/content';
 import {ContentView} from '../model/Content';
+import {LoadingSpinner} from '../components/atoms/LoadingSpinner';
+import {shuffle} from '../utils/array';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
 const ExploreScreen = () => {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const {contents} = useContent();
+  const shuffledContents = useMemo(() => shuffle(contents), [contents]);
   const isFocused = useIsFocused();
   const bottomTabHeight = useBottomTabBarHeight();
   const windowDimension = useWindowDimensions();
 
   return (
     <FlatList
-      data={contents}
+      data={shuffledContents}
       pagingEnabled
       showsVerticalScrollIndicator={false}
       renderItem={({item, index}) => (
@@ -58,9 +65,10 @@ interface ExploreItemProps {
 }
 
 const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
+  const navigation = useNavigation<NavigationStackProps>();
   const bottomTabHeight = useBottomTabBarHeight();
   const windowDimension = useWindowDimensions();
-  const [isBuffering, setIsBuffering] = useState<boolean>(false);
+  const [isBuffering, setIsBuffering] = useState<boolean>(true);
   const statusBarHeight = StatusBar.currentHeight || 0;
   return (
     <View
@@ -70,6 +78,22 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
           height: windowDimension.height - bottomTabHeight - statusBarHeight,
         },
       ]}>
+      {isBuffering && contentView?.content?.thumbnail && (
+        <View
+          style={[
+            flex.flexRow,
+            justify.center,
+            items.center,
+            {
+              position: 'absolute',
+              zIndex: 50,
+            },
+            background(`${COLOR.black[0]}a3`),
+            dimension.full,
+          ]}>
+          <LoadingSpinner />
+        </View>
+      )}
       {isBuffering && contentView?.content?.thumbnail && (
         <View
           style={[
@@ -107,7 +131,7 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
           height: '100%',
         }}
       />
-      <Pressable
+      <View
         className="bottom-4 left-4 w-72"
         style={[
           flex.flexCol,
@@ -117,7 +141,7 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
             zIndex: 20,
           },
         ]}>
-        <View
+        <Pressable
           className="self-start"
           style={[
             rounded.small,
@@ -126,7 +150,13 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
             gap.default,
             items.center,
             background(`${COLOR.black[100]}77`),
-          ]}>
+          ]}
+          onPress={() => {
+            navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
+              contentCreatorId:
+                contentView.user.id || contentView.content.userId!!,
+            });
+          }}>
           <View
             className="overflow-hidden"
             style={[rounded.max, dimension.square.xlarge]}>
@@ -143,7 +173,7 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
             style={[font.size[40], textColor(COLOR.black[0])]}>
             {contentView?.user?.contentCreator?.fullname}
           </Text>
-        </View>
+        </Pressable>
         <View style={[dimension.width.full]}>
           <Text
             numberOfLines={2}
@@ -156,7 +186,7 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
             {contentView?.content?.description}
           </Text>
         </View>
-      </Pressable>
+      </View>
     </View>
   );
 };
