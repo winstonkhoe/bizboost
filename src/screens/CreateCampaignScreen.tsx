@@ -1,7 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Image, Platform, Pressable, Text} from 'react-native';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
-import {ScrollView} from 'react-native-gesture-handler';
 import {CustomButton} from '../components/atoms/Button';
 import {
   HorizontalPadding,
@@ -33,13 +31,11 @@ import {
   CampaignPlatform,
   CampaignStep,
   CampaignSteps,
-  CampaignTask,
   CampaignTimeline,
   CampaignType,
   CampaignTypes,
 } from '../model/Campaign';
 import FieldArray from '../components/organisms/FieldArray';
-import uuid from 'react-native-uuid';
 import {useUser} from '../hooks/user';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
