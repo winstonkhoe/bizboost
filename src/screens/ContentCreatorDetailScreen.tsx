@@ -5,6 +5,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
+  NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {User} from '../model/User';
 import {
@@ -33,7 +34,8 @@ import {formatDateToDayMonthYear, getDate} from '../utils/date';
 import FastImage from 'react-native-fast-image';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {padding} from '../styles/Padding';
-import { size } from '../styles/Size';
+import {size} from '../styles/Size';
+import {useNavigation} from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -43,6 +45,7 @@ type Props = NativeStackScreenProps<
 const ContentCreatorDetailScreen = ({route}: Props) => {
   const param = route.params;
   const safeAreaInsets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [contents, setContents] = useState<Content[]>();
   const [index, setIndex] = useState(0);
@@ -249,12 +252,22 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     {contents?.map(
                       (content, idx) =>
                         idx % 2 === 0 && (
-                          <View key={content.id}>
+                          <Pressable
+                            key={content.id}
+                            onPress={() => {
+                              navigation.navigate(
+                                AuthenticatedNavigation.SpecificExploreModal,
+                                {
+                                  contentCreatorId: contentCreator?.id!!,
+                                  targetContentId: content.id,
+                                },
+                              );
+                            }}>
                             <FastImage
                               source={{uri: content.thumbnail}}
                               style={styles.video}
                             />
-                          </View>
+                          </Pressable>
                         ),
                     )}
                   </View>
@@ -268,12 +281,22 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     {contents?.map(
                       (content, idx) =>
                         idx % 2 !== 0 && (
-                          <View key={content.id}>
+                          <Pressable
+                            key={content.id}
+                            onPress={() => {
+                              navigation.navigate(
+                                AuthenticatedNavigation.SpecificExploreModal,
+                                {
+                                  contentCreatorId: contentCreator?.id!!,
+                                  targetContentId: content.id,
+                                },
+                              );
+                            }}>
                             <FastImage
                               source={{uri: content.thumbnail}}
                               style={styles.video}
                             />
-                          </View>
+                          </Pressable>
                         ),
                     )}
                   </View>

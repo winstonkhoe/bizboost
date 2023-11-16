@@ -45,6 +45,7 @@ const ExploreScreen = () => {
       renderItem={({item, index}) => (
         <ExploreItem
           content={item}
+          bottomTabHeight={bottomTabHeight}
           active={isFocused && activeVideoIndex === index}
         />
       )}
@@ -62,11 +63,15 @@ const ExploreScreen = () => {
 interface ExploreItemProps {
   content: ContentView;
   active: boolean;
+  bottomTabHeight?: number;
 }
 
-const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
+export const ExploreItem = ({
+  content: contentView,
+  active,
+  bottomTabHeight = 0,
+}: ExploreItemProps) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const bottomTabHeight = useBottomTabBarHeight();
   const windowDimension = useWindowDimensions();
   const [isBuffering, setIsBuffering] = useState<boolean>(true);
   const statusBarHeight = StatusBar.currentHeight || 0;

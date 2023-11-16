@@ -29,6 +29,7 @@ import {useEffect, useState} from 'react';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import SplashScreen from '../screens/SplashScreen';
+import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -50,6 +51,7 @@ export enum AuthenticatedNavigation {
   CampaignTimeline = 'Campaign Timeline',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
+  SpecificExploreModal = 'Specific Explore Modal',
 }
 
 export enum GeneralNavigation {
@@ -78,6 +80,10 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
+  [AuthenticatedNavigation.SpecificExploreModal]: {
+    contentCreatorId: string;
+    targetContentId?: string;
+  };
 };
 
 interface LocationModalProps {
@@ -211,6 +217,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}
                   component={CreateAdditionalAccountScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.SpecificExploreModal}
+                  component={ModalSpecificExploreScreen}
                 />
               </Stack.Group>
             </Stack.Group>
