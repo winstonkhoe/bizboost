@@ -22,14 +22,10 @@ import UserDetailScreen from '../screens/UserDetailScreen';
 import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
 import CampaignTimelineScreen from '../screens/CampaignTimeline';
 import MakeOfferScreen from '../screens/MakeOfferScreen';
-import {CustomModal} from '../components/atoms/CustomModal';
-import {View} from 'react-native';
-import {Text} from 'react-native';
-import {flex, items, justify} from '../styles/Flex';
 import {useEffect, useState} from 'react';
-import {background} from '../styles/BackgroundColor';
-import {COLOR} from '../styles/Color';
 import SplashScreen from '../screens/SplashScreen';
+import {Campaign} from '../model/Campaign';
+import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -52,6 +48,7 @@ export enum AuthenticatedNavigation {
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MakeOffer = 'Make Offer',
+  CampaignModal = 'Campaign Modal',
 }
 
 export enum GeneralNavigation {
@@ -65,6 +62,11 @@ export type GuestStack = {
   [GuestNavigation.Signup]: undefined;
   [GuestNavigation.Authenticated]: undefined;
 };
+
+interface CampaignModalProps {
+  initialSelectedCampaign: Campaign;
+  eventType: string;
+}
 
 export type AuthenticatedStack = {
   [AuthenticatedNavigation.Main]: undefined;
@@ -81,6 +83,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MakeOffer]: undefined;
+  [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
 };
 
 interface LocationModalProps {
@@ -239,6 +242,10 @@ const StackNavigator = () => {
               <Stack.Screen
                 name={GeneralNavigation.CategoryModal}
                 component={ModalCategoryScreen}
+              />
+              <Stack.Screen
+                name={AuthenticatedNavigation.CampaignModal}
+                component={ModalCampaignScreen}
               />
             </Stack.Group>
           </Stack.Group>
