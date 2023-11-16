@@ -4,21 +4,16 @@ import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
 import {flex} from '../styles/Flex';
 import {useUser} from '../hooks/user';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../components/atoms/ViewPadding';
+import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {rounded} from '../styles/BorderRadius';
 import LogoutIcon from '../assets/vectors/logout.svg';
 import TransactionIcon from '../assets/vectors/transaction.svg';
+import AboutIcon from '../assets/vectors/about.svg';
+import MoneyIcon from '../assets/vectors/money.svg';
+import AddIcon from '../assets/vectors/add-thick.svg';
 import {COLOR} from '../styles/Color';
-import {hex2rgba} from '../utils/color';
 import {gap} from '../styles/Gap';
 import {padding} from '../styles/Padding';
-import {border} from '../styles/Border';
-import {currencyFormat} from '../utils/currency';
-import {ProfileItem} from '../components/molecules/ProfileItem';
-import {CustomButton} from '../components/atoms/Button';
 import {useAppDispatch} from '../redux/hooks';
 import {disableAccess} from '../redux/slices/authSlice';
 import FastImage from 'react-native-fast-image';
@@ -72,10 +67,10 @@ const ProfileScreen = () => {
                       className="justify-center"
                       style={[flex.flexCol, padding.default]}>
                       <LogoutIcon
-                        width={20}
-                        height={20}
+                        width={25}
+                        height={25}
                         stroke={COLOR.red[50]}
-                        strokeWidth={2}
+                        strokeWidth={3}
                       />
                     </Pressable>
                   </View>
@@ -96,45 +91,56 @@ const ProfileScreen = () => {
                   </View>
                 </View>
                 <View className="flex flex-row flex-wrap justify-between items-center">
-                  <View className="w-[45%] my-2 mx-1">
-                    <ProfileMenuCard
-                      icon={
-                        <TransactionIcon
-                          fill={COLOR.green[50]}
-                          height={80}
-                          width={80}
-                        />
-                      }
-                      title="My Transactions"
-                      subtitle={`5 Ongoing
+                  <ProfileMenuCard
+                    handleOnClick={() => {
+                      console.log('masuk');
+                    }}
+                    icon={
+                      <TransactionIcon
+                        fill={'#72B3FF'}
+                        height={80}
+                        width={80}
+                      />
+                    }
+                    title="My Transactions"
+                    subtitle={`5 Ongoing
 11 Finished`}
-                    />
-                  </View>
-                  <View className="w-[45%] my-2 mx-1">
-                    <Text>asd</Text>
-                  </View>
-                  <View className="w-[45%] my-2 mx-1">
-                    <Text>asd</Text>
-                  </View>
-                  {/* <View className="w-[40%] my-2 mx-1">
-                    <Text>asd</Text>
-                  </View> */}
+                  />
+                  <ProfileMenuCard
+                    handleOnClick={() => {
+                      console.log('masuk');
+                    }}
+                    icon={<AboutIcon fill={'#FB8A2E'} height={80} width={80} />}
+                    title="About Me"
+                    subtitle={'Edit Information people see on your profile'}
+                  />
+                  <ProfileMenuCard
+                    handleOnClick={() => {
+                      console.log('masuk');
+                    }}
+                    icon={
+                      <MoneyIcon
+                        fill={COLOR.green[50]}
+                        height={80}
+                        width={80}
+                      />
+                    }
+                    title="Withdraw Money"
+                    subtitle={`2 Transactions ready to be withdrawn`}
+                  />
+                  <ProfileMenuCard
+                    handleOnClick={() => {
+                      console.log('masuk');
+                    }}
+                    icon={
+                      <AddIcon fill={COLOR.red[40]} height={80} width={80} />
+                    }
+                    title="Upload Video"
+                    subtitle={`Add more videos to promote yourself.`}
+                  />
                 </View>
               </HorizontalPadding>
             </View>
-            {/* <VerticalPadding>
-              <HorizontalPadding>
-                <CustomButton
-                  onPress={() => {
-                    User.signOut()
-                      .then(() => dispatch(disableAccess()))
-                      .catch(err => console.log('logout error', err));
-                  }}
-                  rounded="default"
-                  text="Sign out"
-                />
-              </HorizontalPadding>
-            </VerticalPadding> */}
           </View>
         </SafeAreaContainer>
       </ScrollView>
