@@ -14,7 +14,7 @@ export const useUser = () => {
   const {user, activeRole, uid} = useAppSelector(state => state.user);
   const dispatch = useAppDispatch();
   const getData = (
-    user: User | null,
+    user: User | null | undefined,
     activeRole: UserRoles,
   ): ContentCreator | BusinessPeople | undefined => {
     if (!user) {

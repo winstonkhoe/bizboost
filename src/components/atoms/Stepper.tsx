@@ -1,5 +1,5 @@
 import {Text, View} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {flex, items} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
@@ -11,14 +11,23 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import {useEffect, useState} from 'react';
+import React, {
+  Children,
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useState,
+} from 'react';
 import {textColor} from '../../styles/Text';
+import {dimension} from '../../styles/Dimension';
+import {padding} from '../../styles/Padding';
 
-type StepperType = 'simple';
+type StepperType = 'simple' | 'content';
 
 interface BaseStepperProps {
   currentPosition: number;
   maxPosition: number;
+  children?: ReactNode;
 }
 
 interface StepperProps extends BaseStepperProps {
@@ -26,7 +35,12 @@ interface StepperProps extends BaseStepperProps {
 }
 
 export const Stepper = ({type = 'simple', ...props}: StepperProps) => {
-  return <View>{type === 'simple' && <SimpleStepper {...props} />}</View>;
+  return (
+    <View>
+      {type === 'simple' && <SimpleStepper {...props} />}
+      {type === 'content' && <ContentStepper {...props} />}
+    </View>
+  );
 };
 
 const SimpleStepper = ({...props}: BaseStepperProps) => {
@@ -98,6 +112,55 @@ const SimpleStepperBar = ({barIndex, currentPosition}: SimpleStepperBar) => {
         className="absolute z-10 top-0 left-0 w-full h-full"
         style={[background(COLOR.background.green.high), animatedStyle]}
       />
+    </View>
+  );
+};
+
+const ContentStepper = ({...props}: BaseStepperProps) => {
+  const children = Children.toArray(props.children);
+  return (
+    <View style={[flex.flexCol, gap.small]}>
+      {children.map((child: ReactNode, index: number) => {
+        return (
+          <View style={[flex.flexRow, gap.default]}>
+            <View style={[flex.flexCol, gap.small, items.center]}>
+              <View
+                style={[
+                  dimension.square.xlarge2,
+                  background(
+                    props.currentPosition >= index
+                      ? COLOR.green[50]
+                      : COLOR.black[20],
+                  ),
+                  rounded.max,
+                ]}
+              />
+              <View
+                style={[
+                  flex.flex1,
+                  background(
+                    props.currentPosition - 1 >= index
+                      ? COLOR.green[50]
+                      : COLOR.black[20],
+                  ),
+                  dimension.width.xsmall,
+                  rounded.max,
+                ]}
+              />
+            </View>
+            <View
+              style={[
+                flex.flex1,
+                padding.bottom.large,
+                {
+                  opacity: props.currentPosition >= index ? 1 : 0.3,
+                },
+              ]}>
+              {child}
+            </View>
+          </View>
+        );
+      })}
     </View>
   );
 };

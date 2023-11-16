@@ -1,10 +1,38 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {User} from './User';
+import {SocialPlatforms, User} from './User';
 import {BaseModel} from './BaseModel';
+import {Location} from './Location';
+import {Category} from './Category';
 
-export type CampaignPlatform = {name: string; tasks: string[]};
+export interface CampaignTask {
+  name: string;
+  quantity: number;
+  type?: string;
+  description?: string;
+}
+
+export type CampaignPlatform = {name: SocialPlatforms; tasks: CampaignTask[]};
+
+export enum CampaignStep {
+  Registration = 'Registration',
+  Brainstorming = 'Brainstorming',
+  ContentSubmission = 'Content Submission',
+  EngagementResultSubmission = 'Engagement Result Submission',
+}
+
+export type CampaignSteps =
+  | CampaignStep.Registration
+  | CampaignStep.Brainstorming
+  | CampaignStep.ContentSubmission
+  | CampaignStep.EngagementResultSubmission;
+
+export interface CampaignTimeline {
+  step: CampaignSteps;
+  start: number;
+  end: number;
+}
 
 export enum CampaignType {
   Public = 'Public',
@@ -22,13 +50,13 @@ export class Campaign extends BaseModel {
   description?: string;
   type?: CampaignTypes;
   locations?: string[];
+  categories?: string[];
   platforms?: CampaignPlatform[];
   fee?: number;
   criterias?: string[];
   slot?: number;
   image?: string;
-  start?: number;
-  end?: number;
+  timeline?: CampaignTimeline[];
   createdAt?: number;
   importantInformation?: string[];
 
@@ -39,13 +67,13 @@ export class Campaign extends BaseModel {
     description,
     type,
     locations,
+    categories,
     platforms,
     fee,
     criterias,
     slot,
     image,
-    start,
-    end,
+    timeline,
     createdAt,
     importantInformation,
   }: Partial<Campaign>) {
@@ -56,13 +84,13 @@ export class Campaign extends BaseModel {
     this.description = description;
     this.type = type;
     this.locations = locations;
+    this.categories = categories;
     this.platforms = platforms;
     this.fee = fee;
     this.criterias = criterias;
     this.slot = slot;
     this.image = image;
-    this.start = start;
-    this.end = end;
+    this.timeline = timeline;
     this.createdAt = createdAt;
     this.importantInformation = importantInformation;
   }
@@ -80,14 +108,22 @@ export class Campaign extends BaseModel {
         title: data.title,
         description: data.description,
         type: data.type,
-        locations: data.locations,
+        locations:
+          data?.locations?.map(
+            (locationRef: FirebaseFirestoreTypes.DocumentReference) =>
+              locationRef.id,
+          ) || [],
+        categories:
+          data?.categories?.map(
+            (categoryRef: FirebaseFirestoreTypes.DocumentReference) =>
+              categoryRef.id,
+          ) || [],
         platforms: data.platforms,
         fee: data.fee,
         criterias: data.criterias,
         slot: data.slot,
         image: data.image,
-        start: data.start?.seconds,
-        end: data.end?.seconds,
+        timeline: data.timeline,
         createdAt: data.createdAt?.seconds,
         importantInformation: data.importantInformation,
       });
@@ -182,6 +218,12 @@ export class Campaign extends BaseModel {
       const data = {
         ...rest,
         userId: User.getDocumentReference(this.userId ?? ''),
+        locations: this.locations?.map(locId =>
+          Location.getDocumentReference(locId),
+        ),
+        categories: this.categories?.map(categoryId =>
+          Category.getDocumentReference(categoryId),
+        ),
         createdAt: new Date().getTime(),
       };
 

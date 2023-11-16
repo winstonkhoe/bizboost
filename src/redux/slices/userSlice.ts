@@ -3,13 +3,13 @@ import {User, UserRole, UserRoles} from '../../model/User';
 
 interface UserState {
   uid: string | null;
-  user: User | null;
+  user: User | null | undefined;
   activeRole: UserRoles;
 }
 
 const initialState = {
   uid: null,
-  user: null,
+  user: undefined,
   activeRole: undefined,
 } as UserState;
 

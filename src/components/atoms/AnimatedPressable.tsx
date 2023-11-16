@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-interface AnimatedPressableProps extends PressableProps {
+export interface AnimatedPressableProps extends PressableProps {
   scale?: number;
   children: ReactNode;
 }

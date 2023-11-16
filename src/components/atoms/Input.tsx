@@ -1,5 +1,12 @@
 import {useEffect, useRef, useState} from 'react';
-import {Controller, UseControllerProps, useFormContext} from 'react-hook-form';
+import {
+  Controller,
+  FormProvider,
+  UseControllerProps,
+  useForm,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
 import {
   Animated,
   KeyboardTypeOptions,
@@ -37,10 +44,11 @@ import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {AddIcon, MinusIcon} from './Icon';
-import {font} from '../../styles/Font';
+import {font, fontSize, lineHeight} from '../../styles/Font';
 import uuid from 'react-native-uuid';
 import storage from '@react-native-firebase/storage';
 import {ProgressBar} from './ProgressBar';
+import {border} from '../../styles/Border';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -431,6 +439,36 @@ export const CustomNumberInput = ({
   );
 };
 
+interface FormlessCustomNumberInputProps extends Partial<NumberInputProps> {
+  onChange: (value: number) => void;
+}
+
+type NumberData = {
+  value: number;
+};
+
+export const FormlessCustomNumberInput = ({
+  onChange,
+  ...props
+}: FormlessCustomNumberInputProps) => {
+  const methods = useForm<NumberData>({
+    defaultValues: {
+      value: props?.defaultValue || props?.min || 1,
+    },
+  });
+  const {watch} = methods;
+  const value = watch('value');
+
+  useEffect(() => {
+    onChange(value);
+  }, [value, onChange]);
+  return (
+    <FormProvider {...methods}>
+      <CustomNumberInput {...props} name="value" />
+    </FormProvider>
+  );
+};
+
 interface IncrementDecrementProps extends PressableProps {
   type: 'increment' | 'decrement';
   min?: number;
@@ -581,10 +619,10 @@ export const MediaUploader = ({
   };
 
   return (
-    <TouchableOpacity onPress={handleImageUpload}>
-      <View style={[flex.flexRow]} className="items-center">
-        {children || <CustomButton text="Upload image" rounded={'small'} />}
-      </View>
+    <TouchableOpacity
+      containerStyle={[flex.flexCol, items.center]}
+      onPress={handleImageUpload}>
+      {children || <CustomButton text="Upload image" rounded={'small'} />}
       {showUploadProgress && uploadProgress !== undefined && (
         <ProgressBar currentProgress={uploadProgress} showProgressNumber />
       )}
@@ -601,6 +639,7 @@ interface FormlessTextInputProps extends TextInputProps {
   description?: string;
   counter?: boolean;
   max?: number;
+  type?: 'default' | 'textarea';
   inputType?: 'default' | 'number' | 'price';
   prefix?: string;
   focus?: boolean;
@@ -616,6 +655,7 @@ export const FormlessTextInput = ({
   description,
   counter,
   max,
+  type = 'default',
   inputType = 'default',
   prefix,
   focus = false,
@@ -703,6 +743,14 @@ export const FormlessTextInput = ({
           flex.flexRow,
           justify.start,
           gap.default,
+          type === 'textarea' && [
+            padding.default,
+            rounded.default,
+            border({
+              borderWidth: 1,
+              color: COLOR.green[50],
+            }),
+          ],
           disabled && rounded.default,
           disabled && horizontalPadding.small,
           disabled && background(COLOR.background.neutral.disabled),
@@ -725,6 +773,7 @@ export const FormlessTextInput = ({
         <TextInput
           ref={fieldRef}
           {...props}
+          multiline={type === 'textarea'}
           keyboardType={
             props.keyboardType
               ? props.keyboardType
@@ -738,6 +787,9 @@ export const FormlessTextInput = ({
             ),
             font.size[30],
             font.lineHeight[30],
+            type === 'textarea' && {
+              minHeight: lineHeight[30] * 3,
+            },
           ]}
           value={
             inputType === 'number' || inputType === 'price'
@@ -750,7 +802,7 @@ export const FormlessTextInput = ({
           className="w-full font-medium"
         />
       </View>
-      {!disabled && (
+      {!disabled && type !== 'textarea' && (
         <View
           onLayout={event => {
             const {width} = event.nativeEvent.layout;

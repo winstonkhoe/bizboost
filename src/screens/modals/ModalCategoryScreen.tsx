@@ -37,7 +37,7 @@ type Props = StackScreenProps<GeneralStack, GeneralNavigation.CategoryModal>;
 
 const ModalCategoryScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const {initialSelectedCategories, eventType} = route.params;
+  const {initialSelectedCategories, eventType, maxSelection} = route.params;
   const [selectedCategories, setSelectedCategories] = useState<Category[]>(
     initialSelectedCategories,
   );
@@ -52,6 +52,9 @@ const ModalCategoryScreen = ({route}: Props) => {
         selectedCategories.filter(cat => cat.id !== category.id),
       );
     } else {
+      if (maxSelection && selectedCategories.length >= maxSelection) {
+        return;
+      }
       setSelectedCategories([...selectedCategories, category]);
     }
   };
@@ -75,6 +78,9 @@ const ModalCategoryScreen = ({route}: Props) => {
           <CategoryItem
             key={index}
             category={category}
+            isReachLimit={
+              maxSelection && selectedCategories.length >= maxSelection
+            }
             isSelected={selectedIndex !== -1}
             selectedIndex={selectedIndex}
             onPress={() => {
@@ -86,7 +92,7 @@ const ModalCategoryScreen = ({route}: Props) => {
   };
 
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <View className="flex-1" style={[flex.flexCol, gap.small]}>
         <View className="items-center" style={[flex.flexRow, gap.default]}>
           <CloseModal closeEventType="category" />
@@ -136,12 +142,14 @@ const ModalCategoryScreen = ({route}: Props) => {
 interface CategoryItemProps extends PressableProps {
   category: Category;
   isSelected: boolean;
+  isReachLimit: boolean;
   selectedIndex: number;
 }
 
 const CategoryItem = ({
   category,
   isSelected,
+  isReachLimit,
   selectedIndex,
   ...props
 }: CategoryItemProps) => {
@@ -149,7 +157,15 @@ const CategoryItem = ({
     <Pressable {...props}>
       <Animated.View
         className="relative overflow-hidden"
-        style={[flex.flexCol, gap.small, rounded.default]}>
+        style={[
+          flex.flexCol,
+          gap.small,
+          rounded.default,
+          !isSelected &&
+            isReachLimit && {
+              opacity: 0.5,
+            },
+        ]}>
         <View className="absolute z-20 top-2 right-2">
           <ImageCounterChip
             selected={isSelected}

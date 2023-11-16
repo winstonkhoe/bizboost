@@ -22,7 +22,7 @@ export const SwitchUserModalProvider = () => {
   const modalOpenState = useAppSelector(state => state.modal.isOpen);
 
   const getData = (
-    user: User | null,
+    user: User | null | undefined,
     activeRole: UserRoles,
   ): ContentCreator | BusinessPeople | undefined => {
     if (!user) {

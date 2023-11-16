@@ -19,7 +19,7 @@ import {SizeType} from '../../styles/Size';
 import {gap} from '../../styles/Gap';
 import {AddIcon} from './Icon';
 import {padding} from '../../styles/Padding';
-import { AnimatedPressable } from './AnimatedPressable';
+import {AnimatedPressable} from './AnimatedPressable';
 
 interface ImageCounterChipProps {
   text?: string | number;

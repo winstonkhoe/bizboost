@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, StyleSheet} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {Message} from '../../screens/ChatScreen';
@@ -34,11 +34,26 @@ const ChatBubble = ({message, isSender, type}: Message) => {
             maxWidth: '80%',
             overflow: 'hidden',
           }}>
-          <FirebaseStorageImage imageUrl={message} />
+          <View style={styles.container}>
+            {message && <Image source={{uri: message}} style={styles.image} />}
+          </View>
+          <Text style={[textColor(COLOR.black[100])]}>{message}</Text>
         </View>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: 200,
+    height: 200,
+  },
+});
 
 export default ChatBubble;

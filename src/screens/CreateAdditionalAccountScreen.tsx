@@ -14,7 +14,7 @@ import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {CustomTextInput} from '../components/atoms/Input';
 import {BackButton, CloseModal} from '../components/atoms/Close';
 import {rounded} from '../styles/BorderRadius';
-import {horizontalPadding, verticalPadding} from '../styles/Padding';
+import {horizontalPadding, padding, verticalPadding} from '../styles/Padding';
 import UserIcon from '../assets/vectors/user.svg';
 import {border} from '../styles/Border';
 import {textColor} from '../styles/Text';
@@ -197,6 +197,7 @@ export const CreateAdditionalAccountScreen = () => {
   return (
     <FormProvider {...methods}>
       <PageWithBackButton
+        enableSafeAreaContainer
         icon={activePosition === 0 ? 'close' : 'back'}
         fullHeight
         onPress={previousPage}
@@ -221,9 +222,7 @@ export const CreateAdditionalAccountScreen = () => {
           </View>
         }
         disableDefaultOnPress={activePosition > 0}>
-        <View
-          className="flex-1"
-          style={[flex.flexCol, verticalPadding.default]}>
+        <View className="flex-1" style={[flex.flexCol, padding.top.xlarge2]}>
           <HorizontalPadding paddingSize="large">
             <FadeInOut visible={true}>
               <Stepper

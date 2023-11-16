@@ -27,7 +27,7 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
     );
   }, [campaignId]);
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <CloseModal />
       <HorizontalPadding>
         <View style={[flex.flexCol, gap.medium]}>

@@ -36,17 +36,20 @@ export const openLocationModal = ({
 interface CategoryModalProps {
   favoriteCategories: Category[];
   setFavoriteCategories: (categories: Category[]) => void;
+  maxSelection?: number;
   navigation: NavigationStackProps;
 }
 export const openCategoryModal = ({
   favoriteCategories,
   setFavoriteCategories,
+  maxSelection,
   navigation,
 }: CategoryModalProps) => {
   const eventType = 'callback.category';
   navigation.navigate(GeneralNavigation.CategoryModal, {
     initialSelectedCategories: favoriteCategories,
     eventType: eventType,
+    maxSelection: maxSelection,
   });
 
   const listener = DeviceEventEmitter.addListener(eventType, categories => {
