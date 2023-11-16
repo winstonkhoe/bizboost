@@ -139,9 +139,6 @@ export class User extends BaseModel {
         phone: data?.phone,
         contentCreator: {
           ...data.contentCreator,
-          postingSchedules: data.contentCreator?.postingSchedules?.map(
-            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
-          ),
           specializedCategoryIds:
             data.contentCreator?.specializedCategoryIds?.map(
               (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
