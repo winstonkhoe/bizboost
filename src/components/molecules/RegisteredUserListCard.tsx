@@ -171,7 +171,10 @@ const BaseCard = ({
             {/* {isPrivate && (
               <Private width={15} height={15} stroke={COLOR.black[40]} />
             )} */}
-            <Text style={[textColor(COLOR.green[50]), font.size[20]]}>
+            <Text
+              style={[textColor(COLOR.green[50]), font.size[20]]}
+              numberOfLines={1}
+              className="w-2/3">
               {headerTextLeading}
             </Text>
           </View>
