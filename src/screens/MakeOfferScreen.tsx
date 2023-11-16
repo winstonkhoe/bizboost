@@ -8,7 +8,6 @@ import SafeAreaContainer from '../containers/SafeAreaContainer';
 import BackNav from '../assets/vectors/chevron-left.svg';
 import {TouchableOpacity, View} from 'react-native';
 import {Text} from 'react-native-elements';
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {useNavigation} from '@react-navigation/native';
 import {Pressable} from 'react-native';
 import {flex} from '../styles/Flex';
@@ -28,30 +27,21 @@ export type MakeOfferFormData = {
 
 const MakeOfferScreen = () => {
   const navigation = useNavigation();
-
-  const methods = useForm<MakeOfferFormData>({
-    mode: 'all',
-    defaultValues: {
-      fee: 0,
-    },
-  });
-
-  const {
-    handleSubmit,
-    setValue,
-    watch,
-    control,
-    // formState: {errors},
-  } = methods;
+  const methods = useForm<MakeOfferFormData>();
 
   const handleBackButtonPress = () => {
     navigation.goBack();
   };
 
+  const onSubmit = (data: MakeOfferFormData) => {
+    // Handle form submission here
+    console.log(data);
+  };
+
   return (
     <SafeAreaContainer>
       <ScrollView className="flex-1" style={flex.flexCol}>
-        <View className="bg-red-500 w-full flex flex-row items-center justify-start px-2 py-4 border-b-[0.5px] border-gray-400">
+        <View className="w-full flex flex-row items-center justify-start px-2 py-4 border-b-[0.5px] border-gray-400">
           <TouchableOpacity onPress={handleBackButtonPress}>
             <BackNav width={30} height={20} color={COLOR.black[100]} />
           </TouchableOpacity>
@@ -61,44 +51,61 @@ const MakeOfferScreen = () => {
         </View>
         <FormProvider {...methods}>
           <View style={flex.flexCol}>
-            <View style={flex.flexRow}>
-              <Text>
-                Choose Campaign<Text>*</Text>
-              </Text>
-              <Pressable>
-                <Text>Choose</Text>
-              </Pressable>
-            </View>
-
-            <CustomTextInput
-              label="Offered Fee"
-              name="fee"
-              rules={{
-                required: 'Offered fee is required',
-              }}
+            <Controller
+              control={methods.control}
+              render={({field, fieldState}) => (
+                <>
+                  <CustomTextInput
+                    label="Campaign"
+                    placeholder="Enter campaign"
+                    value={field.value}
+                    onChangeText={text => field.onChange(text)}
+                    onBlur={field.onBlur}
+                  />
+                  {fieldState.error && (
+                    <Text style={{color: 'red'}}>Campaign is required</Text>
+                  )}
+                </>
+              )}
+              name="campaign"
+              rules={{required: 'Campaign is required'}}
+              defaultValue=""
             />
 
             <Controller
-              control={control}
-              name="importantNotes"
-              rules={{required: 'Information is required!'}}
-              render={({fieldState: {error}}) => (
-                <View>
-                  <FieldArray
-                    control={control}
-                    title="Important Notes (for Content Creator)"
-                    parentName="importantNotes"
-                    childName="value"
-                    placeholder="Add dos and/or don'ts"
+              control={methods.control}
+              render={({field, fieldState}) => (
+                <>
+                  <CustomTextInput
+                    label="Fee"
+                    placeholder="Enter fee"
+                    keyboardType="numeric"
+                    value={field.value}
+                    onChangeText={text => field.onChange(text)}
+                    onBlur={field.onBlur}
                   />
-                  {error && (
-                    <Text className="text-xs mt-2 font-medium text-red-500">
-                      Information is required (at least 1)!
-                    </Text>
+                  {fieldState.error && (
+                    <Text style={{color: 'red'}}>Fee is required</Text>
                   )}
-                </View>
+                </>
               )}
+              name="fee"
+              rules={{required: 'Fee is required'}}
+              defaultValue={0}
             />
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: 'blue',
+                padding: 10,
+                borderRadius: 5,
+                marginTop: 20,
+              }}
+              onPress={methods.handleSubmit(onSubmit)}>
+              <Text style={{color: 'white', textAlign: 'center'}}>
+                Make Offer
+              </Text>
+            </TouchableOpacity>
           </View>
         </FormProvider>
       </ScrollView>

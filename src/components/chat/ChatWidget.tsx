@@ -22,11 +22,6 @@ interface Props {
 const ChatWidget = ({options, handleImageUpload}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
 
-  // Handle make offer button
-  const onMakeOfferPress = () => {
-    navigation.navigate(AuthenticatedNavigation.MakeOffer);
-  };
-
   // TODO: extract to utility function
   const imageSelected = (media: ImageOrVideo) => {
     console.log(media);
@@ -76,7 +71,7 @@ const ChatWidget = ({options, handleImageUpload}: Props) => {
 
       {/* Make Offer Button */}
       <Pressable
-        onPress={onMakeOfferPress}
+        onPress={() => navigation.navigate(AuthenticatedNavigation.MakeOffer)}
         className="flex flex-col justify-center items-center">
         <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
           <MakeOfferIcon width={30} height={30} />

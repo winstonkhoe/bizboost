@@ -198,6 +198,10 @@ const StackNavigator = () => {
                   ...TransitionPresets.ModalSlideFromBottomIOS,
                 }}>
                 <Stack.Screen
+                  name={AuthenticatedNavigation.MakeOffer}
+                  component={MakeOfferScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.ChatDetail}
                   component={ChatScreen}
                 />
@@ -220,26 +224,6 @@ const StackNavigator = () => {
             screenOptions={{
               headerShown: false,
             }}>
-            <Stack.Screen
-              name={AuthenticatedNavigation.ChatDetail}
-              component={ChatScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.MakeOffer}
-              component={MakeOfferScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.ContentCreatorDetail}
-              component={ContentCreatorDetailScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.CampaignRegistrants}
-              component={CampaignRegistrantsScreen}
-            />
-            <Stack.Screen
-              name={AuthenticatedNavigation.CreateAdditionalAccount}
-              component={CreateAdditionalAccountScreen}
-            />
             <Stack.Group
               screenOptions={{
                 presentation: 'modal',
