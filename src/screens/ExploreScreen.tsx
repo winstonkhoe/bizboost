@@ -60,6 +60,7 @@ interface ExploreItemProps {
 const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
   const bottomTabHeight = useBottomTabBarHeight();
   const windowDimension = useWindowDimensions();
+  const [isBuffering, setIsBuffering] = useState<boolean>(false);
   const statusBarHeight = StatusBar.currentHeight || 0;
   return (
     <View
@@ -69,6 +70,25 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
           height: windowDimension.height - bottomTabHeight - statusBarHeight,
         },
       ]}>
+      {isBuffering && contentView?.content?.thumbnail && (
+        <View
+          style={[
+            {
+              position: 'absolute',
+              zIndex: 10,
+            },
+            dimension.full,
+          ]}>
+          <FastImage
+            style={[dimension.full]}
+            source={{
+              uri: contentView.content.thumbnail,
+              priority: FastImage.priority.high,
+            }}
+            resizeMode={'cover'}
+          />
+        </View>
+      )}
       <Video
         source={{
           uri: contentView.content.uri,
@@ -76,17 +96,27 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
         paused={!active}
         repeat
         resizeMode="cover"
-        onBuffer={buff => console.log('buffer', buff)}
+        onBuffer={buff => {
+          setIsBuffering(buff.isBuffering);
+        }}
         onError={err => console.log('error', err)}
         style={{
           position: 'absolute',
+          zIndex: 5,
           width: '100%',
           height: '100%',
         }}
       />
       <Pressable
-        className="absolute z-10 bottom-4 left-4 w-72"
-        style={[flex.flexCol, gap.xsmall]}>
+        className="bottom-4 left-4 w-72"
+        style={[
+          flex.flexCol,
+          gap.xsmall,
+          {
+            position: 'absolute',
+            zIndex: 20,
+          },
+        ]}>
         <View
           className="self-start"
           style={[
