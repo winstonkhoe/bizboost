@@ -16,13 +16,15 @@ export class Content extends BaseModel {
   uri?: string;
   userId?: string;
   description?: string;
+  thumbnail?: string;
 
-  constructor({id, uri, userId, description}: Partial<Content>) {
+  constructor({id, uri, userId, description, thumbnail}: Partial<Content>) {
     super();
     this.id = id;
     this.uri = uri;
     this.userId = userId;
     this.description = description;
+    this.thumbnail = thumbnail;
   }
 
   private static fromSnapshot(
@@ -37,9 +39,21 @@ export class Content extends BaseModel {
         description: data?.description,
         uri: data?.uri,
         userId: data?.userId?.id,
+        thumbnail: data?.thumbnail,
       });
     }
     throw Error("Error, document doesn't exist!");
+  }
+
+  static async updateContentData(
+    documentId: string,
+    data: Content,
+  ): Promise<void> {
+    await this.getDocumentReference(documentId).update({
+      ...data,
+      id: undefined,
+      userId: User.getDocumentReference(data.userId!!),
+    });
   }
 
   private static fromQuerySnapshot(
@@ -94,5 +108,18 @@ export class Content extends BaseModel {
       return this.fromQuerySnapshot(querySnapshot);
     }
     return [];
+  }
+
+  async update() {
+    try {
+      if (this.id) {
+        await Content.updateContentData(this.id, this);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.log(error);
+    }
+    return false;
   }
 }
