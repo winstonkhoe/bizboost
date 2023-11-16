@@ -85,11 +85,13 @@ export type AuthenticatedStack = {
 
 interface LocationModalProps {
   initialSelectedLocations: Location[];
+  maxSelection?: number;
   eventType: string;
 }
 
 interface CategoryModalProps {
   initialSelectedCategories: Category[];
+  maxSelection?: number;
   eventType: string;
 }
 

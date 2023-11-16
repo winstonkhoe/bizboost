@@ -149,21 +149,23 @@ const HomeScreen = () => {
         )}
       </ScrollView>
       {activeRole === UserRole.BusinessPeople && (
-        <AnimatedPressable
+        <View
           style={{
             position: 'absolute',
             bottom: 20,
             right: 20,
           }}>
-          <FAB
-            onPress={() =>
-              navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-            }
-            size="small"
-            color="#25A436"
-            icon={<Edit width={20} height={20} color={'white'} />}
-          />
-        </AnimatedPressable>
+          <AnimatedPressable>
+            <FAB
+              size="small"
+              color="#25A436"
+              onPress={() =>
+                navigation.navigate(AuthenticatedNavigation.CreateCampaign)
+              }
+              icon={<Edit width={20} height={20} color={'white'} />}
+            />
+          </AnimatedPressable>
+        </View>
       )}
     </PageWithSearchBar>
   );

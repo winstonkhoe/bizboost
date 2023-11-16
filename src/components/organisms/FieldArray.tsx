@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Control, Controller, useFieldArray} from 'react-hook-form';
 import {Text, View} from 'react-native';
-import {CampaignFormData} from '../../screens/CreateCampaignScreen';
 import {FormlessTextInput} from '../atoms/Input';
 import {FormFieldHelper} from '../atoms/FormLabel';
 import {SheetModal} from '../../containers/SheetModal';
@@ -17,7 +16,7 @@ import {Platform} from 'react-native';
 import {useKeyboard} from '../../hooks/keyboard';
 import {FieldArrayLabel} from '../molecules/FieldArrayLabel';
 type Props = {
-  control: Control<CampaignFormData>;
+  control: Control<any>;
   title: string;
   parentName: any; // string
   childName: string;
@@ -77,9 +76,7 @@ const FieldArray = ({
                 <View key={f.id} style={[flex.flexRow, justify.start]}>
                   <Controller
                     control={control}
-                    name={
-                      `${parentName}.${index}.${childName}` as keyof CampaignFormData
-                    }
+                    name={`${parentName}.${index}.${childName}`}
                     render={({field: {value}}) => (
                       <FieldArrayLabel
                         type="field"
@@ -125,9 +122,7 @@ const FieldArray = ({
               <View style={[flex.flexRow, justify.center]}>
                 <Controller
                   control={control}
-                  name={
-                    `${parentName}.${updateIndex}.${childName}` as keyof CampaignFormData
-                  }
+                  name={`${parentName}.${updateIndex}.${childName}`}
                   render={({field: {value, onChange}}) => (
                     <View style={[flex.flexCol, gap.medium]}>
                       <FormlessTextInput
