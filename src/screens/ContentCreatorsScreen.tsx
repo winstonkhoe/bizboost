@@ -16,7 +16,7 @@ import {
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 
 import Filter from '../assets/vectors/filter.svg';
-import {flex} from '../styles/Flex';
+import {flex, justify} from '../styles/Flex';
 import {COLOR} from '../styles/Color';
 import ContentCreatorCard from '../components/atoms/ContentCreatorCard';
 import {gap} from '../styles/Gap';
@@ -218,7 +218,7 @@ const ContentCreatorsScreen: React.FC = () => {
                   onPress={() => setFilterModalState(true)}
                   style={flex.flexRow}
                   className="rounded-md border justify-between items-center px-2">
-                  <Filter width={12} height={12} color={COLOR.black} />
+                  <Filter width={12} height={12} color={COLOR.black[100]} />
                   <Text className="text-black pl-2 text-xs">Filter</Text>
                 </Pressable>
                 <ScrollView horizontal style={styles.categoriesContainer}>
@@ -242,7 +242,7 @@ const ContentCreatorsScreen: React.FC = () => {
               </View>
 
               {filteredContentCreators.length > 0 ? (
-                <View style={flex.flexRow} className="justify-between">
+                <View style={[flex.flexRow, justify.between]}>
                   <View style={(flex.flexCol, gap.small)}>
                     {filteredContentCreators.map((item, index) =>
                       index % 2 === 0 ? (
@@ -254,8 +254,8 @@ const ContentCreatorsScreen: React.FC = () => {
                             item.contentCreator?.specializedCategoryIds
                           }
                           imageUrl={
-                            item.contentCreator?.profilePicture ??
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
+                            item.contentCreator?.profilePicture ||
+                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
                           }
                         />
                       ) : null,
@@ -272,8 +272,8 @@ const ContentCreatorsScreen: React.FC = () => {
                             item.contentCreator?.specializedCategoryIds
                           }
                           imageUrl={
-                            item.contentCreator?.profilePicture ??
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default-content-creator.jpeg?alt=media&token=ce612a34-4273-41cc-8365-c73195b97bad&_gl=1*1117w4m*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQyNzUzNC41Ny4xLjE2OTk0Mjc2MTEuNDQuMC4w'
+                            item.contentCreator?.profilePicture ||
+                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
                           }
                         />
                       ) : null,
