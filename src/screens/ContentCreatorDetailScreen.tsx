@@ -33,6 +33,7 @@ import {formatDateToDayMonthYear, getDate} from '../utils/date';
 import FastImage from 'react-native-fast-image';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {padding} from '../styles/Padding';
+import { size } from '../styles/Size';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -78,8 +79,8 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
           flex.grow,
           flex.flexCol,
           {
-            paddingTop: safeAreaInsets.top,
-            paddingBottom: safeAreaInsets.bottom,
+            paddingTop: Math.max(safeAreaInsets.top, size.default),
+            paddingBottom: Math.max(safeAreaInsets.bottom, size.large),
           },
           padding.horizontal.large,
         ]}>
