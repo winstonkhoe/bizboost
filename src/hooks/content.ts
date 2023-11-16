@@ -6,7 +6,11 @@ import {setContents} from '../redux/slices/contentSlice';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import {uploadFile} from '../helpers/storage';
 
-export const useContent = () => {
+interface useContentHook {
+  contents: ContentView[];
+}
+
+export const useContent = (): useContentHook => {
   const [rawContents, setRawContents] = useState<Content[]>([]);
   const {contents} = useAppSelector(state => state.content);
   const dispatch = useAppDispatch();
