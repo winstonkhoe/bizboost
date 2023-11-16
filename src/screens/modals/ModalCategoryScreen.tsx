@@ -79,7 +79,8 @@ const ModalCategoryScreen = ({route}: Props) => {
             key={index}
             category={category}
             isReachLimit={
-              maxSelection && selectedCategories.length >= maxSelection
+              maxSelection !== undefined &&
+              selectedCategories.length >= maxSelection
             }
             isSelected={selectedIndex !== -1}
             selectedIndex={selectedIndex}
