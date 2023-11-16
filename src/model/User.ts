@@ -252,24 +252,12 @@ export class User extends BaseModel {
     return unsubscribe;
   }
 
-  static async getById(documentId: string): Promise<User | undefined> {
+  static async getById(documentId: string): Promise<User | null> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {
-      const userData = snapshot.data();
-      const user = new User({
-        id: snapshot.id,
-        email: userData?.email,
-        phone: userData?.phone,
-        contentCreator: userData?.contentCreator,
-        businessPeople: userData?.businessPeople,
-        instagram: userData?.instagram,
-        tiktok: userData?.tiktok,
-        joinedAt: userData?.joinedAt?.seconds,
-        isAdmin: userData?.isAdmin,
-      });
-
-      return user;
+      return this.fromSnapshot(snapshot);
     }
+    return null;
   }
 
   static async getUser(documentId: string): Promise<User | null> {
