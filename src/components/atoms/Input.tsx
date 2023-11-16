@@ -49,6 +49,7 @@ import uuid from 'react-native-uuid';
 import storage from '@react-native-firebase/storage';
 import {ProgressBar} from './ProgressBar';
 import {border} from '../../styles/Border';
+import {uploadFile} from '../../helpers/storage';
 
 interface Props extends UseControllerProps {
   label: string;
@@ -581,35 +582,17 @@ export const MediaUploader = ({
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
         onMediaSelected && onMediaSelected(media);
-        const imageType = media.mime.split('/')[1];
-        const filename = `${targetFolder}/${uuid.v4()}.${imageType}`;
-
-        const reference = storage().ref(filename);
-        const task = reference.putFile(media.path);
-        task.on('state_changed', taskSnapshot => {
-          setUploadProgress(
-            taskSnapshot.bytesTransferred / taskSnapshot.totalBytes,
-          );
-        });
-        task.then(() => {
-          try {
-            reference
-              .getDownloadURL()
-              .then(url => {
-                onUploadSuccess && onUploadSuccess(url);
-                console.log(url);
-                console.log('Image uploaded to the bucket!');
-              })
-              .catch(err => {
-                onUploadFail && onUploadFail(err);
-                setUploadProgress(undefined);
-                console.log(err);
-              });
-          } catch (e) {
-            onUploadFail && onUploadFail(e);
+        uploadFile({
+          targetFolder: targetFolder,
+          originalFilePath: media.path,
+          onUploadComplete: url => {
+            onUploadSuccess && onUploadSuccess(url);
+          },
+          onUploadError: error => {
+            onUploadFail && onUploadFail(error);
             setUploadProgress(undefined);
-            console.log(e);
-          }
+          },
+          onUploadProgressChange: setUploadProgress,
         });
       })
       .catch(err => {
