@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {font} from '../styles/Font';
-import {flex} from '../styles/Flex';
+import {flex, justify} from '../styles/Flex';
 import StarIcon from '../assets/vectors/star.svg';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TiktokLogo from '../assets/vectors/tiktok.svg';
@@ -29,7 +29,10 @@ import {Content} from '../model/Content';
 import Video from 'react-native-video';
 import {ActivityIndicator} from 'react-native';
 import ScaledImage from '../components/atoms/ScaledImage';
-import {getDate} from '../utils/date';
+import {formatDateToDayMonthYear, getDate} from '../utils/date';
+import FastImage from 'react-native-fast-image';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {padding} from '../styles/Padding';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -38,7 +41,8 @@ type Props = NativeStackScreenProps<
 
 const ContentCreatorDetailScreen = ({route}: Props) => {
   const param = route.params;
-  const [contentCreator, setContentCreator] = useState<User>();
+  const safeAreaInsets = useSafeAreaInsets();
+  const [contentCreator, setContentCreator] = useState<User | null>();
   const [contents, setContents] = useState<Content[]>();
   const [index, setIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState(0);
@@ -53,7 +57,6 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
   const profilePictureSource = require('../assets/images/sample-influencer.jpeg');
 
   const pagerViewRef = useRef<PagerView>(null);
-  const videoRef = useRef<Video>(null);
 
   const goToInfoTab = () => {
     pagerViewRef.current?.setPage(0);
@@ -70,9 +73,19 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
   return (
     <PageWithBackButton fullHeight={true}>
       <View
-        style={(flex.flex1, flex.grow, flex.flexCol)}
-        className="flex-1 px-3 justify-between">
-        <View style={flex.flexCol} className="justify-center items-center">
+        style={[
+          flex.flex1,
+          flex.grow,
+          flex.flexCol,
+          {
+            paddingTop: safeAreaInsets.top,
+            paddingBottom: safeAreaInsets.bottom,
+          },
+          padding.horizontal.large,
+        ]}>
+        <View
+          style={[flex.grow, flex.flexCol]}
+          className="justify-center items-center">
           <View
             style={{
               width: Dimensions.get('window').width * 0.3,
@@ -159,114 +172,116 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
               setIndex(e.nativeEvent.position);
               setSelectedTab(e.nativeEvent.position);
             }}>
-            <ScrollView style={flex.flexCol} className="gap-y-1" key="1">
-              <View>
-                <Text className="text-black font-bold">About Me</Text>
-                <Text>
-                  Hi there! I'm Emily, a content creator weaving stories and
-                  visuals in the digital realm. From crafting eye-catching
-                  Instagram feeds to whipping up engaging TikTok moments, I
-                  thrive on transforming ideas into captivating digital
-                  experiences. Beyond just creating content, it's about
-                  fostering connections and sparking meaningful conversations.
-                  With a knack for staying on top of trends and a commitment to
-                  authenticity, I love navigating the dynamic world of content
-                  creation, where each post is a brushstroke in my canvas of
-                  digital expression.
-                </Text>
-              </View>
-              {contentCreator?.contentCreator?.preferences &&
-                contentCreator.contentCreator.preferences.length > 0 && (
-                  <View>
-                    <Text className="text-black font-bold">Preferences</Text>
-                    {contentCreator.contentCreator.preferences.map(
-                      (preference, idx) => (
-                        <Text key={idx}>• {preference}</Text>
-                      ),
-                    )}
-                  </View>
-                )}
+            <View key="1">
+              <ScrollView
+                bounces={false}
+                contentContainerStyle={[flex.flexCol, gap.medium]}>
+                <View style={[flex.flexCol]}>
+                  <Text className="text-black font-bold">About Me</Text>
+                  <Text>
+                    Hi there! I'm Emily, a content creator weaving stories and
+                    visuals in the digital realm. From crafting eye-catching
+                    Instagram feeds to whipping up engaging TikTok moments, I
+                    thrive on transforming ideas into captivating digital
+                    experiences. Beyond just creating content, it's about
+                    fostering connections and sparking meaningful conversations.
+                    With a knack for staying on top of trends and a commitment
+                    to authenticity, I love navigating the dynamic world of
+                    content creation, where each post is a brushstroke in my
+                    canvas of digital expression.
+                  </Text>
+                </View>
+                {contentCreator?.contentCreator?.preferences &&
+                  contentCreator.contentCreator.preferences.length > 0 && (
+                    <View>
+                      <Text className="text-black font-bold">Preferences</Text>
+                      {contentCreator.contentCreator.preferences.map(
+                        (preference, idx) => (
+                          <Text key={idx}>• {preference}</Text>
+                        ),
+                      )}
+                    </View>
+                  )}
 
-              {contentCreator?.contentCreator?.preferredLocationIds &&
-                contentCreator?.contentCreator?.preferredLocationIds.length >
-                  0 && (
-                  <View>
-                    <Text className="text-black font-bold">
-                      Preferred Locations
-                    </Text>
-                    {contentCreator.contentCreator.preferredLocationIds.map(
-                      (loc, idx) => (
-                        <Text key={idx}>• {loc.id}</Text>
-                      ),
+                {contentCreator?.contentCreator?.preferredLocationIds &&
+                  contentCreator?.contentCreator?.preferredLocationIds.length >
+                    0 && (
+                    <View>
+                      <Text className="text-black font-bold">
+                        Preferred Locations
+                      </Text>
+                      {contentCreator.contentCreator.preferredLocationIds.map(
+                        (loc, idx) => (
+                          <Text key={idx}>• {loc}</Text>
+                        ),
+                      )}
+                    </View>
+                  )}
+                {contentCreator?.contentCreator?.postingSchedules &&
+                  contentCreator?.contentCreator?.postingSchedules.length >
+                    0 && (
+                    <View>
+                      <Text className="text-black font-bold">
+                        Posting Schedules
+                      </Text>
+                      {contentCreator?.contentCreator?.postingSchedules?.map(
+                        (sched, idx) => (
+                          <Text key={idx}>
+                            • {formatDateToDayMonthYear(new Date(sched))}
+                          </Text>
+                        ),
+                      )}
+                    </View>
+                  )}
+              </ScrollView>
+            </View>
+            <View key="2">
+              <ScrollView className="flex-1" bounces={false}>
+                <View style={[flex.flexRow, gap.default]}>
+                  <View
+                    style={[
+                      flex.flex1,
+                      flex.growShrink,
+                      flex.flexCol,
+                      gap.default,
+                    ]}>
+                    {contents?.map(
+                      (content, idx) =>
+                        idx % 2 === 0 && (
+                          <View key={content.id}>
+                            <FastImage
+                              source={{uri: content.thumbnail}}
+                              style={styles.video}
+                            />
+                          </View>
+                        ),
                     )}
                   </View>
-                )}
-              {contentCreator?.contentCreator?.postingSchedules &&
-                contentCreator?.contentCreator?.postingSchedules.length > 0 && (
-                  <View>
-                    <Text className="text-black font-bold">
-                      Posting Schedules
-                    </Text>
-                    {contentCreator?.contentCreator?.postingSchedules.map(
-                      (sched, idx) => (
-                        <Text key={idx}>
-                          •{' '}
-                          {getDate(sched).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </Text>
-                      ),
+                  <View
+                    style={[
+                      flex.flex1,
+                      flex.growShrink,
+                      flex.flexCol,
+                      gap.default,
+                    ]}>
+                    {contents?.map(
+                      (content, idx) =>
+                        idx % 2 !== 0 && (
+                          <View key={content.id}>
+                            <FastImage
+                              source={{uri: content.thumbnail}}
+                              style={styles.video}
+                            />
+                          </View>
+                        ),
                     )}
                   </View>
-                )}
-            </ScrollView>
-            <ScrollView style={flex.flexRow} key="2">
-              <View style={flex.flexCol}>
-                {contents?.map(
-                  (content, idx) =>
-                    idx % 2 === 0 && (
-                      <View key={content.id}>
-                        <Video
-                          ref={videoRef}
-                          source={{uri: content.uri}}
-                          style={styles.video}
-                          paused={true}
-                          onLoad={data => {
-                            const seekTime = 1;
-                            videoRef.current?.seek(seekTime);
-                          }}
-                        />
-                      </View>
-                    ),
-                )}
-              </View>
-              <View style={flex.flexCol}>
-                {contents?.map(
-                  (content, idx) =>
-                    idx % 2 !== 0 && (
-                      <View key={content.id}>
-                        <Video
-                          ref={videoRef}
-                          source={{uri: content.uri}}
-                          style={styles.video}
-                          paused={true}
-                          onLoad={data => {
-                            const seekTime = 1;
-                            videoRef.current?.seek(seekTime);
-                          }}
-                        />
-                      </View>
-                    ),
-                )}
-              </View>
-            </ScrollView>
+                </View>
+              </ScrollView>
+            </View>
           </PagerView>
         </View>
-        <View>
-          <CustomButton text="Contact Content Creator" />
-        </View>
+        <CustomButton text="Contact Content Creator" />
       </View>
     </PageWithBackButton>
   );
@@ -283,7 +298,6 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width * 0.45,
   },
   video: {
-    width: Dimensions.get('window').width * 0.45,
     height: 200,
     borderRadius: 10,
   },
