@@ -29,6 +29,7 @@ import {useEffect, useState} from 'react';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import SplashScreen from '../screens/SplashScreen';
+import MyTransactionsScreen from '../screens/profile/MyTransactionsScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -50,6 +51,7 @@ export enum AuthenticatedNavigation {
   CampaignTimeline = 'Campaign Timeline',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
+  MyTransactions = 'My Transactions',
 }
 
 export enum GeneralNavigation {
@@ -78,6 +80,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
+  [AuthenticatedNavigation.MyTransactions]: undefined;
 };
 
 interface LocationModalProps {
@@ -207,6 +210,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.CampaignRegistrants}
                   component={CampaignRegistrantsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.MyTransactions}
+                  component={MyTransactionsScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}

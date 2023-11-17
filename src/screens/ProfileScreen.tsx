@@ -19,10 +19,17 @@ import {useAppDispatch} from '../redux/hooks';
 import {disableAccess} from '../redux/slices/authSlice';
 import FastImage from 'react-native-fast-image';
 import ProfileMenuCard from '../components/molecules/ProfileMenuCard';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
   const {user, activeData, activeRole} = useUser();
+  const navigation = useNavigation<NavigationStackProps>();
+
   return (
     <View className="flex-1">
       <ScrollView
@@ -94,7 +101,9 @@ const ProfileScreen = () => {
                 <View className="flex flex-row flex-wrap justify-between items-center">
                   <ProfileMenuCard
                     handleOnClick={() => {
-                      console.log('masuk');
+                      navigation.navigate(
+                        AuthenticatedNavigation.MyTransactions,
+                      );
                     }}
                     icon={
                       <TransactionIcon
