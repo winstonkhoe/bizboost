@@ -117,7 +117,7 @@ const ProfileScreen = () => {
                   />
                   <ProfileMenuCard
                     handleOnClick={() => {
-                      console.log('masuk');
+                      navigation.navigate(AuthenticatedNavigation.AboutMe);
                     }}
                     icon={<AboutIcon fill={'#FB8A2E'} height={80} width={80} />}
                     title="About Me"
@@ -126,7 +126,9 @@ const ProfileScreen = () => {
                   {activeRole === UserRole.BusinessPeople && (
                     <ProfileMenuCard
                       handleOnClick={() => {
-                        console.log('masuk');
+                        navigation.navigate(
+                          AuthenticatedNavigation.PayContentCreator,
+                        );
                       }}
                       icon={
                         <MoneyIcon
@@ -142,7 +144,9 @@ const ProfileScreen = () => {
                   {activeRole === UserRole.ContentCreator && (
                     <ProfileMenuCard
                       handleOnClick={() => {
-                        console.log('masuk');
+                        navigation.navigate(
+                          AuthenticatedNavigation.WithdrawMoney,
+                        );
                       }}
                       icon={
                         <MoneyIcon
@@ -158,7 +162,9 @@ const ProfileScreen = () => {
                   {activeRole === UserRole.ContentCreator && (
                     <ProfileMenuCard
                       handleOnClick={() => {
-                        console.log('masuk');
+                        navigation.navigate(
+                          AuthenticatedNavigation.UploadVideo,
+                        );
                       }}
                       icon={
                         <AddIcon fill={COLOR.red[40]} height={80} width={80} />

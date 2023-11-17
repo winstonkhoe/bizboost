@@ -216,6 +216,7 @@ export class Campaign extends BaseModel {
 
   async insert() {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const {id, ...rest} = this;
       const data = {
         ...rest,

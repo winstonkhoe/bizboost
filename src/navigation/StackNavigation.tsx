@@ -25,6 +25,10 @@ import {useEffect, useState} from 'react';
 import SplashScreen from '../screens/SplashScreen';
 import MyTransactionsScreen from '../screens/profile/MyTransactionsScreen';
 import MyCampaignsScreen from '../screens/profile/MyCampaignsScreen';
+import AboutMeScreen from '../screens/profile/AboutMeScreen';
+import PayContentCreatorScreen from '../screens/profile/PayContentCreatorScreen';
+import UploadVideoScreen from '../screens/profile/UploadVideoScreen';
+import WithdrawMoneyScreen from '../screens/profile/WithdrawMoneyScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -48,6 +52,10 @@ export enum AuthenticatedNavigation {
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'My Transactions',
   MyCampaigns = 'My Campaigns',
+  AboutMe = 'About Me',
+  PayContentCreator = 'Pay Content Creator',
+  UploadVideo = 'Upload Video',
+  WithdrawMoney = 'Withdraw Money',
 }
 
 export enum GeneralNavigation {
@@ -78,6 +86,10 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MyTransactions]: undefined;
   [AuthenticatedNavigation.MyCampaigns]: undefined;
+  [AuthenticatedNavigation.AboutMe]: undefined;
+  [AuthenticatedNavigation.PayContentCreator]: undefined;
+  [AuthenticatedNavigation.UploadVideo]: undefined;
+  [AuthenticatedNavigation.WithdrawMoney]: undefined;
 };
 
 interface LocationModalProps {
@@ -215,6 +227,22 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.MyCampaigns}
                   component={MyCampaignsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.AboutMe}
+                  component={AboutMeScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.PayContentCreator}
+                  component={PayContentCreatorScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.UploadVideo}
+                  component={UploadVideoScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.WithdrawMoney}
+                  component={WithdrawMoneyScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}
