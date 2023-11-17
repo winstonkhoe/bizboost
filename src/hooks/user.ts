@@ -1,13 +1,7 @@
 import {useCallback, useEffect, useRef} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {setUser, switchRole} from '../redux/slices/userSlice';
-import {
-  BusinessPeople,
-  ContentCreator,
-  User,
-  UserRole,
-  UserRoles,
-} from '../model/User';
+import {BusinessPeople, ContentCreator, User, UserRole} from '../model/User';
 
 export const useUser = () => {
   const unsubscribe = useRef<(() => void) | undefined>(undefined);
@@ -15,7 +9,7 @@ export const useUser = () => {
   const dispatch = useAppDispatch();
   const getData = (
     user: User | null | undefined,
-    activeRole: UserRoles,
+    activeRole?: UserRole,
   ): ContentCreator | BusinessPeople | undefined => {
     if (!user) {
       return undefined;

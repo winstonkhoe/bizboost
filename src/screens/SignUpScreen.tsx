@@ -5,7 +5,6 @@ import {
   SocialPlatform,
   User,
   UserRole,
-  UserRoles,
 } from '../model/User';
 import {useForm, FormProvider} from 'react-hook-form';
 import {CustomTextInput} from '../components/atoms/Input';
@@ -92,7 +91,7 @@ const SignUpScreen = () => {
     provider,
     providerId,
   } = useAppSelector(select => select.signup);
-  const [currentRole, setCurrentRole] = useState<UserRoles | undefined>(
+  const [currentRole, setCurrentRole] = useState<UserRole | undefined>(
     undefined,
   );
   const [activePosition, setActivePosition] = useState<number>(0);

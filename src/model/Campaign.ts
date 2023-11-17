@@ -29,7 +29,7 @@ export type CampaignSteps =
   | CampaignStep.EngagementResultSubmission;
 
 export interface CampaignTimeline {
-  step: CampaignSteps;
+  step: CampaignStep;
   start: number;
   end: number;
 }

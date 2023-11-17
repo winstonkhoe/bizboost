@@ -2,7 +2,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
-import {User, UserRole, UserRoles} from './User';
+import {User, UserRole} from './User';
 import {Campaign} from './Campaign';
 
 export const TRANSACTION_COLLECTION = 'transactions';
@@ -126,7 +126,7 @@ export class Transaction extends BaseModel {
 
   static getAllTransactionsByRole(
     userId: string,
-    role: UserRoles,
+    role: UserRole,
     onComplete: (transactions: Transaction[]) => void,
   ) {
     try {

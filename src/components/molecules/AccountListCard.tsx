@@ -4,7 +4,7 @@ import {rounded} from '../../styles/BorderRadius';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
-import {BusinessPeople, ContentCreator, UserRoles} from '../../model/User';
+import {BusinessPeople, ContentCreator, UserRole} from '../../model/User';
 import {gap} from '../../styles/Gap';
 import Add from '../../assets/vectors/add-thin.svg';
 import {border} from '../../styles/Border';
@@ -26,7 +26,7 @@ import FastImage from 'react-native-fast-image';
 interface Props {
   data?: BusinessPeople | ContentCreator;
   active?: boolean;
-  role: UserRoles;
+  role?: UserRole;
 }
 const AccountListCard = ({data, active = false, role}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();

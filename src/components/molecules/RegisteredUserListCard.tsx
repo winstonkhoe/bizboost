@@ -4,7 +4,7 @@ import {flex} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {Image} from 'react-native';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
-import {User, UserRole, UserRoles} from '../../model/User';
+import {User, UserRole} from '../../model/User';
 import {ReactNode, useEffect, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
@@ -28,11 +28,11 @@ import {gap} from '../../styles/Gap';
 
 type Props = {
   transaction: Transaction;
-  role?: UserRoles;
+  role?: UserRole;
 };
 const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const [contentCreator, setContentCreator] = useState<User>();
+  const [contentCreator, setContentCreator] = useState<User | null>();
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
     User.getById(transaction.contentCreatorId || '').then(u =>
