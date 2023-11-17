@@ -28,6 +28,7 @@ import {horizontalPadding, verticalPadding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
 import {border} from '../styles/Border';
 import {textColor} from '../styles/Text';
+import { formatToRupiah } from '../utils/currency';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -165,6 +166,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                     style: 'currency',
                     currency: 'IDR',
                   }).format(campaign.fee)}
+                  {formatToRupiah(campaign.fee)}
                 </Text>
               )}
             </View>
