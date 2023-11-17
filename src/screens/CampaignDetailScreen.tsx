@@ -10,7 +10,7 @@ import {View} from 'react-native';
 import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
 import {Campaign} from '../model/Campaign';
-import {getDate} from '../utils/date';
+import {formatDateToDayMonthYear, getDate} from '../utils/date';
 import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {Transaction, TransactionStatus} from '../model/Transaction';
@@ -42,7 +42,6 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
     TransactionStatus.notRegistered,
   );
-  const [businessPeople, setBusinessPeople] = useState<User | undefined>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
@@ -118,19 +117,11 @@ const CampaignDetailScreen = ({route}: Props) => {
             <Text className="font-bold text-2xl mb-2">{campaign.title}</Text>
             <View className="flex flex-row justify-between">
               <Text className="font-bold text-xs">
-                {campaign.start &&
-                  getDate(campaign.start).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}{' '}
-                -{' '}
-                {campaign.end &&
-                  getDate(campaign.end).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
+                {`${formatDateToDayMonthYear(
+                  new Campaign(campaign).getStartDate(),
+                )} - ${formatDateToDayMonthYear(
+                  new Campaign(campaign).getEndDate(),
+                )}`}
               </Text>
               <View className="flex flex-row items-center">
                 <People width={20} height={20} />
@@ -162,10 +153,6 @@ const CampaignDetailScreen = ({route}: Props) => {
             <View>
               {campaign.fee && (
                 <Text className="font-medium ">
-                  {new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                  }).format(campaign.fee)}
                   {formatToRupiah(campaign.fee)}
                 </Text>
               )}
