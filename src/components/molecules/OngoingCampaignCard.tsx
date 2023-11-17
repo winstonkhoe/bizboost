@@ -1,10 +1,10 @@
-import {Pressable, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
-import {borderRadius, radiusSize, rounded} from '../../styles/BorderRadius';
+import {rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
-import {Campaign, CampaignStep, CampaignTimeline} from '../../model/Campaign';
-import {formatDateToDayMonthYear, getDate} from '../../utils/date';
+import {Campaign} from '../../model/Campaign';
+import {formatDateToDayMonthYear} from '../../utils/date';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -13,7 +13,7 @@ import {
 import FastImage from 'react-native-fast-image';
 import {padding} from '../../styles/Padding';
 import {Label} from '../atoms/Label';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {COLOR} from '../../styles/Color';
 import {User} from '../../model/User';
 import {font} from '../../styles/Font';
@@ -40,11 +40,6 @@ const OngoingCampaignCard = ({campaign}: Props) => {
       campaignId: campaign.id || '',
     });
   };
-  const firstTimeline: CampaignTimeline | undefined = useMemo(() => {
-    return campaign.timeline?.find(
-      timeline => CampaignStep.Registration === timeline.step,
-    );
-  }, [campaign]);
 
   return (
     <AnimatedPressable
@@ -76,14 +71,14 @@ const OngoingCampaignCard = ({campaign}: Props) => {
             {user?.businessPeople?.fullname}
           </Text>
         </View>
-        {firstTimeline && (
-          <Label
-            radius="default"
-            text={`${formatDateToDayMonthYear(
-              new Date(firstTimeline.start),
-            )} - ${formatDateToDayMonthYear(new Date(firstTimeline.end))}`}
-          />
-        )}
+        <Label
+          radius="default"
+          text={`${formatDateToDayMonthYear(
+            new Campaign(campaign).getStartDate(),
+          )} - ${formatDateToDayMonthYear(
+            new Campaign(campaign).getEndDate(),
+          )}`}
+        />
       </View>
       <View style={[flex.flexCol]}>
         <View style={[flex.flexRow, gap.medium]}>
