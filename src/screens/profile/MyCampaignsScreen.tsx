@@ -7,10 +7,11 @@ import {padding} from '../../styles/Padding';
 import {useEffect, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
 import {useUser} from '../../hooks/user';
+import {OngoingCampaignCard} from '../../components/molecules/OngoingCampaignCard';
 
 const MyCampaignsScreen = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const {uid, activeRole} = useUser();
+  const {uid} = useUser();
 
   useEffect(() => {
     if (uid) {

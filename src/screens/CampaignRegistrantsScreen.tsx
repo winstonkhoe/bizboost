@@ -1,7 +1,6 @@
 import {ScrollView, Text, View} from 'react-native';
 import {CloseModal} from '../components/atoms/Close';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,

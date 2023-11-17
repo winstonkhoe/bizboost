@@ -21,15 +21,10 @@ import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
 import CampaignTimelineScreen from '../screens/CampaignTimeline';
-import {CustomModal} from '../components/atoms/CustomModal';
-import {View} from 'react-native';
-import {Text} from 'react-native';
-import {flex, items, justify} from '../styles/Flex';
 import {useEffect, useState} from 'react';
-import {background} from '../styles/BackgroundColor';
-import {COLOR} from '../styles/Color';
 import SplashScreen from '../screens/SplashScreen';
 import MyTransactionsScreen from '../screens/profile/MyTransactionsScreen';
+import MyCampaignsScreen from '../screens/profile/MyCampaignsScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -52,6 +47,7 @@ export enum AuthenticatedNavigation {
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'My Transactions',
+  MyCampaigns = 'My Campaigns',
 }
 
 export enum GeneralNavigation {
@@ -81,6 +77,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MyTransactions]: undefined;
+  [AuthenticatedNavigation.MyCampaigns]: undefined;
 };
 
 interface LocationModalProps {
@@ -214,6 +211,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.MyTransactions}
                   component={MyTransactionsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.MyCampaigns}
+                  component={MyCampaignsScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}

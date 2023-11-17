@@ -171,7 +171,9 @@ const ProfileScreen = () => {
                   {activeRole === UserRole.BusinessPeople && (
                     <ProfileMenuCard
                       handleOnClick={() => {
-                        console.log('masuk');
+                        navigation.navigate(
+                          AuthenticatedNavigation.MyCampaigns,
+                        );
                       }}
                       icon={
                         <CampaignIcon fill={'#72B3FF'} height={80} width={80} />
