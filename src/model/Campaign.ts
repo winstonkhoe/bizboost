@@ -234,4 +234,20 @@ export class Campaign extends BaseModel {
     }
     throw Error('Error!');
   }
+
+  getStartDate(): Date {
+    return new Date(
+      this.timeline?.find(
+        timeline => CampaignStep.Registration === timeline.step,
+      )?.start!!,
+    );
+  }
+
+  getEndDate(): Date {
+    return new Date(
+      this.timeline?.find(
+        timeline => CampaignStep.EngagementResultSubmission === timeline.step,
+      )?.end!!,
+    );
+  }
 }
