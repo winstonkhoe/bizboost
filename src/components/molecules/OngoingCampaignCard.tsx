@@ -20,7 +20,7 @@ import {font} from '../../styles/Font';
 import {textColor} from '../../styles/Text';
 import {AnimatedPressable} from '../atoms/AnimatedPressable';
 import {dimension} from '../../styles/Dimension';
-import {formatNumberWithThousandSeparator} from '../../utils/number';
+import {formatToRupiah} from '../../utils/currency';
 type Props = {
   campaign: Campaign;
 };
@@ -44,54 +44,54 @@ const OngoingCampaignCard = ({campaign}: Props) => {
   return (
     <AnimatedPressable
       scale={0.95}
-      style={[
-        flex.flexCol,
-        rounded.medium,
-        padding.default,
-        gap.default,
-        shadow.default,
-        rounded.medium,
-      ]}
+      style={[flex.flexCol, rounded.medium, shadow.default, rounded.medium]}
       onPress={onViewCampaignDetailButtonClicked}>
       <View
         style={[
           flex.flexRow,
           justify.between,
-          items.end,
+          items.center,
           {
             borderBottomWidth: 1,
             borderBottomColor: COLOR.black[20],
           },
-          padding.bottom.default,
+          padding.horizontal.default,
+          padding.vertical.default,
         ]}>
-        <View style={[flex.flexRow, gap.small, justify.start]}>
-          <Text
-            className="font-medium"
-            style={[font.size[40], textColor(COLOR.text.neutral.med)]}>
+        <View style={[flex.flexRow, gap.small, justify.start, items.center]}>
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
             {user?.businessPeople?.fullname}
           </Text>
+          {campaign.categories?.map(category => (
+            <Label radius="default" fontSize={10} text={`${category}`} />
+          ))}
         </View>
-        <Label
-          radius="default"
-          text={`${formatDateToDayMonthYear(
-            new Campaign(campaign).getStartDate(),
-          )} - ${formatDateToDayMonthYear(
-            new Campaign(campaign).getEndDate(),
-          )}`}
-        />
+        <Text
+          style={[
+            font.size[20],
+            textColor(COLOR.text.neutral.high),
+          ]}>{`${formatDateToDayMonthYear(
+          new Campaign(campaign).getStartDate(),
+        )} - ${formatDateToDayMonthYear(
+          new Campaign(campaign).getEndDate(),
+        )}`}</Text>
       </View>
       <View style={[flex.flexCol]}>
-        <View style={[flex.flexRow, gap.medium]}>
-          <View className="w-24 h-24 overflow-hidden" style={[rounded.medium]}>
-            <FastImage
-              style={[dimension.full]}
-              source={{uri: campaign.image}}
-            />
+        <View style={[flex.flexRow, gap.medium, padding.default]}>
+          <View style={[flex.flexRow, items.start]}>
+            <View
+              className="w-20 h-20 overflow-hidden"
+              style={[rounded.medium]}>
+              <FastImage
+                style={[dimension.full]}
+                source={{uri: campaign.image}}
+              />
+            </View>
           </View>
           <View style={[flex.flex1, flex.flexCol, gap.small]}>
             <Text
               className="font-bold"
-              style={[font.size[40]]}
+              style={[font.size[40], textColor(COLOR.text.neutral.high)]}
               numberOfLines={2}>
               {campaign.title}
             </Text>
@@ -99,7 +99,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
               {campaign?.platforms?.map(platform => (
                 <Label
                   key={platform.name}
-                  type="danger"
+                  type="neutral"
                   radius="default"
                   text={platform.name}
                 />
@@ -110,7 +110,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
                 <Text
                   className="font-semibold"
                   style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                  {`Rp${formatNumberWithThousandSeparator(campaign.fee)}`}
+                  {formatToRupiah(campaign.fee)}
                 </Text>
               )}
             </View>
