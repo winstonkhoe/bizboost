@@ -11,6 +11,7 @@ import TransactionIcon from '../assets/vectors/transaction.svg';
 import AboutIcon from '../assets/vectors/about.svg';
 import MoneyIcon from '../assets/vectors/money.svg';
 import AddIcon from '../assets/vectors/add-thick.svg';
+import CampaignIcon from '../assets/vectors/campaign.svg';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {padding} from '../styles/Padding';
@@ -164,7 +165,7 @@ const ProfileScreen = () => {
                         console.log('masuk');
                       }}
                       icon={
-                        <AddIcon fill={COLOR.red[40]} height={80} width={80} />
+                        <CampaignIcon fill={'#72B3FF'} height={80} width={80} />
                       }
                       title="My Campaigns"
                       subtitle={'4 Public\n1 Private'}
