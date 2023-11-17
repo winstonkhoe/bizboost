@@ -11,7 +11,7 @@ import TransactionIcon from '../assets/vectors/transaction.svg';
 import AboutIcon from '../assets/vectors/about.svg';
 import MoneyIcon from '../assets/vectors/money.svg';
 import AddIcon from '../assets/vectors/add-thick.svg';
-import CampaignIcon from '../assets/vectors/campaign.svg';
+import CampaignIcon from '../assets/vectors/campaign-outline.svg';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {padding} from '../styles/Padding';
