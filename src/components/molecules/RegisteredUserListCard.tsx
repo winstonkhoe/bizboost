@@ -205,9 +205,9 @@ const BaseCard = ({
         {doesNeedApproval && (
           <View className="flex flex-row items-center justify-between w-full">
             <View className="w-1/2">
-              {/* TODO: @win bisa gak kalo animatednya optional, soalnya disini keknya ga perlu animasi (apa bikin komponen beda lg?) */}
               <CustomButton
                 text="Accept"
+                scale={1}
                 onPress={handleClickAccept}
                 rounded="none"
                 className="w-full"
@@ -217,6 +217,7 @@ const BaseCard = ({
             <View className="w-1/2">
               <CustomButton
                 text="Reject"
+                scale={1}
                 onPress={handleClickReject}
                 rounded="none"
                 className="w-full"
