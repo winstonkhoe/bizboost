@@ -1,5 +1,5 @@
 import {Pressable, Text, View} from 'react-native';
-import {User} from '../model/User';
+import {User, UserRole} from '../model/User';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
 import {flex} from '../styles/Flex';
@@ -103,8 +103,7 @@ const ProfileScreen = () => {
                       />
                     }
                     title="My Transactions"
-                    subtitle={`5 Ongoing
-11 Finished`}
+                    subtitle={'5 Ongoing\n11 Finished'}
                   />
                   <ProfileMenuCard
                     handleOnClick={() => {
@@ -114,30 +113,63 @@ const ProfileScreen = () => {
                     title="About Me"
                     subtitle={'Edit Information people see on your profile'}
                   />
-                  <ProfileMenuCard
-                    handleOnClick={() => {
-                      console.log('masuk');
-                    }}
-                    icon={
-                      <MoneyIcon
-                        fill={COLOR.green[50]}
-                        height={80}
-                        width={80}
-                      />
-                    }
-                    title="Withdraw Money"
-                    subtitle={`2 Transactions ready to be withdrawn`}
-                  />
-                  <ProfileMenuCard
-                    handleOnClick={() => {
-                      console.log('masuk');
-                    }}
-                    icon={
-                      <AddIcon fill={COLOR.red[40]} height={80} width={80} />
-                    }
-                    title="Upload Video"
-                    subtitle={`Add more videos to promote yourself.`}
-                  />
+                  {activeRole === UserRole.BusinessPeople && (
+                    <ProfileMenuCard
+                      handleOnClick={() => {
+                        console.log('masuk');
+                      }}
+                      icon={
+                        <MoneyIcon
+                          fill={COLOR.green[50]}
+                          height={80}
+                          width={80}
+                        />
+                      }
+                      title={'Pay Content Creator'}
+                      subtitle={'2 Pending Payment'}
+                    />
+                  )}
+                  {activeRole === UserRole.ContentCreator && (
+                    <ProfileMenuCard
+                      handleOnClick={() => {
+                        console.log('masuk');
+                      }}
+                      icon={
+                        <MoneyIcon
+                          fill={COLOR.green[50]}
+                          height={80}
+                          width={80}
+                        />
+                      }
+                      title={'Withdraw Money'}
+                      subtitle={'2 Transactions ready to be withdrawn'}
+                    />
+                  )}
+                  {activeRole === UserRole.ContentCreator && (
+                    <ProfileMenuCard
+                      handleOnClick={() => {
+                        console.log('masuk');
+                      }}
+                      icon={
+                        <AddIcon fill={COLOR.red[40]} height={80} width={80} />
+                      }
+                      title="Upload Video"
+                      subtitle={'Add more videos to promote yourself.'}
+                    />
+                  )}
+
+                  {activeRole === UserRole.BusinessPeople && (
+                    <ProfileMenuCard
+                      handleOnClick={() => {
+                        console.log('masuk');
+                      }}
+                      icon={
+                        <AddIcon fill={COLOR.red[40]} height={80} width={80} />
+                      }
+                      title="My Campaigns"
+                      subtitle={'4 Public\n1 Private'}
+                    />
+                  )}
                 </View>
               </HorizontalPadding>
             </View>

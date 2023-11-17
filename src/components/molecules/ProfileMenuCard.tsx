@@ -1,4 +1,4 @@
-import {Pressable, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {shadow} from '../../styles/Shadow';
 import {rounded} from '../../styles/BorderRadius';
 import {ReactNode} from 'react';
@@ -18,12 +18,14 @@ const ProfileMenuCard = ({title, subtitle, icon, handleOnClick}: Props) => {
         onPress={handleOnClick}
         style={[shadow.large, rounded.medium]}>
         <View
-          className="bg-white flex flex-col pt-6 pb-3 px-3 overflow-hidden"
+          className="bg-white h-48 flex flex-col justify-end pt-6 pb-3 px-3 overflow-hidden"
           style={[rounded.medium]}>
           {icon}
           <Text className="font-semibold text-base mt-2 mb-1">{title}</Text>
 
-          <Text className="text-xs text-gray-500">{subtitle}</Text>
+          <Text className="text-xs text-gray-500" numberOfLines={2}>
+            {subtitle}
+          </Text>
         </View>
       </AnimatedPressable>
     </View>
