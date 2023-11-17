@@ -24,11 +24,35 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {useEffect, useState} from 'react';
+import {Transaction, TransactionStatus} from '../model/Transaction';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
-  const {user, activeData, activeRole} = useUser();
+  const {user, activeData, activeRole, uid} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [ongoingTransactionsCount, setOngoingTransactionsCount] = useState(0);
+  useEffect(() => {
+    const unsubscribe = Transaction.getAllTransactionsByRole(
+      uid || '',
+      activeRole,
+      t => setTransactions(t),
+    );
+
+    return unsubscribe;
+  }, [uid, activeRole]);
+
+  useEffect(() => {
+    // TODO: ongoing berarti ga rejected dan ga done, kalo finished berarti total transaction minus ini.
+    setOngoingTransactionsCount(
+      transactions.filter(
+        t =>
+          t.status !== TransactionStatus.registrationRejected &&
+          t.status !== TransactionStatus.done,
+      ).length,
+    );
+  }, [transactions]);
 
   return (
     <View className="flex-1">
@@ -113,7 +137,9 @@ const ProfileScreen = () => {
                       />
                     }
                     title="My Transactions"
-                    subtitle={'5 Ongoing\n11 Finished'}
+                    subtitle={`${ongoingTransactionsCount} Ongoing\n${
+                      transactions.length - ongoingTransactionsCount
+                    } Finished`}
                   />
                   <ProfileMenuCard
                     handleOnClick={() => {

@@ -14,6 +14,7 @@ export enum TransactionStatus {
   registrationApproved = 'Registration Approved',
 
   // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
+  done = 'Done',
 }
 
 export class Transaction extends BaseModel {
