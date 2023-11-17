@@ -10,15 +10,16 @@ export const useOngoingCampaign = () => {
 
   useEffect(() => {
     if (uid) {
-      Campaign.getUserCampaignsReactive(
+      const unsubscribe = Campaign.getUserCampaignsReactive(
         uid,
-        (campaigns: Campaign[], unsubscribe: () => void) => {
+        (campaigns: Campaign[]) => {
           dispatch(
             setUserCampaigns(campaigns.map(campaign => campaign.toJSON())),
           );
-          return unsubscribe;
         },
       );
+
+      return unsubscribe;
     }
   }, [uid, dispatch]);
   return {campaigns: userCampaigns};
