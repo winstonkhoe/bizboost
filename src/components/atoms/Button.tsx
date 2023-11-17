@@ -1,4 +1,4 @@
-import {PressableProps, Text, TextStyle} from 'react-native';
+import {Text, TextStyle} from 'react-native';
 import {RadiusSizeType, rounded} from '../../styles/BorderRadius';
 import {View} from 'react-native';
 import {flex} from '../../styles/Flex';
@@ -10,14 +10,14 @@ import {horizontalPadding, verticalPadding} from '../../styles/Padding';
 import {ReactNode} from 'react';
 import {SizeType} from '../../styles/Size';
 import Animated from 'react-native-reanimated';
-import {AnimatedPressable} from './AnimatedPressable';
+import {AnimatedPressable, AnimatedPressableProps} from './AnimatedPressable';
 import {font} from '../../styles/Font';
 
 // TODO: ini alternate buat yg button reject transaction sih, belom tau lebih rapi nya gmn @win
 type Prominence = 'primary' | 'secondary' | 'tertiary' | 'alternate';
 
 export interface CustomButtonProps
-  extends PressableProps,
+  extends Partial<AnimatedPressableProps>,
     React.RefAttributes<View> {
   text: string;
   rounded?: RadiusSizeType;
