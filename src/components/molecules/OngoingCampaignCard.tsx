@@ -27,7 +27,7 @@ type Props = {
 
 const OngoingCampaignCard = ({campaign}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<User | null>();
 
   useEffect(() => {
     if (campaign.userId) {

@@ -42,6 +42,7 @@ const CampaignDetailScreen = ({route}: Props) => {
     TransactionStatus.notRegistered,
   );
   const [businessPeople, setBusinessPeople] = useState<User | undefined>();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
 
