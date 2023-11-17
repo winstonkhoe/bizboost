@@ -132,6 +132,9 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
                       ? COLOR.green[50]
                       : COLOR.black[20],
                   ),
+                  index < props.currentPosition && {
+                    opacity: 0.5,
+                  },
                   rounded.max,
                 ]}
               />
@@ -143,6 +146,9 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
                       ? COLOR.green[50]
                       : COLOR.black[20],
                   ),
+                  index < props.currentPosition && {
+                    opacity: 0.5,
+                  },
                   dimension.width.xsmall,
                   rounded.max,
                 ]}
@@ -152,8 +158,14 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
               style={[
                 flex.flex1,
                 padding.bottom.large,
-                {
-                  opacity: props.currentPosition >= index ? 1 : 0.3,
+                index < props.currentPosition && {
+                  opacity: 0.5,
+                },
+                index === props.currentPosition && {
+                  opacity: 1,
+                },
+                index > props.currentPosition && {
+                  opacity: 0.5,
                 },
               ]}>
               {child}
