@@ -1,10 +1,10 @@
 import {createAction, createSlice} from '@reduxjs/toolkit';
-import {User, UserRole, UserRoles} from '../../model/User';
+import {User, UserRole} from '../../model/User';
 
 interface UserState {
   uid: string | null;
   user: User | null | undefined;
-  activeRole: UserRoles;
+  activeRole?: UserRole;
 }
 
 const initialState = {
@@ -13,7 +13,7 @@ const initialState = {
   activeRole: undefined,
 } as UserState;
 
-export const switchRole = createAction<UserRoles | undefined>('switchRole');
+export const switchRole = createAction<UserRole | undefined>('switchRole');
 
 const userSlice = createSlice({
   name: 'user',

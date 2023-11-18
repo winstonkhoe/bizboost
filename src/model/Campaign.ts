@@ -29,7 +29,7 @@ export type CampaignSteps =
   | CampaignStep.EngagementResultSubmission;
 
 export interface CampaignTimeline {
-  step: CampaignSteps;
+  step: CampaignStep;
   start: number;
   end: number;
 }
@@ -236,5 +236,21 @@ export class Campaign extends BaseModel {
       console.log(error);
     }
     throw Error('Error!');
+  }
+
+  getStartDate(): Date {
+    return new Date(
+      this.timeline?.find(
+        timeline => CampaignStep.Registration === timeline.step,
+      )?.start!!,
+    );
+  }
+
+  getEndDate(): Date {
+    return new Date(
+      this.timeline?.find(
+        timeline => CampaignStep.EngagementResultSubmission === timeline.step,
+      )?.end!!,
+    );
   }
 }

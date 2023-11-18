@@ -26,7 +26,8 @@ GoogleSignin.configure({
 });
 const App = () => {
   Settings.initializeSDK();
-  TimeAgo.addDefaultLocale(en);
+  TimeAgo.setDefaultLocale(en.locale);
+  TimeAgo.addLocale(en);
   return (
     <Provider store={store}>
       <GestureHandlerRootView style={{flex: 1}}>

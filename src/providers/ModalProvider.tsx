@@ -6,13 +6,7 @@ import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {closeModal} from '../redux/slices/modalSlice';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {useUser} from '../hooks/user';
-import {
-  BusinessPeople,
-  ContentCreator,
-  User,
-  UserRole,
-  UserRoles,
-} from '../model/User';
+import {BusinessPeople, ContentCreator, User, UserRole} from '../model/User';
 import {SheetModal} from '../containers/SheetModal';
 import {padding} from '../styles/Padding';
 
@@ -23,7 +17,7 @@ export const SwitchUserModalProvider = () => {
 
   const getData = (
     user: User | null | undefined,
-    activeRole: UserRoles,
+    activeRole?: UserRole,
   ): ContentCreator | BusinessPeople | undefined => {
     if (!user) {
       return undefined;
@@ -35,7 +29,7 @@ export const SwitchUserModalProvider = () => {
     }
     return undefined;
   };
-  const getAnotherRole = (role: UserRoles) => {
+  const getAnotherRole = (role?: UserRole) => {
     if (role === UserRole.ContentCreator) {
       return UserRole.BusinessPeople;
     } else if (role === UserRole.BusinessPeople) {

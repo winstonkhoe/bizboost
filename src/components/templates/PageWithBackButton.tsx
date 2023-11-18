@@ -30,6 +30,7 @@ interface Props extends PressableProps {
   disableDefaultOnPress?: boolean;
   enableSafeAreaContainer?: boolean;
   threshold?: number;
+  withoutScrollView?: boolean;
 }
 
 export const PageWithBackButton = ({
@@ -41,6 +42,7 @@ export const PageWithBackButton = ({
   enableSafeAreaContainer = false,
   threshold,
   showBackButtonPlaceholderOnThreshold = false,
+  withoutScrollView = false,
   ...props
 }: Props) => {
   const [exceedThreshold, setExceedThreshold] = useState(false);
@@ -136,18 +138,42 @@ export const PageWithBackButton = ({
           </View>
         )}
       </Animated.View>
-      <ScrollView
-        bounces={false}
-        scrollEventThrottle={threshold !== undefined ? 8 : 0}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={fullHeight && [flex.grow]}
-        onScroll={e => {
-          threshold && handleScroll(e);
-        }}>
-        <SafeAreaContainer enable={enableSafeAreaContainer}>
+      {withoutScrollView ? (
+        <PageWithBackButtonChildren
+          enableSafeAreaContainer={enableSafeAreaContainer}>
           {children}
-        </SafeAreaContainer>
-      </ScrollView>
+        </PageWithBackButtonChildren>
+      ) : (
+        <ScrollView
+          bounces={false}
+          scrollEventThrottle={threshold !== undefined ? 8 : 0}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={fullHeight && [flex.grow]}
+          onScroll={e => {
+            threshold && handleScroll(e);
+          }}>
+          <PageWithBackButtonChildren
+            enableSafeAreaContainer={enableSafeAreaContainer}>
+            {children}
+          </PageWithBackButtonChildren>
+        </ScrollView>
+      )}
     </View>
+  );
+};
+
+interface PageWithBackButtonChildrenProps {
+  enableSafeAreaContainer: boolean;
+  children?: ReactNode;
+}
+
+const PageWithBackButtonChildren = ({
+  enableSafeAreaContainer,
+  children,
+}: PageWithBackButtonChildrenProps) => {
+  return (
+    <SafeAreaContainer enable={enableSafeAreaContainer}>
+      {children}
+    </SafeAreaContainer>
   );
 };

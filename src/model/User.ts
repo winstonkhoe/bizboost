@@ -37,13 +37,6 @@ export enum UserStatus {
 
 export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
 
-// TODO: @win win kayaknya ini mayan memusingkan deh ada UserRoles dan UserRole, kenapa ga yang di UserRole tambah undefined aja?
-export type UserRoles =
-  | UserRole.ContentCreator
-  | UserRole.BusinessPeople
-  | UserRole.Admin
-  | undefined;
-
 export interface ContentCreatorPreference {
   contentRevisionLimit?: number;
   postingSchedules: number[];
@@ -139,9 +132,6 @@ export class User extends BaseModel {
         phone: data?.phone,
         contentCreator: {
           ...data.contentCreator,
-          postingSchedules: data.contentCreator?.postingSchedules?.map(
-            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
-          ),
           specializedCategoryIds:
             data.contentCreator?.specializedCategoryIds?.map(
               (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
@@ -252,24 +242,12 @@ export class User extends BaseModel {
     return unsubscribe;
   }
 
-  static async getById(documentId: string): Promise<User | undefined> {
+  static async getById(documentId: string): Promise<User | null> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {
-      const userData = snapshot.data();
-      const user = new User({
-        id: snapshot.id,
-        email: userData?.email,
-        phone: userData?.phone,
-        contentCreator: userData?.contentCreator,
-        businessPeople: userData?.businessPeople,
-        instagram: userData?.instagram,
-        tiktok: userData?.tiktok,
-        joinedAt: userData?.joinedAt?.seconds,
-        isAdmin: userData?.isAdmin,
-      });
-
-      return user;
+      return this.fromSnapshot(snapshot);
     }
+    return null;
   }
 
   static async getUser(documentId: string): Promise<User | null> {

@@ -16,6 +16,7 @@ import {
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {useNavigation} from '@react-navigation/native';
+import { shadow } from '../../styles/Shadow';
 
 interface ContentCreatorCardProps {
   id: string;
@@ -33,7 +34,7 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
   const navigation = useNavigation<NavigationStackProps>();
 
   return (
-    <View style={[styles.cardContainer]}>
+    <View style={[styles.cardContainer, shadow.default]}>
       <Pressable
         onPress={() => {
           navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
@@ -71,11 +72,6 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
 const styles = StyleSheet.create({
   cardContainer: {
     width: Dimensions.get('window').width * 0.45,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
     overflow: 'hidden',
   },
   image: {

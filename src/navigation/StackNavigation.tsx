@@ -29,6 +29,7 @@ import AboutMeScreen from '../screens/profile/AboutMeScreen';
 import PayContentCreatorScreen from '../screens/profile/PayContentCreatorScreen';
 import UploadVideoScreen from '../screens/profile/UploadVideoScreen';
 import WithdrawMoneyScreen from '../screens/profile/WithdrawMoneyScreen';
+import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -56,6 +57,7 @@ export enum AuthenticatedNavigation {
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
+  SpecificExploreModal = 'Specific Explore Modal',
 }
 
 export enum GeneralNavigation {
@@ -90,6 +92,10 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
+  [AuthenticatedNavigation.SpecificExploreModal]: {
+    contentCreatorId: string;
+    targetContentId?: string;
+  };
 };
 
 interface LocationModalProps {
@@ -247,6 +253,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}
                   component={CreateAdditionalAccountScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.SpecificExploreModal}
+                  component={ModalSpecificExploreScreen}
                 />
               </Stack.Group>
             </Stack.Group>

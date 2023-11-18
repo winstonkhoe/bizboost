@@ -44,7 +44,9 @@ export const AnimatedTap = ({scale = 0.75, children}: AnimatedTapProps) => {
   }));
   return (
     <GestureDetector gesture={tap}>
-      <Animated.View style={[animatedStyles]}>{children}</Animated.View>
+      <Animated.View style={[animatedStyles]} collapsable={false}>
+        {children}
+      </Animated.View>
     </GestureDetector>
   );
 };
