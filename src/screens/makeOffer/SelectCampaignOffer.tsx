@@ -50,7 +50,8 @@ export const SelectCampaignOffer = ({
             <Text
               className="font-bold"
               style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-              Campaign
+              {'Campaign'}
+              <Text style={[textColor(COLOR.text.danger.default)]}>*</Text>
             </Text>
             <Text
               className="font-semibold"

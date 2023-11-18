@@ -20,6 +20,7 @@ type Props = {
   title: string;
   parentName: any; // string
   childName: string;
+  type?: string;
   placeholder?: string;
   fieldType?: 'default' | 'textarea';
   maxFieldLength?: number;
@@ -31,6 +32,7 @@ const FieldArray = ({
   parentName,
   childName,
   placeholder,
+  type = 'required',
   fieldType = 'default',
   maxFieldLength = 40,
   helperText,
@@ -68,7 +70,7 @@ const FieldArray = ({
   return (
     <>
       <View style={[flex.flexCol, gap.default]}>
-        <FormFieldHelper title={title} />
+        <FormFieldHelper title={title} type={type} />
         <View style={[flex.flexCol, gap.medium]}>
           {fields.length > 0 && (
             <View style={[flex.flexCol, gap.small]}>

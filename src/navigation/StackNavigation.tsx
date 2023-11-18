@@ -82,7 +82,10 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
-  [AuthenticatedNavigation.MakeOffer]: undefined;
+  [AuthenticatedNavigation.MakeOffer]: {
+    contentCreatorId: string;
+    businessPeopleId: string;
+  };
   [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
 };
 

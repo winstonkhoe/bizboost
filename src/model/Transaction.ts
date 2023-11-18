@@ -8,10 +8,16 @@ import {Campaign} from './Campaign';
 export const TRANSACTION_COLLECTION = 'transactions';
 
 export enum TransactionStatus {
+  // public
   notRegistered = 'Not Registered',
   registrationPending = 'Registration Pending',
   registrationRejected = 'Registration Rejected',
   registrationApproved = 'Registration Approved',
+
+  // private
+  offering = 'Offering',
+  offeringApproved = 'Offering Approved',
+  offerRejected = 'Offering Rejected', // soft delete
 
   // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
 }
@@ -21,6 +27,8 @@ export class Transaction extends BaseModel {
   contentCreatorId?: string;
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
+  offeredPrice?: number;
+  importantNotes?: string[];
   status?: TransactionStatus;
   updatedAt?: number;
 
@@ -28,6 +36,8 @@ export class Transaction extends BaseModel {
     contentCreatorId,
     campaignId,
     businessPeopleId,
+    offeredPrice,
+    importantNotes,
     status,
     updatedAt,
   }: Partial<Transaction>) {
@@ -39,6 +49,8 @@ export class Transaction extends BaseModel {
     this.contentCreatorId = contentCreatorId;
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
+    this.offeredPrice = offeredPrice;
+    this.importantNotes = importantNotes;
     this.status = status;
     this.updatedAt = updatedAt;
   }
@@ -63,8 +75,17 @@ export class Transaction extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  async insert() {
+  static getCampaignCollections =
+    (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
+      return firestore().collection(TRANSACTION_COLLECTION);
+    };
+
+  async register() {
     return await this.updateStatus(TransactionStatus.registrationPending);
+  }
+
+  async offer() {
+    return await this.updateStatus(TransactionStatus.offering);
   }
 
   async updateStatus(status: TransactionStatus) {

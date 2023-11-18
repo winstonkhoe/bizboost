@@ -32,6 +32,7 @@ import {closeModal} from '../../utils/modal';
 import {SimpleImageCard} from '../../components/molecules/ImageCard';
 import {ImageCounterChip} from '../../components/atoms/Chip';
 import FastImage from 'react-native-fast-image';
+import {useUser} from '../../hooks/user';
 
 type Props = StackScreenProps<
   AuthenticatedStack,
@@ -44,10 +45,12 @@ const ModalCampaignScreen = ({route}: Props) => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>(
     initialSelectedCampaign,
   );
+  const {uid} = useUser();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
   useEffect(() => {
-    Campaign.getAll().then(setCampaigns);
-  }, []);
+    Campaign.getUserCampaigns(uid).then(setCampaigns);
+  }, [uid]);
 
   const toggleCampaignSelection = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
@@ -99,12 +102,12 @@ const ModalCampaignScreen = ({route}: Props) => {
                 <View
                   className="flex-1 justify-start"
                   style={[flex.flexCol, gap.default]}>
-                  {getFilteredCampaignsByParity('odd')}
+                  {getFilteredCampaignsByParity('even')}
                 </View>
                 <View
                   className="flex-1 justify-start"
                   style={[flex.flexCol, gap.default]}>
-                  {getFilteredCampaignsByParity('even')}
+                  {getFilteredCampaignsByParity('odd')}
                 </View>
               </View>
             </HorizontalPadding>
@@ -161,11 +164,7 @@ const CampaignItem = ({
             },
         ]}>
         <View className="absolute z-20 top-2 right-2">
-          <ImageCounterChip
-            selected={isSelected}
-            text={selectedIndex + 1}
-            size="large"
-          />
+          <ImageCounterChip selected={isSelected} size="large" />
         </View>
         <SimpleImageCard
           width="full"

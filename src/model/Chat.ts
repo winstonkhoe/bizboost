@@ -3,6 +3,7 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {User} from './User';
 import {BaseModel} from './BaseModel';
+import {useUser} from '../hooks/user';
 
 export enum MessageType {
   Photo = 'Photo',
@@ -27,7 +28,7 @@ const CHAT_COLLECTION = 'chats';
 
 export class Chat extends BaseModel {
   id?: string = '';
-  participants?: Participant[] = [];
+  participants: Participant[] = [];
   messages?: Message[] = [];
 
   constructor(data: Partial<Chat>) {
@@ -125,6 +126,31 @@ export class Chat extends BaseModel {
       return firestore().collection(CHAT_COLLECTION);
     };
 
+  async insert() {
+    try {
+      const {id, ...rest} = this;
+
+      const participantRefs = this.participants.map(
+        (participant: Participant) => ({
+          ref: User.getDocumentReference(participant.ref),
+          role: participant.role,
+        }),
+      );
+
+      const data = {
+        ...rest,
+        participants: participantRefs,
+      };
+
+      const docRef = await firestore().collection(CHAT_COLLECTION).add(data);
+      this.id = docRef.id;
+      return true;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error!');
+    }
+  }
+
   static getUserChatsReactive(
     userId: string,
     activeRole: string,
@@ -173,6 +199,41 @@ export class Chat extends BaseModel {
     } catch (error) {
       console.error('Error inserting message:', error);
     }
+  }
+
+  async convertToChatView(currentUserId: string): Promise<ChatView> {
+    const cv: ChatView = {
+      chat: this.toJSON(),
+      recipient: {},
+    };
+
+    for (const participant of this.participants || []) {
+      if (participant.ref !== currentUserId) {
+        console.log('[chats.ts hook] participant:' + participant.ref);
+        const role = participant.role;
+        const ref = participant.ref;
+        console.log(ref);
+
+        const user = await User.getUser(ref);
+        if (user) {
+          const fullname =
+            role === 'Business People'
+              ? user.businessPeople?.fullname
+              : user.contentCreator?.fullname;
+          const profilePicture =
+            role === 'Business People'
+              ? user.businessPeople?.profilePicture
+              : user.contentCreator?.profilePicture;
+
+          if (cv.recipient) {
+            cv.recipient.fullname = fullname;
+            cv.recipient.profilePicture = profilePicture;
+          }
+        }
+      }
+    }
+
+    return cv;
   }
 }
 

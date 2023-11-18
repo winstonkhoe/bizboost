@@ -32,6 +32,7 @@ import {ActivityIndicator} from 'react-native';
 import ScaledImage from '../components/atoms/ScaledImage';
 import {getDate} from '../utils/date';
 import {useNavigation} from '@react-navigation/native';
+import {useUser} from '../hooks/user';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -40,12 +41,14 @@ type Props = NativeStackScreenProps<
 
 const ContentCreatorDetailScreen = ({route}: Props) => {
   const param = route.params;
+
   const [contentCreator, setContentCreator] = useState<User>();
   const [contents, setContents] = useState<Content[]>();
   const [index, setIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState(0);
 
   const navigation = useNavigation<NavigationStackProps>();
+  const {uid} = useUser();
 
   useEffect(() => {
     User.getById(param.contentCreatorId).then(user => setContentCreator(user));
@@ -272,7 +275,10 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
           <CustomButton
             text="Make Offer"
             onPress={() => {
-              navigation.navigate(AuthenticatedNavigation.MakeOffer);
+              navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+                businessPeopleId: uid ?? '',
+                contentCreatorId: contentCreator?.id ?? '',
+              });
             }}
           />
         </View>

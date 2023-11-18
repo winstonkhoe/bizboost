@@ -21,6 +21,7 @@ import {
 } from '../navigation/StackNavigation';
 import {Button} from 'react-native-elements';
 import FloatingOffer from '../components/chat/FloatingOffer';
+import {UserRole} from '../model/User';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -104,21 +105,6 @@ const ChatScreen = ({route}: Props) => {
     }
   };
 
-  const [isMaximized, setIsMaximized] = useState(true);
-  const animationValue = useRef(new Animated.Value(1)).current;
-
-  const toggleTab = () => {
-    const toValue = isMaximized ? 0.6 : 1; // Adjust the value as needed
-
-    Animated.timing(animationValue, {
-      toValue,
-      duration: 300, // Adjust the animation duration as needed
-      useNativeDriver: false, // Ensure to set it to false for layout animations
-    }).start();
-
-    setIsMaximized(!isMaximized);
-  };
-
   return (
     <SafeAreaContainer>
       <View
@@ -129,8 +115,8 @@ const ChatScreen = ({route}: Props) => {
           className="absolute top-0 z-20 items-center justify-start"
           style={[flex.flexRow]}>
           <ChatHeader
-            recipientName={chat.recipient.fullname}
-            recipientPicture={chat.recipient.profilePicture}
+            recipientName={chat.recipient?.fullname ?? ''}
+            recipientPicture={chat.recipient?.profilePicture ?? ''}
           />
         </View>
 
@@ -182,6 +168,16 @@ const ChatScreen = ({route}: Props) => {
                   cropping: true,
                 }}
                 handleImageUpload={handleImageUpload}
+                businessPeopleId={
+                  chat.chat.participants.find(
+                    participant => participant.role === UserRole.BusinessPeople,
+                  )?.ref ?? ''
+                }
+                contentCreatorId={
+                  chat.chat.participants.find(
+                    participant => participant.role === UserRole.ContentCreator,
+                  )?.ref ?? ''
+                }
               />
             </View>
           ) : null}

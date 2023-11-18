@@ -13,13 +13,22 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
+import {UserRole, UserStatus} from '../../model/User';
+import {useUser} from '../../hooks/user';
 
 interface Props {
   options: Options;
   handleImageUpload: (downloadURL: string) => void;
+  businessPeopleId: string;
+  contentCreatorId: string;
 }
 
-const ChatWidget = ({options, handleImageUpload}: Props) => {
+const ChatWidget = ({
+  options,
+  handleImageUpload,
+  businessPeopleId,
+  contentCreatorId,
+}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
 
   // TODO: extract to utility function
@@ -71,7 +80,12 @@ const ChatWidget = ({options, handleImageUpload}: Props) => {
 
       {/* Make Offer Button */}
       <Pressable
-        onPress={() => navigation.navigate(AuthenticatedNavigation.MakeOffer)}
+        onPress={() =>
+          navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+            businessPeopleId: businessPeopleId,
+            contentCreatorId: contentCreatorId,
+          })
+        }
         className="flex flex-col justify-center items-center">
         <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
           <MakeOfferIcon width={30} height={30} />

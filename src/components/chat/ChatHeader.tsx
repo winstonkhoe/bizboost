@@ -4,8 +4,11 @@ import {useNavigation} from '@react-navigation/native';
 import BackNav from '../../assets/vectors/chevron-left.svg';
 import {gap} from '../../styles/Gap';
 import {COLOR} from '../../styles/Color';
-import {UserRole} from '../../model/User';
 import {useUser} from '../../hooks/user';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 interface Props {
   recipientName: string;
@@ -13,11 +16,10 @@ interface Props {
 }
 
 const ChatHeader = ({recipientName, recipientPicture}: Props) => {
-  const navigation = useNavigation();
-  const {uid, user, activeRole} = useUser();
+  const navigation = useNavigation<NavigationStackProps>();
 
   const handleBackButtonPress = () => {
-    navigation.goBack();
+    navigation.navigate(AuthenticatedNavigation.ChatList);
   };
 
   let profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
