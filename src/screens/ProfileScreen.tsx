@@ -80,6 +80,7 @@ const ProfileScreen = () => {
   };
 
   const onProfilePictureChanged = (url: string) => {
+    // TODO: REFACTOR
     if (!user) {
       return;
     }
@@ -139,7 +140,7 @@ const ProfileScreen = () => {
                       onUploadSuccess={onProfilePictureChanged}>
                       <View className="relative">
                         <View
-                          className="w-24 h-24 overflow-hidden"
+                          className="w-20 h-20 overflow-hidden"
                           style={[rounded.max]}>
                           <FastImage
                             className="w-full flex-1"
