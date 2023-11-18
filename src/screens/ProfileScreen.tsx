@@ -20,6 +20,7 @@ import {disableAccess} from '../redux/slices/authSlice';
 import FastImage from 'react-native-fast-image';
 import ProfileMenuCard from '../components/molecules/ProfileMenuCard';
 import {useNavigation} from '@react-navigation/native';
+import Edit from '../assets/vectors/edit.svg';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -28,6 +29,7 @@ import {useEffect, useRef, useState} from 'react';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import PagerView from 'react-native-pager-view';
 import {Content} from '../model/Content';
+import {background} from '../styles/BackgroundColor';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -89,17 +91,24 @@ const ProfileScreen = () => {
                   <View
                     className="items-center"
                     style={[flex.flexRow, gap.large]}>
-                    <View
-                      className="w-24 h-24 overflow-hidden"
-                      style={[rounded.max]}>
-                      <FastImage
-                        className="w-full flex-1"
-                        source={
-                          activeData?.profilePicture
-                            ? {uri: activeData.profilePicture}
-                            : require('../assets/images/bizboost-avatar.png')
-                        }
-                      />
+                    <View className="relative">
+                      <View
+                        className="w-24 h-24 overflow-hidden"
+                        style={[rounded.max]}>
+                        <FastImage
+                          className="w-full flex-1"
+                          source={
+                            activeData?.profilePicture
+                              ? {uri: activeData.profilePicture}
+                              : require('../assets/images/bizboost-avatar.png')
+                          }
+                        />
+                      </View>
+                      <View
+                        className="absolute bottom-0 right-1 p-2 rounded-full"
+                        style={[background(COLOR.background.green.med)]}>
+                        <Edit width={13} height={13} color={'white'} />
+                      </View>
                     </View>
                     <View className="flex-1 items-start" style={[flex.flexCol]}>
                       <Text className="text-base font-bold" numberOfLines={1}>
@@ -326,14 +335,17 @@ const ProfileScreen = () => {
                                   navigation.navigate(
                                     AuthenticatedNavigation.SpecificExploreModal,
                                     {
-                                      contentCreatorId: contentCreator?.id!!,
+                                      contentCreatorId: uid || '',
                                       targetContentId: content.id,
                                     },
                                   );
                                 }}>
                                 <FastImage
                                   source={{uri: content.thumbnail}}
-                                  style={styles.video}
+                                  style={{
+                                    height: 200,
+                                    borderRadius: 10,
+                                  }}
                                 />
                               </Pressable>
                             ),
