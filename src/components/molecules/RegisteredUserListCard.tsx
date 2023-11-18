@@ -158,79 +158,77 @@ const BaseCard = ({
   handleClickAccept,
 }: BaseCardProps) => {
   return (
-    <View style={[shadow.default, rounded.medium]}>
-      <View
-        className="bg-white flex flex-col pt-3 overflow-hidden"
-        style={[rounded.medium]}>
-        <Pressable
-          onPress={handleClickHeader}
-          className="flex flex-row justify-between items-center border-b pb-2 px-3 "
-          style={[border({color: COLOR.black[20]})]}>
-          <View className="flex flex-row items-center" style={[gap.xsmall]}>
-            {icon}
-            {/* {isPrivate && (
+    <View
+      className="bg-white flex flex-col pt-3 overflow-hidden border border-gray-200"
+      style={[rounded.medium]}>
+      <Pressable
+        onPress={handleClickHeader}
+        className="flex flex-row justify-between items-center border-b pb-2 px-3 "
+        style={[border({color: COLOR.black[20]})]}>
+        <View className="flex flex-row items-center" style={[gap.xsmall]}>
+          {icon}
+          {/* {isPrivate && (
               <Private width={15} height={15} stroke={COLOR.black[40]} />
             )} */}
-            <Text
-              style={[textColor(COLOR.green[50]), font.size[20]]}
-              numberOfLines={1}
-              className="w-2/3">
-              {headerTextLeading}
-            </Text>
-          </View>
-          <Text style={[textColor(COLOR.black[30]), font.size[20]]}>
-            {headerTextTrailing}
+          <Text
+            style={[textColor(COLOR.green[50]), font.size[20]]}
+            numberOfLines={1}
+            className="w-2/3">
+            {headerTextLeading}
           </Text>
-        </Pressable>
-        <Pressable
-          onPress={handleClickBody}
-          className="flex flex-row items-center px-3 py-4 justify-between">
-          <View className="flex flex-row items-center">
-            <View
-              className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-              style={[flex.flexRow, rounded.default]}>
-              <Image
-                className="w-full h-full object-cover"
-                source={imageSource}
-              />
-            </View>
-            <View className="flex flex-col items-start w-3/4">
-              <Text className="font-semibold text-base " numberOfLines={1}>
-                {bodyText}
-              </Text>
-              <View>
-                <StatusTag status={statusText} />
-              </View>
+        </View>
+        <Text style={[textColor(COLOR.black[30]), font.size[20]]}>
+          {headerTextTrailing}
+        </Text>
+      </Pressable>
+      <Pressable
+        onPress={handleClickBody}
+        className="flex flex-row items-center px-3 py-4 justify-between">
+        <View className="flex flex-row items-center">
+          <View
+            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
+            style={[flex.flexRow, rounded.default]}>
+            <Image
+              className="w-full h-full object-cover"
+              source={imageSource}
+            />
+          </View>
+          <View className="flex flex-col items-start w-3/4">
+            <Text className="font-semibold text-base " numberOfLines={1}>
+              {bodyText}
+            </Text>
+            <View>
+              <StatusTag status={statusText} />
             </View>
           </View>
-          <ChevronRight fill={COLOR.black[20]} />
-        </Pressable>
-        {doesNeedApproval && (
-          <View className="flex flex-row items-center justify-between w-full">
-            <View className="w-1/2">
-              <CustomButton
-                text="Accept"
-                scale={1}
-                onPress={handleClickAccept}
-                rounded="none"
-                className="w-full"
-                customTextSize={font.size[20]}
-              />
-            </View>
-            <View className="w-1/2">
-              <CustomButton
-                text="Reject"
-                scale={1}
-                onPress={handleClickReject}
-                rounded="none"
-                className="w-full"
-                customTextSize={font.size[20]}
-                type="alternate"
-              />
-            </View>
+        </View>
+        <ChevronRight fill={COLOR.black[20]} />
+      </Pressable>
+      {doesNeedApproval && (
+        <View className="flex flex-row items-center justify-between w-full">
+          <View className="w-1/2">
+            <CustomButton
+              text="Accept"
+              scale={1}
+              onPress={handleClickAccept}
+              rounded="none"
+              className="w-full"
+              customTextSize={font.size[20]}
+            />
           </View>
-        )}
-      </View>
+          <View className="w-1/2">
+            <CustomButton
+              text="Reject"
+              scale={1}
+              onPress={handleClickReject}
+              rounded="none"
+              className="w-full"
+              customTextSize={font.size[20]}
+              type="alternate"
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 };

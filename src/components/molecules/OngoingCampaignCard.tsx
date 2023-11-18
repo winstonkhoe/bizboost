@@ -44,7 +44,8 @@ const OngoingCampaignCard = ({campaign}: Props) => {
   return (
     <AnimatedPressable
       scale={0.95}
-      style={[flex.flexCol, rounded.medium, shadow.default, rounded.medium]}
+      className="border border-gray-200"
+      style={[flex.flexCol, rounded.medium]}
       onPress={onViewCampaignDetailButtonClicked}>
       <View
         style={[

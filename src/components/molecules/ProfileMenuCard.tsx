@@ -16,9 +16,9 @@ const ProfileMenuCard = ({title, subtitle, icon, handleOnClick}: Props) => {
       <AnimatedPressable
         scale={0.95}
         onPress={handleOnClick}
-        style={[shadow.large, rounded.medium]}>
+        style={[rounded.medium]}>
         <View
-          className="bg-white h-48 flex flex-col justify-end pt-6 pb-3 px-3 overflow-hidden"
+          className="bg-white border border-gray-200 h-48 flex flex-col justify-end pt-6 pb-3 px-3 overflow-hidden"
           style={[rounded.medium]}>
           {icon}
           <Text className="font-semibold text-base mt-2 mb-1">{title}</Text>

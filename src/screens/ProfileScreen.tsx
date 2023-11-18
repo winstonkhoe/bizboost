@@ -295,7 +295,7 @@ const ProfileScreen = () => {
                             />
                           }
                           title={'Pay Content Creator'}
-                          subtitle={'2 Pending Payment'}
+                          subtitle={'0 Pending Payment'}
                         />
                       )}
                       {activeRole === UserRole.ContentCreator && (
