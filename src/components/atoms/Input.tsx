@@ -114,7 +114,7 @@ export const CustomTextInput = ({
       borderColor: interpolateColor(
         animatedWidth.value,
         [0, 1],
-        [COLOR.text.neutral.high, COLOR.green[50]],
+        [COLOR.text.neutral.low, COLOR.green[50]],
       ),
     };
   });
@@ -276,7 +276,7 @@ export const CustomTextInput = ({
                     {height: 1},
                     invalid || isError
                       ? background(COLOR.red.error)
-                      : background(COLOR.black[100]),
+                      : background(COLOR.text.neutral.low),
                   ]}>
                   <Animated.View
                     className="absolute top-0 left-0 w-full h-full"
