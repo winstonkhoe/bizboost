@@ -44,24 +44,33 @@ const ProfileScreen = () => {
   const pagerViewRef = useRef<PagerView>(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  useEffect(() => {
-    if (uid) {
-      const unsubscribe = Campaign.getUserCampaignsReactive(uid, c => {
-        setCampaigns(c);
-      });
+  const [contents, setContents] = useState<Content[]>();
 
-      return unsubscribe;
-    }
-  }, [uid]);
   useEffect(() => {
     // TODO: gatau ini mestinya gabung sama yang di dalem modal transactionsnya apa ngga biar fetch skali? tp kalo kek gitu gabisa dua"nya ngelisten, jadinya cuma salah satu, krn behaviour si modal kan navigate yaa
-    const unsubscribe = Transaction.getAllTransactionsByRole(
+    const unsubscribeTransaction = Transaction.getAllTransactionsByRole(
       uid || '',
       activeRole,
       t => setTransactions(t),
     );
 
-    return unsubscribe;
+    const unsubscribeCampaign = Campaign.getUserCampaignsReactive(
+      uid || '',
+      c => {
+        setCampaigns(c);
+      },
+    );
+
+    // TODO: ini juga bakal butuh dibuat .onSnapshot kyknya nantinya
+    Content.getByUserId(uid || '').then(content => {
+      setContents(content);
+    });
+
+    return () => {
+      // TODO: kyknya yang bener kayak campaign aja, di transaction tiap catch eror masih ngethrow lagi, kyknya nanti hapus aja thrownya tktnya bikin ribet
+      unsubscribeTransaction();
+      if (unsubscribeCampaign) unsubscribeCampaign();
+    };
   }, [uid, activeRole]);
 
   useEffect(() => {
@@ -80,13 +89,6 @@ const ProfileScreen = () => {
       campaigns.filter(c => c.type === CampaignType.Public).length,
     );
   }, [campaigns]);
-
-  const [contents, setContents] = useState<Content[]>();
-  useEffect(() => {
-    Content.getByUserId(uid || '').then(content => {
-      setContents(content);
-    });
-  }, [uid]);
 
   const goToInfoTab = () => {
     pagerViewRef.current?.setPage(0);
