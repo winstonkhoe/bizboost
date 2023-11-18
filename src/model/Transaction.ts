@@ -127,7 +127,7 @@ export class Transaction extends BaseModel {
 
   static getAllTransactionsByRole(
     userId: string,
-    role: UserRole,
+    role: UserRole | undefined,
     onComplete: (transactions: Transaction[]) => void,
   ) {
     try {
@@ -136,7 +136,9 @@ export class Transaction extends BaseModel {
         .where(
           role === UserRole.BusinessPeople
             ? 'businessPeopleId'
-            : 'contentCreatorId',
+            : role === UserRole.ContentCreator
+            ? 'contentCreatorId'
+            : '',
           '==',
           firestore().collection('users').doc(userId),
         )

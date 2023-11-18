@@ -32,6 +32,7 @@ import {Content} from '../model/Content';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
 import {deleteFileByURL} from '../helpers/storage';
+import {Campaign, CampaignType} from '../model/Campaign';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -39,9 +40,21 @@ const ProfileScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [ongoingTransactionsCount, setOngoingTransactionsCount] = useState(0);
+  const [publicCampaignsCount, setPublicCampaignsCount] = useState(0);
   const pagerViewRef = useRef<PagerView>(null);
   const [selectedTab, setSelectedTab] = useState(0);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   useEffect(() => {
+    if (uid) {
+      const unsubscribe = Campaign.getUserCampaignsReactive(uid, c => {
+        setCampaigns(c);
+      });
+
+      return unsubscribe;
+    }
+  }, [uid]);
+  useEffect(() => {
+    // TODO: gatau ini mestinya gabung sama yang di dalem modal transactionsnya apa ngga biar fetch skali? tp kalo kek gitu gabisa dua"nya ngelisten, jadinya cuma salah satu, krn behaviour si modal kan navigate yaa
     const unsubscribe = Transaction.getAllTransactionsByRole(
       uid || '',
       activeRole,
@@ -61,6 +74,12 @@ const ProfileScreen = () => {
       ).length,
     );
   }, [transactions]);
+
+  useEffect(() => {
+    setPublicCampaignsCount(
+      campaigns.filter(c => c.type === CampaignType.Public).length,
+    );
+  }, [campaigns]);
 
   const [contents, setContents] = useState<Content[]>();
   useEffect(() => {
@@ -329,7 +348,9 @@ const ProfileScreen = () => {
                             />
                           }
                           title="My Campaigns"
-                          subtitle={'4 Public\n1 Private'}
+                          subtitle={`${publicCampaignsCount} Public\n${
+                            campaigns.length - publicCampaignsCount
+                          } Private`}
                         />
                       )}
                     </View>
