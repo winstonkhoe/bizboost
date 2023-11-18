@@ -86,6 +86,7 @@ export const SheetModal = ({
           },
         ]}>
         <View
+          style={[fullHeight && flex.flex1]}
           onLayout={e => {
             setCurrentLayoutHeight(e.nativeEvent.layout.height);
           }}>

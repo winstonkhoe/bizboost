@@ -229,8 +229,8 @@ const DatePicker = ({
           </View>
         </View>
         <FlatList
-          style={[flex.grow, {flexGrow: 1}]}
-          contentContainerStyle={[flex.grow, {flexGrow: 1}]}
+          style={[flex.grow]}
+          contentContainerStyle={[flex.grow]}
           data={[...Array(12)]}
           renderItem={({index}) => (
             <MonthMemo
