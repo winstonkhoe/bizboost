@@ -30,6 +30,7 @@ import {Transaction, TransactionStatus} from '../model/Transaction';
 import PagerView from 'react-native-pager-view';
 import {Content} from '../model/Content';
 import {background} from '../styles/BackgroundColor';
+import {MediaUploader} from '../components/atoms/Input';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -77,6 +78,38 @@ const ProfileScreen = () => {
     setSelectedTab(1);
   };
 
+  const onProfilePictureChanged = (url: string) => {
+    if (!user) {
+      return;
+    }
+    const updatedUser: User = new User({...user});
+    if (activeRole === UserRole.BusinessPeople) {
+      updatedUser!.businessPeople = {
+        //TODO: test (if possible, change forced assignment using !)
+        ...updatedUser!.businessPeople!,
+        profilePicture: url,
+      };
+    } else if (activeRole === UserRole.ContentCreator) {
+      console.log(
+        'profile pic (b): ' + updatedUser?.contentCreator?.profilePicture,
+      );
+      updatedUser!.contentCreator = {
+        //TODO: test (if possible, change forced assignment using !)
+        ...updatedUser!.contentCreator!,
+        profilePicture: url,
+      };
+      console.log(
+        'profile pic (a): ' + updatedUser?.contentCreator?.profilePicture,
+      );
+    }
+
+    console.log('actual (a): ' + updatedUser?.contentCreator?.profilePicture);
+    // TODO: change updateUserData (not static)
+    User.updateUserData(uid || '', updatedUser).then(() =>
+      console.log('selesai'),
+    );
+  };
+
   return (
     <View className="flex-1">
       <ScrollView
@@ -91,25 +124,37 @@ const ProfileScreen = () => {
                   <View
                     className="items-center"
                     style={[flex.flexRow, gap.large]}>
-                    <View className="relative">
-                      <View
-                        className="w-24 h-24 overflow-hidden"
-                        style={[rounded.max]}>
-                        <FastImage
-                          className="w-full flex-1"
-                          source={
-                            activeData?.profilePicture
-                              ? {uri: activeData.profilePicture}
-                              : require('../assets/images/bizboost-avatar.png')
-                          }
-                        />
+                    <MediaUploader
+                      targetFolder="profile-pictures"
+                      options={{
+                        width: 400,
+                        height: 400,
+                        cropping: true,
+                        includeBase64: true,
+                      }}
+                      showUploadProgress
+                      onUploadSuccess={onProfilePictureChanged}>
+                      <View className="relative">
+                        <View
+                          className="w-24 h-24 overflow-hidden"
+                          style={[rounded.max]}>
+                          <FastImage
+                            className="w-full flex-1"
+                            source={
+                              activeData?.profilePicture
+                                ? {uri: activeData.profilePicture}
+                                : require('../assets/images/bizboost-avatar.png')
+                            }
+                          />
+                        </View>
+                        <View
+                          className="absolute bottom-0 right-1 p-2 rounded-full"
+                          style={[background(COLOR.background.green.med)]}>
+                          <Edit width={13} height={13} color={'white'} />
+                        </View>
                       </View>
-                      <View
-                        className="absolute bottom-0 right-1 p-2 rounded-full"
-                        style={[background(COLOR.background.green.med)]}>
-                        <Edit width={13} height={13} color={'white'} />
-                      </View>
-                    </View>
+                    </MediaUploader>
+
                     <View className="flex-1 items-start" style={[flex.flexCol]}>
                       <Text className="text-base font-bold" numberOfLines={1}>
                         {activeData?.fullname}

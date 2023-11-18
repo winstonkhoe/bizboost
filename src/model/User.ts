@@ -196,7 +196,10 @@ export class User extends BaseModel {
     });
   }
 
+  // TODO: ganti jadi ga static
   static async updateUserData(documentId: string, data: User): Promise<void> {
+    console.log('profile pic: ' + data.contentCreator?.profilePicture);
+    console.log(data);
     await this.getDocumentReference(documentId).update(
       this.mappingUserFields(data),
     );
