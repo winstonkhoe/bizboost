@@ -31,6 +31,7 @@ import PagerView from 'react-native-pager-view';
 import {Content} from '../model/Content';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
+import {deleteFileByURL} from '../helpers/storage';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -84,12 +85,16 @@ const ProfileScreen = () => {
     }
     const updatedUser: User = new User({...user});
     if (activeRole === UserRole.BusinessPeople) {
+      deleteFileByURL(user.businessPeople?.profilePicture || '');
+
       updatedUser!.businessPeople = {
         //TODO: test (if possible, change forced assignment using !)
         ...updatedUser!.businessPeople!,
         profilePicture: url,
       };
     } else if (activeRole === UserRole.ContentCreator) {
+      deleteFileByURL(user.contentCreator?.profilePicture || '');
+
       console.log(
         'profile pic (b): ' + updatedUser?.contentCreator?.profilePicture,
       );
