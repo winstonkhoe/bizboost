@@ -12,7 +12,7 @@ import {Text} from 'react-native';
 import {View} from 'react-native';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
-import Reanimated, {
+import Animated, {
   interpolate,
   interpolateColor,
   useAnimatedStyle,
@@ -81,7 +81,7 @@ export const CustomTextInput = ({
   const maxTranslateX = 40;
   const animationDuration = 400;
   const translateX = useSharedValue(maxTranslateX);
-  const [isFocus, setIsFocus] = useState<boolean>(false);
+  const [isFocus, setIsFocus] = useState<boolean>(focus);
   const [parentWidth, setParentWidth] = useState<number>(0);
   const animatedWidth = useSharedValue(0);
   const fieldFilled = watch(controllerProps.name);
@@ -170,13 +170,13 @@ export const CustomTextInput = ({
   return (
     <View style={[flex.flexCol, gap.xsmall2]}>
       {label && (
-        <Reanimated.View style={[animatedStyles]}>
+        <Animated.View style={[animatedStyles]}>
           <Text
             className="font-medium"
             style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
             {label}
           </Text>
-        </Reanimated.View>
+        </Animated.View>
       )}
       <Controller
         {...controllerProps}
@@ -185,108 +185,112 @@ export const CustomTextInput = ({
           field: {onChange, onBlur, value},
           fieldState: {error, invalid},
         }) => (
-          <View style={[flex.flexCol]}>
-            <Reanimated.View
-              style={[
-                flex.flexRow,
-                justify.start,
-                gap.default,
-                animatedTextAreaBorder,
-                type === 'textarea' && [
-                  padding.default,
-                  rounded.default,
-                  {
-                    borderWidth: 1,
-                  },
-                ],
-                type !== 'textarea' && padding.bottom.xsmall,
-                controllerProps.disabled && rounded.default,
-                controllerProps.disabled && padding.horizontal.small,
-                controllerProps.disabled &&
-                  background(COLOR.background.neutral.disabled),
-              ]}>
-              {(prefix || inputType === 'price') && (
-                <View style={[flex.flexRow, justify.start, items.end]}>
-                  <Text
-                    className="font-semibold"
-                    style={[textColor(COLOR.text.neutral.low), font.size[30]]}>
-                    {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
-                  </Text>
-                </View>
-              )}
-              <TextInput
-                keyboardType={
-                  keyboardType
-                    ? keyboardType
-                    : inputType === 'number' || inputType === 'price'
-                    ? 'number-pad'
-                    : undefined
-                }
-                maxLength={max}
-                secureTextEntry={hideInputText}
-                textAlignVertical={type === 'textarea' ? 'top' : 'bottom'}
-                multiline={type === 'textarea'}
+          <View style={[flex.flexCol, gap.small]}>
+            <View style={[flex.flexCol]}>
+              <Animated.View
                 style={[
                   flex.flexRow,
-                  self.start,
-                  font.size[30],
-                  font.lineHeight[30],
-                  padding.vertical.zero,
-                  padding.horizontal.zero,
-                  type === 'textarea' && {
-                    minHeight: lineHeight[30] * 3,
-                  },
-                  textColor(
-                    controllerProps.disabled
-                      ? COLOR.text.neutral.low
-                      : COLOR.text.neutral.high,
-                  ),
-                ]}
-                value={
-                  inputType === 'number' || inputType === 'price'
-                    ? formatNumberWithThousandSeparator(value)
-                    : value
-                }
-                onFocus={() => {
-                  setIsFocus(true);
-                }}
-                onBlur={() => {
-                  onBlur();
-                  setIsFocus(false);
-                }}
-                editable={!controllerProps.disabled}
-                onChangeText={text => handleChangeText(text, onChange)}
-                placeholder={placeholder}
-                className="w-full font-medium"
-              />
-            </Reanimated.View>
-
-            {!controllerProps.disabled && type !== 'textarea' && (
-              <View
-                onLayout={event => {
-                  const {width} = event.nativeEvent.layout;
-                  setParentWidth(width);
-                }}
-                className="relative w-full overflow-hidden"
-                style={[
-                  {height: 1},
-                  invalid || isError
-                    ? background(COLOR.red.error)
-                    : background(COLOR.black[100]),
+                  justify.start,
+                  gap.default,
+                  animatedTextAreaBorder,
+                  type === 'textarea' && [
+                    padding.default,
+                    rounded.default,
+                    {
+                      borderWidth: 1,
+                    },
+                  ],
+                  type !== 'textarea' && padding.bottom.xsmall,
+                  controllerProps.disabled && rounded.default,
+                  controllerProps.disabled && padding.horizontal.small,
+                  controllerProps.disabled &&
+                    background(COLOR.background.neutral.disabled),
                 ]}>
-                <Reanimated.View
-                  className="absolute top-0 left-0 w-full h-full bg-green-700"
-                  style={[activeBorderOffset]}
+                {(prefix || inputType === 'price') && (
+                  <View style={[flex.flexRow, justify.start, items.end]}>
+                    <Text
+                      className="font-semibold"
+                      style={[
+                        textColor(COLOR.text.neutral.low),
+                        font.size[30],
+                      ]}>
+                      {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
+                    </Text>
+                  </View>
+                )}
+                <TextInput
+                  keyboardType={
+                    keyboardType
+                      ? keyboardType
+                      : inputType === 'number' || inputType === 'price'
+                      ? 'number-pad'
+                      : undefined
+                  }
+                  maxLength={max}
+                  secureTextEntry={hideInputText}
+                  textAlignVertical={type === 'textarea' ? 'top' : 'bottom'}
+                  multiline={type === 'textarea'}
+                  style={[
+                    flex.flexRow,
+                    self.start,
+                    font.size[30],
+                    font.lineHeight[30],
+                    padding.vertical.zero,
+                    padding.horizontal.zero,
+                    type === 'textarea' && {
+                      minHeight: lineHeight[30] * 3,
+                    },
+                    textColor(
+                      controllerProps.disabled
+                        ? COLOR.text.neutral.low
+                        : COLOR.text.neutral.high,
+                    ),
+                  ]}
+                  value={
+                    inputType === 'number' || inputType === 'price'
+                      ? formatNumberWithThousandSeparator(value)
+                      : value
+                  }
+                  onFocus={() => {
+                    setIsFocus(true);
+                  }}
+                  onBlur={() => {
+                    onBlur();
+                    setIsFocus(false);
+                  }}
+                  editable={!controllerProps.disabled}
+                  onChangeText={text => handleChangeText(text, onChange)}
+                  placeholder={placeholder}
+                  className="w-full font-medium"
                 />
-              </View>
-            )}
+              </Animated.View>
+
+              {!controllerProps.disabled && type !== 'textarea' && (
+                <View
+                  onLayout={event => {
+                    const {width} = event.nativeEvent.layout;
+                    setParentWidth(width);
+                  }}
+                  className="relative w-full overflow-hidden"
+                  style={[
+                    {height: 1},
+                    invalid || isError
+                      ? background(COLOR.red.error)
+                      : background(COLOR.black[100]),
+                  ]}>
+                  <Animated.View
+                    className="absolute top-0 left-0 w-full h-full"
+                    style={[activeBorderOffset, background(COLOR.green[50])]}
+                  />
+                </View>
+              )}
+            </View>
             <View style={[flex.flexRow, gap.medium, justify.between]}>
               <Text
-                className="text-xs"
                 style={[
                   flex.flex1,
                   flex.grow,
-                  font.size[10],
+                  font.size[20],
                   textColor(COLOR.text.neutral.med),
                   (error || isError) && textColor(COLOR.text.danger.default),
                 ]}>
@@ -294,9 +298,8 @@ export const CustomTextInput = ({
               </Text>
               {counter && (
                 <Text
-                  className="text-xs"
                   style={[
-                    font.size[10],
+                    font.size[20],
                     textColor(COLOR.text.neutral.med),
                   ]}>{`${value?.length || 0} / ${parseInt(
                   `${max}`,
@@ -447,7 +450,7 @@ export const CustomNumberInput = ({
         {...controllerProps}
         control={control}
         render={({field: {onChange, onBlur, value}}) => (
-          <Reanimated.View
+          <Animated.View
             style={[
               flex.flexRow,
               gap.default,
@@ -517,7 +520,7 @@ export const CustomNumberInput = ({
               removeBackground={type === 'field' ? true : false}
               onPress={() => increment(value, onChange)}
             />
-          </Reanimated.View>
+          </Animated.View>
         )}
         name={controllerProps.name}
       />
@@ -601,7 +604,7 @@ const IncrementDecrementButton = ({
   }, [props.disabled, disableProgress]);
   return (
     <Pressable {...props}>
-      <Reanimated.View
+      <Animated.View
         className="justify-center items-center"
         style={[
           flex.flexRow,
@@ -626,7 +629,7 @@ const IncrementDecrementButton = ({
             }
           />
         )}
-      </Reanimated.View>
+      </Animated.View>
     </Pressable>
   );
 };

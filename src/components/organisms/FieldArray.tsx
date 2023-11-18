@@ -4,7 +4,6 @@ import {Text, View} from 'react-native';
 import {FormlessCustomTextInput} from '../atoms/Input';
 import {FormFieldHelper} from '../atoms/FormLabel';
 import {SheetModal} from '../../containers/SheetModal';
-import {HorizontalPadding, VerticalPadding} from '../atoms/ViewPadding';
 import {flex, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {textColor} from '../../styles/Text';
@@ -12,9 +11,8 @@ import {COLOR} from '../../styles/Color';
 import {padding} from '../../styles/Padding';
 import {font} from '../../styles/Font';
 import {CustomButton} from '../atoms/Button';
-import {Platform} from 'react-native';
-import {useKeyboard} from '../../hooks/keyboard';
 import {FieldArrayLabel} from '../molecules/FieldArrayLabel';
+
 type Props = {
   control: Control<any>;
   title: string;
@@ -35,7 +33,6 @@ const FieldArray = ({
   maxFieldLength = 40,
   helperText,
 }: Props) => {
-  const keyboardHeight = useKeyboard();
   const [temporaryText, setTemporaryText] = useState<string>('');
   const [updateIndex, setUpdateIndex] = useState<number | null>(null);
   const [isModalOpened, setIsModalOpened] = useState(false);
@@ -105,60 +102,57 @@ const FieldArray = ({
         </View>
       </View>
       <SheetModal
+        maxHeight={750}
         open={isModalOpened}
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <HorizontalPadding paddingSize="large">
-          <VerticalPadding paddingSize="default">
-            <View style={[flex.flexCol, gap.default, padding.bottom.xlarge]}>
-              <View style={[flex.flexRow, justify.center]}>
-                <Text
-                  className="font-bold"
-                  style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                  {title}
-                </Text>
-              </View>
-              <View style={[flex.flexRow, justify.center]}>
-                <Controller
-                  control={control}
-                  name={`${parentName}.${updateIndex}.${childName}`}
-                  render={({field: {value, onChange}}) => (
-                    <View style={[flex.flexCol, gap.medium]}>
-                      <FormlessCustomTextInput
-                        counter
-                        type={fieldType}
-                        max={maxFieldLength}
-                        defaultValue={`${value || ''}`}
-                        placeholder={placeholder ?? `Add ${parentName}`}
-                        description={helperText}
-                        onChange={updateText}
-                      />
-                      <CustomButton
-                        disabled={temporaryText.length === 0}
-                        text={updateIndex !== null ? 'Update' : 'Save'}
-                        onPress={() => {
-                          if (updateIndex !== null) {
-                            updateEntry(onChange);
-                          } else {
-                            addNewEntry();
-                          }
-                        }}
-                      />
-                    </View>
-                  )}
-                />
-              </View>
-              <View
-                style={[
-                  Platform.OS !== 'android' && {
-                    paddingBottom: keyboardHeight,
-                  },
-                ]}
-              />
-            </View>
-          </VerticalPadding>
-        </HorizontalPadding>
+        <View
+          style={[
+            flex.flexCol,
+            gap.xlarge2,
+            padding.horizontal.large,
+            padding.vertical.default,
+            padding.bottom.xlarge3,
+          ]}>
+          <View style={[flex.flexRow, justify.center]}>
+            <Text
+              className="font-bold"
+              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+              {title}
+            </Text>
+          </View>
+          <View style={[flex.flexRow, justify.center]}>
+            <Controller
+              control={control}
+              name={`${parentName}.${updateIndex}.${childName}`}
+              render={({field: {value, onChange}}) => (
+                <View style={[flex.flexCol, gap.medium]}>
+                  <FormlessCustomTextInput
+                    counter
+                    type={fieldType}
+                    max={maxFieldLength}
+                    defaultValue={`${value || ''}`}
+                    placeholder={placeholder ?? `Add ${parentName}`}
+                    description={helperText}
+                    onChange={updateText}
+                  />
+                  <CustomButton
+                    disabled={temporaryText.length === 0}
+                    text={updateIndex !== null ? 'Update' : 'Save'}
+                    onPress={() => {
+                      if (updateIndex !== null) {
+                        updateEntry(onChange);
+                      } else {
+                        addNewEntry();
+                      }
+                    }}
+                  />
+                </View>
+              )}
+            />
+          </View>
+        </View>
       </SheetModal>
     </>
   );
