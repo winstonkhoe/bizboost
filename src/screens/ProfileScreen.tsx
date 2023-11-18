@@ -85,6 +85,9 @@ const ProfileScreen = () => {
     }
     const updatedUser: User = new User({...user});
     if (activeRole === UserRole.BusinessPeople) {
+      console.log('masuk');
+      console.log(updatedUser.businessPeople);
+
       deleteFileByURL(user.businessPeople?.profilePicture || '');
 
       updatedUser!.businessPeople = {
@@ -92,26 +95,21 @@ const ProfileScreen = () => {
         ...updatedUser!.businessPeople!,
         profilePicture: url,
       };
+
+      console.log('tes:' + updatedUser.businessPeople);
     } else if (activeRole === UserRole.ContentCreator) {
       deleteFileByURL(user.contentCreator?.profilePicture || '');
 
-      console.log(
-        'profile pic (b): ' + updatedUser?.contentCreator?.profilePicture,
-      );
       updatedUser!.contentCreator = {
         //TODO: test (if possible, change forced assignment using !)
         ...updatedUser!.contentCreator!,
         profilePicture: url,
       };
-      console.log(
-        'profile pic (a): ' + updatedUser?.contentCreator?.profilePicture,
-      );
     }
 
-    console.log('actual (a): ' + updatedUser?.contentCreator?.profilePicture);
     // TODO: change updateUserData (not static)
     User.updateUserData(uid || '', updatedUser).then(() =>
-      console.log('selesai'),
+      console.log('Profile picture updated'),
     );
   };
 

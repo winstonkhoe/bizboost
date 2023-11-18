@@ -20,8 +20,12 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     setUser(state, action) {
+      console.log('old!: ' + state.activeRole);
       state.user = action.payload;
-      if (action.payload?.isAdmin === true) {
+      if (state.activeRole) {
+        // TODO: supaya abis update profile BP, ga ke switch ke CC (belom tau solusi terbaik apa ngga)
+        return;
+      } else if (action.payload?.isAdmin === true) {
         state.activeRole = UserRole.Admin;
       } else if (action.payload?.contentCreator) {
         state.activeRole = UserRole.ContentCreator;
@@ -37,6 +41,7 @@ const userSlice = createSlice({
   },
   extraReducers(builder) {
     builder.addCase(switchRole, (state, action) => {
+      console.log('terpanggil');
       state.activeRole = action.payload;
     });
   },

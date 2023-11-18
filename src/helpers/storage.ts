@@ -40,8 +40,12 @@ export const uploadFile = ({
 };
 
 export const deleteFileByURL = (url: string) => {
-  const reference = storage().refFromURL(url);
+  if (!url.startsWith('http')) {
+    return;
+  }
 
+  const reference = storage().refFromURL(url);
+  console.log('masuk ref');
   reference
     .delete()
     .then(() => {

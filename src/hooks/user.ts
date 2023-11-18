@@ -28,6 +28,11 @@ export const useUser = () => {
 
   const updateUserRole = useCallback(
     (u: User) => {
+      // Supaya abis update profile BP, ga ke switch ke CC
+      if (!activeRole) {
+        return;
+      }
+
       if (
         u.contentCreator?.fullname &&
         activeRole !== UserRole.ContentCreator
