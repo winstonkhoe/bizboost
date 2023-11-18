@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Control, Controller, useFieldArray} from 'react-hook-form';
 import {Text, View} from 'react-native';
-import {FormlessTextInput} from '../atoms/Input';
+import {FormlessCustomTextInput} from '../atoms/Input';
 import {FormFieldHelper} from '../atoms/FormLabel';
 import {SheetModal} from '../../containers/SheetModal';
 import {HorizontalPadding, VerticalPadding} from '../atoms/ViewPadding';
@@ -125,15 +125,14 @@ const FieldArray = ({
                   name={`${parentName}.${updateIndex}.${childName}`}
                   render={({field: {value, onChange}}) => (
                     <View style={[flex.flexCol, gap.medium]}>
-                      <FormlessTextInput
+                      <FormlessCustomTextInput
                         counter
                         type={fieldType}
                         max={maxFieldLength}
                         defaultValue={`${value || ''}`}
                         placeholder={placeholder ?? `Add ${parentName}`}
-                        focus={isModalOpened}
                         description={helperText}
-                        onChangeText={updateText}
+                        onChange={updateText}
                       />
                       <CustomButton
                         disabled={temporaryText.length === 0}

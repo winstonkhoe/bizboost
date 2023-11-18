@@ -14,7 +14,7 @@ import {
   CustomNumberInput,
   CustomTextInput,
   FormlessCustomNumberInput,
-  FormlessTextInput,
+  FormlessCustomTextInput,
   MediaUploader,
 } from '../components/atoms/Input';
 import {
@@ -450,14 +450,16 @@ const CreateCampaignScreen = () => {
                         rules={{
                           required: 'Title is required',
                         }}
+                        max={50}
+                        counter
                       />
                     </View>
                     <View style={[flex.flexCol, gap.default]}>
                       <FormFieldHelper title="Your campaign description" />
                       <CustomTextInput
-                        label="Campaign Description"
+                        placeholder="Campaign description"
                         name="description"
-                        multiline={true}
+                        type="textarea"
                         rules={{
                           required: 'Description is required',
                         }}
@@ -1289,15 +1291,14 @@ const SocialFieldArray = ({
                         <FormFieldHelper title="Description" />
                         <View style={[flex.flexRow, gap.default, items.end]}>
                           <View style={[flex.flex1]}>
-                            <FormlessTextInput
+                            <FormlessCustomTextInput
                               counter
                               type={fieldType}
                               max={maxFieldLength}
                               defaultValue={`${value?.description || ''}`}
                               placeholder={placeholder ?? `Add ${parentName}`}
-                              focus={isModalOpened}
                               description={helperText}
-                              onChangeText={updateText}
+                              onChange={updateText}
                             />
                           </View>
                           <FormlessCustomNumberInput
