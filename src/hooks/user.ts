@@ -26,36 +26,13 @@ export const useUser = () => {
     activeRole,
   );
 
-  const updateUserRole = useCallback(
-    (u: User) => {
-      // Supaya abis update profile BP, ga ke switch ke CC
-      if (!activeRole) {
-        return;
-      }
-
-      if (
-        u.contentCreator?.fullname &&
-        activeRole !== UserRole.ContentCreator
-      ) {
-        dispatch(switchRole(UserRole.ContentCreator));
-      } else if (
-        u.businessPeople?.fullname &&
-        activeRole !== UserRole.BusinessPeople
-      ) {
-        dispatch(switchRole(UserRole.BusinessPeople));
-      }
-    },
-    [dispatch, activeRole],
-  );
-
   const updateUserState = useCallback(
     (u: User | null) => {
       if (u) {
         dispatch(setUser(u.toJSON()));
-        updateUserRole(u);
       }
     },
-    [dispatch, updateUserRole],
+    [dispatch],
   );
 
   useEffect(() => {
@@ -88,12 +65,9 @@ export const useUser = () => {
         dispatch(switchRole(undefined));
       }
     }
-    if (user && uid && !activeRole) {
-      updateUserRole(user);
-    }
     if (user && !uid) {
       dispatch(setUser(null));
     }
-  }, [user, uid, dispatch, updateUserRole, activeRole]);
+  }, [user, uid, dispatch, activeRole]);
   return {uid, user, activeRole, activeData};
 };

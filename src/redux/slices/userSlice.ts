@@ -27,9 +27,9 @@ const userSlice = createSlice({
         return;
       } else if (action.payload?.isAdmin === true) {
         state.activeRole = UserRole.Admin;
-      } else if (action.payload?.contentCreator) {
+      } else if (action.payload?.contentCreator.fullname) {
         state.activeRole = UserRole.ContentCreator;
-      } else if (action.payload?.businessPeople) {
+      } else if (action.payload?.businessPeople.fullname) {
         state.activeRole = UserRole.BusinessPeople;
       }
       console.log('role: ' + state.activeRole);
