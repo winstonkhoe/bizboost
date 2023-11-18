@@ -63,7 +63,12 @@ const OngoingCampaignCard = ({campaign}: Props) => {
             {user?.businessPeople?.fullname}
           </Text>
           {campaign.categories?.map(category => (
-            <Label radius="default" fontSize={10} text={`${category}`} />
+            <Label
+              key={category}
+              radius="default"
+              fontSize={10}
+              text={`${category}`}
+            />
           ))}
         </View>
         <Text
