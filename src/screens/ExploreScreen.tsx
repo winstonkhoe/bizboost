@@ -6,7 +6,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import Video from 'react-native-video';
+import Video, {ResizeMode} from 'react-native-video';
 import {memo, useMemo, useState} from 'react';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {flex, items} from '../styles/Flex';
@@ -121,7 +121,7 @@ export const ExploreItem = ({
         }} // Can be a URL or a local file.
         paused={!active}
         repeat
-        resizeMode="cover"
+        resizeMode={ResizeMode.COVER}
         onBuffer={buff => {
           console.log(buff);
           setIsBuffering(buff.isBuffering);
