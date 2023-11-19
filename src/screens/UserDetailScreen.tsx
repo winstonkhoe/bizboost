@@ -45,7 +45,7 @@ const UserDetailScreen = ({route}: Props) => {
       user.status = UserStatus.Active;
     }
 
-    User.updateUserData(user.id || '', user);
+    user.updateUserData();
   };
   return (
     <PageWithBackButton>

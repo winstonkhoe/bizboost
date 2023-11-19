@@ -130,9 +130,9 @@ const ProfileScreen = () => {
     }
 
     // TODO: change updateUserData (not static)
-    User.updateUserData(uid || '', updatedUser).then(() =>
-      console.log('Profile picture updated'),
-    );
+    updatedUser
+      .updateUserData()
+      .then(() => console.log('Profile picture updated'));
   };
 
   return (
