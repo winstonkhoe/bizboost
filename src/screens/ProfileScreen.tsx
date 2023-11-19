@@ -31,7 +31,6 @@ import PagerView from 'react-native-pager-view';
 import {Content} from '../model/Content';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
-import {deleteFileByURL} from '../helpers/storage';
 import {Campaign, CampaignType} from '../model/Campaign';
 
 const ProfileScreen = () => {
