@@ -27,15 +27,13 @@ import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
 import PagerView from 'react-native-pager-view';
 import {Content} from '../model/Content';
-import Video from 'react-native-video';
-import {ActivityIndicator} from 'react-native';
-import ScaledImage from '../components/atoms/ScaledImage';
-import {formatDateToDayMonthYear, getDate} from '../utils/date';
+import {formatDateToDayMonthYear} from '../utils/date';
 import FastImage from 'react-native-fast-image';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {padding} from '../styles/Padding';
 import {size} from '../styles/Size';
 import {useNavigation} from '@react-navigation/native';
+import {useUser} from '../hooks/user';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -50,6 +48,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
   const [contents, setContents] = useState<Content[]>();
   const [index, setIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState(0);
+  const {uid} = useUser();
 
   useEffect(() => {
     User.getById(param.contentCreatorId).then(user => setContentCreator(user));
@@ -305,7 +304,17 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
             </View>
           </PagerView>
         </View>
-        <CustomButton text="Contact Content Creator" />
+        <View>
+          <CustomButton
+            text="Make Offer"
+            onPress={() => {
+              navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+                businessPeopleId: uid ?? '',
+                contentCreatorId: contentCreator?.id ?? '',
+              });
+            }}
+          />
+        </View>
       </View>
     </PageWithBackButton>
   );

@@ -19,7 +19,6 @@ import {
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 
 const ChatListScreen = () => {
-  const {uid} = useUser();
   const chats = useUserChats();
 
   const navigation = useNavigation<NavigationStackProps>();
@@ -50,7 +49,6 @@ const ChatListScreen = () => {
                   }}>
                   <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
                     <View style={gap.medium} className="flex flex-row h-full">
-
                       <View className="w-12 h-12 rounded-full overflow-hidden">
                         <Image
                           source={

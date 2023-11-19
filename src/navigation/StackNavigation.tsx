@@ -21,15 +21,12 @@ import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
 import CampaignTimelineScreen from '../screens/CampaignTimeline';
-import {CustomModal} from '../components/atoms/CustomModal';
-import {View} from 'react-native';
-import {Text} from 'react-native';
-import {flex, items, justify} from '../styles/Flex';
+import MakeOfferScreen from '../screens/MakeOfferScreen';
 import {useEffect, useState} from 'react';
-import {background} from '../styles/BackgroundColor';
-import {COLOR} from '../styles/Color';
 import SplashScreen from '../screens/SplashScreen';
 import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
+import {Campaign} from '../model/Campaign';
+import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -52,6 +49,8 @@ export enum AuthenticatedNavigation {
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   SpecificExploreModal = 'Specific Explore Modal',
+  MakeOffer = 'Make Offer',
+  CampaignModal = 'Campaign Modal',
 }
 
 export enum GeneralNavigation {
@@ -65,6 +64,11 @@ export type GuestStack = {
   [GuestNavigation.Signup]: undefined;
   [GuestNavigation.Authenticated]: undefined;
 };
+
+interface CampaignModalProps {
+  initialSelectedCampaign: Campaign;
+  eventType: string;
+}
 
 export type AuthenticatedStack = {
   [AuthenticatedNavigation.Main]: undefined;
@@ -80,6 +84,11 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
+  [AuthenticatedNavigation.MakeOffer]: {
+    contentCreatorId: string;
+    businessPeopleId: string;
+  };
+  [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
   [AuthenticatedNavigation.SpecificExploreModal]: {
     contentCreatorId: string;
     targetContentId?: string;
@@ -203,6 +212,10 @@ const StackNavigator = () => {
                   ...TransitionPresets.ModalSlideFromBottomIOS,
                 }}>
                 <Stack.Screen
+                  name={AuthenticatedNavigation.MakeOffer}
+                  component={MakeOfferScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.ChatDetail}
                   component={ChatScreen}
                 />
@@ -242,6 +255,10 @@ const StackNavigator = () => {
               <Stack.Screen
                 name={GeneralNavigation.CategoryModal}
                 component={ModalCategoryScreen}
+              />
+              <Stack.Screen
+                name={AuthenticatedNavigation.CampaignModal}
+                component={ModalCampaignScreen}
               />
             </Stack.Group>
           </Stack.Group>
