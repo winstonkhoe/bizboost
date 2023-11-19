@@ -1,5 +1,6 @@
 import {
   FlatList,
+  Platform,
   Pressable,
   StatusBar,
   Text,
@@ -124,7 +125,21 @@ export const ExploreItem = ({
         resizeMode={ResizeMode.COVER}
         onBuffer={buff => {
           console.log(buff);
+          // if (Platform.OS !== 'android') {
           setIsBuffering(buff.isBuffering);
+          // }
+        }}
+        onLoad={() => {
+          console.log('onload')
+          if (Platform.OS === 'android') {
+            setIsBuffering(false);
+          }
+        }}
+        onLoadStart={() => {
+          console.log('onload start')
+          if (Platform.OS === 'android') {
+            setIsBuffering(true);
+          }
         }}
         onError={err => console.log('error', err)}
         style={{
