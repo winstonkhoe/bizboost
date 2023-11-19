@@ -21,6 +21,7 @@ import React, {
 import {textColor} from '../../styles/Text';
 import {dimension} from '../../styles/Dimension';
 import {padding} from '../../styles/Padding';
+import {shadow} from '../../styles/Shadow';
 
 type StepperType = 'simple' | 'content';
 
@@ -126,7 +127,7 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
             <View style={[flex.flexCol, gap.small, items.center]}>
               <View
                 style={[
-                  dimension.square.xlarge2,
+                  dimension.square.large,
                   background(
                     props.currentPosition >= index
                       ? COLOR.green[50]
@@ -155,19 +156,30 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
               />
             </View>
             <View
+              className="relative"
               style={[
                 flex.flex1,
                 padding.bottom.large,
-                index < props.currentPosition && {
-                  opacity: 0.5,
-                },
-                index === props.currentPosition && {
-                  opacity: 1,
-                },
-                index > props.currentPosition && {
-                  opacity: 0.5,
-                },
+                // index < props.currentPosition && {
+                //   opacity: 0.5,
+                // },
+                // index === props.currentPosition && {
+                //   opacity: 1,
+                // },
+                // index > props.currentPosition && {
+                //   opacity: 0.5,
+                // },
               ]}>
+              {index !== props.currentPosition && (
+                <View
+                  className="absolute z-10 top-0 left-0"
+                  style={[
+                    dimension.full,
+                    background(COLOR.black[0], 0.5),
+                    rounded.medium,
+                  ]}
+                />
+              )}
               {child}
             </View>
           </View>
