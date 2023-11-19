@@ -7,9 +7,9 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Video from 'react-native-video';
-import {useMemo, useState} from 'react';
+import {memo, useMemo, useState} from 'react';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
-import {flex, items, justify} from '../styles/Flex';
+import {flex, items} from '../styles/Flex';
 import {rounded} from '../styles/BorderRadius';
 import {dimension} from '../styles/Dimension';
 import FastImage from 'react-native-fast-image';
@@ -22,12 +22,12 @@ import {padding} from '../styles/Padding';
 import {useIsFocused, useNavigation} from '@react-navigation/core';
 import {useContent} from '../hooks/content';
 import {ContentView} from '../model/Content';
-import {LoadingSpinner} from '../components/atoms/LoadingSpinner';
 import {shuffle} from '../utils/array';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {LoadingScreen} from './LoadingScreen';
 
 const ExploreScreen = () => {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
@@ -36,14 +36,26 @@ const ExploreScreen = () => {
   const isFocused = useIsFocused();
   const bottomTabHeight = useBottomTabBarHeight();
   const windowDimension = useWindowDimensions();
-
+  const statusBarHeight = StatusBar.currentHeight || 0;
   return (
     <FlatList
+      initialNumToRender={1}
+      maxToRenderPerBatch={2}
+      updateCellsBatchingPeriod={2}
       data={shuffledContents}
       pagingEnabled
+      getItemLayout={(data, index) => {
+        return {
+          length: windowDimension.height - bottomTabHeight - statusBarHeight,
+          offset:
+            (windowDimension.height - bottomTabHeight - statusBarHeight) *
+            index,
+          index,
+        };
+      }}
       showsVerticalScrollIndicator={false}
       renderItem={({item, index}) => (
-        <ExploreItem
+        <ExploreItemMemo
           content={item}
           bottomTabHeight={bottomTabHeight}
           active={isFocused && activeVideoIndex === index}
@@ -83,22 +95,7 @@ export const ExploreItem = ({
           height: windowDimension.height - bottomTabHeight - statusBarHeight,
         },
       ]}>
-      {isBuffering && contentView?.content?.thumbnail && (
-        <View
-          style={[
-            flex.flexRow,
-            justify.center,
-            items.center,
-            {
-              position: 'absolute',
-              zIndex: 50,
-            },
-            background(`${COLOR.black[0]}a3`),
-            dimension.full,
-          ]}>
-          <LoadingSpinner />
-        </View>
-      )}
+      {isBuffering && <LoadingScreen />}
       {isBuffering && contentView?.content?.thumbnail && (
         <View
           style={[
@@ -126,6 +123,7 @@ export const ExploreItem = ({
         repeat
         resizeMode="cover"
         onBuffer={buff => {
+          console.log(buff);
           setIsBuffering(buff.isBuffering);
         }}
         onError={err => console.log('error', err)}
@@ -195,5 +193,24 @@ export const ExploreItem = ({
     </View>
   );
 };
+
+const ExploreItemMemo = memo(
+  ({content, active, bottomTabHeight}: ExploreItemProps) => {
+    return (
+      <ExploreItem
+        active={active}
+        content={content}
+        bottomTabHeight={bottomTabHeight}
+      />
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.active === nextProps.active &&
+      prevProps.content === nextProps.content &&
+      prevProps.bottomTabHeight === nextProps.bottomTabHeight
+    );
+  },
+);
 
 export default ExploreScreen;
