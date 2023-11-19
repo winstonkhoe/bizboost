@@ -30,6 +30,7 @@ import PayContentCreatorScreen from '../screens/profile/PayContentCreatorScreen'
 import UploadVideoScreen from '../screens/profile/UploadVideoScreen';
 import WithdrawMoneyScreen from '../screens/profile/WithdrawMoneyScreen';
 import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
+import ChangePasswordScreen from '../screens/profile/ChangePasswordScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -54,6 +55,7 @@ export enum AuthenticatedNavigation {
   MyTransactions = 'My Transactions',
   MyCampaigns = 'My Campaigns',
   AboutMe = 'About Me',
+  ChangePassword = 'Change Password',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -89,6 +91,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.MyTransactions]: undefined;
   [AuthenticatedNavigation.MyCampaigns]: undefined;
   [AuthenticatedNavigation.AboutMe]: undefined;
+  [AuthenticatedNavigation.ChangePassword]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
@@ -250,6 +253,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.WithdrawMoney}
                   component={WithdrawMoneyScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.ChangePassword}
+                  component={ChangePasswordScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}

@@ -1,6 +1,4 @@
-import {Pressable, ScrollView, Text, View} from 'react-native';
-import {CloseModal} from '../../components/atoms/Close';
-import SafeAreaContainer from '../../containers/SafeAreaContainer';
+import {Pressable, Text, View} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
@@ -15,17 +13,21 @@ import {CustomButton} from '../../components/atoms/Button';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 type FormData = {
   email: string;
-  password?: string;
-  confirmPassword?: string;
   fullname: string;
   phone: string;
 };
 const AboutMeScreen = () => {
+  const navigation = useNavigation<NavigationStackProps>();
   const safeAreaInsets = useSafeAreaInsets();
-  const {user, activeData, activeRole, uid} = useUser();
+  const {user, activeData} = useUser();
   const methods = useForm<FormData>({
     mode: 'all',
     defaultValues: {
@@ -84,7 +86,9 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {}}>
+              onPress={() => {
+                navigation.navigate(AuthenticatedNavigation.ChangePassword);
+              }}>
               <View className="flex flex-row items-center">
                 <PasswordIcon width={18} height={18} fill={'black'} />
                 <Text
