@@ -44,7 +44,7 @@ const ChangePasswordScreen = () => {
               name="newPassword"
               hideInputText
               rules={{
-                required: 'Old password is required',
+                required: 'New password is required',
               }}
             />
 
@@ -53,7 +53,10 @@ const ChangePasswordScreen = () => {
               name="confirmPassword"
               hideInputText
               rules={{
-                required: 'Old password is required',
+                required: 'Confirm Password must be filled',
+                validate: value =>
+                  value === methods.watch('newPassword') ||
+                  'Confirm password must be the same as password',
               }}
             />
           </View>
