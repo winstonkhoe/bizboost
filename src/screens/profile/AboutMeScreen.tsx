@@ -1,4 +1,4 @@
-import {ScrollView, Text, View} from 'react-native';
+import {Pressable, ScrollView, Text, View} from 'react-native';
 import {CloseModal} from '../../components/atoms/Close';
 import SafeAreaContainer from '../../containers/SafeAreaContainer';
 import {flex} from '../../styles/Flex';
@@ -7,6 +7,12 @@ import {padding} from '../../styles/Padding';
 import {useUser} from '../../hooks/user';
 import {CustomTextInput} from '../../components/atoms/Input';
 import {FormProvider, useForm} from 'react-hook-form';
+import {textColor} from '../../styles/Text';
+import {font} from '../../styles/Font';
+import {COLOR} from '../../styles/Color';
+import PasswordIcon from '../../assets/vectors/password.svg';
+import {CustomButton} from '../../components/atoms/Button';
+
 type FormData = {
   email: string;
   password?: string;
@@ -27,9 +33,11 @@ const AboutMeScreen = () => {
   return (
     <SafeAreaContainer enable>
       <CloseModal />
-      <ScrollView>
-        <FormProvider {...methods}>
-          <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
+      <FormProvider {...methods}>
+        <View
+          style={[flex.flexCol, padding.horizontal.default]}
+          className="flex-1 justify-between">
+          <View style={[flex.flexCol, gap.medium]}>
             <Text className="text-lg font-bold">About Me</Text>
 
             <CustomTextInput
@@ -37,15 +45,6 @@ const AboutMeScreen = () => {
               name="fullname"
               rules={{
                 required: 'Name is required',
-              }}
-            />
-
-            <CustomTextInput
-              label="Email"
-              name="email"
-              disabled
-              rules={{
-                required: 'Email is required',
               }}
             />
 
@@ -61,9 +60,37 @@ const AboutMeScreen = () => {
                 },
               }}
             />
+
+            <CustomTextInput
+              label="Email"
+              name="email"
+              disabled
+              rules={{
+                required: 'Email is required',
+              }}
+            />
+
+            <Pressable
+              className="flex flex-row items-center justify-between"
+              onPress={() => {}}>
+              <View className="flex flex-row items-center">
+                <PasswordIcon width={18} height={18} fill={'black'} />
+                <Text
+                  className="font-medium ml-1"
+                  style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                  Password
+                </Text>
+              </View>
+              <Text
+                style={[textColor(COLOR.text.green.default), font.size[30]]}>
+                Change
+              </Text>
+            </Pressable>
           </View>
-        </FormProvider>
-      </ScrollView>
+
+          <CustomButton text="Save" onPress={() => {}} />
+        </View>
+      </FormProvider>
     </SafeAreaContainer>
   );
 };
