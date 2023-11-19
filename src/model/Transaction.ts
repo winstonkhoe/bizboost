@@ -4,6 +4,7 @@ import firestore, {
 import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
 import {Campaign} from './Campaign';
+import {StatusType} from '../components/atoms/StatusTag';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -21,6 +22,20 @@ export enum TransactionStatus {
 
   // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
 }
+
+type TransactionStatusMap = {
+  [key in TransactionStatus]: StatusType;
+};
+
+export const transactionStatusTypeMap: TransactionStatusMap = {
+  [TransactionStatus.notRegistered]: StatusType.warning,
+  [TransactionStatus.registrationPending]: StatusType.warning,
+  [TransactionStatus.registrationRejected]: StatusType.danger,
+  [TransactionStatus.registrationApproved]: StatusType.success,
+  [TransactionStatus.offering]: StatusType.warning,
+  [TransactionStatus.offeringApproved]: StatusType.success,
+  [TransactionStatus.offerRejected]: StatusType.danger,
+};
 
 export class Transaction extends BaseModel {
   id?: string; // CampaignId + ContentCreatorId
