@@ -227,6 +227,31 @@ export class User extends BaseModel {
     this.updateUserData().then(() => console.log('Profile picture updated'));
   }
 
+  async updatePassword(
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    try {
+      // Check if current pasword is correct
+      await auth().currentUser?.reauthenticateWithCredential(
+        auth.EmailAuthProvider.credential(this.email || '', oldPassword),
+      );
+
+      // Jangan pake auth().currentUser yang sama sama yang di atas, karena pas reauthenticate, itu berubah currentUsernya
+      await auth().currentUser?.updatePassword(newPassword);
+      console.log('Password updated!');
+    } catch (error: any) {
+      console.log(error.code);
+      const code: string = error.code;
+      // To format code, contoh weak-password jadi Weak Password, internal-error jadi Internal Error. (Boleh diimprove)
+      const formattedCode = code
+        .split('/')
+        .pop()
+        ?.replace('-', ' ')
+        .toUpperCase();
+      throw Error(`${formattedCode}! Update Password failed!`);
+    }
+  }
   // static async getAll(): Promise<User[]> {
   //   try {
   //     const users = await firestore()

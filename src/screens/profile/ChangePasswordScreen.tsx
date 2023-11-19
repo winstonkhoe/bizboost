@@ -8,6 +8,9 @@ import {FormProvider, useForm} from 'react-hook-form';
 import {useUser} from '../../hooks/user';
 import {CustomTextInput} from '../../components/atoms/Input';
 import {CustomButton} from '../../components/atoms/Button';
+import {useNavigation} from '@react-navigation/native';
+import {NavigationStackProps} from '../../navigation/StackNavigation';
+import {User} from '../../model/User';
 
 type FormData = {
   oldPassword: string;
@@ -17,9 +20,29 @@ type FormData = {
 const ChangePasswordScreen = () => {
   // TODO: validate only if auth method is email password
   const {user, activeData} = useUser();
+  const navigation = useNavigation<NavigationStackProps>();
+
   const methods = useForm<FormData>({
     mode: 'all',
   });
+
+  const onSubmitButtonClicked = (data: FormData) => {
+    console.log(typeof user);
+    console.log(user instanceof User);
+    // TODO: temporary solve (@win ini kenapa ya si user dari useUser typenya ga dianggep User, jadi gw mau akses method non-staticnya ga bisa)
+
+    const temp = new User({...user});
+    temp
+      .updatePassword(data.oldPassword, data.newPassword)
+      .then(() => {
+        console.log('Update password success!');
+        navigation.goBack();
+      })
+      .catch(error => {
+        // TODO: show alert / toast if error
+        console.log(error.message);
+      });
+  };
   return (
     <SafeAreaContainer enable>
       <CloseModal />
@@ -61,7 +84,10 @@ const ChangePasswordScreen = () => {
             />
           </View>
 
-          <CustomButton text="Change" onPress={() => {}} />
+          <CustomButton
+            text="Change"
+            onPress={methods.handleSubmit(onSubmitButtonClicked)}
+          />
         </View>
       </FormProvider>
     </SafeAreaContainer>
