@@ -12,6 +12,9 @@ import {font} from '../../styles/Font';
 import {COLOR} from '../../styles/Color';
 import PasswordIcon from '../../assets/vectors/password.svg';
 import {CustomButton} from '../../components/atoms/Button';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../../styles/Size';
 
 type FormData = {
   email: string;
@@ -21,6 +24,7 @@ type FormData = {
   phone: string;
 };
 const AboutMeScreen = () => {
+  const safeAreaInsets = useSafeAreaInsets();
   const {user, activeData, activeRole, uid} = useUser();
   const methods = useForm<FormData>({
     mode: 'all',
@@ -31,11 +35,19 @@ const AboutMeScreen = () => {
     },
   });
   return (
-    <SafeAreaContainer enable>
-      <CloseModal />
+    <PageWithBackButton fullHeight enableSafeAreaContainer>
       <FormProvider {...methods}>
         <View
-          style={[flex.flexCol, padding.horizontal.default]}
+          style={[
+            flex.flexCol,
+            padding.horizontal.default,
+            {
+              paddingTop: Math.max(
+                safeAreaInsets.top,
+                safeAreaInsets.top < 10 ? size.large : size.xlarge2,
+              ),
+            },
+          ]}
           className="flex-1 justify-between">
           <View style={[flex.flexCol, gap.medium]}>
             <Text className="text-lg font-bold">About Me</Text>
@@ -91,7 +103,7 @@ const AboutMeScreen = () => {
           <CustomButton text="Save" onPress={() => {}} />
         </View>
       </FormProvider>
-    </SafeAreaContainer>
+    </PageWithBackButton>
   );
 };
 

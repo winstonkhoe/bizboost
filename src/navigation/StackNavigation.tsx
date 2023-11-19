@@ -206,6 +206,10 @@ const StackNavigator = () => {
                   name={AuthenticatedNavigation.CreateCampaign}
                   component={CreateCampaignScreen}
                 />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.AboutMe}
+                  component={AboutMeScreen}
+                />
               </Stack.Group>
 
               <Stack.Group
@@ -234,10 +238,7 @@ const StackNavigator = () => {
                   name={AuthenticatedNavigation.MyCampaigns}
                   component={MyCampaignsScreen}
                 />
-                <Stack.Screen
-                  name={AuthenticatedNavigation.AboutMe}
-                  component={AboutMeScreen}
-                />
+
                 <Stack.Screen
                   name={AuthenticatedNavigation.PayContentCreator}
                   component={PayContentCreatorScreen}
