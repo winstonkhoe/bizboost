@@ -1,5 +1,4 @@
 import React, {useState, useEffect, useRef} from 'react';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
@@ -10,7 +9,6 @@ import {
 import {User} from '../model/User';
 import {
   Dimensions,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,7 +17,7 @@ import {
 } from 'react-native';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {font} from '../styles/Font';
-import {flex, justify} from '../styles/Flex';
+import {flex} from '../styles/Flex';
 import StarIcon from '../assets/vectors/star.svg';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TiktokLogo from '../assets/vectors/tiktok.svg';
@@ -34,6 +32,7 @@ import {padding} from '../styles/Padding';
 import {size} from '../styles/Size';
 import {useNavigation} from '@react-navigation/native';
 import {useUser} from '../hooks/user';
+import {dimension} from '../styles/Dimension';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -95,9 +94,8 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
               height: Dimensions.get('window').width * 0.3,
             }}
             className="rounded-full overflow-hidden object-cover">
-            <Image
-              width={Dimensions.get('window').width * 0.3}
-              height={Dimensions.get('window').width * 0.3}
+            <FastImage
+              style={[dimension.full]}
               source={
                 contentCreator?.contentCreator?.profilePicture
                   ? {

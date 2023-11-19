@@ -1,4 +1,4 @@
-import {Image, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {SizeType} from '../../styles/Size';
 import {dimension} from '../../styles/Dimension';
 import {textColor} from '../../styles/Text';

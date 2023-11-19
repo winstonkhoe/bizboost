@@ -7,10 +7,9 @@ import {
 } from '../navigation/StackNavigation';
 import {Pressable, Text} from 'react-native';
 import {View} from 'react-native';
-import {Image} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
 import {Campaign} from '../model/Campaign';
-import {formatDateToDayMonthYear, getDate} from '../utils/date';
+import {formatDateToDayMonthYear} from '../utils/date';
 import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {Transaction, TransactionStatus} from '../model/Transaction';
@@ -30,6 +29,7 @@ import {border} from '../styles/Border';
 import {textColor} from '../styles/Text';
 import {formatToRupiah} from '../utils/currency';
 import {LoadingScreen} from './LoadingScreen';
+import FastImage from 'react-native-fast-image';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -116,7 +116,7 @@ const CampaignDetailScreen = ({route}: Props) => {
       <PageWithBackButton fullHeight threshold={180}>
         <View className="flex-1">
           <View className="w-full h-72 overflow-hidden ">
-            <Image
+            <FastImage
               className="w-full h-full object-cover"
               source={{uri: campaign.image}}
             />
@@ -192,7 +192,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                   <View
                     className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
                     style={[flex.flexRow, rounded.max]}>
-                    <Image
+                    <FastImage
                       className="w-full h-full object-cover"
                       source={
                         businessPeople.businessPeople?.profilePicture

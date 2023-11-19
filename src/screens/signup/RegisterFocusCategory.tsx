@@ -4,7 +4,7 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../../components/atoms/ViewPadding';
-import {Image, Pressable, Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {textColor} from '../../styles/Text';
@@ -19,7 +19,6 @@ import {AddIcon} from '../../components/atoms/Icon';
 import {openCategoryModal} from '../../utils/modal';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationStackProps} from '../../navigation/StackNavigation';
-import {FlatList} from 'react-native';
 import FastImage from 'react-native-fast-image';
 
 interface RegisterFocusCategoryProps {

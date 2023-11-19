@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Image, Pressable, Text} from 'react-native';
+import {Pressable, Text} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
 import {
   HorizontalPadding,
@@ -405,7 +405,7 @@ const CreateCampaignScreen = () => {
                                   rounded.default,
                                 ]}>
                                 {value ? (
-                                  <Image
+                                  <FastImage
                                     className=""
                                     style={[dimension.full]}
                                     source={{

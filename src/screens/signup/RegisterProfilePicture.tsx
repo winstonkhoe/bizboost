@@ -1,4 +1,4 @@
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import {flex, items} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {MediaUploader} from '../../components/atoms/Input';
@@ -14,6 +14,7 @@ import {
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {useEffect, useState} from 'react';
+import FastImage from 'react-native-fast-image';
 
 interface RegisterProfilePictureProps {
   defaultProfile?: string;
@@ -64,7 +65,7 @@ export const RegisterProfilePicture = ({
               <View
                 className="overflow-hidden"
                 style={[dimension.square.xlarge7, rounded.medium]}>
-                <Image
+                <FastImage
                   style={[dimension.full]}
                   source={
                     uploadedImage

@@ -1,7 +1,8 @@
-import {Image, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {Label} from '../atoms/Label';
 import {currencyFormat} from '../../utils/currency';
 import {shadow} from '../../styles/Shadow';
+import FastImage from 'react-native-fast-image';
 
 const RecentNegotiationCard = () => {
   return (
@@ -10,7 +11,7 @@ const RecentNegotiationCard = () => {
       style={[shadow.default]}>
       <View className="w-full flex flex-row">
         <View className="w-16 h-16 rounded-full overflow-hidden">
-          <Image
+          <FastImage
             className="w-full h-full object-cover"
             source={require('../../assets/images/kopi-nako-logo.jpeg')}
           />

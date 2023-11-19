@@ -1,8 +1,7 @@
-import {ImageSourcePropType, Pressable, View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {Text} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
-import {Image} from 'react-native';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
 import {User, UserRole} from '../../model/User';
 import {ReactNode, useEffect, useState} from 'react';
@@ -25,6 +24,8 @@ import {
 } from '../../navigation/StackNavigation';
 import {getTimeAgo} from '../../utils/date';
 import {gap} from '../../styles/Gap';
+import FastImage, {Source} from 'react-native-fast-image';
+import {ImageRequireSource} from 'react-native';
 
 type Props = {
   transaction: Transaction;
@@ -94,7 +95,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     Campaign.getById(transaction.campaignId || '').then(c => setCampaign(c));
   }, [transaction]);
 
-  const [businessPeople, setBusinessPeople] = useState<User>();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
 
   useEffect(() => {
     User.getById(transaction.businessPeopleId || '').then(u =>
@@ -137,7 +138,7 @@ type BaseCardProps = {
   headerTextLeading: string;
   headerTextTrailing: string;
   handleClickBody: () => void;
-  imageSource: ImageSourcePropType;
+  imageSource: Source | ImageRequireSource;
   bodyText: string;
   statusText: string;
   doesNeedApproval?: boolean;
@@ -186,7 +187,7 @@ const BaseCard = ({
             <View
               className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
               style={[flex.flexRow, rounded.default]}>
-              <Image
+              <FastImage
                 className="w-full h-full object-cover"
                 source={imageSource}
               />

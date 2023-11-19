@@ -1,11 +1,11 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {Message} from '../../screens/ChatScreen';
 import {flex, items} from '../../styles/Flex';
 import {MessageType} from '../../model/Chat';
-import FirebaseStorageImage from '../molecules/FirebaseStorageImage';
+import FastImage from 'react-native-fast-image';
 
 const ChatBubble = ({message, isSender, type}: Message) => {
   return (
@@ -35,7 +35,9 @@ const ChatBubble = ({message, isSender, type}: Message) => {
             overflow: 'hidden',
           }}>
           <View style={styles.container}>
-            {message && <Image source={{uri: message}} style={styles.image} />}
+            {message && (
+              <FastImage source={{uri: message}} style={styles.image} />
+            )}
           </View>
           <Text style={[textColor(COLOR.black[100])]}>{message}</Text>
         </View>

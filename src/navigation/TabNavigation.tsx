@@ -9,7 +9,6 @@ import ChatLogoOutline from '../assets/vectors/chat-outline.svg';
 import ListLogoFilled from '../assets/vectors/list-box.svg';
 import ListLogoOutline from '../assets/vectors/list-box-line.svg';
 import SearchLogo from '../assets/vectors/search.svg';
-import {Image} from 'react-native';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
 import {useCallback} from 'react';
@@ -22,6 +21,7 @@ import {NavigationProp} from '@react-navigation/native';
 import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
 import ContentCreatorsScreen from '../screens/ContentCreatorsScreen';
 import ExploreScreen from '../screens/ExploreScreen';
+import FastImage from 'react-native-fast-image';
 
 const Tab = createBottomTabNavigator();
 
@@ -65,7 +65,7 @@ export const TabNavigator = () => {
     };
     return (
       <View className="rounded-full w-6 h-6 overflow-hidden">
-        <Image
+        <FastImage
           className="w-full h-full"
           source={
             getUserProfile()
