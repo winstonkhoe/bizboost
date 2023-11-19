@@ -122,7 +122,7 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
     <View style={[flex.flexCol, gap.small]}>
       {children.map((child: ReactNode, index: number) => {
         return (
-          <View style={[flex.flexRow, gap.default]}>
+          <View key={index} style={[flex.flexRow, gap.default]}>
             <View style={[flex.flexCol, gap.small, items.center]}>
               <View
                 style={[
