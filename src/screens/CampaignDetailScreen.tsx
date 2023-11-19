@@ -28,7 +28,8 @@ import {horizontalPadding, verticalPadding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
 import {border} from '../styles/Border';
 import {textColor} from '../styles/Text';
-import { formatToRupiah } from '../utils/currency';
+import {formatToRupiah} from '../utils/currency';
+import {LoadingScreen} from './LoadingScreen';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -45,7 +46,7 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [approvedTransactionsCount, setApprovedTransactionsCount] = useState(0);
 
   useEffect(() => {
@@ -89,231 +90,242 @@ const CampaignDetailScreen = ({route}: Props) => {
       contentCreatorId: uid || '',
       campaignId: campaignId,
       businessPeopleId: campaign?.userId,
-      status: TransactionStatus.registrationPending,
     });
 
-    data.insert().then(isSuccess => {
-      if (isSuccess) {
-        console.log('Joined!');
-      }
-    });
+    setIsLoading(true);
+    data
+      .register()
+      .then(isSuccess => {
+        if (isSuccess) {
+          console.log('Joined!');
+        }
+      })
+      .catch(err => console.log(err))
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   if (!campaign) {
-    return <Text>Loading</Text>;
+    return <LoadingScreen />;
   }
 
   return (
-    <PageWithBackButton fullHeight threshold={180}>
-      <View className="flex-1">
-        <View className="w-full h-72 overflow-hidden ">
-          <Image
-            className="w-full h-full object-cover"
-            source={{uri: campaign.image}}
-          />
-        </View>
-        <View className="flex flex-col p-4 gap-4">
-          <View>
-            <Text className="font-bold text-2xl mb-2">{campaign.title}</Text>
-            <View className="flex flex-row justify-between">
-              <Text className="font-bold text-xs">
-                {`${formatDateToDayMonthYear(
-                  new Campaign(campaign).getStartDate(),
-                )} - ${formatDateToDayMonthYear(
-                  new Campaign(campaign).getEndDate(),
-                )}`}
-              </Text>
-              <View className="flex flex-row items-center">
-                <People width={20} height={20} />
-                <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
-                  <Text className="text-center text-xs font-bold">
-                    {approvedTransactionsCount}/{campaign.slot}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View>
-            {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
-            <View className="flex flex-row flex-wrap gap-2">
-              {campaign.criterias &&
-                campaign.criterias.map((_item: any, index: number) => (
-                  <View key={index}>
-                    <TagCard text={_item} />
-                  </View>
-                ))}
-            </View>
-          </View>
-
-          <Text>{campaign.description}</Text>
-
-          <View className="flex flex-row items-center justify-between flex-wrap ">
-            <Text className="font-semibold text-base">Fee</Text>
-            <View>
-              {campaign.fee && (
-                <Text className="font-medium ">
-                  {formatToRupiah(campaign.fee)}
-                </Text>
-              )}
-            </View>
-          </View>
-
-          {/* TODO: extract component */}
-          {businessPeople && (
-            <Pressable
-              onPress={() => {
-                navigation.navigate(
-                  AuthenticatedNavigation.BusinessPeopleDetail,
-                  {businessPeopleId: `${businessPeople.id}`},
-                );
-              }}
-              className="justify-between items-center text-center relative"
-              style={[
-                flex.flexRow,
-                horizontalPadding.default,
-                verticalPadding.default,
-                rounded.default,
-                border({
-                  borderWidth: 1,
-                  color: COLOR.background.neutral.disabled,
-                }),
-              ]}>
-              <View className="flex flex-row items-center">
-                <View
-                  className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
-                  style={[flex.flexRow, rounded.max]}>
-                  <Image
-                    className="w-full h-full object-cover"
-                    source={
-                      businessPeople.businessPeople?.profilePicture
-                        ? {
-                            uri: businessPeople.businessPeople?.profilePicture,
-                          }
-                        : require('../assets/images/bizboost-avatar.png')
-                    }
-                  />
-                </View>
-                <View className="flex flex-col">
-                  <Text className="font-semibold">
-                    {businessPeople.businessPeople?.fullname}
-                  </Text>
-                  <Text
-                    className="text-xs"
-                    style={[textColor(COLOR.black[30])]}>
-                    Subtitle
-                  </Text>
-                </View>
-              </View>
-
-              <ChevronRight fill={COLOR.black[20]} />
-            </Pressable>
-          )}
-
-          {isMoreInfoVisible && (
-            <View className="flex flex-col" style={[gap.medium]}>
-              <View className="">
-                <Text className="font-semibold text-base pb-2">
-                  Important Information
-                </Text>
-                {campaign.importantInformation &&
-                  campaign.importantInformation.map(
-                    (_item: any, index: number) => (
-                      <View
-                        key={index}
-                        className="mb-2 flex flex-row items-center">
-                        <View className="bg-gray-300 py-1 px-[11px] rounded-full mr-2">
-                          <Text className="text-center text-xs">i</Text>
-                        </View>
-                        <Text>{_item}</Text>
-                      </View>
-                    ),
-                  )}
-              </View>
-
-              <View className="">
-                <Text className="font-semibold text-base pb-2">
-                  Task Summary
-                </Text>
-                {campaign.platforms && (
-                  <View className="flex flex-col">
-                    {campaign.platforms.map((p, index) => (
-                      <CampaignPlatformAccordion platform={p} key={index} />
-                    ))}
-                  </View>
-                )}
-              </View>
-              <View className="">
-                <Text className="font-semibold text-base pb-2">Location</Text>
-                <View className="flex flex-row flex-wrap gap-2">
-                  {campaign.locations &&
-                    campaign.locations.map((_item: any, index: number) => (
-                      <View key={index}>
-                        <TagCard text={_item} />
-                      </View>
-                    ))}
-                </View>
-              </View>
-            </View>
-          )}
-          <View>
-            <CustomButton
-              verticalPadding="small"
-              type="secondary"
-              text={
-                isMoreInfoVisible ? 'Hide Information' : 'Read More Information'
-              }
-              rounded="default"
-              onPress={() => setIsMoreInfoVisible(value => !value)}
+    <>
+      {isLoading && <LoadingScreen />}
+      <PageWithBackButton fullHeight threshold={180}>
+        <View className="flex-1">
+          <View className="w-full h-72 overflow-hidden ">
+            <Image
+              className="w-full h-full object-cover"
+              source={{uri: campaign.image}}
             />
           </View>
-          {/* <Text>{transactionStatus}</Text> */}
-          {!userIsCampaignOwner() &&
-            transactionStatus === TransactionStatus.notRegistered && (
-              <View className="py-2" style={[flex.flexCol, gap.default]}>
-                {/* TODO: validate join only for CC */}
+          <View className="flex flex-col p-4 gap-4">
+            <View>
+              <Text className="font-bold text-2xl mb-2">{campaign.title}</Text>
+              <View className="flex flex-row justify-between">
+                <Text className="font-bold text-xs">
+                  {`${formatDateToDayMonthYear(
+                    new Campaign(campaign).getStartDate(),
+                  )} - ${formatDateToDayMonthYear(
+                    new Campaign(campaign).getEndDate(),
+                  )}`}
+                </Text>
+                <View className="flex flex-row items-center">
+                  <People width={20} height={20} />
+                  <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
+                    <Text className="text-center text-xs font-bold">
+                      {approvedTransactionsCount}/{campaign.slot}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
 
+            <View>
+              {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
+              <View className="flex flex-row flex-wrap gap-2">
+                {campaign.criterias &&
+                  campaign.criterias.map((_item: any, index: number) => (
+                    <View key={index}>
+                      <TagCard text={_item} />
+                    </View>
+                  ))}
+              </View>
+            </View>
+
+            <Text>{campaign.description}</Text>
+
+            <View className="flex flex-row items-center justify-between flex-wrap ">
+              <Text className="font-semibold text-base">Fee</Text>
+              <View>
+                {campaign.fee && (
+                  <Text className="font-medium ">
+                    {formatToRupiah(campaign.fee)}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* TODO: extract component */}
+            {businessPeople && (
+              <Pressable
+                onPress={() => {
+                  navigation.navigate(
+                    AuthenticatedNavigation.BusinessPeopleDetail,
+                    {businessPeopleId: `${businessPeople.id}`},
+                  );
+                }}
+                className="justify-between items-center text-center relative"
+                style={[
+                  flex.flexRow,
+                  horizontalPadding.default,
+                  verticalPadding.default,
+                  rounded.default,
+                  border({
+                    borderWidth: 1,
+                    color: COLOR.background.neutral.disabled,
+                  }),
+                ]}>
+                <View className="flex flex-row items-center">
+                  <View
+                    className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
+                    style={[flex.flexRow, rounded.max]}>
+                    <Image
+                      className="w-full h-full object-cover"
+                      source={
+                        businessPeople.businessPeople?.profilePicture
+                          ? {
+                              uri: businessPeople.businessPeople
+                                ?.profilePicture,
+                            }
+                          : require('../assets/images/bizboost-avatar.png')
+                      }
+                    />
+                  </View>
+                  <View className="flex flex-col">
+                    <Text className="font-semibold">
+                      {businessPeople.businessPeople?.fullname}
+                    </Text>
+                    <Text
+                      className="text-xs"
+                      style={[textColor(COLOR.black[30])]}>
+                      Subtitle
+                    </Text>
+                  </View>
+                </View>
+
+                <ChevronRight fill={COLOR.black[20]} />
+              </Pressable>
+            )}
+
+            {isMoreInfoVisible && (
+              <View className="flex flex-col" style={[gap.medium]}>
+                <View className="">
+                  <Text className="font-semibold text-base pb-2">
+                    Important Information
+                  </Text>
+                  {campaign.importantInformation &&
+                    campaign.importantInformation.map(
+                      (_item: any, index: number) => (
+                        <View
+                          key={index}
+                          className="mb-2 flex flex-row items-center">
+                          <View className="bg-gray-300 py-1 px-[11px] rounded-full mr-2">
+                            <Text className="text-center text-xs">i</Text>
+                          </View>
+                          <Text>{_item}</Text>
+                        </View>
+                      ),
+                    )}
+                </View>
+
+                <View className="">
+                  <Text className="font-semibold text-base pb-2">
+                    Task Summary
+                  </Text>
+                  {campaign.platforms && (
+                    <View className="flex flex-col">
+                      {campaign.platforms.map((p, index) => (
+                        <CampaignPlatformAccordion platform={p} key={index} />
+                      ))}
+                    </View>
+                  )}
+                </View>
+                <View className="">
+                  <Text className="font-semibold text-base pb-2">Location</Text>
+                  <View className="flex flex-row flex-wrap gap-2">
+                    {campaign.locations &&
+                      campaign.locations.map((_item: any, index: number) => (
+                        <View key={index}>
+                          <TagCard text={_item} />
+                        </View>
+                      ))}
+                  </View>
+                </View>
+              </View>
+            )}
+            <View>
+              <CustomButton
+                verticalPadding="small"
+                type="secondary"
+                text={
+                  isMoreInfoVisible
+                    ? 'Hide Information'
+                    : 'Read More Information'
+                }
+                rounded="default"
+                onPress={() => setIsMoreInfoVisible(value => !value)}
+              />
+            </View>
+            {/* <Text>{transactionStatus}</Text> */}
+            {!userIsCampaignOwner() &&
+              transactionStatus === TransactionStatus.notRegistered && (
+                <View className="py-2" style={[flex.flexCol, gap.default]}>
+                  {/* TODO: validate join only for CC */}
+
+                  <CustomButton
+                    text="Join Campaign"
+                    rounded="default"
+                    onPress={handleJoinCampaign}
+                  />
+                </View>
+              )}
+            <CustomButton
+              text="Campaign Timeline"
+              rounded="default"
+              type="secondary"
+              onPress={() =>
+                navigation.navigate(AuthenticatedNavigation.CampaignTimeline, {
+                  campaignId: campaignId,
+                })
+              }
+            />
+            {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
+            {userIsCampaignOwner() && (
+              <View className="py-2">
                 <CustomButton
-                  text="Join Campaign"
+                  customBackgroundColor={COLOR.background.neutral}
+                  customTextColor={COLOR.text.neutral}
+                  text="View Registrants"
                   rounded="default"
-                  onPress={handleJoinCampaign}
-                />
-                <CustomButton
-                  text="Campaign Timeline"
-                  rounded="default"
-                  type="secondary"
                   onPress={() =>
                     navigation.navigate(
-                      AuthenticatedNavigation.CampaignTimeline,
+                      AuthenticatedNavigation.CampaignRegistrants,
                       {campaignId: campaignId},
                     )
                   }
                 />
-              </View>
-            )}
-          {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
-          {userIsCampaignOwner() && (
-            <View className="py-2">
-              <CustomButton
-                customBackgroundColor={COLOR.background.neutral}
-                customTextColor={COLOR.text.neutral}
-                text="View Registrants"
-                rounded="default"
-                onPress={() =>
-                  navigation.navigate(
-                    AuthenticatedNavigation.CampaignRegistrants,
-                    {campaignId: campaignId},
-                  )
-                }
-              />
-              {/* {transactions.map((t, index) => (
+                {/* {transactions.map((t, index) => (
                   <RegisteredUserListCard transaction={t} key={index} />
                 ))} */}
-            </View>
-          )}
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-    </PageWithBackButton>
+      </PageWithBackButton>
+    </>
   );
 };
 
