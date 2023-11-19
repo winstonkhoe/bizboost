@@ -2,6 +2,12 @@ import {Text, View} from 'react-native';
 import {font} from '../../styles/Font';
 import {rounded} from '../../styles/BorderRadius';
 
+export enum StatusType {
+  success = 'success',
+  danger = 'danger',
+  warning = 'warning',
+}
+
 type Props = {
   status: string;
 };
