@@ -101,38 +101,12 @@ const ProfileScreen = () => {
   };
 
   const onProfilePictureChanged = (url: string) => {
-    // TODO: REFACTOR
     if (!user) {
       return;
     }
     const updatedUser: User = new User({...user});
-    if (activeRole === UserRole.BusinessPeople) {
-      console.log('masuk');
-      console.log(updatedUser.businessPeople);
 
-      deleteFileByURL(user.businessPeople?.profilePicture || '');
-
-      updatedUser!.businessPeople = {
-        //TODO: test (if possible, change forced assignment using !)
-        ...updatedUser!.businessPeople!,
-        profilePicture: url,
-      };
-
-      console.log('tes:' + updatedUser.businessPeople);
-    } else if (activeRole === UserRole.ContentCreator) {
-      deleteFileByURL(user.contentCreator?.profilePicture || '');
-
-      updatedUser!.contentCreator = {
-        //TODO: test (if possible, change forced assignment using !)
-        ...updatedUser!.contentCreator!,
-        profilePicture: url,
-      };
-    }
-
-    // TODO: change updateUserData (not static)
-    updatedUser
-      .updateUserData()
-      .then(() => console.log('Profile picture updated'));
+    updatedUser.updateProfilePicture(activeRole, url);
   };
 
   return (

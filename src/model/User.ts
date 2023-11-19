@@ -16,6 +16,7 @@ import {
 import {AuthMethod, Provider, Providers} from './AuthMethod';
 import {Category} from './Category';
 import {Location} from './Location';
+import {deleteFileByURL} from '../helpers/storage';
 
 const USER_COLLECTION = 'users';
 
@@ -201,6 +202,29 @@ export class User extends BaseModel {
     await User.getDocumentReference(this.id || '').update(
       User.mappingUserFields(this),
     );
+  }
+
+  async updateProfilePicture(
+    activeRole: UserRole | undefined,
+    profilePictureUrl: string,
+  ): Promise<void> {
+    if (activeRole === UserRole.BusinessPeople) {
+      deleteFileByURL(this.businessPeople?.profilePicture || '');
+
+      this.businessPeople = {
+        ...this.businessPeople!,
+        profilePicture: profilePictureUrl,
+      };
+    } else if (activeRole === UserRole.ContentCreator) {
+      deleteFileByURL(this.contentCreator?.profilePicture || '');
+
+      this.contentCreator = {
+        ...this.contentCreator!,
+        profilePicture: profilePictureUrl,
+      };
+    }
+
+    this.updateUserData().then(() => console.log('Profile picture updated'));
   }
 
   // static async getAll(): Promise<User[]> {
