@@ -14,7 +14,15 @@ export type SizeType =
   | 'xlarge4'
   | 'xlarge5'
   | 'xlarge6'
-  | 'xlarge7';
+  | 'xlarge7'
+  | 'xlarge8'
+  | 'xlarge9'
+  | 'xlarge10'
+  | 'xlarge11'
+  | 'xlarge12'
+  | 'xlarge13'
+  | 'xlarge14'
+  | 'xlarge15';
 
 type Size = {
   [key in SizeType]: number;
@@ -39,4 +47,12 @@ export const size: Size = {
   xlarge5: 96,
   xlarge6: 114,
   xlarge7: 132,
+  xlarge8: 150,
+  xlarge9: 168,
+  xlarge10: 186,
+  xlarge11: 204,
+  xlarge12: 222,
+  xlarge13: 240,
+  xlarge14: 258,
+  xlarge15: 276,
 };
