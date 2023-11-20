@@ -13,7 +13,7 @@ import {useUser} from '../hooks/user';
 
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {useNavigation} from '@react-navigation/native';
-import {flex, items, justify} from '../styles/Flex';
+import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {Stepper} from '../components/atoms/Stepper';
 import {font} from '../styles/Font';
@@ -25,11 +25,21 @@ import {COLOR} from '../styles/Color';
 import {CustomButton} from '../components/atoms/Button';
 import {border} from '../styles/Border';
 import {textColor} from '../styles/Text';
-import {formatDateToDayMonthYear} from '../utils/date';
+import {
+  formatDateToDayMonthYear,
+  formatDateToDayMonthYearHourMinute,
+} from '../utils/date';
 import StatusTag from '../components/atoms/StatusTag';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import {LoadingScreen} from './LoadingScreen';
 import {shadow} from '../styles/Shadow';
+import {SheetModal} from '../containers/SheetModal';
+import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
+import {FormlessCustomTextInput} from '../components/atoms/Input';
+import {FormFieldHelper} from '../components/atoms/FormLabel';
+import {ScrollView} from 'react-native-gesture-handler';
+import {dimension} from '../styles/Dimension';
+import {CustomModal} from '../components/atoms/CustomModal';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -43,14 +53,24 @@ type CampaignTimelineMap = {
   };
 };
 
+const rules = {
+  brainstorm: {
+    min: 100,
+    max: 1000,
+  },
+};
+
 const CampaignTimelineScreen = ({route}: Props) => {
   const {uid} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
-  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
-    TransactionStatus.notRegistered,
-  );
+  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [temporaryBrainstorm, setTemporaryBrainstorm] = useState('');
+  const [isBrainstormingModalOpened, setIsBrainstormingModalOpened] =
+    useState(false);
+  const [isConfirmBrainstormModalOpened, setIsConfirmBrainstormModalOpened] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentActiveTimeline = useMemo(() => {
     const now = new Date().getTime();
@@ -108,18 +128,39 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   };
 
+  const submitBrainstorm = () => {
+    if (temporaryBrainstorm.length >= rules.brainstorm.min && transaction) {
+      setIsLoading(true);
+      transaction
+        ?.submitBrainstorm(temporaryBrainstorm)
+        .then(isSuccess => {
+          if (isSuccess) {
+            console.log('submit brainstorm success!');
+            setIsBrainstormingModalOpened(false);
+            return;
+          }
+          setIsBrainstormingModalOpened(true);
+        })
+        .catch(err => {
+          console.log(err);
+          setIsBrainstormingModalOpened(true);
+        })
+        .finally(() => {
+          setIsLoading(false);
+          setIsConfirmBrainstormModalOpened(false);
+        });
+    }
+  };
+
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
 
   useEffect(() => {
-    const unsubscribe = Transaction.getTransactionStatusByContentCreator(
+    const unsubscribe = Transaction.getTransactionByContentCreator(
       campaignId,
       uid || '',
-
-      status => {
-        setTransactionStatus(status);
-      },
+      setTransaction,
     );
 
     return unsubscribe;
@@ -137,7 +178,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
           <View style={[flex.flexCol, gap.default, padding.top.xlarge3]}>
             <Stepper
               type="content"
-              currentPosition={currentActiveIndex}
+              // currentPosition={currentActiveIndex}
+              currentPosition={1}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
                 <View
@@ -153,7 +195,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       gap.medium,
                       items.center,
                       padding.default,
-                      transactionStatus === TransactionStatus.notRegistered &&
+                      transaction?.status === TransactionStatus.notRegistered &&
                         styles.headerBorder,
                     ]}>
                     <View style={[flex.flexCol]}>
@@ -185,11 +227,13 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         )}`}
                       </Text>
                     </View>
-                    {transactionStatus !== TransactionStatus.notRegistered && (
-                      <StatusTag status={transactionStatus} />
-                    )}
+                    {transaction?.status &&
+                      transaction.status !==
+                        TransactionStatus.notRegistered && (
+                        <StatusTag status={transaction?.status} />
+                      )}
                   </View>
-                  {transactionStatus === TransactionStatus.notRegistered && (
+                  {transaction?.status === TransactionStatus.notRegistered && (
                     <View style={[padding.default]}>
                       <CustomButton
                         text="Register now"
@@ -236,31 +280,117 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       )}`}
                     </Text>
                   </View>
-                  <View
-                    style={[
-                      flex.flexCol,
-                      padding.default,
-                      rounded.default,
-                      gap.default,
-                    ]}>
-                    <View
-                      style={[
-                        flex.flexCol,
-                        gap.default,
-                        padding.default,
-                        rounded.default,
-                        background(`${COLOR.green[5]}`),
-                      ]}>
-                      <Text>💡 Things to highlight</Text>
-                      <Text>
-                        Features: Multiple compartments for organized packing
-                        Water-resistant and weather-proof material Lightweight
-                        and easy to carry Available in various sizes and colors
-                        Tagline: “Travel with confidence with Koper Idaman
-                        Petualang!”
+                  <View style={[flex.flexCol, padding.default, gap.medium]}>
+                    <View style={[flex.flexCol, gap.default]}>
+                      <Text
+                        className="font-medium"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.med),
+                        ]}>
+                        💡 Things to highlight
                       </Text>
+                      <View style={[flex.flexCol, gap.xsmall]}>
+                        <Text style={[font.size[30]]}>
+                          {campaign?.description}
+                        </Text>
+                        {campaign.importantInformation &&
+                          campaign.importantInformation?.length > 0 &&
+                          campaign.importantInformation.map((info, index) => {
+                            return (
+                              <Text key={index} style={[font.size[30]]}>
+                                {info}
+                              </Text>
+                            );
+                          })}
+                      </View>
                     </View>
-                    <CustomButton text="Submit idea" />
+                    {transaction?.brainstorms &&
+                      transaction?.brainstorms.length > 0 && (
+                        <>
+                          <View
+                            style={[dimension.width.full, styles.headerBorder]}
+                          />
+                          <View style={[flex.flexCol, gap.small]}>
+                            <Text
+                              className="font-semibold"
+                              style={[
+                                font.size[30],
+                                textColor(COLOR.text.neutral.med),
+                              ]}>
+                              Previous Submission
+                            </Text>
+                            <ScrollView
+                              horizontal
+                              contentContainerStyle={[
+                                flex.flexRow,
+                                gap.default,
+                              ]}>
+                              {transaction.brainstorms.map(brainstorm => {
+                                return (
+                                  <View
+                                    key={brainstorm.createdAt}
+                                    style={[
+                                      flex.flex1,
+                                      flex.flexCol,
+                                      justify.around,
+                                      gap.default,
+                                      styles.cardBorder,
+                                      padding.default,
+                                      rounded.default,
+                                      dimension.width.xlarge14,
+                                    ]}>
+                                    <Text
+                                      style={[
+                                        font.size[20],
+                                        textColor(COLOR.text.neutral.med),
+                                      ]}>
+                                      {formatDateToDayMonthYearHourMinute(
+                                        new Date(brainstorm.createdAt),
+                                      )}
+                                    </Text>
+                                    <Text
+                                      style={[
+                                        font.size[20],
+                                        textColor(COLOR.text.neutral.high),
+                                      ]}
+                                      numberOfLines={3}>
+                                      {brainstorm.content}
+                                    </Text>
+                                    {brainstorm.rejectReason && (
+                                      <View
+                                        style={[
+                                          padding.small,
+                                          rounded.small,
+                                          background(COLOR.red[5], 0.3),
+                                          dimension.width.full,
+                                        ]}>
+                                        <Text
+                                          className="font-medium"
+                                          style={[
+                                            font.size[20],
+                                            textColor(
+                                              COLOR.text.danger.default,
+                                            ),
+                                          ]}
+                                          numberOfLines={3}>
+                                          {brainstorm.rejectReason}
+                                        </Text>
+                                      </View>
+                                    )}
+                                  </View>
+                                );
+                              })}
+                            </ScrollView>
+                          </View>
+                        </>
+                      )}
+                    <CustomButton
+                      text="Submit idea"
+                      onPress={() => {
+                        setIsBrainstormingModalOpened(true);
+                      }}
+                    />
                   </View>
                 </View>
               )}
@@ -405,6 +535,63 @@ const CampaignTimelineScreen = ({route}: Props) => {
           </View>
         </HorizontalPadding>
       </PageWithBackButton>
+      <CustomModal transparent={true} visible={isConfirmBrainstormModalOpened}>
+        <View style={[flex.flexCol, padding.default, gap.large]}>
+          <View style={[flex.flexRow, justify.center, padding.medium]}>
+            <Text className="text-center font-medium" style={[font.size[30]]}>
+              Please review your submission carefully. Once you submit your
+              idea,{' '}
+              <Text className="font-bold">
+                you will not be able to edit it.
+              </Text>
+            </Text>
+          </View>
+          <View style={[flex.flexRow, gap.large, justify.center]}>
+            <CustomButton
+              text="Cancel"
+              type="tertiary"
+              customTextColor={{
+                default: COLOR.text.danger.default,
+                disabled: COLOR.red[10],
+              }}
+              onPress={() => {
+                setIsConfirmBrainstormModalOpened(false);
+              }}
+            />
+            <CustomButton text="Submit" onPress={submitBrainstorm} />
+          </View>
+        </View>
+      </CustomModal>
+      <SheetModal
+        open={isBrainstormingModalOpened}
+        onDismiss={() => {
+          setIsBrainstormingModalOpened(false);
+        }}>
+        <BottomSheetModalWithTitle title="Brainstorming">
+          <View style={[flex.flexCol, gap.medium]}>
+            <View style={[flex.flexCol, gap.default]}>
+              <FormFieldHelper
+                title="Idea draft"
+                description="Showcase your creativity in this idea to stand out and be chosen by the business owner."
+              />
+              <FormlessCustomTextInput
+                type="textarea"
+                description={`Submit your idea in ${rules.brainstorm.min} - ${rules.brainstorm.max} characters.\nBe concise yet comprehensive.`}
+                max={rules.brainstorm.max}
+                counter
+                onChange={setTemporaryBrainstorm}
+              />
+            </View>
+            <CustomButton
+              text="Submit"
+              disabled={temporaryBrainstorm.length < rules.brainstorm.min}
+              onPress={() => {
+                setIsConfirmBrainstormModalOpened(true);
+              }}
+            />
+          </View>
+        </BottomSheetModalWithTitle>
+      </SheetModal>
     </>
   );
 };
