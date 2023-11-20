@@ -94,15 +94,16 @@ export const SheetModal = ({
         </View>
         {((bottomInsetType === 'auto' &&
           currentLayoutHeight < keyboardHeight - safeKeyboardOffset) ||
-          bottomInsetType === 'padding') && (
-          <View
-            style={[
-              {
-                paddingBottom: keyboardHeight,
-              },
-            ]}
-          />
-        )}
+          bottomInsetType === 'padding') &&
+          Platform.OS !== 'android' && (
+            <View
+              style={[
+                {
+                  paddingBottom: keyboardHeight,
+                },
+              ]}
+            />
+          )}
       </BottomSheetView>
     </BottomSheetModal>
   );
