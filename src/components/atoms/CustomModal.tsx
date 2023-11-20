@@ -39,28 +39,26 @@ export const CustomModal = ({children, ...props}: CustomModalProps) => {
   }, [props.visible, opacity, scale]);
 
   return (
-    <View style={[flex.flex1]}>
-      <Modal animationType="fade" {...props}>
-        <Animated.View
-          style={[
-            flex.flex1,
-            justify.center,
-            gap.default,
-            animatedBackgroundStyle,
-            background(`${COLOR.black[100]}d0`),
-          ]}>
-          <HorizontalPadding paddingSize="xlarge">
-            <Animated.View
-              style={[
-                rounded.default,
-                animatedModalStyle,
-                background(COLOR.black[0]),
-              ]}>
-              {children}
-            </Animated.View>
-          </HorizontalPadding>
-        </Animated.View>
-      </Modal>
-    </View>
+    <Modal animationType="fade" {...props}>
+      <Animated.View
+        style={[
+          flex.flex1,
+          justify.center,
+          gap.default,
+          animatedBackgroundStyle,
+          background(`${COLOR.black[100]}d0`),
+        ]}>
+        <HorizontalPadding paddingSize="xlarge">
+          <Animated.View
+            style={[
+              rounded.default,
+              animatedModalStyle,
+              background(COLOR.black[0]),
+            ]}>
+            {children}
+          </Animated.View>
+        </HorizontalPadding>
+      </Animated.View>
+    </Modal>
   );
 };
