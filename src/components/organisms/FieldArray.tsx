@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Control, Controller, useFieldArray} from 'react-hook-form';
 import {View} from 'react-native';
 import {FormlessCustomTextInput} from '../atoms/Input';
-import {FormFieldHelper} from '../atoms/FormLabel';
+import {FormFieldHelper, FormFieldType} from '../atoms/FormLabel';
 import {SheetModal} from '../../containers/SheetModal';
 import {flex, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
@@ -15,7 +15,7 @@ type Props = {
   title: string;
   parentName: any; // string
   childName: string;
-  type?: string;
+  type?: FormFieldType;
   placeholder?: string;
   fieldType?: 'default' | 'textarea';
   maxFieldLength?: number;
