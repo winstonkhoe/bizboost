@@ -4,7 +4,7 @@ import {
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
 import {flex} from '../styles/Flex';
@@ -18,6 +18,9 @@ import {ScrollView} from 'react-native-gesture-handler';
 import SelectableTag from '../components/atoms/SelectableTag';
 import {COLOR} from '../styles/Color';
 import {background} from '../styles/BackgroundColor';
+import {Campaign, CampaignType} from '../model/Campaign';
+import {LoadingScreen} from './LoadingScreen';
+import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants
@@ -28,7 +31,23 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
   const [statusFilter, setStatusFilter] = useState<
     TransactionStatus | undefined
   >(initialTransactionStatusFilter);
+  const [campaign, setCampaign] = useState<Campaign>();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const filteredTransactions = useMemo(
+    () =>
+      transactions.filter(t =>
+        !statusFilter ? true : t.status === statusFilter,
+      ),
+    [transactions, statusFilter],
+  );
+
+  const isPrivateCampaign = useMemo(() => {
+    return campaign?.type === CampaignType.Private;
+  }, [campaign]);
+
+  useEffect(() => {
+    Campaign.getById(campaignId).then(c => setCampaign(c));
+  }, [campaignId]);
 
   useEffect(() => {
     Transaction.getAllTransactionsByCampaign(campaignId, t =>
@@ -41,6 +60,10 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
       setStatusFilter(status);
     }
   };
+
+  if (!campaign) {
+    return <LoadingScreen />;
+  }
 
   return (
     <PageWithBackButton
@@ -83,13 +106,15 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
                 updateStatusFilter(TransactionStatus.registrationPending);
               }}
             />
-            <SelectableTag
-              text={TransactionStatus.offering}
-              isSelected={statusFilter === TransactionStatus.offering}
-              onPress={() => {
-                updateStatusFilter(TransactionStatus.offering);
-              }}
-            />
+            {isPrivateCampaign && (
+              <SelectableTag
+                text={TransactionStatus.offering}
+                isSelected={statusFilter === TransactionStatus.offering}
+                onPress={() => {
+                  updateStatusFilter(TransactionStatus.offering);
+                }}
+              />
+            )}
             <SelectableTag
               text={TransactionStatus.brainstormSubmitted}
               isSelected={
@@ -111,20 +136,19 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
           background(COLOR.background.neutral.default),
           {
             paddingTop: safeAreaInsets.top + size.xlarge5,
+            paddingBottom: Math.max(safeAreaInsets.bottom, size.xlarge),
           },
         ]}>
-        {transactions.length <= 0 ? (
-          <Text>No Content Creator has joined this campaign!</Text>
+        {filteredTransactions.length <= 0 ? (
+          <EmptyPlaceholder />
         ) : (
-          transactions
-            .filter(t => (!statusFilter ? true : t.status === statusFilter))
-            .map((t, index) => (
-              <RegisteredUserListCard
-                transaction={t}
-                role={UserRole.BusinessPeople}
-                key={index}
-              />
-            ))
+          filteredTransactions.map((t, index) => (
+            <RegisteredUserListCard
+              transaction={t}
+              role={UserRole.BusinessPeople}
+              key={index}
+            />
+          ))
         )}
       </View>
     </PageWithBackButton>
