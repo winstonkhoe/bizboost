@@ -70,6 +70,21 @@ export class Transaction extends BaseModel {
     this.updatedAt = updatedAt;
   }
 
+  toString(): string {
+    return `
+      Transaction ID: ${this.id}
+      Content Creator ID: ${this.contentCreatorId}
+      Campaign ID: ${this.campaignId}
+      Business People ID: ${this.businessPeopleId}
+      Offered Price: ${this.offeredPrice}
+      Important Notes: ${this.importantNotes?.join(', ') || 'N/A'}
+      Status: ${this.status}
+      Updated At: ${
+        this.updatedAt ? new Date(this.updatedAt).toLocaleString() : 'N/A'
+      }
+    `;
+  }
+
   private static fromSnapshot(
     doc:
       | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
@@ -82,6 +97,8 @@ export class Transaction extends BaseModel {
         contentCreatorId: data.contentCreatorId?.id,
         businessPeopleId: data.businessPeopleId?.id,
         campaignId: data.campaignId.id,
+        offeredPrice: data.offeredPrice,
+        importantNotes: data.importantNotes,
         status: data.status,
         updatedAt: data.updatedAt,
       });
@@ -100,7 +117,30 @@ export class Transaction extends BaseModel {
   }
 
   async offer() {
-    return await this.updateStatus(TransactionStatus.offering);
+    try {
+      const {id, ...rest} = this;
+      const data = {
+        ...rest,
+        contentCreatorId: User.getDocumentReference(
+          this.contentCreatorId ?? '',
+        ),
+        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
+        businessPeopleId: User.getDocumentReference(
+          this.businessPeopleId ?? '',
+        ),
+        status: TransactionStatus.offering,
+        updatedAt: new Date().getTime(),
+      };
+
+      const docRef = await firestore()
+        .collection(TRANSACTION_COLLECTION)
+        .add(data);
+      this.id = docRef.id;
+      return true;
+    } catch (error) {
+      console.log(error);
+    }
+    throw Error('Error!');
   }
 
   async updateStatus(status: TransactionStatus) {

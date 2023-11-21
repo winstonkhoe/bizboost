@@ -47,7 +47,7 @@ const MakeOfferScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const methods = useForm<MakeOfferFormData>();
 
-  const {uid} = useUser();
+  const {activeRole} = useUser();
   const chatViews = useUserChats().chats;
 
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
@@ -101,7 +101,7 @@ const MakeOfferScreen = ({route}: Props) => {
           chat.insert().then(success => {
             if (success) {
               console.log('onsubmit chat:', chat);
-              chat.convertToChatView(uid).then(cv => {
+              chat.convertToChatView(activeRole).then(cv => {
                 console.log('cv:', cv);
                 navigation.navigate(AuthenticatedNavigation.ChatDetail, {
                   chat: cv,

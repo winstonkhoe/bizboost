@@ -1,9 +1,8 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {User} from './User';
+import {User, UserRole} from './User';
 import {BaseModel} from './BaseModel';
-import {useUser} from '../hooks/user';
 
 export enum MessageType {
   Photo = 'Photo',
@@ -201,7 +200,7 @@ export class Chat extends BaseModel {
     }
   }
 
-  async convertToChatView(currentUserId: string): Promise<ChatView> {
+  async convertToChatView(currentRole: UserRole): Promise<ChatView> {
     const cv: ChatView = {
       chat: this.toJSON(),
       recipient: {},
@@ -209,9 +208,7 @@ export class Chat extends BaseModel {
     console.log('convertToChatView', this.toJSON());
 
     for (const participant of this.participants || []) {
-      console.log('[chats.ts model] participant:' + participant.ref);
-      console.log('[chats.ts model] currentUserId:' + currentUserId);
-      if (participant.ref !== currentUserId) {
+      if (participant.role !== currentRole) {
         const role = participant.role;
         const ref = participant.ref;
         console.log(ref);

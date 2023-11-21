@@ -61,7 +61,12 @@ const ChatScreen = ({route}: Props) => {
     Transaction.getAllTransactionsByCCBP(
       businessPeopleId?.ref ?? '',
       contentCreatorId?.ref ?? '',
-      transactions => setOffers(transactions),
+      transactions => {
+        const sortedTransactions = transactions
+          .slice()
+          .sort((a, b) => b.updatedAt - a.updatedAt);
+        setOffers(sortedTransactions);
+      },
     );
   }, [businessPeopleId, contentCreatorId]);
 
@@ -141,7 +146,12 @@ const ChatScreen = ({route}: Props) => {
 
         {/* Floating Tab */}
         {/* if there is offer then add margin top for the chats */}
-        {offers && <FloatingOffer offers={offers} />}
+        {offers && (
+          <FloatingOffer
+            offers={offers}
+            recipientName={chat.recipient?.fullname ?? ''}
+          />
+        )}
 
         {/* Chat Messages */}
         <ScrollView
