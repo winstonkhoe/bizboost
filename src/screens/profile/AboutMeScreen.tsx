@@ -6,7 +6,7 @@ import {useUser} from '../../hooks/user';
 import {CustomTextInput} from '../../components/atoms/Input';
 import {FormProvider, useForm} from 'react-hook-form';
 import {textColor} from '../../styles/Text';
-import {font} from '../../styles/Font';
+import {font, fontSize} from '../../styles/Font';
 import {COLOR} from '../../styles/Color';
 import PasswordIcon from '../../assets/vectors/password.svg';
 import InfoIcon from '../../assets/vectors/info.svg';
@@ -108,12 +108,17 @@ const AboutMeScreen = () => {
 
           <View>
             <View
-              className="mb-4 flex flex-row items-center"
+              className="mb-4 flex flex-row items-center w-full"
               style={[gap.small]}>
               <InfoIcon width={18} height={18} fill={COLOR.text.neutral.med} />
-              <Text style={[textColor(COLOR.text.neutral.med)]}>
-                You are editing your information as a {activeRole}asd. Your name
-                as a{' '}
+              <Text
+                style={[
+                  textColor(COLOR.text.neutral.med),
+                  {fontSize: fontSize[20]},
+                ]}
+                className="w-11/12">
+                You are editing your information as a {activeRole}. Your name as
+                a{' '}
                 {activeRole === UserRole.BusinessPeople
                   ? UserRole.ContentCreator
                   : UserRole.BusinessPeople}{' '}
