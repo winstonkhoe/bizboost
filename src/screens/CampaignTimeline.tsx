@@ -40,6 +40,11 @@ import {FormFieldHelper} from '../components/atoms/FormLabel';
 import {ScrollView} from 'react-native-gesture-handler';
 import {dimension} from '../styles/Dimension';
 import {CustomModal} from '../components/atoms/CustomModal';
+import FastImage from 'react-native-fast-image';
+import ChevronRight from '../assets/vectors/chevron-right.svg';
+import {User} from '../model/User';
+import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
+import {formatNumberWithThousandSeparator} from '../utils/number';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -60,11 +65,17 @@ const rules = {
   },
 };
 
+interface TransactionView {
+  transaction: Transaction;
+  contentCreator: User | null;
+}
+
 const CampaignTimelineScreen = ({route}: Props) => {
   const {uid} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
+  const [transactions, setTransactions] = useState<TransactionView[]>([]);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [temporaryBrainstorm, setTemporaryBrainstorm] = useState('');
   const [isBrainstormingModalOpened, setIsBrainstormingModalOpened] =
@@ -78,6 +89,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
       timeline => now >= timeline.start && now <= timeline.end,
     );
   }, [campaign]);
+  const isCampaignOwner = useMemo(() => {
+    return uid === campaign?.userId;
+  }, [uid, campaign]);
   const currentActiveIndex = useMemo(
     () =>
       currentActiveTimeline
@@ -166,6 +180,35 @@ const CampaignTimelineScreen = ({route}: Props) => {
     return unsubscribe;
   }, [campaignId, uid]);
 
+  useEffect(() => {
+    if (isCampaignOwner) {
+      const unsubscribe = Transaction.getAllTransactionsByCampaign(
+        campaignId,
+        t => {
+          User.getByIds(
+            t
+              .map(transaction => transaction.contentCreatorId)
+              .filter((id): id is string => id !== undefined),
+          ).then(users => {
+            setTransactions(
+              t.map(transaction => {
+                return {
+                  transaction: transaction,
+                  contentCreator:
+                    users.find(
+                      user => user.id === transaction.contentCreatorId,
+                    ) || null,
+                };
+              }),
+            );
+          });
+        },
+      );
+
+      return unsubscribe;
+    }
+  }, [isCampaignOwner, campaignId, uid]);
+
   if (!campaign) {
     return <LoadingScreen />;
   }
@@ -179,7 +222,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
             <Stepper
               type="content"
               // currentPosition={currentActiveIndex}
-              currentPosition={1}
+              currentPosition={0}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
                 <View
@@ -195,7 +238,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       gap.medium,
                       items.center,
                       padding.default,
-                      transaction?.status === TransactionStatus.notRegistered &&
+                      (isCampaignOwner ||
+                        transaction?.status ===
+                          TransactionStatus.notRegistered) &&
                         styles.headerBorder,
                     ]}>
                     <View style={[flex.flexCol]}>
@@ -227,19 +272,93 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         )}`}
                       </Text>
                     </View>
-                    {transaction?.status &&
+                    {isCampaignOwner ? (
+                      <StatusTag
+                        status={`${formatNumberWithThousandSeparator(
+                          transactions.filter(
+                            t =>
+                              t.transaction.status ===
+                              TransactionStatus.registrationApproved,
+                          ).length,
+                        )} Registrant Approved`}
+                      />
+                    ) : (
+                      transaction?.status &&
                       transaction.status !==
                         TransactionStatus.notRegistered && (
                         <StatusTag status={transaction?.status} />
-                      )}
+                      )
+                    )}
                   </View>
-                  {transaction?.status === TransactionStatus.notRegistered && (
-                    <View style={[padding.default]}>
-                      <CustomButton
-                        text="Register now"
-                        onPress={registerCampaign}
-                      />
-                    </View>
+                  {isCampaignOwner ? (
+                    <AnimatedPressable
+                      scale={1}
+                      onPress={() => {
+                        navigation.navigate(
+                          AuthenticatedNavigation.CampaignRegistrants,
+                          {campaignId: campaignId},
+                        );
+                      }}
+                      style={[flex.flexRow, padding.default, gap.small]}>
+                      <View style={[flex.flex1, flex.flexCol, gap.small]}>
+                        <Text
+                          className="font-medium"
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.high),
+                          ]}>
+                          Pending Registrants
+                        </Text>
+                        <View style={[flex.flexRow]}>
+                          {transactions
+                            .filter(
+                              t =>
+                                t.transaction.status ===
+                                TransactionStatus.registrationPending,
+                            )
+                            .map((t, i) => {
+                              return (
+                                <View
+                                  key={i}
+                                  style={[
+                                    dimension.square.xlarge2,
+                                    rounded.max,
+                                    padding.xsmall,
+                                    background(COLOR.black[0]),
+                                    {
+                                      marginLeft: i > 0 ? -10 : 0,
+                                      zIndex: 5 - i,
+                                    },
+                                  ]}>
+                                  <View
+                                    className="overflow-hidden"
+                                    style={[dimension.full, rounded.max]}>
+                                    <FastImage
+                                      style={[dimension.full]}
+                                      source={{
+                                        uri: t.contentCreator?.contentCreator
+                                          ?.profilePicture,
+                                      }}
+                                    />
+                                  </View>
+                                </View>
+                              );
+                            })}
+                        </View>
+                      </View>
+                      <View style={[flex.flexRow, items.center]}>
+                        <ChevronRight fill={COLOR.black[20]} />
+                      </View>
+                    </AnimatedPressable>
+                  ) : (
+                    transaction?.status === TransactionStatus.notRegistered && (
+                      <View style={[padding.default]}>
+                        <CustomButton
+                          text="Register now"
+                          onPress={registerCampaign}
+                        />
+                      </View>
+                    )
                   )}
                 </View>
               )}
