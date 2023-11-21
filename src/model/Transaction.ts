@@ -27,6 +27,14 @@ export enum TransactionStatus {
   offerRejected = 'Offering Rejected', // soft delete
 
   // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
+
+  brainstormSubmitted = 'Brainstorm Submitted',
+  brainstormApproved = 'Brainstorm Approved',
+  brainstormRejected = 'Brainstorm Rejected',
+
+  contentSubmitted = 'Content Submitted',
+  contentApproved = 'Content Approved',
+  contentRejected = 'Content Rejected',
 }
 
 type TransactionStatusMap = {
@@ -41,6 +49,12 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.offering]: StatusType.warning,
   [TransactionStatus.offeringApproved]: StatusType.success,
   [TransactionStatus.offerRejected]: StatusType.danger,
+  [TransactionStatus.brainstormSubmitted]: StatusType.warning,
+  [TransactionStatus.brainstormApproved]: StatusType.success,
+  [TransactionStatus.brainstormRejected]: StatusType.danger,
+  [TransactionStatus.contentSubmitted]: StatusType.warning,
+  [TransactionStatus.contentApproved]: StatusType.success,
+  [TransactionStatus.contentRejected]: StatusType.danger,
 };
 
 interface Brainstorm {
