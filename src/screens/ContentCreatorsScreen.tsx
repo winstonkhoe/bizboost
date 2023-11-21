@@ -235,8 +235,8 @@ const ContentCreatorsScreen: React.FC = () => {
   };
 
   const handleSortByRating = sort => {
-    console.log('sort:', sort);
-    console.log('sortByRating:', sortByRating);
+    setSortByInstagram(0);
+    setSortByTiktok(0);
     if (sort) {
       if (sortByRating === 0 || sortByRating === 2) {
         setSortByRating(1);
@@ -250,6 +250,8 @@ const ContentCreatorsScreen: React.FC = () => {
 
   const handleSortByInstagram = sort => {
     if (sort) {
+      setSortByRating(0);
+      setSortByTiktok(0);
       if (sortByInstagram === 0 || sortByInstagram === 2) {
         setSortByInstagram(1);
       } else if (sortByInstagram === 1) {
@@ -262,6 +264,8 @@ const ContentCreatorsScreen: React.FC = () => {
 
   const handleSortByTiktok = sort => {
     if (sort) {
+      setSortByRating(0);
+      setSortByInstagram(0);
       if (sortByTiktok === 0 || sortByTiktok === 2) {
         setSortByTiktok(1);
       } else if (sortByTiktok === 1) {
@@ -301,237 +305,209 @@ const ContentCreatorsScreen: React.FC = () => {
     <BottomSheetModalProvider>
       <SafeAreaContainer>
         <ScrollView className="flex-1">
-          {/* Navbar */}
-          {navbarState && (
-            <Animated.View
-              style={[flex.flexCol, navbarStyle]}
-              className="px-3 justify-start">
-              <Text className="text-black text-xl font-bold">
-                Perfect content creators
-              </Text>
-              <Text className="text-black text-xl font-bold">
-                for your campaigns
-              </Text>
-            </Animated.View>
-          )}
+          <VerticalPadding>
+            {/* Navbar */}
+            {navbarState && (
+              <Animated.View
+                style={[flex.flexCol, navbarStyle]}
+                className="px-3 justify-start">
+                <Text className="text-black text-xl font-bold">
+                  Perfect content creators
+                </Text>
+                <Text className="text-black text-xl font-bold">
+                  for your campaigns
+                </Text>
+              </Animated.View>
+            )}
 
-          {/* Search Bar */}
-          <PageWithSearchBar>
-            <View className="px-3">
-              <View style={flex.flexRow} className="gap-x-1 pb-2 items-center">
-                <Pressable
-                  onPress={() => setFilterModalState(true)}
+            {/* Search Bar */}
+            <PageWithSearchBar>
+              <View className="px-3">
+                <View
                   style={flex.flexRow}
-                  className="rounded-md border border-zinc-500 justify-between items-center px-2 py-1">
-                  {selectedFilters.categories.length > 0 ||
-                  selectedFilters.locations.length > 0 ? (
-                    <Text className="px-2 text-white text-xs bg-primary rounded-lg">
-                      {selectedFilters.categories.length +
-                        selectedFilters.locations.length}
+                  className="gap-x-1 pb-2 items-center">
+                  <Pressable
+                    onPress={() => setFilterModalState(true)}
+                    style={flex.flexRow}
+                    className="rounded-md border border-zinc-500 justify-between items-center px-2 py-1">
+                    {selectedFilters.categories.length > 0 ||
+                    selectedFilters.locations.length > 0 ? (
+                      <Text className="px-2 text-white text-xs bg-primary rounded-lg">
+                        {selectedFilters.categories.length +
+                          selectedFilters.locations.length}
+                      </Text>
+                    ) : (
+                      <Filter
+                        width={15}
+                        height={15}
+                        color="rgb(113 113 122)"
+                        className="text-zinc-500"
+                      />
+                    )}
+                    <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleSortByRating(sortByRating === 0)}
+                    style={flex.flexRow}
+                    className={`${
+                      sortByRating === 0
+                        ? 'border-zinc-500 bg-transparent'
+                        : 'border-primary bg-primary '
+                    }   rounded-md border justify-between items-center px-2 py-1`}>
+                    <Text
+                      className={`${
+                        sortByRating === 0 ? 'text-zinc-500' : 'text-white'
+                      } pr-2 text-xs`}>
+                      Rating
                     </Text>
-                  ) : (
-                    <Filter
-                      width={15}
-                      height={15}
-                      color="rgb(113 113 122)"
-                      className="text-zinc-500"
-                    />
-                  )}
-                  <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => handleSortByRating(sortByRating === 0)}
-                  style={flex.flexRow}
-                  className={`${
-                    sortByRating === 0 ? 'border-zinc-500' : 'border-primary'
-                  }   rounded-md border justify-between items-center px-2 py-1`}>
-                  <Text
-                    className={`${
-                      sortByRating === 0 ? 'text-zinc-500' : 'text-primary'
-                    } pr-2 text-xs`}>
-                    Rating
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      handleSortByRating(
-                        sortByRating === 1 || sortByRating === 2 ? true : false,
-                      )
-                    }>
-                    {sortByRating === 0 && (
-                      <ArrowUpDown
-                        width={15}
-                        height={15}
-                        color="rgb(113, 113, 122)"
-                      />
-                    )}
-                    {sortByRating === 1 && (
-                      <ArrowDown
-                        width={15}
-                        height={15}
-                        color="rgb(37, 136, 66)"
-                      />
-                    )}
-                    {sortByRating === 2 && (
-                      <ArrowUp
-                        width={15}
-                        height={15}
-                        color="rgb(37, 136, 66)"
-                      />
-                    )}
+                    <Pressable
+                      onPress={() =>
+                        handleSortByRating(
+                          sortByRating === 1 || sortByRating === 2
+                            ? true
+                            : false,
+                        )
+                      }>
+                      {sortByRating === 0 && (
+                        <ArrowUpDown
+                          width={15}
+                          height={15}
+                          color="rgb(113, 113, 122)"
+                        />
+                      )}
+                      {sortByRating === 1 && (
+                        <ArrowDown width={15} height={15} color={COLOR.white} />
+                      )}
+                      {sortByRating === 2 && (
+                        <ArrowUp width={15} height={15} color={COLOR.white} />
+                      )}
+                    </Pressable>
                   </Pressable>
-                </Pressable>
-                <Pressable
-                  onPress={() => handleSortByInstagram(sortByInstagram === 0)}
-                  style={flex.flexRow}
-                  className={`${
-                    sortByInstagram === 0 ? 'border-zinc-500' : 'border-primary'
-                  }   rounded-md border justify-between items-center px-2 py-1`}>
-                  <Text
-                    className={`${
-                      sortByInstagram === 0 ? 'text-zinc-500' : 'text-primary'
-                    } pr-2 text-xs`}>
-                    Instagram
-                  </Text>
                   <Pressable
-                    onPress={() =>
-                      handleSortByInstagram(
-                        sortByInstagram === 1 || sortByInstagram === 2
-                          ? true
-                          : false,
-                      )
-                    }>
-                    {sortByInstagram === 0 && (
-                      <ArrowUpDown
-                        width={15}
-                        height={15}
-                        color="rgb(113, 113, 122)"
-                      />
-                    )}
-                    {sortByInstagram === 1 && (
-                      <ArrowDown
-                        width={15}
-                        height={15}
-                        color="rgb(37, 136, 66)"
-                      />
-                    )}
-                    {sortByInstagram === 2 && (
-                      <ArrowUp
-                        width={15}
-                        height={15}
-                        color="rgb(37, 136, 66)"
-                      />
-                    )}
-                  </Pressable>
-                </Pressable>
-                <Pressable
-                  onPress={() => handleSortByTiktok(sortByTiktok === 0)}
-                  style={flex.flexRow}
-                  className={`${
-                    sortByTiktok === 0
-                      ? 'border-zinc-500 bg-transparent'
-                      : 'border-primary'
-                  }   rounded-md border justify-between items-center px-2 py-1`}>
-                  <Text
+                    onPress={() => handleSortByInstagram(sortByInstagram === 0)}
+                    style={flex.flexRow}
                     className={`${
-                      sortByTiktok === 0 ? 'text-zinc-500' : 'text-primary'
-                    } pr-2 text-xs`}>
-                    Tiktok
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      handleSortByTiktok(
-                        sortByTiktok === 1 || sortByTiktok === 2 ? true : false,
-                      )
-                    }>
-                    {sortByTiktok === 0 && (
-                      <ArrowUpDown
-                        width={15}
-                        height={15}
-                        color="rgb(113, 113, 122)"
-                      />
-                    )}
-                    {sortByTiktok === 1 && (
-                      <ArrowDown
-                        width={15}
-                        height={15}
-                        color="rgb(37, 136, 66)"
-                      />
-                    )}
-                    {sortByTiktok === 2 && (
-                      <ArrowUp
-                        width={15}
-                        height={15}
-                        color="rgb(37, 136, 66)"
-                      />
-                    )}
+                      sortByInstagram === 0
+                        ? 'border-zinc-500 bg-transparent'
+                        : 'border-primary bg-primary '
+                    }   rounded-md border justify-between items-center px-2 py-1`}>
+                    <Text
+                      className={`${
+                        sortByInstagram === 0 ? 'text-zinc-500' : 'text-white'
+                      } pr-2 text-xs`}>
+                      Instagram
+                    </Text>
+                    <Pressable
+                      onPress={() =>
+                        handleSortByInstagram(
+                          sortByInstagram === 1 || sortByInstagram === 2
+                            ? true
+                            : false,
+                        )
+                      }>
+                      {sortByInstagram === 0 && (
+                        <ArrowUpDown
+                          width={15}
+                          height={15}
+                          color="rgb(113, 113, 122)"
+                        />
+                      )}
+                      {sortByInstagram === 1 && (
+                        <ArrowDown width={15} height={15} color={COLOR.white} />
+                      )}
+                      {sortByInstagram === 2 && (
+                        <ArrowUp width={15} height={15} color={COLOR.white} />
+                      )}
+                    </Pressable>
                   </Pressable>
-                </Pressable>
-                {/* <ScrollView horizontal style={styles.categoriesContainer}>
-                  <View style={flex.flexRow} className="gap-x-1 items-center">
-                    {selectedFilters.categories &&
-                      selectedFilters.categories.map((category, idx) => (
-                        <View
-                          key={idx}
-                          style={flex.flexRow}
-                          className="items-center justify-between bg-black rounded-md px-1">
-                          <Text style={styles.category}>{category}</Text>
-                          <Pressable
-                            className="pl-2"
-                            onPress={() => handleCategoryPress(category)}>
-                            <Text className="text-white">x</Text>
-                          </Pressable>
-                        </View>
-                      ))}
-                  </View>
-                </ScrollView> */}
-              </View>
+                  <Pressable
+                    onPress={() => handleSortByTiktok(sortByTiktok === 0)}
+                    style={flex.flexRow}
+                    className={`${
+                      sortByTiktok === 0
+                        ? 'border-zinc-500 bg-transparent'
+                        : 'border-primary bg-primary '
+                    }   rounded-md border justify-between items-center px-2 py-1`}>
+                    <Text
+                      className={`${
+                        sortByTiktok === 0 ? 'text-zinc-500' : 'text-white'
+                      } pr-2 text-xs`}>
+                      Tiktok
+                    </Text>
+                    <Pressable
+                      onPress={() =>
+                        handleSortByTiktok(
+                          sortByTiktok === 1 || sortByTiktok === 2
+                            ? true
+                            : false,
+                        )
+                      }>
+                      {sortByTiktok === 0 && (
+                        <ArrowUpDown
+                          width={15}
+                          height={15}
+                          color="rgb(113, 113, 122)"
+                        />
+                      )}
+                      {sortByTiktok === 1 && (
+                        <ArrowDown width={15} height={15} color={COLOR.white} />
+                      )}
+                      {sortByTiktok === 2 && (
+                        <ArrowUp width={15} height={15} color={COLOR.white} />
+                      )}
+                    </Pressable>
+                  </Pressable>
+                </View>
 
-              {filteredContentCreators.length > 0 ? (
-                <View style={[flex.flexRow, justify.between]}>
-                  <View style={(flex.flexCol, gap.medium)}>
-                    {filteredContentCreators.map((item, index) =>
-                      index % 2 === 0 ? (
-                        <ContentCreatorCard
-                          key={item.id}
-                          id={item.id?.toString()}
-                          name={item.contentCreator?.fullname ?? ''}
-                          categories={
-                            item.contentCreator?.specializedCategoryIds
-                          }
-                          imageUrl={
-                            item.contentCreator?.profilePicture ||
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                          }
-                        />
-                      ) : null,
-                    )}
+                {filteredContentCreators.length > 0 ? (
+                  <View style={[flex.flexRow, justify.between]}>
+                    <View style={(flex.flexCol, gap.medium)}>
+                      {filteredContentCreators.map((item, index) =>
+                        index % 2 === 0 ? (
+                          <ContentCreatorCard
+                            key={item.id}
+                            id={item.id?.toString()}
+                            name={item.contentCreator?.fullname ?? ''}
+                            categories={
+                              item.contentCreator?.specializedCategoryIds
+                            }
+                            rating={item.contentCreator?.rating}
+                            imageUrl={
+                              item.contentCreator?.profilePicture ||
+                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                            }
+                          />
+                        ) : null,
+                      )}
+                    </View>
+                    <View style={(flex.flexCol, gap.medium)}>
+                      {filteredContentCreators.map((item, index) =>
+                        index % 2 !== 0 ? (
+                          <ContentCreatorCard
+                            key={item.id}
+                            id={item.id?.toString()}
+                            name={item.contentCreator?.fullname ?? ''}
+                            categories={
+                              item.contentCreator?.specializedCategoryIds
+                            }
+                            rating={item.contentCreator?.rating}
+                            imageUrl={
+                              item.contentCreator?.profilePicture ||
+                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                            }
+                          />
+                        ) : null,
+                      )}
+                    </View>
                   </View>
-                  <View style={(flex.flexCol, gap.medium)}>
-                    {filteredContentCreators.map((item, index) =>
-                      index % 2 !== 0 ? (
-                        <ContentCreatorCard
-                          key={item.id}
-                          id={item.id?.toString()}
-                          name={item.contentCreator?.fullname ?? ''}
-                          categories={
-                            item.contentCreator?.specializedCategoryIds
-                          }
-                          imageUrl={
-                            item.contentCreator?.profilePicture ||
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                          }
-                        />
-                      ) : null,
-                    )}
+                ) : (
+                  <View>
+                    <Text>No content creators</Text>
                   </View>
-                </View>
-              ) : (
-                <View>
-                  <Text>No content creators</Text>
-                </View>
-              )}
-            </View>
-          </PageWithSearchBar>
+                )}
+              </View>
+            </PageWithSearchBar>
+          </VerticalPadding>
         </ScrollView>
 
         <BottomSheetModal

@@ -7,15 +7,20 @@ import {
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {useNavigation} from '@react-navigation/native';
+import {flex} from '../../styles/Flex';
+import StarIcon from '../../assets/vectors/star-filled.svg';
+import {FontWidth} from '@shopify/react-native-skia';
+import {font, fontSize} from '../../styles/Font';
 
 interface ContentCreatorCardProps {
   id: string;
   name: string;
   imageUrl: string;
+  rating: number;
   categories?: string[];
 }
 const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
-  ({id, name, imageUrl, categories}) => {
+  ({id, name, imageUrl, rating, categories}) => {
     console.log(name, imageUrl);
     const navigation = useNavigation<NavigationStackProps>();
 
@@ -54,6 +59,16 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
             });
           }}>
           <View style={{width: Dimensions.get('window').width * 0.45}}>
+            {rating && (
+              <View style={styles.ratingContainer}>
+                <View
+                  style={flex.flexRow}
+                  className="p-1 justify-end items-center rounded-md bg-black">
+                  <StarIcon width={10} height={10} fill={'rgb(245, 208, 27)'} />
+                  <Text style={styles.rating}>{rating}</Text>
+                </View>
+              </View>
+            )}
             <ScaledImage
               uri={imageUrl}
               style={styles.image}
@@ -91,10 +106,15 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },
+  ratingContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    paddingHorizontal: 5,
+    paddingTop: 5,
+    zIndex: 1,
+  },
   categoriesContainer: {
-    // position: 'absolute',
-    // top: 0,
-    // right: 0,
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 3,
@@ -117,6 +137,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'left',
+  },
+  rating: {
+    fontSize: 10,
+    paddingLeft: 2,
+    color: 'white',
   },
   location: {
     color: 'white',
