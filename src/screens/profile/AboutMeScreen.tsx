@@ -9,6 +9,7 @@ import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import {COLOR} from '../../styles/Color';
 import PasswordIcon from '../../assets/vectors/password.svg';
+import InfoIcon from '../../assets/vectors/info.svg';
 import {CustomButton} from '../../components/atoms/Button';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -18,6 +19,7 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
+import {UserRole} from '../../model/User';
 
 type FormData = {
   email: string;
@@ -27,7 +29,7 @@ type FormData = {
 const AboutMeScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
   const safeAreaInsets = useSafeAreaInsets();
-  const {user, activeData} = useUser();
+  const {user, activeData, activeRole} = useUser();
   const methods = useForm<FormData>({
     mode: 'all',
     defaultValues: {
@@ -104,7 +106,22 @@ const AboutMeScreen = () => {
             </Pressable>
           </View>
 
-          <CustomButton text="Save" onPress={() => {}} />
+          <View>
+            <View
+              className="mb-4 flex flex-row items-center"
+              style={[gap.small]}>
+              <InfoIcon width={18} height={18} fill={COLOR.text.neutral.med} />
+              <Text style={[textColor(COLOR.text.neutral.med)]}>
+                You are editing your information as a {activeRole}asd. Your name
+                as a{' '}
+                {activeRole === UserRole.BusinessPeople
+                  ? UserRole.ContentCreator
+                  : UserRole.BusinessPeople}{' '}
+                might be different.
+              </Text>
+            </View>
+            <CustomButton text="Save" onPress={() => {}} />
+          </View>
         </View>
       </FormProvider>
     </PageWithBackButton>
