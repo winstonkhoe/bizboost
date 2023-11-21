@@ -21,6 +21,7 @@ import {background} from '../styles/BackgroundColor';
 import {Campaign, CampaignType} from '../model/Campaign';
 import {LoadingScreen} from './LoadingScreen';
 import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
+import {font} from '../styles/Font';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants
@@ -71,7 +72,18 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
       icon="close"
       backButtonPlaceholder={
         <View style={[flex.flex1, flex.flexCol]}>
-          <Text className="text-lg font-bold">Registrants</Text>
+          <Text
+            className="font-semibold"
+            style={[font.size[30]]}
+            numberOfLines={1}>
+            {campaign.title}
+          </Text>
+          <Text
+            className="font-light"
+            style={[font.size[20]]}
+            numberOfLines={1}>
+            {`${campaign.type} campaign`}
+          </Text>
         </View>
       }
       underBackButtonPlaceholder={
