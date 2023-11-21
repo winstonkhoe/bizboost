@@ -3,7 +3,6 @@ import {Pressable, Text} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
 import {
   HorizontalPadding,
-  VerticalPadding,
 } from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import PhotosIcon from '../assets/vectors/photos.svg';
@@ -33,7 +32,6 @@ import {
   CampaignSteps,
   CampaignTimeline,
   CampaignType,
-  CampaignTypes,
 } from '../model/Campaign';
 import FieldArray from '../components/organisms/FieldArray';
 import {useUser} from '../hooks/user';
@@ -72,11 +70,13 @@ import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import {SocialPlatform, SocialPlatforms} from '../model/User';
 import {FieldArrayLabel} from '../components/molecules/FieldArrayLabel';
 import {SheetModal} from '../containers/SheetModal';
+import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
+import {LoadingScreen} from './LoadingScreen';
 
 export type CampaignFormData = {
   title: string;
   description: string;
-  type: CampaignTypes;
+  type: CampaignType;
   fee: number;
   slot: number;
   criterias: StringObject[]; // workaround soalnnya fieldarray harus array of object
@@ -224,15 +224,21 @@ const CreateCampaignScreen = () => {
       });
 
       console.log(campaign);
-      campaign.insert().then(isSuccess => {
-        setIsUploading(false);
+      campaign
+        .insert()
+        .then(isSuccess => {
+          setIsUploading(false);
 
-        if (isSuccess) {
-          navigation.goBack();
-        }
-      });
+          if (isSuccess) {
+            navigation.goBack();
+          }
+        })
+        .finally(() => {
+          setIsUploading(false);
+        });
     } catch (e) {
       console.log(e);
+      setIsUploading(false);
     }
   };
 
@@ -337,751 +343,769 @@ const CreateCampaignScreen = () => {
     return previousEndDates.length === 0 ? null : previousEndDates[0];
   };
 
-  if (isUploading) {
-    return <Text>Loading</Text>;
-  }
-
-  //TODO: start date end date, picture
   return (
-    <FormProvider {...methods}>
-      <PageWithBackButton
-        fullHeight
-        onPress={previousPage}
-        disableDefaultOnPress={activePosition > 0}>
-        <View
-          className="flex-1"
-          style={[
-            flex.flexCol,
-            gap.default,
-            {
-              paddingTop: Math.max(
-                safeAreaInsets.top,
-                safeAreaInsets.top < 10 ? size.large : size.xlarge4,
-              ),
-            },
-          ]}>
-          <HorizontalPadding paddingSize="large">
-            <Stepper
-              currentPosition={activePosition + 1}
-              maxPosition={maxPage}
-            />
-          </HorizontalPadding>
-          <PagerView
-            ref={pagerViewRef}
+    <>
+      {isUploading && <LoadingScreen />}
+      <FormProvider {...methods}>
+        <PageWithBackButton
+          fullHeight
+          onPress={previousPage}
+          disableDefaultOnPress={activePosition > 0}>
+          <View
             className="flex-1"
-            scrollEnabled={false}>
-            <View key={0}>
-              <KeyboardAvoidingContainer>
-                <HorizontalPadding paddingSize="large">
-                  <View
-                    style={[
-                      flex.flexCol,
-                      gap.xlarge,
-                      padding.top.medium,
-                      padding.bottom.xlarge2,
-                    ]}>
-                    <Controller
-                      control={control}
-                      name="image"
-                      rules={{required: 'Image is required!'}}
-                      render={({field: {value}, fieldState: {error}}) => (
-                        <View style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper title="Campaign Image" />
-                          <View style={[flex.flexRow, justify.start]}>
-                            <MediaUploader
-                              targetFolder="campaigns"
-                              options={{
-                                width: 400,
-                                height: 400,
-                                cropping: true,
-                                includeBase64: true,
-                              }}
-                              showUploadProgress
-                              onUploadSuccess={imageSelected}>
-                              <View
-                                className="overflow-hidden"
-                                style={[
-                                  dimension.square.xlarge5,
-                                  rounded.default,
-                                ]}>
-                                {value ? (
-                                  <FastImage
-                                    className=""
-                                    style={[dimension.full]}
-                                    source={{
-                                      uri: value,
-                                    }}
-                                  />
-                                ) : (
-                                  <View
-                                    style={[
-                                      dimension.full,
-                                      flex.flexRow,
-                                      justify.center,
-                                      items.center,
-                                      background(COLOR.background.neutral.med),
-                                      error &&
-                                        border({
-                                          borderWidth: 1,
-                                          color:
-                                            COLOR.background.danger.default,
-                                        }),
-                                    ]}>
-                                    <PhotosIcon width={30} height={30} />
-                                  </View>
-                                )}
-                              </View>
-                            </MediaUploader>
-                          </View>
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              {`${error?.message}`}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                    />
-                    <View style={[flex.flexCol, gap.default]}>
-                      <FormFieldHelper title="Your campaign title" />
-                      <CustomTextInput
-                        label="Campaign Title"
-                        name="title"
-                        rules={{
-                          required: 'Title is required',
-                        }}
-                        max={50}
-                        counter
-                      />
-                    </View>
-                    <View style={[flex.flexCol, gap.default]}>
-                      <FormFieldHelper title="Your campaign description" />
-                      <CustomTextInput
-                        placeholder="Campaign description"
-                        name="description"
-                        type="textarea"
-                        rules={{
-                          required: 'Description is required',
-                        }}
-                      />
-                    </View>
-                    <CustomButton
-                      text="Next"
-                      rounded="max"
-                      minimumWidth
-                      disabled={
-                        !isValidField(getFieldState('title', formState)) ||
-                        !isValidField(
-                          getFieldState('description', formState),
-                        ) ||
-                        !watch('image')
-                      }
-                      onPress={nextPage}
-                    />
-                  </View>
-                </HorizontalPadding>
-              </KeyboardAvoidingContainer>
-            </View>
-            <View key={1}>
-              <KeyboardAvoidingContainer>
-                <HorizontalPadding paddingSize="large">
-                  <View
-                    style={[
-                      flex.flexCol,
-                      gap.xlarge,
-                      padding.top.medium,
-                      padding.bottom.xlarge2,
-                    ]}>
-                    <Controller
-                      control={control}
-                      name="type"
-                      rules={{required: 'Type is required!'}}
-                      render={({field: {value, name}, fieldState: {error}}) => (
-                        <View style={[flex.flexCol, gap.default]}>
-                          <View style={[flex.flexCol, gap.xsmall]}>
-                            <FormFieldHelper title="Campaign type" />
-                            {CampaignType.Public === value ? (
-                              <FormFieldHelper description="Public campaigns are accessible to all content creators, and you will later shortlist each registrant." />
-                            ) : CampaignType.Private === value ? (
-                              <FormFieldHelper description="For private campaigns, it is necessary to individually contact each content creator privately." />
-                            ) : null}
-                          </View>
-                          <View style={[flex.flexRow, gap.small]}>
-                            {Object.values(CampaignType).map((type, index) => (
-                              <View key={index}>
-                                <SelectableTag
-                                  text={type}
-                                  isSelected={value === type}
-                                  onPress={() =>
-                                    setValue(name, type, {
-                                      shouldValidate: true,
-                                      shouldDirty: true,
-                                      shouldTouch: true,
-                                    })
-                                  }
-                                />
-                              </View>
-                            ))}
-                          </View>
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              {`${error?.message}`}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                    />
-
-                    {watch('type') === 'Public' ? (
-                      <View style={[flex.flexCol, gap.medium]}>
-                        <View style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper
-                            title="Campaign fee"
-                            description="This will be the total earnings for each content creator if they finish all the tasks."
-                          />
-                          <CustomTextInput
-                            label="Campaign Fee"
-                            name="fee"
-                            inputType="price"
-                            rules={{
-                              required: 'Fee is required',
-                              validate: value => {
-                                return (
-                                  parseInt(value, 10) >= 50000 ||
-                                  'Minimum fee is Rp50.000'
-                                );
-                              },
-                            }}
-                          />
-                        </View>
-
-                        <View style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper title="Total open slot" />
-                          <CustomNumberInput
-                            label="Campaign Slot"
-                            name="slot"
-                            type="field"
-                            min={1}
-                            rules={{
-                              required: 'Slot is required',
-                            }}
-                          />
-                        </View>
-                        <View style={[flex.flexCol, items.start]}>
-                          <Text
-                            className="font-semibold"
-                            style={[
-                              font.size[30],
-                              textColor(COLOR.text.neutral.med),
-                            ]}>
-                            Total campaign fee
-                          </Text>
-                          <Text
-                            className="font-bold"
-                            style={[
-                              font.size[50],
-                              textColor(COLOR.text.neutral.high),
-                            ]}>
-                            {`Rp ${
-                              formatNumberWithThousandSeparator(
-                                watch('fee') * watch('slot'),
-                              ) || 0
-                            }`}
-                          </Text>
-                        </View>
-                      </View>
-                    ) : null}
-
-                    <CustomButton
-                      text="Next"
-                      rounded="max"
-                      minimumWidth
-                      disabled={
-                        !isValidField(getFieldState('type', formState)) ||
-                        (watch('type') === CampaignType.Public &&
-                          (!isValidField(getFieldState('fee', formState)) ||
-                            !isValidField(
-                              getFieldState('slot', formState),
-                              false,
-                            )))
-                      }
-                      onPress={nextPage}
-                    />
-                  </View>
-                </HorizontalPadding>
-              </KeyboardAvoidingContainer>
-            </View>
-            <View key={2}>
-              <KeyboardAvoidingContainer>
-                <HorizontalPadding paddingSize="large">
-                  <View
-                    style={[
-                      flex.flexCol,
-                      gap.xlarge,
-                      padding.top.medium,
-                      padding.bottom.xlarge2,
-                    ]}>
-                    <Controller
-                      control={control}
-                      name="platforms"
-                      rules={{required: 'Platform is required!'}}
-                      render={({
-                        field: {value: platforms},
-                        fieldState: {error},
-                      }) => (
-                        <View style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper
-                            title="Campaign platforms"
-                            description="Choose platforms for the campaign tasks."
-                          />
-                          <View className="flex flex-row gap-2">
-                            {Object.values(SocialPlatform).map(
-                              (value: SocialPlatform, index) => (
-                                <View key={index}>
-                                  <SelectableTag
-                                    text={value}
-                                    isSelected={
-                                      platforms.find(p => p.name === value) !==
-                                      undefined
-                                    }
-                                    onPress={() => {
-                                      const searchIndex = platforms.findIndex(
-                                        p => p.name === value,
-                                      );
-                                      if (searchIndex !== -1) {
-                                        removePlatform(searchIndex);
-                                      } else {
-                                        appendPlatform({
-                                          name: value,
-                                          tasks: [],
-                                        });
-                                      }
-                                    }}
-                                  />
-                                </View>
-                              ),
-                            )}
-                          </View>
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              {/* {`${error}`} */}
-                              Platform is required!
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                    />
-                    {fieldsPlatform.map((fp, index) => (
-                      <View key={fp.id}>
-                        <SocialFieldArray
-                          platform={fp.name}
-                          control={control}
-                          title={`${fp.name}'s Task`}
-                          maxFieldLength={30}
-                          parentName={`platforms.${index}.tasks`}
-                          helperText='Ex. "minimum 30s / story"'
-                          placeholder="Add task"
-                        />
-                      </View>
-                    ))}
-                    <CustomButton
-                      text="Next"
-                      rounded="max"
-                      minimumWidth
-                      disabled={
-                        !isValidField(getFieldState('platforms', formState)) ||
-                        fieldsPlatform.filter(
-                          (f, index) =>
-                            getValues(`platforms.${index}.tasks`)?.length === 0,
-                        ).length > 0
-                      }
-                      onPress={nextPage}
-                    />
-                  </View>
-                </HorizontalPadding>
-              </KeyboardAvoidingContainer>
-            </View>
-            <View key={3}>
-              <KeyboardAvoidingContainer>
-                <View
-                  style={[
-                    flex.flexCol,
-                    gap.xlarge,
-                    padding.top.medium,
-                    padding.bottom.xlarge2,
-                    padding.horizontal.large,
-                  ]}>
-                  <Controller
-                    control={control}
-                    name="criterias"
-                    rules={{required: 'Criterias is required!'}}
-                    render={({fieldState: {error}}) => (
-                      <View>
-                        <FieldArray
-                          control={control}
-                          title="Campaign Criterias"
-                          parentName="criterias"
-                          childName="value"
-                          placeholder="Add criteria"
-                          helperText='Ex. "Minimal 100k followers"'
-                        />
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            Criteria is required (at least 1)!
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-                  <Controller
-                    control={control}
-                    name="importantInformation"
-                    rules={{required: 'Information is required!'}}
-                    render={({fieldState: {error}}) => (
-                      <View>
-                        <FieldArray
-                          control={control}
-                          fieldType="textarea"
-                          maxFieldLength={70}
-                          title="Important Informations"
-                          parentName="importantInformation"
-                          childName="value"
-                          placeholder="Add dos and/or don'ts"
-                          helperText={
-                            'Ex. "Don\'t use profanity", "Be natural"'
-                          }
-                        />
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            Information is required (at least 1)!
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-
-                  <Controller
-                    control={control}
-                    name="locations"
-                    rules={{required: 'Locations are required!'}}
-                    render={({
-                      field: {value: locations},
-                      fieldState: {error},
-                    }) => (
-                      <View className="flex flex-col">
-                        <View style={[flex.flexRow, items.center]}>
-                          <View style={[flex.flex1]}>
-                            <FormFieldHelper
-                              title="Location"
-                              description="Campaign's target impacted locations"
-                            />
-                          </View>
-                          <InternalLink
-                            text="Add"
-                            onPress={() => {
-                              openLocationModal({
-                                preferredLocations: getValues('locations'),
-                                setPreferredLocations: locations => {
-                                  setValue('locations', []);
-                                  appendLocation(locations);
-                                },
-                                navigation: navigation,
-                              });
-                            }}
-                          />
-                        </View>
-                        <View className="flex flex-row flex-wrap gap-2 mt-3">
-                          {locations.map((l, index: number) =>
-                            l.id ? (
-                              <View key={index}>
-                                <RemovableChip
-                                  text={l.id}
-                                  onPress={() => removeLocation(index)}
-                                />
-                              </View>
-                            ) : null,
-                          )}
-                        </View>
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            Locations are required (at least 1)!
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                  />
-                  <Controller
-                    control={control}
-                    name="categories"
-                    rules={{required: 'Categories are required!'}}
-                    render={({
-                      field: {value: categories},
-                      fieldState: {error},
-                    }) => (
-                      <View style={[flex.flexCol, gap.medium]}>
-                        <View style={[flex.flexRow, items.center]}>
-                          <View style={[flex.flex1]}>
-                            <FormFieldHelper
-                              title="Category"
-                              description="Choose maximum 2 related category to your campaign"
-                            />
-                          </View>
-                          <InternalLink
-                            text="Add"
-                            onPress={() => {
-                              openCategoryModal({
-                                favoriteCategories: getValues('categories'),
-                                setFavoriteCategories: c => {
-                                  setValue('categories', []);
-                                  appendCategories(c);
-                                },
-                                maxSelection: 2,
-                                navigation: navigation,
-                              });
-                            }}
-                          />
-                        </View>
-                        {error && (
-                          <Text className="text-xs mt-2 font-medium text-red-500">
-                            Categories are required (at least 1)!
-                          </Text>
-                        )}
-                        <View style={[flex.flexRow, flex.wrap, gap.default]}>
-                          {categories.map((category, index: number) =>
-                            category.id ? (
-                              <View
-                                key={index}
-                                className="relative"
-                                style={[dimension.square.xlarge5]}>
-                                <View
-                                  className="absolute z-10 top-0 right-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
-                                  style={[
-                                    dimension.square.xlarge,
-                                    rounded.max,
-                                    padding.xsmall2,
-                                    background(COLOR.black[0]),
-                                    {
-                                      transform: [
-                                        {
-                                          translateX: 10,
-                                        },
-                                        {
-                                          translateY: -10,
-                                        },
-                                      ],
-                                    },
-                                  ]}>
-                                  <AnimatedPressable
-                                    scale={0.9}
-                                    onPress={() => {
-                                      removeCategory(index);
-                                    }}
-                                    className="rotate-45"
-                                    style={[
-                                      flex.flexRow,
-                                      justify.center,
-                                      items.center,
-                                      dimension.full,
-                                      rounded.max,
-                                      background(COLOR.background.danger.high),
-                                    ]}>
-                                    <AddIcon color={COLOR.black[0]} />
-                                  </AnimatedPressable>
-                                </View>
+            style={[
+              flex.flexCol,
+              gap.default,
+              {
+                paddingTop: Math.max(
+                  safeAreaInsets.top,
+                  safeAreaInsets.top < 10 ? size.large : size.xlarge4,
+                ),
+              },
+            ]}>
+            <HorizontalPadding paddingSize="large">
+              <Stepper
+                currentPosition={activePosition + 1}
+                maxPosition={maxPage}
+              />
+            </HorizontalPadding>
+            <PagerView
+              ref={pagerViewRef}
+              className="flex-1"
+              scrollEnabled={false}>
+              <View key={0}>
+                <KeyboardAvoidingContainer>
+                  <HorizontalPadding paddingSize="large">
+                    <View
+                      style={[
+                        flex.flexCol,
+                        gap.xlarge,
+                        padding.top.medium,
+                        padding.bottom.xlarge2,
+                      ]}>
+                      <Controller
+                        control={control}
+                        name="image"
+                        rules={{required: 'Image is required!'}}
+                        render={({field: {value}, fieldState: {error}}) => (
+                          <View style={[flex.flexCol, gap.default]}>
+                            <FormFieldHelper title="Campaign Image" />
+                            <View style={[flex.flexRow, justify.start]}>
+                              <MediaUploader
+                                targetFolder="campaigns"
+                                options={{
+                                  width: 400,
+                                  height: 400,
+                                  cropping: true,
+                                  includeBase64: true,
+                                }}
+                                showUploadProgress
+                                onUploadSuccess={imageSelected}>
                                 <View
                                   className="overflow-hidden"
-                                  style={[dimension.full, rounded.default]}>
-                                  <FastImage
-                                    style={[dimension.full]}
-                                    source={{
-                                      uri: category.image,
-                                      priority: FastImage.priority.high,
-                                    }}
-                                    resizeMode={'cover'}
-                                  />
+                                  style={[
+                                    dimension.square.xlarge5,
+                                    rounded.default,
+                                  ]}>
+                                  {value ? (
+                                    <FastImage
+                                      className=""
+                                      style={[dimension.full]}
+                                      source={{
+                                        uri: value,
+                                      }}
+                                    />
+                                  ) : (
+                                    <View
+                                      style={[
+                                        dimension.full,
+                                        flex.flexRow,
+                                        justify.center,
+                                        items.center,
+                                        background(
+                                          COLOR.background.neutral.med,
+                                        ),
+                                        error &&
+                                          border({
+                                            borderWidth: 1,
+                                            color:
+                                              COLOR.background.danger.default,
+                                          }),
+                                      ]}>
+                                      <PhotosIcon width={30} height={30} />
+                                    </View>
+                                  )}
                                 </View>
-                              </View>
-                            ) : null,
-                          )}
-                        </View>
+                              </MediaUploader>
+                            </View>
+                            {error && (
+                              <Text className="text-xs mt-2 font-medium text-red-500">
+                                {`${error?.message}`}
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      />
+                      <View style={[flex.flexCol, gap.default]}>
+                        <FormFieldHelper title="Your campaign title" />
+                        <CustomTextInput
+                          label="Campaign Title"
+                          name="title"
+                          rules={{
+                            required: 'Title is required',
+                          }}
+                          max={50}
+                          counter
+                        />
                       </View>
-                    )}
-                  />
-                  <CustomButton
-                    text="Next"
-                    rounded="max"
-                    minimumWidth
-                    disabled={
-                      !isValidField(getFieldState('criterias', formState)) ||
-                      !isValidField(
-                        getFieldState('importantInformation', formState),
-                      ) ||
-                      !isValidField(getFieldState('locations', formState)) ||
-                      !isValidField(getFieldState('categories', formState)) ||
-                      getValues('criterias').length === 0 ||
-                      getValues('importantInformation').length === 0 ||
-                      getValues('locations').length === 0 ||
-                      getValues('categories').length === 0
-                    }
-                    onPress={nextPage}
-                  />
-                </View>
-              </KeyboardAvoidingContainer>
-            </View>
-            <View key={4}>
-              <KeyboardAvoidingContainer>
-                <HorizontalPadding paddingSize="large">
+                      <View style={[flex.flexCol, gap.default]}>
+                        <FormFieldHelper title="Your campaign description" />
+                        <CustomTextInput
+                          placeholder="Campaign description"
+                          name="description"
+                          type="textarea"
+                          rules={{
+                            required: 'Description is required',
+                          }}
+                        />
+                      </View>
+                      <CustomButton
+                        text="Next"
+                        rounded="max"
+                        minimumWidth
+                        disabled={
+                          !isValidField(getFieldState('title', formState)) ||
+                          !isValidField(
+                            getFieldState('description', formState),
+                          ) ||
+                          !watch('image')
+                        }
+                        onPress={nextPage}
+                      />
+                    </View>
+                  </HorizontalPadding>
+                </KeyboardAvoidingContainer>
+              </View>
+              <View key={1}>
+                <KeyboardAvoidingContainer>
+                  <HorizontalPadding paddingSize="large">
+                    <View
+                      style={[
+                        flex.flexCol,
+                        gap.xlarge,
+                        padding.top.medium,
+                        padding.bottom.xlarge2,
+                      ]}>
+                      <Controller
+                        control={control}
+                        name="type"
+                        rules={{required: 'Type is required!'}}
+                        render={({
+                          field: {value, name},
+                          fieldState: {error},
+                        }) => (
+                          <View style={[flex.flexCol, gap.default]}>
+                            <View style={[flex.flexCol, gap.xsmall]}>
+                              <FormFieldHelper title="Campaign type" />
+                              {CampaignType.Public === value ? (
+                                <FormFieldHelper description="Public campaigns are accessible to all content creators, and you will later shortlist each registrant." />
+                              ) : CampaignType.Private === value ? (
+                                <FormFieldHelper description="For private campaigns, it is necessary to individually contact each content creator privately." />
+                              ) : null}
+                            </View>
+                            <View style={[flex.flexRow, gap.small]}>
+                              {Object.values(CampaignType).map(
+                                (type, index) => (
+                                  <View key={index}>
+                                    <SelectableTag
+                                      text={type}
+                                      isSelected={value === type}
+                                      onPress={() =>
+                                        setValue(name, type, {
+                                          shouldValidate: true,
+                                          shouldDirty: true,
+                                          shouldTouch: true,
+                                        })
+                                      }
+                                    />
+                                  </View>
+                                ),
+                              )}
+                            </View>
+                            {error && (
+                              <Text className="text-xs mt-2 font-medium text-red-500">
+                                {`${error?.message}`}
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      />
+
+                      {watch('type') === 'Public' ? (
+                        <View style={[flex.flexCol, gap.medium]}>
+                          <View style={[flex.flexCol, gap.default]}>
+                            <FormFieldHelper
+                              title="Campaign fee"
+                              description="This will be the total earnings for each content creator if they finish all the tasks."
+                            />
+                            <CustomTextInput
+                              label="Campaign Fee"
+                              name="fee"
+                              inputType="price"
+                              rules={{
+                                required: 'Fee is required',
+                                validate: value => {
+                                  return (
+                                    parseInt(value, 10) >= 50000 ||
+                                    'Minimum fee is Rp50.000'
+                                  );
+                                },
+                              }}
+                            />
+                          </View>
+
+                          <View style={[flex.flexCol, gap.default]}>
+                            <FormFieldHelper title="Total open slot" />
+                            <CustomNumberInput
+                              label="Campaign Slot"
+                              name="slot"
+                              type="field"
+                              min={1}
+                              rules={{
+                                required: 'Slot is required',
+                              }}
+                            />
+                          </View>
+                          <View style={[flex.flexCol, items.start]}>
+                            <Text
+                              className="font-semibold"
+                              style={[
+                                font.size[30],
+                                textColor(COLOR.text.neutral.med),
+                              ]}>
+                              Total campaign fee
+                            </Text>
+                            <Text
+                              className="font-bold"
+                              style={[
+                                font.size[50],
+                                textColor(COLOR.text.neutral.high),
+                              ]}>
+                              {`Rp ${
+                                formatNumberWithThousandSeparator(
+                                  watch('fee') * watch('slot'),
+                                ) || 0
+                              }`}
+                            </Text>
+                          </View>
+                        </View>
+                      ) : null}
+
+                      <CustomButton
+                        text="Next"
+                        rounded="max"
+                        minimumWidth
+                        disabled={
+                          !isValidField(getFieldState('type', formState)) ||
+                          (watch('type') === CampaignType.Public &&
+                            (!isValidField(getFieldState('fee', formState)) ||
+                              !isValidField(
+                                getFieldState('slot', formState),
+                                false,
+                              )))
+                        }
+                        onPress={nextPage}
+                      />
+                    </View>
+                  </HorizontalPadding>
+                </KeyboardAvoidingContainer>
+              </View>
+              <View key={2}>
+                <KeyboardAvoidingContainer>
+                  <HorizontalPadding paddingSize="large">
+                    <View
+                      style={[
+                        flex.flexCol,
+                        gap.xlarge,
+                        padding.top.medium,
+                        padding.bottom.xlarge2,
+                      ]}>
+                      <Controller
+                        control={control}
+                        name="platforms"
+                        rules={{required: 'Platform is required!'}}
+                        render={({
+                          field: {value: platforms},
+                          fieldState: {error},
+                        }) => (
+                          <View style={[flex.flexCol, gap.default]}>
+                            <FormFieldHelper
+                              title="Campaign platforms"
+                              description="Choose platforms for the campaign tasks."
+                            />
+                            <View className="flex flex-row gap-2">
+                              {Object.values(SocialPlatform).map(
+                                (value: SocialPlatform, index) => (
+                                  <View key={index}>
+                                    <SelectableTag
+                                      text={value}
+                                      isSelected={
+                                        platforms.find(
+                                          p => p.name === value,
+                                        ) !== undefined
+                                      }
+                                      onPress={() => {
+                                        const searchIndex = platforms.findIndex(
+                                          p => p.name === value,
+                                        );
+                                        if (searchIndex !== -1) {
+                                          removePlatform(searchIndex);
+                                        } else {
+                                          appendPlatform({
+                                            name: value,
+                                            tasks: [],
+                                          });
+                                        }
+                                      }}
+                                    />
+                                  </View>
+                                ),
+                              )}
+                            </View>
+                            {error && (
+                              <Text className="text-xs mt-2 font-medium text-red-500">
+                                {/* {`${error}`} */}
+                                Platform is required!
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      />
+                      {fieldsPlatform.map((fp, index) => (
+                        <View key={fp.id}>
+                          <SocialFieldArray
+                            platform={fp.name}
+                            control={control}
+                            title={`${fp.name}'s Task`}
+                            maxFieldLength={30}
+                            parentName={`platforms.${index}.tasks`}
+                            helperText='Ex. "minimum 30s / story"'
+                            placeholder="Add task"
+                          />
+                        </View>
+                      ))}
+                      <CustomButton
+                        text="Next"
+                        rounded="max"
+                        minimumWidth
+                        disabled={
+                          !isValidField(
+                            getFieldState('platforms', formState),
+                          ) ||
+                          fieldsPlatform.filter(
+                            (f, index) =>
+                              getValues(`platforms.${index}.tasks`)?.length ===
+                              0,
+                          ).length > 0
+                        }
+                        onPress={nextPage}
+                      />
+                    </View>
+                  </HorizontalPadding>
+                </KeyboardAvoidingContainer>
+              </View>
+              <View key={3}>
+                <KeyboardAvoidingContainer>
                   <View
                     style={[
                       flex.flexCol,
                       gap.xlarge,
                       padding.top.medium,
                       padding.bottom.xlarge2,
+                      padding.horizontal.large,
                     ]}>
-                    {/* TODO: validate date, extract to component */}
-                    {campaignTimeline.map((timeline, index) => {
-                      const campaignTimelineIndex = getCampaignTimelineIndex(
-                        timeline.step,
-                      );
-                      const timelineField = fieldsTimeline.find(
-                        field => field.step === timeline.step,
-                      );
-                      return (
-                        <View
-                          key={timelineField?.id || index}
-                          style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper
-                            title={timeline.step}
-                            description={timeline.description}
-                            type={timeline.optional ? 'optional' : 'required'}
-                          />
-                          <Controller
+                    <Controller
+                      control={control}
+                      name="criterias"
+                      rules={{required: 'Criterias is required!'}}
+                      render={({fieldState: {error}}) => (
+                        <View>
+                          <FieldArray
                             control={control}
-                            name={`timeline.${campaignTimelineIndex}`}
-                            rules={{
-                              validate: (value: CampaignTimeline) => {
-                                if (
-                                  (timeline.optional && !value?.start) ||
-                                  campaignTimelineIndex === -1
-                                ) {
-                                  return true;
-                                }
-                                const previousTimeline =
-                                  getNearestPreviousTimelineEnd(index);
-                                if (!previousTimeline) {
-                                  return true;
-                                }
-                                return (
-                                  value?.start >= previousTimeline.getTime() ||
-                                  `Date must start at least on ${formatDateToDayMonthYear(
-                                    previousTimeline,
-                                  )}`
-                                );
-                              },
-                            }}
-                            render={({field: {value}, fieldState: {error}}) => (
-                              <View style={[flex.flexCol, gap.small]}>
-                                <View
-                                  style={[
-                                    flex.flexRow,
-                                    gap.default,
-                                    items.start,
-                                  ]}>
-                                  <DatePicker
-                                    minimumDate={
-                                      index > 0
-                                        ? getNearestPreviousTimelineEnd(
-                                            index,
-                                          ) || undefined
-                                        : undefined
-                                    }
-                                    startDate={
-                                      value?.start
-                                        ? new Date(value.start)
-                                        : undefined
-                                    }
-                                    endDate={
-                                      value?.end
-                                        ? new Date(value.end)
-                                        : undefined
-                                    }
-                                    onDateChange={(startDate, endDate) => {
-                                      updateCampaignTimeline(
-                                        startDate,
-                                        endDate,
-                                        timeline.step,
-                                      );
-                                      trigger('timeline');
-                                    }}>
-                                    <DefaultDatePickerPlaceholder
-                                      text={
-                                        campaignTimelineIndex >= 0 && value?.end
-                                          ? `${formatDateToDayMonthYear(
-                                              new Date(value.start),
-                                            )} - ${formatDateToDayMonthYear(
-                                              new Date(value.end),
-                                            )}`
-                                          : 'Add date'
-                                      }
-                                      isEdit={campaignTimelineIndex >= 0}
-                                      isError={error !== undefined}
-                                      helperText={error?.message}
-                                    />
-                                  </DatePicker>
-                                  {timeline.optional &&
-                                    campaignTimelineIndex >= 0 && (
-                                      <Pressable
-                                        className="rotate-45"
-                                        style={[
-                                          flex.flexRow,
-                                          items.center,
-                                          justify.center,
-                                          dimension.square.xlarge,
-                                          rounded.max,
-                                          background(
-                                            COLOR.background.danger.high,
-                                          ),
-                                          padding.xsmall,
-                                        ]}
-                                        onPress={() => {
-                                          removeTimeline(campaignTimelineIndex);
-                                          trigger('timeline');
-                                        }}>
-                                        <AddIcon
-                                          size="default"
-                                          color={COLOR.black[0]}
-                                        />
-                                      </Pressable>
-                                    )}
-                                </View>
-                              </View>
-                            )}
+                            title="Campaign Criterias"
+                            parentName="criterias"
+                            childName="value"
+                            placeholder="Add criteria"
+                            helperText='Ex. "Minimal 100k followers"'
                           />
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Criteria is required (at least 1)!
+                            </Text>
+                          )}
                         </View>
-                      );
-                    })}
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="importantInformation"
+                      rules={{required: 'Information is required!'}}
+                      render={({fieldState: {error}}) => (
+                        <View>
+                          <FieldArray
+                            control={control}
+                            fieldType="textarea"
+                            maxFieldLength={70}
+                            title="Important Informations"
+                            parentName="importantInformation"
+                            childName="value"
+                            placeholder="Add dos and/or don'ts"
+                            helperText={
+                              'Ex. "Don\'t use profanity", "Be natural"'
+                            }
+                          />
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Information is required (at least 1)!
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
 
+                    <Controller
+                      control={control}
+                      name="locations"
+                      rules={{required: 'Locations are required!'}}
+                      render={({
+                        field: {value: locations},
+                        fieldState: {error},
+                      }) => (
+                        <View className="flex flex-col">
+                          <View style={[flex.flexRow, items.center]}>
+                            <View style={[flex.flex1]}>
+                              <FormFieldHelper
+                                title="Location"
+                                description="Campaign's target impacted locations"
+                              />
+                            </View>
+                            <InternalLink
+                              text="Add"
+                              onPress={() => {
+                                openLocationModal({
+                                  preferredLocations: getValues('locations'),
+                                  setPreferredLocations: locations => {
+                                    setValue('locations', []);
+                                    appendLocation(locations);
+                                  },
+                                  navigation: navigation,
+                                });
+                              }}
+                            />
+                          </View>
+                          <View className="flex flex-row flex-wrap gap-2 mt-3">
+                            {locations.map((l, index: number) =>
+                              l.id ? (
+                                <View key={index}>
+                                  <RemovableChip
+                                    text={l.id}
+                                    onPress={() => removeLocation(index)}
+                                  />
+                                </View>
+                              ) : null,
+                            )}
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Locations are required (at least 1)!
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="categories"
+                      rules={{required: 'Categories are required!'}}
+                      render={({
+                        field: {value: categories},
+                        fieldState: {error},
+                      }) => (
+                        <View style={[flex.flexCol, gap.medium]}>
+                          <View style={[flex.flexRow, items.center]}>
+                            <View style={[flex.flex1]}>
+                              <FormFieldHelper
+                                title="Category"
+                                description="Choose maximum 2 related category to your campaign"
+                              />
+                            </View>
+                            <InternalLink
+                              text="Add"
+                              onPress={() => {
+                                openCategoryModal({
+                                  favoriteCategories: getValues('categories'),
+                                  setFavoriteCategories: c => {
+                                    setValue('categories', []);
+                                    appendCategories(c);
+                                  },
+                                  maxSelection: 2,
+                                  navigation: navigation,
+                                });
+                              }}
+                            />
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              Categories are required (at least 1)!
+                            </Text>
+                          )}
+                          <View style={[flex.flexRow, flex.wrap, gap.default]}>
+                            {categories.map((category, index: number) =>
+                              category.id ? (
+                                <View
+                                  key={index}
+                                  className="relative"
+                                  style={[dimension.square.xlarge5]}>
+                                  <View
+                                    className="absolute z-10 top-0 right-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
+                                    style={[
+                                      dimension.square.xlarge,
+                                      rounded.max,
+                                      padding.xsmall2,
+                                      background(COLOR.black[0]),
+                                      {
+                                        transform: [
+                                          {
+                                            translateX: 10,
+                                          },
+                                          {
+                                            translateY: -10,
+                                          },
+                                        ],
+                                      },
+                                    ]}>
+                                    <AnimatedPressable
+                                      scale={0.9}
+                                      onPress={() => {
+                                        removeCategory(index);
+                                      }}
+                                      className="rotate-45"
+                                      style={[
+                                        flex.flexRow,
+                                        justify.center,
+                                        items.center,
+                                        dimension.full,
+                                        rounded.max,
+                                        background(
+                                          COLOR.background.danger.high,
+                                        ),
+                                      ]}>
+                                      <AddIcon color={COLOR.black[0]} />
+                                    </AnimatedPressable>
+                                  </View>
+                                  <View
+                                    className="overflow-hidden"
+                                    style={[dimension.full, rounded.default]}>
+                                    <FastImage
+                                      style={[dimension.full]}
+                                      source={{
+                                        uri: category.image,
+                                        priority: FastImage.priority.high,
+                                      }}
+                                      resizeMode={'cover'}
+                                    />
+                                  </View>
+                                </View>
+                              ) : null,
+                            )}
+                          </View>
+                        </View>
+                      )}
+                    />
                     <CustomButton
-                      text="Submit"
+                      text="Next"
                       rounded="max"
                       minimumWidth
                       disabled={
-                        !isValidField(getFieldState('timeline', formState)) ||
-                        campaignTimeline.filter(
-                          timeline =>
-                            getCampaignTimelineIndex(timeline.step) === -1 &&
-                            !timeline.optional,
-                        ).length > 0
+                        !isValidField(getFieldState('criterias', formState)) ||
+                        !isValidField(
+                          getFieldState('importantInformation', formState),
+                        ) ||
+                        !isValidField(getFieldState('locations', formState)) ||
+                        !isValidField(getFieldState('categories', formState)) ||
+                        getValues('criterias').length === 0 ||
+                        getValues('importantInformation').length === 0 ||
+                        getValues('locations').length === 0 ||
+                        getValues('categories').length === 0
                       }
-                      onPress={handleSubmit(onSubmitButtonClicked)}
+                      onPress={nextPage}
                     />
                   </View>
-                </HorizontalPadding>
-              </KeyboardAvoidingContainer>
-            </View>
-          </PagerView>
-        </View>
-      </PageWithBackButton>
-    </FormProvider>
+                </KeyboardAvoidingContainer>
+              </View>
+              <View key={4}>
+                <KeyboardAvoidingContainer>
+                  <HorizontalPadding paddingSize="large">
+                    <View
+                      style={[
+                        flex.flexCol,
+                        gap.xlarge,
+                        padding.top.medium,
+                        padding.bottom.xlarge2,
+                      ]}>
+                      {/* TODO: validate date, extract to component */}
+                      {campaignTimeline.map((timeline, index) => {
+                        const campaignTimelineIndex = getCampaignTimelineIndex(
+                          timeline.step,
+                        );
+                        const timelineField = fieldsTimeline.find(
+                          field => field.step === timeline.step,
+                        );
+                        return (
+                          <View
+                            key={timelineField?.id || index}
+                            style={[flex.flexCol, gap.default]}>
+                            <FormFieldHelper
+                              title={timeline.step}
+                              description={timeline.description}
+                              type={timeline.optional ? 'optional' : 'required'}
+                            />
+                            <Controller
+                              control={control}
+                              name={`timeline.${campaignTimelineIndex}`}
+                              rules={{
+                                validate: (value: CampaignTimeline) => {
+                                  if (
+                                    (timeline.optional && !value?.start) ||
+                                    campaignTimelineIndex === -1
+                                  ) {
+                                    return true;
+                                  }
+                                  const previousTimeline =
+                                    getNearestPreviousTimelineEnd(index);
+                                  if (!previousTimeline) {
+                                    return true;
+                                  }
+                                  return (
+                                    value?.start >=
+                                      previousTimeline.getTime() ||
+                                    `Date must start at least on ${formatDateToDayMonthYear(
+                                      previousTimeline,
+                                    )}`
+                                  );
+                                },
+                              }}
+                              render={({
+                                field: {value},
+                                fieldState: {error},
+                              }) => (
+                                <View style={[flex.flexCol, gap.small]}>
+                                  <View
+                                    style={[
+                                      flex.flexRow,
+                                      gap.default,
+                                      items.start,
+                                    ]}>
+                                    <DatePicker
+                                      minimumDate={
+                                        index > 0
+                                          ? getNearestPreviousTimelineEnd(
+                                              index,
+                                            ) || undefined
+                                          : undefined
+                                      }
+                                      startDate={
+                                        value?.start
+                                          ? new Date(value.start)
+                                          : undefined
+                                      }
+                                      endDate={
+                                        value?.end
+                                          ? new Date(value.end)
+                                          : undefined
+                                      }
+                                      onDateChange={(startDate, endDate) => {
+                                        updateCampaignTimeline(
+                                          startDate,
+                                          endDate,
+                                          timeline.step,
+                                        );
+                                        trigger('timeline');
+                                      }}>
+                                      <DefaultDatePickerPlaceholder
+                                        text={
+                                          campaignTimelineIndex >= 0 &&
+                                          value?.end
+                                            ? `${formatDateToDayMonthYear(
+                                                new Date(value.start),
+                                              )} - ${formatDateToDayMonthYear(
+                                                new Date(value.end),
+                                              )}`
+                                            : 'Add date'
+                                        }
+                                        isEdit={campaignTimelineIndex >= 0}
+                                        isError={error !== undefined}
+                                        helperText={error?.message}
+                                      />
+                                    </DatePicker>
+                                    {timeline.optional &&
+                                      campaignTimelineIndex >= 0 && (
+                                        <Pressable
+                                          className="rotate-45"
+                                          style={[
+                                            flex.flexRow,
+                                            items.center,
+                                            justify.center,
+                                            dimension.square.xlarge,
+                                            rounded.max,
+                                            background(
+                                              COLOR.background.danger.high,
+                                            ),
+                                            padding.xsmall,
+                                          ]}
+                                          onPress={() => {
+                                            removeTimeline(
+                                              campaignTimelineIndex,
+                                            );
+                                            trigger('timeline');
+                                          }}>
+                                          <AddIcon
+                                            size="default"
+                                            color={COLOR.black[0]}
+                                          />
+                                        </Pressable>
+                                      )}
+                                  </View>
+                                </View>
+                              )}
+                            />
+                          </View>
+                        );
+                      })}
+
+                      <CustomButton
+                        text="Submit"
+                        rounded="max"
+                        minimumWidth
+                        disabled={
+                          !isValidField(getFieldState('timeline', formState)) ||
+                          campaignTimeline.filter(
+                            timeline =>
+                              getCampaignTimelineIndex(timeline.step) === -1 &&
+                              !timeline.optional,
+                          ).length > 0
+                        }
+                        onPress={handleSubmit(onSubmitButtonClicked)}
+                      />
+                    </View>
+                  </HorizontalPadding>
+                </KeyboardAvoidingContainer>
+              </View>
+            </PagerView>
+          </View>
+        </PageWithBackButton>
+      </FormProvider>
+    </>
   );
 };
 
@@ -1230,106 +1254,95 @@ const SocialFieldArray = ({
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <HorizontalPadding paddingSize="large">
-          <VerticalPadding paddingSize="default">
-            <View style={[flex.flexCol, gap.default, padding.bottom.xlarge]}>
-              <View style={[flex.flexRow, justify.center]}>
-                <Text
-                  className="font-bold"
-                  style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                  {title}
-                </Text>
-              </View>
-              <View style={[flex.flexRow, justify.center]}>
-                <Controller
-                  control={control}
-                  name={`${parentName}.${updateIndex}${
-                    childName ? `.${childName}` : ''
-                  }`}
-                  render={({field: {value, onChange}}) => (
-                    <View style={[flex.flex1, flex.flexCol, gap.medium]}>
-                      {currentTask && (
-                        <View style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper title="Task type" />
-                          <View style={[flex.flexRow, gap.default]}>
-                            {currentTask.tasks.map((task, index) => (
-                              <View key={index}>
-                                <SelectableTag
-                                  text={task.name}
-                                  isSelected={taskName === task.name}
-                                  onPress={() => {
-                                    setTaskName(task.name);
-                                  }}
-                                />
-                              </View>
-                            ))}
-                          </View>
-                        </View>
-                      )}
-                      {taskName.length > 0 && currentTaskTypes && (
-                        <View style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper title={`${taskName} type`} />
-                          <View style={[flex.flexRow, flex.wrap, gap.default]}>
-                            {currentTaskTypes?.map((types, index) => (
-                              <View key={index}>
-                                <SelectableTag
-                                  text={types}
-                                  isSelected={taskType === types}
-                                  onPress={() => {
-                                    setTaskType(types);
-                                  }}
-                                />
-                              </View>
-                            ))}
-                          </View>
-                        </View>
-                      )}
-                      <View style={[flex.flexCol, gap.default, items.start]}>
-                        <FormFieldHelper title="Description" />
-                        <View style={[flex.flexRow, gap.default, items.end]}>
-                          <View style={[flex.flex1]}>
-                            <FormlessCustomTextInput
-                              counter
-                              type={fieldType}
-                              max={maxFieldLength}
-                              defaultValue={`${value?.description || ''}`}
-                              placeholder={placeholder ?? `Add ${parentName}`}
-                              description={helperText}
-                              onChange={updateText}
+        <BottomSheetModalWithTitle title={title}>
+          <View style={[flex.flexRow]}>
+            <Controller
+              control={control}
+              name={`${parentName}.${updateIndex}${
+                childName ? `.${childName}` : ''
+              }`}
+              render={({field: {value, onChange}}) => (
+                <View style={[flex.flex1, flex.flexCol, gap.medium]}>
+                  {currentTask && (
+                    <View style={[flex.flexCol, gap.default]}>
+                      <FormFieldHelper title="Task type" />
+                      <View style={[flex.flexRow, gap.default]}>
+                        {currentTask.tasks.map((task, index) => (
+                          <View key={index}>
+                            <SelectableTag
+                              text={task.name}
+                              isSelected={taskName === task.name}
+                              onPress={() => {
+                                setTaskName(task.name);
+                              }}
                             />
                           </View>
-                          <FormlessCustomNumberInput
-                            min={1}
-                            max={5}
-                            type="field"
-                            onChange={setTaskQuantity}
-                          />
-                        </View>
+                        ))}
                       </View>
-                      <CustomButton
-                        disabled={
-                          taskQuantity < 1 ||
-                          taskName.length === 0 ||
-                          (currentTaskTypes &&
-                            currentTaskTypes?.length > 0 &&
-                            taskType?.length === 0)
-                        }
-                        text={updateIndex !== null ? 'Update' : 'Save'}
-                        onPress={() => {
-                          if (updateIndex !== null) {
-                            updateEntry(onChange);
-                          } else {
-                            addNewEntry();
-                          }
-                        }}
-                      />
                     </View>
                   )}
-                />
-              </View>
-            </View>
-          </VerticalPadding>
-        </HorizontalPadding>
+                  {taskName.length > 0 && currentTaskTypes && (
+                    <View style={[flex.flexCol, gap.default]}>
+                      <FormFieldHelper title={`${taskName} type`} />
+                      <View style={[flex.flexRow, flex.wrap, gap.default]}>
+                        {currentTaskTypes?.map((types, index) => (
+                          <View key={index}>
+                            <SelectableTag
+                              text={types}
+                              isSelected={taskType === types}
+                              onPress={() => {
+                                setTaskType(types);
+                              }}
+                            />
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                  <View style={[flex.flexCol, gap.default, items.start]}>
+                    <FormFieldHelper title="Description" />
+                    <View style={[flex.flexRow, gap.default, items.end]}>
+                      <View style={[flex.flex1]}>
+                        <FormlessCustomTextInput
+                          counter
+                          type={fieldType}
+                          max={maxFieldLength}
+                          defaultValue={`${value?.description || ''}`}
+                          placeholder={placeholder ?? `Add ${parentName}`}
+                          description={helperText}
+                          onChange={updateText}
+                        />
+                      </View>
+                      <FormlessCustomNumberInput
+                        min={1}
+                        max={5}
+                        type="field"
+                        onChange={setTaskQuantity}
+                      />
+                    </View>
+                  </View>
+                  <CustomButton
+                    disabled={
+                      taskQuantity < 1 ||
+                      taskName.length === 0 ||
+                      (currentTaskTypes &&
+                        currentTaskTypes?.length > 0 &&
+                        taskType?.length === 0)
+                    }
+                    text={updateIndex !== null ? 'Update' : 'Save'}
+                    onPress={() => {
+                      if (updateIndex !== null) {
+                        updateEntry(onChange);
+                      } else {
+                        addNewEntry();
+                      }
+                    }}
+                  />
+                </View>
+              )}
+            />
+          </View>
+        </BottomSheetModalWithTitle>
       </SheetModal>
     </>
   );

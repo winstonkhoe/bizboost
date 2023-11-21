@@ -1,24 +1,21 @@
 import React, {useEffect, useState} from 'react';
 import {Control, Controller, useFieldArray} from 'react-hook-form';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {FormlessCustomTextInput} from '../atoms/Input';
-import {FormFieldHelper} from '../atoms/FormLabel';
+import {FormFieldHelper, FormFieldType} from '../atoms/FormLabel';
 import {SheetModal} from '../../containers/SheetModal';
 import {flex, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
-import {textColor} from '../../styles/Text';
-import {COLOR} from '../../styles/Color';
-import {padding} from '../../styles/Padding';
-import {font} from '../../styles/Font';
 import {CustomButton} from '../atoms/Button';
 import {FieldArrayLabel} from '../molecules/FieldArrayLabel';
+import {BottomSheetModalWithTitle} from '../templates/BottomSheetModalWithTitle';
 
 type Props = {
   control: Control<any>;
   title: string;
   parentName: any; // string
   childName: string;
-  type?: string;
+  type?: FormFieldType;
   placeholder?: string;
   fieldType?: 'default' | 'textarea';
   maxFieldLength?: number;
@@ -109,22 +106,8 @@ const FieldArray = ({
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <View
-          style={[
-            flex.flexCol,
-            gap.xlarge2,
-            padding.horizontal.large,
-            padding.vertical.default,
-            padding.bottom.xlarge3,
-          ]}>
-          <View style={[flex.flexRow, justify.center]}>
-            <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-              {title}
-            </Text>
-          </View>
-          <View style={[flex.flexRow, justify.center]}>
+        <BottomSheetModalWithTitle title={title}>
+          <View style={[flex.flexRow]}>
             <Controller
               control={control}
               name={`${parentName}.${updateIndex}.${childName}`}
@@ -154,7 +137,7 @@ const FieldArray = ({
               )}
             />
           </View>
-        </View>
+        </BottomSheetModalWithTitle>
       </SheetModal>
     </>
   );

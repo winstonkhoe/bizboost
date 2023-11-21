@@ -6,8 +6,10 @@ import {flex} from '../../styles/Flex';
 import {font} from '../../styles/Font';
 import {gap} from '../../styles/Gap';
 
+export type FormFieldType = 'optional' | 'required';
+
 interface FormLabelProps {
-  type?: 'optional' | 'required';
+  type?: FormFieldType;
 }
 
 export const FormLabel = ({type = 'required'}: FormLabelProps) => {

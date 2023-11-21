@@ -73,6 +73,18 @@ export const formatDateToDayMonthYear = (date: Date): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
+export const formatDateToDayMonthYearHourMinute = (date: Date): string => {
+  const options = {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Jakarta',
+  } as const;
+  return `${date.toLocaleDateString('en-US', options)} WIB`;
+};
+
 export const formatDateToTime12Hrs = (date: Date): string => {
   let hours = date.getHours();
   let minutes = date.getMinutes();

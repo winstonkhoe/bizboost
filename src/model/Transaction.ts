@@ -8,6 +8,12 @@ import {StatusType} from '../components/atoms/StatusTag';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
+export enum BasicStatus {
+  pending = 'Pending',
+  approved = 'Approved',
+  rejected = 'Rejected',
+}
+
 export enum TransactionStatus {
   // public
   notRegistered = 'Not Registered',
@@ -21,6 +27,14 @@ export enum TransactionStatus {
   offerRejected = 'Offering Rejected', // soft delete
 
   // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
+
+  brainstormSubmitted = 'Brainstorm Submitted',
+  brainstormApproved = 'Brainstorm Approved',
+  brainstormRejected = 'Brainstorm Rejected',
+
+  contentSubmitted = 'Content Submitted',
+  contentApproved = 'Content Approved',
+  contentRejected = 'Content Rejected',
 }
 
 type TransactionStatusMap = {
@@ -35,7 +49,21 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.offering]: StatusType.warning,
   [TransactionStatus.offeringApproved]: StatusType.success,
   [TransactionStatus.offerRejected]: StatusType.danger,
+  [TransactionStatus.brainstormSubmitted]: StatusType.warning,
+  [TransactionStatus.brainstormApproved]: StatusType.success,
+  [TransactionStatus.brainstormRejected]: StatusType.danger,
+  [TransactionStatus.contentSubmitted]: StatusType.warning,
+  [TransactionStatus.contentApproved]: StatusType.success,
+  [TransactionStatus.contentRejected]: StatusType.danger,
 };
+
+interface Brainstorm {
+  status: BasicStatus;
+  content: string;
+  createdAt: number;
+  rejectReason?: string;
+  updatedAt?: number; //either approved or rejected
+}
 
 export class Transaction extends BaseModel {
   id?: string; // CampaignId + ContentCreatorId
@@ -44,6 +72,7 @@ export class Transaction extends BaseModel {
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   offeredPrice?: number;
   importantNotes?: string[];
+  brainstorms?: Brainstorm[];
   status?: TransactionStatus;
   updatedAt?: number;
 
@@ -53,6 +82,7 @@ export class Transaction extends BaseModel {
     businessPeopleId,
     offeredPrice,
     importantNotes,
+    brainstorms,
     status,
     updatedAt,
   }: Partial<Transaction>) {
@@ -66,6 +96,7 @@ export class Transaction extends BaseModel {
     this.campaignId = campaignId;
     this.offeredPrice = offeredPrice;
     this.importantNotes = importantNotes;
+    this.brainstorms = brainstorms;
     this.status = status;
     this.updatedAt = updatedAt;
   }
@@ -99,6 +130,7 @@ export class Transaction extends BaseModel {
         campaignId: data.campaignId.id,
         offeredPrice: data.offeredPrice,
         importantNotes: data.importantNotes,
+        brainstorms: data.brainstorms,
         status: data.status,
         updatedAt: data.updatedAt,
       });
@@ -111,6 +143,16 @@ export class Transaction extends BaseModel {
     (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
       return firestore().collection(TRANSACTION_COLLECTION);
     };
+
+  static getDocumentReference(
+    documentId: string,
+  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+    //TODO: tidy up, move somewhere else neater
+    firestore().settings({
+      ignoreUndefinedProperties: true,
+    });
+    return this.getCampaignCollections().doc(documentId);
+  }
 
   async register() {
     return await this.updateStatus(TransactionStatus.registrationPending);
@@ -273,6 +315,34 @@ export class Transaction extends BaseModel {
     }
   }
 
+  static getTransactionByContentCreator(
+    campaignId: string,
+    contentCreatorId: string,
+    onComplete: (transaction: Transaction) => void,
+  ) {
+    const id = campaignId + contentCreatorId;
+    const unsubscribe = Transaction.getDocumentReference(id).onSnapshot(
+      docSnapshot => {
+        if (docSnapshot.exists) {
+          onComplete(Transaction.fromSnapshot(docSnapshot));
+          return;
+        }
+        onComplete(
+          new Transaction({
+            campaignId,
+            contentCreatorId,
+            status: TransactionStatus.notRegistered,
+          }),
+        );
+      },
+      error => {
+        console.log(error);
+      },
+    );
+
+    return unsubscribe;
+  }
+
   static getTransactionStatusByContentCreator(
     campaignId: string,
     contentCreatorId: string,
@@ -300,6 +370,105 @@ export class Transaction extends BaseModel {
       );
 
     return unsubscribe;
+  }
+
+  getLatestBrainstorm(): Brainstorm | null {
+    const {brainstorms} = this;
+    if (brainstorms && brainstorms?.length > 0) {
+      return brainstorms.reduce((latest, brainstorm) => {
+        return brainstorm.createdAt > latest.createdAt ? brainstorm : latest;
+      }, brainstorms[0]);
+    }
+    return null;
+  }
+
+  getBrainstormIndex(brainstorm: Brainstorm): number {
+    const {brainstorms} = this;
+    if (brainstorms && brainstorms?.length > 0) {
+      return brainstorms.findIndex(
+        currentBrainstorm =>
+          currentBrainstorm.createdAt === brainstorm.createdAt,
+      );
+    }
+    return -1;
+  }
+
+  async submitBrainstorm(content: string): Promise<boolean> {
+    const {id} = this;
+    if (id) {
+      const brainstorm: Brainstorm = {
+        status: BasicStatus.pending,
+        content: content,
+        createdAt: new Date().getTime(),
+      };
+      try {
+        await Transaction.getDocumentReference(id).update({
+          brainstorms: firestore.FieldValue.arrayUnion(brainstorm),
+        });
+        return true;
+      } catch (error) {
+        console.log('submitBrainstorm error', error);
+        return false;
+      }
+    }
+    throw Error('Missing transaction id');
+  }
+
+  async rejectBrainstorm(rejectReason: string): Promise<boolean> {
+    const {id, brainstorms} = this;
+    if (id && brainstorms && brainstorms.length > 0) {
+      try {
+        let latestBrainstorm = this.getLatestBrainstorm();
+        if (latestBrainstorm) {
+          latestBrainstorm = {
+            ...latestBrainstorm,
+            status: BasicStatus.rejected,
+            rejectReason: rejectReason,
+            updatedAt: new Date().getTime(),
+          };
+          const brainstormIndex = this.getBrainstormIndex(latestBrainstorm);
+          if (brainstormIndex >= 0) {
+            brainstorms[brainstormIndex] = latestBrainstorm;
+            await Transaction.getDocumentReference(id).update({
+              brainstorms: brainstorms,
+            });
+            return true;
+          }
+        }
+      } catch (error) {
+        console.log('rejectBrainstorm error', error);
+        return false;
+      }
+    }
+    throw Error('Missing transaction id or brainstorms');
+  }
+
+  async approveBrainstorm(): Promise<boolean> {
+    const {id, brainstorms} = this;
+    if (id && brainstorms && brainstorms.length > 0) {
+      try {
+        let latestBrainstorm = this.getLatestBrainstorm();
+        if (latestBrainstorm) {
+          latestBrainstorm = {
+            ...latestBrainstorm,
+            status: BasicStatus.approved,
+            updatedAt: new Date().getTime(),
+          };
+          const brainstormIndex = this.getBrainstormIndex(latestBrainstorm);
+          if (brainstormIndex >= 0) {
+            brainstorms[brainstormIndex] = latestBrainstorm;
+            await Transaction.getDocumentReference(id).update({
+              brainstorms: brainstorms,
+            });
+            return true;
+          }
+        }
+      } catch (error) {
+        console.log('approveBrainstorm error', error);
+        return false;
+      }
+    }
+    throw Error('Missing transaction id or brainstorms');
   }
 
   //   static async getTransactionStatusByContentCreator(
