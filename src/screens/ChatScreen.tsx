@@ -135,9 +135,7 @@ const ChatScreen = ({route}: Props) => {
         className="h-full w-full"
         style={[flex.flexCol, background(COLOR.white)]}>
         {/* Chat Header */}
-        <View
-          className="absolute top-0 z-20 items-center justify-start"
-          style={[flex.flexRow]}>
+        <View className="items-center justify-start" style={[flex.flexRow]}>
           <ChatHeader
             recipientName={chat.recipient?.fullname ?? ''}
             recipientPicture={chat.recipient?.profilePicture ?? ''}
@@ -160,8 +158,7 @@ const ChatScreen = ({route}: Props) => {
             if (scrollViewRef.current) {
               scrollViewRef.current?.scrollToEnd({animated: true});
             }
-          }}
-          className="mt-16">
+          }}>
           <View style={[flex.flexCol, gap.default]} className="py-3">
             {chatMessages &&
               chatMessages.map((message: Message, index: number) => (
