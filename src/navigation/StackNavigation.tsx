@@ -27,6 +27,7 @@ import SplashScreen from '../screens/SplashScreen';
 import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
+import {TransactionStatus} from '../model/Transaction';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -80,7 +81,10 @@ export type AuthenticatedStack = {
 
   [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
   [AuthenticatedNavigation.ChatList]: undefined;
-  [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
+  [AuthenticatedNavigation.CampaignRegistrants]: {
+    campaignId: string;
+    initialTransactionStatusFilter?: TransactionStatus;
+  };
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};

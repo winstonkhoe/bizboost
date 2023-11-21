@@ -296,7 +296,11 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       onPress={() => {
                         navigation.navigate(
                           AuthenticatedNavigation.CampaignRegistrants,
-                          {campaignId: campaignId},
+                          {
+                            campaignId: campaignId,
+                            initialTransactionStatusFilter:
+                              TransactionStatus.registrationPending,
+                          },
                         );
                       }}
                       style={[flex.flexRow, padding.default, gap.small]}>
