@@ -160,6 +160,44 @@ export class Transaction extends BaseModel {
     }
   }
 
+  static getAllTransactionsByCCBP(
+    businessPeopleId: string,
+    contentCreatorId: string,
+    onComplete: (transactions: Transaction[]) => void,
+  ) {
+    try {
+      const unsubscribe = firestore()
+        .collection(TRANSACTION_COLLECTION)
+        .where(
+          'businessPeopleId',
+          '==',
+          firestore().collection('users').doc(businessPeopleId),
+        )
+        .where(
+          'contentCreatorId',
+          '==',
+          firestore().collection('users').doc(contentCreatorId),
+        )
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete([]);
+            }
+
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
   static getAllTransactionsByRole(
     userId: string,
     role: UserRole,

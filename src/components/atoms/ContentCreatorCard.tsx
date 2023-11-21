@@ -1,22 +1,12 @@
-import React, {useState} from 'react';
-
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  ScrollView,
-  Pressable,
-} from 'react-native';
+import React from 'react';
+import {View, Text, StyleSheet, Dimensions, Pressable} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import ScaledImage from './ScaledImage';
-import {flex} from '../../styles/Flex';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {useNavigation} from '@react-navigation/native';
-import { shadow } from '../../styles/Shadow';
 
 interface ContentCreatorCardProps {
   id: string;
@@ -24,50 +14,64 @@ interface ContentCreatorCardProps {
   imageUrl: string;
   categories?: string[];
 }
+const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
+  ({id, name, imageUrl, categories}) => {
+    console.log(name, imageUrl);
+    const navigation = useNavigation<NavigationStackProps>();
 
-const ContentCreatorCard: React.FC<ContentCreatorCardProps> = ({
-  id,
-  name,
-  imageUrl,
-  categories,
-}) => {
-  const navigation = useNavigation<NavigationStackProps>();
+    const renderCategories = () => {
+      const MAX_DISPLAY_CATEGORIES = 1;
 
-  return (
-    <View style={[styles.cardContainer, shadow.default]}>
-      <Pressable
-        onPress={() => {
-          navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
-            contentCreatorId: id,
-          });
-        }}>
-        <View style={{width: Dimensions.get('window').width * 0.45}}>
-          <ScaledImage
-            uri={imageUrl}
-            style={styles.image}
-            width={Dimensions.get('window').width * 0.45}
-          />
-          <LinearGradient
-            colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
-            style={styles.nameContainer}>
-            <Text style={styles.name}>{name}</Text>
-            <Text style={styles.location}>Tangerang, Indonesia</Text>
-          </LinearGradient>
+      if (!categories || categories.length === 0) {
+        return null;
+      }
+
+      const visibleCategories = categories.slice(0, MAX_DISPLAY_CATEGORIES);
+      const remainingCategories = categories.slice(MAX_DISPLAY_CATEGORIES);
+
+      return (
+        <View style={styles.categoriesContainer}>
+          {visibleCategories.map((category, idx) => (
+            <View key={idx} style={styles.categoryContainer}>
+              <Text style={styles.category}>{category}</Text>
+            </View>
+          ))}
+          {remainingCategories.length > 0 && (
+            <View style={styles.categoryContainer}>
+              <Text style={styles.category}>+{remainingCategories.length}</Text>
+            </View>
+          )}
         </View>
-      </Pressable>
-      <ScrollView horizontal style={styles.categoriesContainer}>
-        <View style={flex.flexRow} className="pt-1 gap-x-1">
-          {categories &&
-            categories.map((category, idx) => (
-              <View key={idx} style={styles.categoryContainer}>
-                <Text style={styles.category}>{category}</Text>
-              </View>
-            ))}
-        </View>
-      </ScrollView>
-    </View>
-  );
-};
+      );
+    };
+
+    return (
+      <View style={styles.cardContainer}>
+        <Pressable
+          onPress={() => {
+            navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
+              contentCreatorId: id,
+            });
+          }}>
+          <View style={{width: Dimensions.get('window').width * 0.45}}>
+            <ScaledImage
+              uri={imageUrl}
+              style={styles.image}
+              width={Dimensions.get('window').width * 0.45}
+            />
+            <LinearGradient
+              colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
+              style={styles.nameContainer}>
+              <Text style={styles.name}>{name}</Text>
+              <Text style={styles.location}>Tangerang, Indonesia</Text>
+            </LinearGradient>
+          </View>
+          {renderCategories()}
+        </Pressable>
+      </View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   cardContainer: {
@@ -88,14 +92,20 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 10,
   },
   categoriesContainer: {
-    width: Dimensions.get('window').width * 0.45,
-    paddingVertical: 5,
+    // position: 'absolute',
+    // top: 0,
+    // right: 0,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 3,
+    paddingTop: 5,
+    zIndex: 1,
   },
   categoryContainer: {
     backgroundColor: 'rgba(37,136,66, 1)',
-    // backgroundColor: 'rgba(0, 0, 0, 0.8)',
     paddingHorizontal: 5,
     borderRadius: 5,
+    marginRight: 5,
   },
   category: {
     color: 'white',

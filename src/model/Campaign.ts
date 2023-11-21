@@ -172,6 +172,46 @@ export class Campaign extends BaseModel {
     }
   }
 
+  static async getRegistrationCampaignByUser(
+    userId: string,
+  ): Promise<Campaign[]> {
+    try {
+      const userRef = User.getDocumentReference(userId);
+
+      // Get today's timestamp in milliseconds
+      const todayTimestamp = new Date().getTime();
+
+      const campaigns = await this.getCampaignCollections()
+        .where('userId', '==', userRef)
+        .get();
+
+      if (campaigns.empty) {
+        throw Error('No Campaigns!');
+      }
+
+      const validCampaigns = campaigns.docs
+        .map(doc => this.fromSnapshot(doc))
+        .filter(campaign => {
+          if (campaign.timeline) {
+            const registrationStep = campaign.timeline.find(
+              step => step.step === CampaignStep.Registration,
+            );
+
+            return (
+              registrationStep &&
+              todayTimestamp >= registrationStep.start &&
+              todayTimestamp <= registrationStep.end
+            );
+          }
+          return false;
+        });
+
+      return validCampaigns;
+    } catch (error) {
+      throw Error('Error!');
+    }
+  }
+
   static getUserCampaignsReactive(
     userId: string,
     callback: (campaigns: Campaign[], unsubscribe: () => void) => void,

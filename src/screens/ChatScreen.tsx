@@ -22,6 +22,7 @@ import {
 import {Button} from 'react-native-elements';
 import FloatingOffer from '../components/chat/FloatingOffer';
 import {UserRole} from '../model/User';
+import {Transaction} from '../model/Transaction';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -30,6 +31,7 @@ type Props = NativeStackScreenProps<
 const ChatScreen = ({route}: Props) => {
   const {chat} = route.params;
   const [chatData, setChatData] = useState<Chat>(chat.chat);
+  const [offers, setOffers] = useState<Transaction[]>([]);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {uid, user, activeRole} = useUser();
 
@@ -47,6 +49,21 @@ const ChatScreen = ({route}: Props) => {
 
     return () => unsubscribe();
   }, [chat.chat.id]);
+
+  const businessPeopleId = chat.chat.participants.find(
+    participant => participant.role === UserRole.BusinessPeople,
+  );
+  const contentCreatorId = chat.chat.participants.find(
+    participant => participant.role === UserRole.BusinessPeople,
+  );
+
+  useEffect(() => {
+    Transaction.getAllTransactionsByCCBP(
+      businessPeopleId?.ref ?? '',
+      contentCreatorId?.ref ?? '',
+      transactions => setOffers(transactions),
+    );
+  }, [businessPeopleId, contentCreatorId]);
 
   useEffect(() => {
     // Assuming that chat.messages is an array of Message objects
@@ -105,6 +122,8 @@ const ChatScreen = ({route}: Props) => {
     }
   };
 
+  console.log(chat.recipient);
+
   return (
     <SafeAreaContainer>
       <View
@@ -122,7 +141,7 @@ const ChatScreen = ({route}: Props) => {
 
         {/* Floating Tab */}
         {/* if there is offer then add margin top for the chats */}
-        <FloatingOffer />
+        {offers && <FloatingOffer offers={offers} />}
 
         {/* Chat Messages */}
         <ScrollView
@@ -168,16 +187,8 @@ const ChatScreen = ({route}: Props) => {
                   cropping: true,
                 }}
                 handleImageUpload={handleImageUpload}
-                businessPeopleId={
-                  chat.chat.participants.find(
-                    participant => participant.role === UserRole.BusinessPeople,
-                  )?.ref ?? ''
-                }
-                contentCreatorId={
-                  chat.chat.participants.find(
-                    participant => participant.role === UserRole.ContentCreator,
-                  )?.ref ?? ''
-                }
+                businessPeopleId={businessPeopleId?.ref ?? ''}
+                contentCreatorId={contentCreatorId?.ref ?? ''}
               />
             </View>
           ) : null}

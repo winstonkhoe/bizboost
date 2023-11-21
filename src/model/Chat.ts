@@ -206,10 +206,12 @@ export class Chat extends BaseModel {
       chat: this.toJSON(),
       recipient: {},
     };
+    console.log('convertToChatView', this.toJSON());
 
     for (const participant of this.participants || []) {
+      console.log('[chats.ts model] participant:' + participant.ref);
+      console.log('[chats.ts model] currentUserId:' + currentUserId);
       if (participant.ref !== currentUserId) {
-        console.log('[chats.ts hook] participant:' + participant.ref);
         const role = participant.role;
         const ref = participant.ref;
         console.log(ref);

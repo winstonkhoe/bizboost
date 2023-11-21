@@ -49,8 +49,9 @@ const ModalCampaignScreen = ({route}: Props) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    Campaign.getUserCampaigns(uid).then(setCampaigns);
+    Campaign.getRegistrationCampaignByUser(uid).then(setCampaigns);
   }, [uid]);
+  console.log(campaigns);
 
   const toggleCampaignSelection = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
@@ -90,48 +91,52 @@ const ModalCampaignScreen = ({route}: Props) => {
 
   return (
     <SafeAreaContainer enable>
-      <View className="flex-1" style={[flex.flexCol, gap.small]}>
-        <View className="items-center" style={[flex.flexRow, gap.default]}>
-          <CloseModal closeEventType="campaign" />
-          <Text className="text-lg font-bold">Campaigns</Text>
-        </View>
-        <ScrollView contentContainerStyle={{flexGrow: 1}}>
-          <VerticalPadding paddingSize="xlarge">
-            <HorizontalPadding paddingSize="medium">
-              <View style={[flex.flexRow, gap.default]}>
-                <View
-                  className="flex-1 justify-start"
-                  style={[flex.flexCol, gap.default]}>
-                  {getFilteredCampaignsByParity('even')}
+      {campaigns ? (
+        <View className="flex-1" style={[flex.flexCol, gap.small]}>
+          <View className="items-center" style={[flex.flexRow, gap.default]}>
+            <CloseModal closeEventType="campaign" />
+            <Text className="text-lg font-bold">Campaigns</Text>
+          </View>
+          <ScrollView contentContainerStyle={{flexGrow: 1}}>
+            <VerticalPadding paddingSize="xlarge">
+              <HorizontalPadding paddingSize="medium">
+                <View style={[flex.flexRow, gap.default]}>
+                  <View
+                    className="flex-1 justify-start"
+                    style={[flex.flexCol, gap.default]}>
+                    {getFilteredCampaignsByParity('even')}
+                  </View>
+                  <View
+                    className="flex-1 justify-start"
+                    style={[flex.flexCol, gap.default]}>
+                    {getFilteredCampaignsByParity('odd')}
+                  </View>
                 </View>
-                <View
-                  className="flex-1 justify-start"
-                  style={[flex.flexCol, gap.default]}>
-                  {getFilteredCampaignsByParity('odd')}
-                </View>
-              </View>
-            </HorizontalPadding>
-          </VerticalPadding>
-        </ScrollView>
-        <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <HorizontalPadding>
-              <View style={[flex.flexRow, gap.default]}>
-                {selectedCampaign && (
-                  <CampaignSelectedPreview campaign={selectedCampaign} />
-                )}
-              </View>
-            </HorizontalPadding>
+              </HorizontalPadding>
+            </VerticalPadding>
           </ScrollView>
-          <HorizontalPadding>
-            <CustomButton
-              text="Choose"
-              disabled={selectedCampaign === null}
-              onPress={emitChangesAndClose}
-            />
-          </HorizontalPadding>
+          <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <HorizontalPadding>
+                <View style={[flex.flexRow, gap.default]}>
+                  {selectedCampaign && (
+                    <CampaignSelectedPreview campaign={selectedCampaign} />
+                  )}
+                </View>
+              </HorizontalPadding>
+            </ScrollView>
+            <HorizontalPadding>
+              <CustomButton
+                text="Choose"
+                disabled={selectedCampaign === null}
+                onPress={emitChangesAndClose}
+              />
+            </HorizontalPadding>
+          </View>
         </View>
-      </View>
+      ) : (
+        <Text>No campaigns yet</Text>
+      )}
     </SafeAreaContainer>
   );
 };

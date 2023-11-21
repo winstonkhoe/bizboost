@@ -11,11 +11,15 @@ import ChevronDown from '../../assets/vectors/chevron-down.svg';
 import ChevronUp from '../../assets/vectors/chevron-up.svg';
 import {COLOR} from '../../styles/Color';
 import {Button} from 'react-native-elements';
+import {Transaction} from '../../model/Transaction';
 
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
 
-const FloatingOffer = () => {
+interface Props {
+  offers: Transaction[];
+}
+const FloatingOffer = ({offers}: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Function to toggle the expansion
@@ -23,6 +27,7 @@ const FloatingOffer = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsExpanded(!isExpanded);
   };
+  console.log('Offers: ' + offers);
 
   return (
     <View

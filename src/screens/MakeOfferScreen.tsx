@@ -30,6 +30,7 @@ import {Chat, ChatView} from '../model/Chat';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
+import {CustomButton} from '../components/atoms/Button';
 
 export type MakeOfferFormData = {
   campaign: string;
@@ -56,7 +57,7 @@ const MakeOfferScreen = ({route}: Props) => {
   };
 
   const onSubmit = (data: MakeOfferFormData) => {
-    console.log(data);
+    console.log('onsubmit:', data);
 
     const transaction = new Transaction({
       contentCreatorId: contentCreatorId,
@@ -66,9 +67,9 @@ const MakeOfferScreen = ({route}: Props) => {
       offeredPrice: data.fee ?? 0,
     });
 
-    console.log(transaction);
     transaction.offer().then(isSuccess => {
       if (isSuccess) {
+        console.log(transaction);
         const participants = [
           {ref: businessPeopleId, role: UserRole.BusinessPeople},
           {ref: contentCreatorId, role: UserRole.ContentCreator},
@@ -87,8 +88,9 @@ const MakeOfferScreen = ({route}: Props) => {
             );
           });
         });
+        console.log('matchingChatView: ', matchingChatView);
 
-        if (matchingChatView) {
+        if (matchingChatView !== undefined) {
           navigation.navigate(AuthenticatedNavigation.ChatDetail, {
             chat: matchingChatView,
           });
@@ -98,7 +100,9 @@ const MakeOfferScreen = ({route}: Props) => {
           });
           chat.insert().then(success => {
             if (success) {
+              console.log('onsubmit chat:', chat);
               chat.convertToChatView(uid).then(cv => {
+                console.log('cv:', cv);
                 navigation.navigate(AuthenticatedNavigation.ChatDetail, {
                   chat: cv,
                 });
@@ -107,6 +111,7 @@ const MakeOfferScreen = ({route}: Props) => {
           });
         }
       } else {
+        console.log('error line 112');
         navigation.goBack();
       }
     });
@@ -138,6 +143,7 @@ const MakeOfferScreen = ({route}: Props) => {
                       type="field"
                       rules={{
                         required: 'Fee is required',
+                        min: 500000,
                       }}
                     />
                   </View>
@@ -164,11 +170,11 @@ const MakeOfferScreen = ({route}: Props) => {
                 </HorizontalPadding>
               </View>
               <VerticalPadding paddingSize="large">
-                <TouchableOpacity
-                  className="bg-primary p-3 rounded-md mt-4"
-                  onPress={methods.handleSubmit(onSubmit)}>
-                  <Text className="text-white text-center">Make Offer</Text>
-                </TouchableOpacity>
+                <CustomButton
+                  onPress={methods.handleSubmit(onSubmit)}
+                  text={'Make Offer'}
+                  disabled={!selectedCampaign}
+                />
               </VerticalPadding>
             </View>
           </FormProvider>
