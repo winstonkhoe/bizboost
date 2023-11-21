@@ -3,7 +3,6 @@ import {Pressable, Text} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
 import {
   HorizontalPadding,
-  VerticalPadding,
 } from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import PhotosIcon from '../assets/vectors/photos.svg';
@@ -33,7 +32,6 @@ import {
   CampaignSteps,
   CampaignTimeline,
   CampaignType,
-  CampaignTypes,
 } from '../model/Campaign';
 import FieldArray from '../components/organisms/FieldArray';
 import {useUser} from '../hooks/user';
@@ -78,7 +76,7 @@ import {LoadingScreen} from './LoadingScreen';
 export type CampaignFormData = {
   title: string;
   description: string;
-  type: CampaignTypes;
+  type: CampaignType;
   fee: number;
   slot: number;
   criterias: StringObject[]; // workaround soalnnya fieldarray harus array of object

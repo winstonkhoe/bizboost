@@ -39,8 +39,6 @@ export enum CampaignType {
   Private = 'Private',
 }
 
-export type CampaignTypes = CampaignType.Public | CampaignType.Private;
-
 export const CAMPAIGN_COLLECTION = 'campaigns';
 
 export class Campaign extends BaseModel {
@@ -48,7 +46,7 @@ export class Campaign extends BaseModel {
   userId?: string;
   title?: string;
   description?: string;
-  type?: CampaignTypes;
+  type?: CampaignType;
   locations?: string[];
   categories?: string[];
   platforms?: CampaignPlatform[];
