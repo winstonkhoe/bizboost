@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Text, View, Alert} from 'react-native';
 import {User, UserAuthProviderData} from '../model/User';
 import {useForm, FormProvider} from 'react-hook-form';
@@ -27,6 +27,7 @@ import {
   GuestNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {LoadingScreen} from './LoadingScreen';
 
 type FormData = {
   email: string;
@@ -34,50 +35,66 @@ type FormData = {
 };
 const LoginScreen = () => {
   const methods = useForm<FormData>({mode: 'all'});
+  const [isLoading, setIsLoading] = useState(false);
 
   const {handleSubmit} = methods;
 
   const onSubmit = (data: FormData) => {
-    User.login(data.email, data.password).catch(error => {
-      Alert.alert('Error!', error.message, [
-        {
-          text: 'OK',
-          onPress: () => console.log('OK Pressed'),
-          style: 'cancel',
-        },
-      ]);
-    });
+    setIsLoading(true);
+    User.login(data.email, data.password)
+      .catch(error => {
+        Alert.alert('Error!', error.message, [
+          {
+            text: 'OK',
+            onPress: () => console.log('OK Pressed'),
+            style: 'cancel',
+          },
+        ]);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   const navigation = useNavigation<NavigationStackProps>();
   const dispatch = useAppDispatch();
 
   const continueWithGoogle = async () => {
-    const data = await User.continueWithGoogle();
-    if (data.token && data.token !== '') {
-      console.log(data);
-      dispatch(
-        updateSignupData(
-          new User({
-            email: data.email,
-          }).toJSON(),
-        ),
-      );
-      dispatch(
-        updateTemporarySignupData({
-          fullname: data.name,
-          profilePicture: data.photo,
-          token: data.token,
-        }),
-      );
-      dispatch(setProviderId(data.id));
-      dispatch(setSignupProvider(Provider.GOOGLE));
-      navigateToSignupPage();
-    }
+    setIsLoading(true);
+    User.continueWithGoogle()
+      .then(data => {
+        if (data.token && data.token !== '') {
+          console.log(data);
+          dispatch(
+            updateSignupData(
+              new User({
+                email: data.email,
+              }).toJSON(),
+            ),
+          );
+          dispatch(
+            updateTemporarySignupData({
+              fullname: data.name,
+              profilePicture: data.photo,
+              token: data.token,
+            }),
+          );
+          dispatch(setProviderId(data.id));
+          dispatch(setSignupProvider(Provider.GOOGLE));
+          navigateToSignupPage();
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   const continueWithFacebook = () => {
     try {
+      setIsLoading(true);
       User.continueWithFacebook((data: UserAuthProviderData) => {
         dispatch(
           updateSignupData(
@@ -96,8 +113,12 @@ const LoginScreen = () => {
         );
         dispatch(setProviderId(data.id));
         dispatch(setSignupProvider(Provider.FACEBOOK));
+        setIsLoading(false);
         navigateToSignupPage();
-      }).catch(err => console.log('err nih', err));
+      }).catch(err => {
+        console.log('err nih', err);
+        setIsLoading(false);
+      });
     } catch (error) {
       console.log('trycatch fb', error);
     }
@@ -108,70 +129,75 @@ const LoginScreen = () => {
   };
 
   return (
-    <PageWithBackButton enableSafeAreaContainer fullHeight>
-      <View className="h-full">
-        <FormProvider {...methods}>
-          <VerticalPadding paddingSize="large">
-            <HorizontalPadding paddingSize="large">
-              <View
-                className="h-full items-center justify-center"
-                style={[flex.flexCol, gap.medium]}>
-                {/* App Bar */}
-                <View className="p-4">
-                  <Text
-                    className="text-2xl font-bold"
-                    style={[textColor(COLOR.text.neutral.high)]}>
-                    Login
-                  </Text>
-                </View>
+    <>
+      {isLoading && <LoadingScreen />}
+      <PageWithBackButton enableSafeAreaContainer fullHeight>
+        <View className="h-full">
+          <FormProvider {...methods}>
+            <VerticalPadding paddingSize="large">
+              <HorizontalPadding paddingSize="large">
+                <View
+                  className="h-full items-center justify-center"
+                  style={[flex.flexCol, gap.medium]}>
+                  {/* App Bar */}
+                  <View className="p-4">
+                    <Text
+                      className="text-2xl font-bold"
+                      style={[textColor(COLOR.text.neutral.high)]}>
+                      Login
+                    </Text>
+                  </View>
 
-                {/* Content */}
-                <View className="w-full" style={[flex.flexCol, gap.small]}>
-                  <CustomTextInput
-                    label="Email"
-                    name="email"
-                    rules={{
-                      required: 'Email is required',
-                      pattern: {
-                        value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-                        message: 'Email address must be a valid address',
-                      },
-                    }}
-                  />
-                  <CustomTextInput
-                    label="Password"
-                    name="password"
-                    hideInputText
-                    rules={{
-                      required: 'Password is required',
-                    }}
-                  />
-                </View>
-
-                <View className="w-full pt-5" style={[flex.flexCol]}>
-                  {/* Login Button */}
-                  <View className="w-full" style={[flex.flexCol, gap.default]}>
-                    <CustomButton
-                      text="Log In"
-                      rounded="max"
-                      onPress={handleSubmit(onSubmit)}
+                  {/* Content */}
+                  <View className="w-full" style={[flex.flexCol, gap.small]}>
+                    <CustomTextInput
+                      label="Email"
+                      name="email"
+                      rules={{
+                        required: 'Email is required',
+                        pattern: {
+                          value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                          message: 'Email address must be a valid address',
+                        },
+                      }}
                     />
-                    <AuthProviderButton
-                      provider={Provider.GOOGLE}
-                      onPress={continueWithGoogle}
-                    />
-                    <AuthProviderButton
-                      provider={Provider.FACEBOOK}
-                      onPress={continueWithFacebook}
+                    <CustomTextInput
+                      label="Password"
+                      name="password"
+                      hideInputText
+                      rules={{
+                        required: 'Password is required',
+                      }}
                     />
                   </View>
+
+                  <View className="w-full pt-5" style={[flex.flexCol]}>
+                    {/* Login Button */}
+                    <View
+                      className="w-full"
+                      style={[flex.flexCol, gap.default]}>
+                      <CustomButton
+                        text="Log In"
+                        rounded="max"
+                        onPress={handleSubmit(onSubmit)}
+                      />
+                      <AuthProviderButton
+                        provider={Provider.GOOGLE}
+                        onPress={continueWithGoogle}
+                      />
+                      <AuthProviderButton
+                        provider={Provider.FACEBOOK}
+                        onPress={continueWithFacebook}
+                      />
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </HorizontalPadding>
-          </VerticalPadding>
-        </FormProvider>
-      </View>
-    </PageWithBackButton>
+              </HorizontalPadding>
+            </VerticalPadding>
+          </FormProvider>
+        </View>
+      </PageWithBackButton>
+    </>
   );
 };
 
