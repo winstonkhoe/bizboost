@@ -64,7 +64,10 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
         console.log('open CC detail / campaign detail');
-        // navigation.navigate(AuthenticatedNavigation.)
+        navigation.navigate(AuthenticatedNavigation.CampaignRegistrants, {
+          campaignId: campaign?.id || '',
+          initialTransactionStatusFilter: transaction.status,
+        });
       }}
       imageSource={
         contentCreator?.contentCreator?.profilePicture
