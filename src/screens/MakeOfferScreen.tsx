@@ -31,6 +31,7 @@ import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
 import {CustomButton} from '../components/atoms/Button';
+import {Offer} from '../model/Offer';
 
 export type MakeOfferFormData = {
   campaign: string;
@@ -64,54 +65,65 @@ const MakeOfferScreen = ({route}: Props) => {
       businessPeopleId: businessPeopleId,
       campaignId: selectedCampaign.id ?? '',
       importantNotes: data.importantNotes.map(getStringObjectValue) ?? [],
-      offeredPrice: data.fee ?? 0,
     });
 
     transaction.offer().then(isSuccess => {
       if (isSuccess) {
         console.log(transaction);
-        const participants = [
-          {ref: businessPeopleId, role: UserRole.BusinessPeople},
-          {ref: contentCreatorId, role: UserRole.ContentCreator},
-        ];
-        const matchingChatView = chatViews.find(chatView => {
-          const chatParticipants = chatView.chat.participants || [];
 
-          if (chatParticipants.length !== participants.length) {
-            return false;
-          }
-
-          return chatParticipants.every((participant, index) => {
-            return (
-              participant.ref === participants[index].ref &&
-              participant.role === participants[index].role
-            );
-          });
+        const offer = new Offer({
+          contentCreatorId: contentCreatorId,
+          businessPeopleId: businessPeopleId,
+          campaignId: selectedCampaign.id ?? '',
+          importantNotes: data.importantNotes.map(getStringObjectValue) ?? [],
+          offeredPrice: data.fee ?? 0,
         });
-        console.log('matchingChatView: ', matchingChatView);
 
-        if (matchingChatView !== undefined) {
-          navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-            chat: matchingChatView,
-          });
-        } else {
-          const chat = new Chat({
-            participants: participants,
-          });
-          chat.insert().then(success => {
-            if (success) {
-              console.log('onsubmit chat:', chat);
-              chat.convertToChatView(activeRole).then(cv => {
-                console.log('cv:', cv);
-                navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                  chat: cv,
-                });
+        offer.insert().then(insertion => {
+          if (insertion) {
+            const participants = [
+              {ref: businessPeopleId, role: UserRole.BusinessPeople},
+              {ref: contentCreatorId, role: UserRole.ContentCreator},
+            ];
+            const matchingChatView = chatViews.find(chatView => {
+              const chatParticipants = chatView.chat.participants || [];
+
+              if (chatParticipants.length !== participants.length) {
+                return false;
+              }
+
+              return chatParticipants.every((participant, index) => {
+                return (
+                  participant.ref === participants[index].ref &&
+                  participant.role === participants[index].role
+                );
+              });
+            });
+            console.log('matchingChatView: ', matchingChatView);
+
+            if (matchingChatView !== undefined) {
+              navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+                chat: matchingChatView,
+              });
+            } else {
+              const chat = new Chat({
+                participants: participants,
+              });
+              chat.insert().then(success => {
+                if (success) {
+                  console.log('onsubmit chat:', chat);
+                  chat.convertToChatView(activeRole).then(cv => {
+                    console.log('cv:', cv);
+                    navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+                      chat: cv,
+                    });
+                  });
+                }
               });
             }
-          });
-        }
+          }
+        });
       } else {
-        console.log('error line 112');
         navigation.goBack();
       }
     });

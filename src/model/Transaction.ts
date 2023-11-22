@@ -71,7 +71,7 @@ export class Transaction extends BaseModel {
   contentCreatorId?: string;
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
-  offeredPrice?: number;
+  transactionAmount?: number;
   importantNotes?: string[];
   brainstorms?: Brainstorm[];
   status?: TransactionStatus;
@@ -81,7 +81,7 @@ export class Transaction extends BaseModel {
     contentCreatorId,
     campaignId,
     businessPeopleId,
-    offeredPrice,
+    transactionAmount,
     importantNotes,
     brainstorms,
     status,
@@ -95,7 +95,7 @@ export class Transaction extends BaseModel {
     this.contentCreatorId = contentCreatorId;
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
-    this.offeredPrice = offeredPrice;
+    this.transactionAmount = transactionAmount;
     this.importantNotes = importantNotes;
     this.brainstorms = brainstorms;
     this.status = status;
@@ -108,7 +108,7 @@ export class Transaction extends BaseModel {
       Content Creator ID: ${this.contentCreatorId}
       Campaign ID: ${this.campaignId}
       Business People ID: ${this.businessPeopleId}
-      Offered Price: ${this.offeredPrice}
+      Offered Price: ${this.transactionAmount}
       Important Notes: ${this.importantNotes?.join(', ') || 'N/A'}
       Status: ${this.status}
       Updated At: ${
@@ -129,7 +129,7 @@ export class Transaction extends BaseModel {
         contentCreatorId: data.contentCreatorId?.id,
         businessPeopleId: data.businessPeopleId?.id,
         campaignId: data.campaignId.id,
-        offeredPrice: data.offeredPrice,
+        transactionAmount: data.transactionAmount,
         importantNotes: data.importantNotes,
         brainstorms: data.brainstorms,
         status: data.status,
@@ -160,30 +160,7 @@ export class Transaction extends BaseModel {
   }
 
   async offer() {
-    try {
-      const {id, ...rest} = this;
-      const data = {
-        ...rest,
-        contentCreatorId: User.getDocumentReference(
-          this.contentCreatorId ?? '',
-        ),
-        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
-        businessPeopleId: User.getDocumentReference(
-          this.businessPeopleId ?? '',
-        ),
-        status: TransactionStatus.offering,
-        updatedAt: new Date().getTime(),
-      };
-
-      const docRef = await firestore()
-        .collection(TRANSACTION_COLLECTION)
-        .add(data);
-      this.id = docRef.id;
-      return true;
-    } catch (error) {
-      console.log(error);
-    }
-    throw Error('Error!');
+    return await this.updateStatus(TransactionStatus.offering);
   }
 
   async updateStatus(status: TransactionStatus) {

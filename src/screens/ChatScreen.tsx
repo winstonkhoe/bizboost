@@ -23,6 +23,7 @@ import {Button} from 'react-native-elements';
 import FloatingOffer from '../components/chat/FloatingOffer';
 import {UserRole} from '../model/User';
 import {Transaction} from '../model/Transaction';
+import {Offer} from '../model/Offer';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -31,7 +32,7 @@ type Props = NativeStackScreenProps<
 const ChatScreen = ({route}: Props) => {
   const {chat} = route.params;
   const [chatData, setChatData] = useState<Chat>(chat.chat);
-  const [offers, setOffers] = useState<Transaction[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {uid, user, activeRole} = useUser();
 
@@ -58,17 +59,23 @@ const ChatScreen = ({route}: Props) => {
   );
 
   useEffect(() => {
-    Transaction.getAllTransactionsByCCBP(
+    Offer.getAllByCCBP(
       businessPeopleId?.ref ?? '',
       contentCreatorId?.ref ?? '',
-      transactions => {
-        const sortedTransactions = transactions
+      res => {
+        const sortedTransactions = res
           .slice()
-          .sort((a, b) => b.updatedAt - a.updatedAt);
+          .sort((a, b) => b.createdAt - a.createdAt);
         setOffers(sortedTransactions);
       },
     );
   }, [businessPeopleId, contentCreatorId]);
+
+  console.log('--------------------------------Chat Screen');
+  for (let i = 0; i < offers.length; i++) {
+    console.log(offers[i].toString());
+  }
+  console.log('--------------------------------Chat Screen');
 
   useEffect(() => {
     // Assuming that chat.messages is an array of Message objects
@@ -144,7 +151,7 @@ const ChatScreen = ({route}: Props) => {
 
         {/* Floating Tab */}
         {/* if there is offer then add margin top for the chats */}
-        {offers && (
+        {offers && offers.length > 0 && (
           <FloatingOffer
             offers={offers}
             recipientName={chat.recipient?.fullname ?? ''}
