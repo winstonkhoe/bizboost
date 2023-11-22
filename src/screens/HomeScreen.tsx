@@ -95,6 +95,7 @@ const HomeScreen = () => {
               </HorizontalPadding>
             </View>
 
+            {/* TODO: ini cuma yang belom finish */}
             <View className="my-6" style={[flex.flexCol]}>
               <HorizontalPadding>
                 <HomeSectionHeader

@@ -38,3 +38,21 @@ export const uploadFile = ({
       });
   });
 };
+
+export const deleteFileByURL = (url: string) => {
+  if (!url.startsWith('http')) {
+    return;
+  }
+
+  const reference = storage().refFromURL(url);
+  console.log('masuk ref');
+  reference
+    .delete()
+    .then(() => {
+      console.log('File deleted successfully!');
+    })
+    .catch(error => {
+      console.log('File deletion error!');
+      console.log(error);
+    });
+};

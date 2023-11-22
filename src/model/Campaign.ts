@@ -212,8 +212,8 @@ export class Campaign extends BaseModel {
 
   static getUserCampaignsReactive(
     userId: string,
-    callback: (campaigns: Campaign[], unsubscribe: () => void) => void,
-  ): void {
+    callback: (campaigns: Campaign[]) => void,
+  ) {
     try {
       const userRef = User.getDocumentReference(userId);
       const subscriber = this.getCampaignCollections()
@@ -221,13 +221,15 @@ export class Campaign extends BaseModel {
         .onSnapshot(
           querySnapshots => {
             const userCampaigns = this.fromQuerySnapshot(querySnapshots);
-            callback(userCampaigns, subscriber);
+            callback(userCampaigns);
           },
           (error: Error) => {
-            callback([], subscriber);
+            callback([]);
             console.log('getUserCampaignsReactive', error.message);
           },
         );
+
+      return subscriber;
     } catch (error) {
       console.log('getUserCampaignsReactive', error);
     }
@@ -252,6 +254,7 @@ export class Campaign extends BaseModel {
 
   async insert() {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const {id, ...rest} = this;
       const data = {
         ...rest,

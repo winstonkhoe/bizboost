@@ -1,5 +1,4 @@
 import {Alert, Text, View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import {flex} from '../styles/Flex';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
@@ -10,21 +9,15 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {CustomTextInput} from '../components/atoms/Input';
-import {BackButton, CloseModal} from '../components/atoms/Close';
 import {rounded} from '../styles/BorderRadius';
 import {horizontalPadding, padding, verticalPadding} from '../styles/Padding';
 import UserIcon from '../assets/vectors/user.svg';
 import {border} from '../styles/Border';
-import {textColor} from '../styles/Text';
 import {isValidField} from '../utils/form';
 import {useCreateAdditionalAccount} from '../hooks/forms';
 import {useAppDispatch} from '../redux/hooks';
-import {updateAdditionalAccountData} from '../redux/slices/forms/createAdditionalAccountSlice';
 import {
-  BusinessPeople,
-  ContentCreator,
   ContentCreatorPreference,
   SocialPlatform,
   User,
@@ -153,7 +146,7 @@ export const CreateAdditionalAccountScreen = () => {
 
     if (user?.id) {
       try {
-        await User.updateUserData(user.id, userData);
+        await userData.updateUserData();
         dispatch(switchRole(role));
       } catch (error: any) {
         Alert.alert('Error!', error.message, [

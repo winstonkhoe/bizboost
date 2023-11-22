@@ -24,10 +24,17 @@ import CampaignTimelineScreen from '../screens/CampaignTimeline';
 import MakeOfferScreen from '../screens/MakeOfferScreen';
 import {useEffect, useState} from 'react';
 import SplashScreen from '../screens/SplashScreen';
+import MyTransactionsScreen from '../screens/profile/MyTransactionsScreen';
+import MyCampaignsScreen from '../screens/profile/MyCampaignsScreen';
+import AboutMeScreen from '../screens/profile/AboutMeScreen';
+import PayContentCreatorScreen from '../screens/profile/PayContentCreatorScreen';
+import UploadVideoScreen from '../screens/profile/UploadVideoScreen';
+import WithdrawMoneyScreen from '../screens/profile/WithdrawMoneyScreen';
 import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
+import ChangePasswordScreen from '../screens/profile/ChangePasswordScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -49,6 +56,13 @@ export enum AuthenticatedNavigation {
   CampaignTimeline = 'Campaign Timeline',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
+  MyTransactions = 'My Transactions',
+  MyCampaigns = 'My Campaigns',
+  AboutMe = 'About Me',
+  ChangePassword = 'Change Password',
+  PayContentCreator = 'Pay Content Creator',
+  UploadVideo = 'Upload Video',
+  WithdrawMoney = 'Withdraw Money',
   SpecificExploreModal = 'Specific Explore Modal',
   MakeOffer = 'Make Offer',
   CampaignModal = 'Campaign Modal',
@@ -93,6 +107,13 @@ export type AuthenticatedStack = {
     businessPeopleId: string;
   };
   [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
+  [AuthenticatedNavigation.MyTransactions]: undefined;
+  [AuthenticatedNavigation.MyCampaigns]: undefined;
+  [AuthenticatedNavigation.AboutMe]: undefined;
+  [AuthenticatedNavigation.ChangePassword]: undefined;
+  [AuthenticatedNavigation.PayContentCreator]: undefined;
+  [AuthenticatedNavigation.UploadVideo]: undefined;
+  [AuthenticatedNavigation.WithdrawMoney]: undefined;
   [AuthenticatedNavigation.SpecificExploreModal]: {
     contentCreatorId: string;
     targetContentId?: string;
@@ -207,6 +228,10 @@ const StackNavigator = () => {
                   name={AuthenticatedNavigation.CreateCampaign}
                   component={CreateCampaignScreen}
                 />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.AboutMe}
+                  component={AboutMeScreen}
+                />
               </Stack.Group>
 
               <Stack.Group
@@ -230,6 +255,31 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.CampaignRegistrants}
                   component={CampaignRegistrantsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.MyTransactions}
+                  component={MyTransactionsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.MyCampaigns}
+                  component={MyCampaignsScreen}
+                />
+
+                <Stack.Screen
+                  name={AuthenticatedNavigation.PayContentCreator}
+                  component={PayContentCreatorScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.UploadVideo}
+                  component={UploadVideoScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.WithdrawMoney}
+                  component={WithdrawMoneyScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.ChangePassword}
+                  component={ChangePasswordScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}

@@ -1,4 +1,6 @@
-import {Text, View} from 'react-native';
+import {ScrollView, Text, View} from 'react-native';
+import {CloseModal} from '../components/atoms/Close';
+import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
@@ -14,7 +16,6 @@ import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {padding} from '../styles/Padding';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../styles/Size';
-import {ScrollView} from 'react-native-gesture-handler';
 import SelectableTag from '../components/atoms/SelectableTag';
 import {COLOR} from '../styles/Color';
 import {background} from '../styles/BackgroundColor';
@@ -22,6 +23,7 @@ import {Campaign, CampaignType} from '../model/Campaign';
 import {LoadingScreen} from './LoadingScreen';
 import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
 import {font} from '../styles/Font';
+
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants
