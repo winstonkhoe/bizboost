@@ -339,10 +339,16 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                     style={[dimension.full, rounded.max]}>
                                     <FastImage
                                       style={[dimension.full]}
-                                      source={{
-                                        uri: t.contentCreator?.contentCreator
-                                          ?.profilePicture,
-                                      }}
+                                      source={
+                                        t.contentCreator?.contentCreator
+                                          ?.profilePicture
+                                          ? {
+                                              uri: t.contentCreator
+                                                ?.contentCreator
+                                                ?.profilePicture,
+                                            }
+                                          : require('../assets/images/bizboost-avatar.png')
+                                      }
                                     />
                                   </View>
                                 </View>
