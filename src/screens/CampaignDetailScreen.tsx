@@ -127,9 +127,9 @@ const CampaignDetailScreen = ({route}: Props) => {
               <View className="flex flex-row justify-between">
                 <Text className="font-bold text-xs">
                   {`${formatDateToDayMonthYear(
-                    new Campaign(campaign).getStartDate(),
+                    new Date(new Campaign(campaign).getTimelineStart().start),
                   )} - ${formatDateToDayMonthYear(
-                    new Campaign(campaign).getEndDate(),
+                    new Date(new Campaign(campaign).getTimelineEnd().end),
                   )}`}
                 </Text>
                 <View className="flex flex-row items-center">

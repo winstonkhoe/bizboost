@@ -4,7 +4,11 @@ import {gap} from '../../styles/Gap';
 import {rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
 import {Campaign} from '../../model/Campaign';
-import {formatDateToDayMonthYear} from '../../utils/date';
+import {
+  formatDateToDayMonthYear,
+  getDateDiff,
+  getTimeAgo,
+} from '../../utils/date';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -71,15 +75,25 @@ const OngoingCampaignCard = ({campaign}: Props) => {
             />
           ))}
         </View>
-        <Text
-          style={[
-            font.size[20],
-            textColor(COLOR.text.neutral.high),
-          ]}>{`${formatDateToDayMonthYear(
-          new Campaign(campaign).getStartDate(),
-        )} - ${formatDateToDayMonthYear(
-          new Campaign(campaign).getEndDate(),
-        )}`}</Text>
+        {getDateDiff(
+          new Date(new Campaign(campaign).getTimelineStart().start),
+          new Date(new Campaign(campaign).getTimelineStart().end),
+        ) < 7 ? (
+          <Label
+            radius="default"
+            fontSize={20}
+            text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
+            type="danger"
+          />
+        ) : (
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+            {`${formatDateToDayMonthYear(
+              new Date(new Campaign(campaign).getTimelineStart().start),
+            )} - ${formatDateToDayMonthYear(
+              new Date(new Campaign(campaign).getTimelineStart().end),
+            )}`}
+          </Text>
+        )}
       </View>
       <View style={[flex.flexCol]}>
         <View style={[flex.flexRow, gap.medium, padding.default]}>

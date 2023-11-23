@@ -233,19 +233,15 @@ export class Campaign extends BaseModel {
     throw Error('Error!');
   }
 
-  getStartDate(): Date {
-    return new Date(
-      this.timeline?.find(
-        timeline => CampaignStep.Registration === timeline.step,
-      )?.start!!,
-    );
+  getTimelineStart(): CampaignTimeline {
+    return this.timeline?.find(
+      timeline => CampaignStep.Registration === timeline.step,
+    )!!;
   }
 
-  getEndDate(): Date {
-    return new Date(
-      this.timeline?.find(
-        timeline => CampaignStep.EngagementResultSubmission === timeline.step,
-      )?.end!!,
-    );
+  getTimelineEnd(): CampaignTimeline {
+    return this.timeline?.find(
+      timeline => CampaignStep.EngagementResultSubmission === timeline.step,
+    )!!;
   }
 }
