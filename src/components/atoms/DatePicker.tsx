@@ -4,9 +4,9 @@ import React, {
   ReactNode,
   useMemo,
   memo,
-  useRef,
   useCallback,
 } from 'react';
+import {FlashList} from '@shopify/flash-list';
 import {
   View,
   Text,
@@ -473,6 +473,11 @@ const Month = ({
   const lastDayOfWeek = lastDayOfMonth.getDay();
   const endEmptyCells = Array((6 - lastDayOfWeek) % 7).fill(undefined);
 
+  const numRows = useMemo(() => {
+    const numDaysInMonth = lastDayOfMonth.getDate();
+    return 1 + Math.ceil((numDaysInMonth - (7 - firstDayOfWeek)) / 7);
+  }, [firstDayOfWeek, lastDayOfMonth]);
+
   const createDateFromNumber = (date: number) => {
     return new Date(
       firstDayOfMonth.getFullYear(),
@@ -563,26 +568,41 @@ const Month = ({
             textColor(COLOR.text.neutral.high),
           ]}>{`${currentMonth} ${currentYear}`}</Text>
       </View>
-      <View style={[flex.flexRow, flex.wrap, justify.center]}>
-        {[
-          ...emptyCells,
-          ...[...Array(lastDayOfMonth.getDate())].map((_, index) => {
-            return index + 1;
-          }),
-          ...endEmptyCells,
-        ].map((d, index) => (
-          <DateCellMemo
-            key={index}
-            date={d}
-            cellWidth={cellWidth}
-            disabled={isDisabled(d)}
-            active={cellIsActive(d)}
-            exactDate={isExactDate(d)}
-            isToday={isToday(d)}
-            isRed={isRedDay(d)}
-            onPress={() => handleCellClick(d)}
-          />
-        ))}
+      <View
+        style={[
+          flex.grow,
+          {
+            height: (cellWidth + size.default) * numRows,
+          },
+        ]}>
+        <FlashList
+          scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{paddingHorizontal: size.default}}
+          data={[
+            ...emptyCells,
+            ...[...Array(lastDayOfMonth.getDate())].map((_, index) => {
+              return index + 1;
+            }),
+            ...endEmptyCells,
+          ]}
+          estimatedItemSize={42}
+          numColumns={7}
+          keyExtractor={(item, index) => `${index}`}
+          renderItem={({item, index}) => (
+            <DateCellMemo
+              key={index}
+              date={item}
+              cellWidth={cellWidth}
+              disabled={isDisabled(item)}
+              active={cellIsActive(item)}
+              exactDate={isExactDate(item)}
+              isToday={isToday(item)}
+              isRed={isRedDay(item)}
+              onPress={() => handleCellClick(item)}
+            />
+          )}
+        />
       </View>
     </View>
   );
@@ -677,8 +697,13 @@ const DateCell = ({
     <AnimatedPressable
       {...props}
       disabled={disabled}
-      className="mt-2"
-      style={[flex.flexRow, cellStyle.emptyCell]}>
+      style={[
+        flex.flexRow,
+        cellStyle.emptyCell,
+        {
+          marginTop: size.small,
+        },
+      ]}>
       {isToday && (
         <View
           className="absolute -top-4"
