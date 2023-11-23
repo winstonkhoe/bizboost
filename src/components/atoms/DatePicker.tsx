@@ -31,6 +31,7 @@ import {AddIcon} from './Icon';
 import {border} from '../../styles/Border';
 import {
   formatDateToDayMonthYear,
+  formatDateToHourMinute,
   getBiggerDate,
   getDateDiff,
   isEqualMonthYear,
@@ -67,6 +68,15 @@ const DatePicker = ({
 }: DatePickerProps) => {
   const insets = useSafeAreaInsets();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const getLastTimeAtDate = useCallback((date: Date) => {
+    return new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      23,
+      59,
+    );
+  }, []);
   const calculateInitialDateRange = useCallback(() => {
     let minimum, start, end;
     minimum = start = end = null;
@@ -90,11 +100,7 @@ const DatePicker = ({
       start = minimum;
     }
     if (endDate) {
-      end = new Date(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-      );
+      end = getLastTimeAtDate(endDate);
     }
     if (start && end && start.getTime() >= end.getTime()) {
       end = null;
@@ -105,7 +111,7 @@ const DatePicker = ({
       start: finalStart,
       end: end,
     };
-  }, [minimumDate, startDate, endDate]);
+  }, [minimumDate, startDate, endDate, getLastTimeAtDate]);
 
   const [finalDateRange, setFinalDateRange] = useState<DateRange>(
     calculateInitialDateRange,
@@ -121,6 +127,7 @@ const DatePicker = ({
   );
 
   useEffect(() => {
+    console.log('is sheet open calculateInitialDateRange');
     if (isSheetOpen) {
       setDateRange(calculateInitialDateRange);
     }
@@ -129,7 +136,7 @@ const DatePicker = ({
   const handleDateChange = (date: Date) => {
     setDateRange(prevDateRange => {
       if (singleDate) {
-        return {start: date, end: date};
+        return {start: date, end: getLastTimeAtDate(date)};
       } else {
         if (
           !prevDateRange.start ||
@@ -140,7 +147,7 @@ const DatePicker = ({
         } else if (date < prevDateRange.start) {
           return {start: date, end: null};
         } else {
-          return {start: prevDateRange.start, end: date};
+          return {start: prevDateRange.start, end: getLastTimeAtDate(date)};
         }
       }
     });
@@ -266,11 +273,18 @@ const DatePicker = ({
                 {singleDate ? 'Chosen date' : 'Start date'}
               </Text>
               {dateRange.start ? (
-                <Text
-                  className="font-bold"
-                  style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
-                  {formatDateToDayMonthYear(dateRange.start)}
-                </Text>
+                <>
+                  <Text
+                    className="font-bold"
+                    style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                    {formatDateToDayMonthYear(dateRange.start)}
+                  </Text>
+                  <Text
+                    className="font-bold"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                    {formatDateToHourMinute(dateRange.start)}
+                  </Text>
+                </>
               ) : (
                 <Text
                   className="font-bold"
@@ -290,11 +304,24 @@ const DatePicker = ({
                   End date
                 </Text>
                 {dateRange.end ? (
-                  <Text
-                    className="font-bold"
-                    style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
-                    {formatDateToDayMonthYear(dateRange.end)}
-                  </Text>
+                  <>
+                    <Text
+                      className="font-bold"
+                      style={[
+                        font.size[50],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {formatDateToDayMonthYear(dateRange.end)}
+                    </Text>
+                    <Text
+                      className="font-bold"
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {formatDateToHourMinute(dateRange.end)}
+                    </Text>
+                  </>
                 ) : (
                   <Text
                     className="font-bold"
@@ -486,6 +513,23 @@ const Month = ({
     );
   };
 
+  const getStandardizeDate = useCallback((date?: Date) => {
+    if (!date) {
+      return undefined;
+    }
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }, []);
+
+  const standardizedStartDate = useMemo(
+    () => getStandardizeDate(startDate),
+    [startDate, getStandardizeDate],
+  );
+
+  const standardizedEndDate = useMemo(
+    () => getStandardizeDate(endDate),
+    [endDate, getStandardizeDate],
+  );
+
   const dateIsCurrentMonth = (date: Date) => {
     return date.getMonth() === firstDayOfMonth.getMonth();
   };
@@ -515,17 +559,25 @@ const Month = ({
   };
 
   const cellIsActive = (date?: number): ActiveState => {
-    if (!date || !endDate || startDate?.getTime() === endDate?.getTime()) {
+    if (
+      !date ||
+      !endDate ||
+      standardizedStartDate?.getTime() === standardizedEndDate?.getTime()
+    ) {
       return {
         start: false,
         end: false,
       };
     }
     const cellDate = createDateFromNumber(date);
-    const isActiveStart = startDate?.getTime() === cellDate.getTime();
-    const isActiveEnd = endDate?.getTime() === cellDate.getTime();
+    const isActiveStart =
+      standardizedStartDate?.getTime() === cellDate.getTime();
+    const isActiveEnd = standardizedEndDate?.getTime() === cellDate.getTime();
     const isActiveCenter =
-      startDate && cellDate > startDate && endDate && cellDate < endDate;
+      standardizedStartDate &&
+      cellDate > standardizedStartDate &&
+      standardizedEndDate &&
+      cellDate < standardizedEndDate;
 
     return {
       start: isActiveEnd || isActiveCenter || false,
