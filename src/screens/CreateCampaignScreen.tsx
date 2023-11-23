@@ -1,9 +1,7 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Pressable, Text} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
-import {
-  HorizontalPadding,
-} from '../components/atoms/ViewPadding';
+import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import PhotosIcon from '../assets/vectors/photos.svg';
 import {flex, items, justify} from '../styles/Flex';
@@ -227,8 +225,6 @@ const CreateCampaignScreen = () => {
       campaign
         .insert()
         .then(isSuccess => {
-          setIsUploading(false);
-
           if (isSuccess) {
             navigation.goBack();
           }
