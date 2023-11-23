@@ -44,9 +44,25 @@ const red = {
   40: '#F5806C',
   30: '#FF9090',
   20: '#FFB1B1',
-  10: '#FFB1B1',
-  5: '#FFB1B1',
+  10: '#fecccb',
+  5: '#ffe6e6',
   1: '#FFF6F6',
+};
+
+const yellow = {
+  95: '#4d2c02',
+  90: '#6b3c03',
+  80: '#7e4704',
+  70: '#925304',
+  60: '#a76005',
+  50: '#bc6e06',
+  40: '#ce7c06',
+  30: '#e39304',
+  20: '#f1ab02',
+  15: '#ffcd00',
+  10: '#fedd6c',
+  5: '#feedb1',
+  1: '#fff8e0',
 };
 
 export const COLOR = {
@@ -102,6 +118,9 @@ export const COLOR = {
       disabled: `${red[50]}66`,
     },
     light: '#ffffff',
+  },
+  yellow: {
+    ...yellow,
   },
   black: {
     ...black,

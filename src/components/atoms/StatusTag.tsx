@@ -1,6 +1,11 @@
 import {Text, View} from 'react-native';
 import {font} from '../../styles/Font';
 import {rounded} from '../../styles/BorderRadius';
+import {useMemo} from 'react';
+import {background} from '../../styles/BackgroundColor';
+import {COLOR} from '../../styles/Color';
+import {border} from '../../styles/Border';
+import {textColor} from '../../styles/Text';
 
 export enum StatusType {
   success = 'success',
@@ -10,22 +15,58 @@ export enum StatusType {
 
 type Props = {
   status: string;
+  statusType?: StatusType;
 };
-const StatusTag = ({status}: Props) => {
+const StatusTag = ({status, statusType = StatusType.warning}: Props) => {
   // TODO: fix colors, bedain per status?
+  const isWarning = useMemo(
+    () => statusType === StatusType.warning,
+    [statusType],
+  );
+  const isDanger = useMemo(
+    () => statusType === StatusType.danger,
+    [statusType],
+  );
+  const isSuccess = useMemo(
+    () => statusType === StatusType.success,
+    [statusType],
+  );
   return (
     <View
       style={[
         // background(COLOR.background.green.low),
         rounded.small,
+        isWarning && [
+          background(COLOR.yellow[5]),
+          border({
+            borderWidth: 1,
+            color: COLOR.yellow[50],
+          }),
+        ],
+        isDanger && [
+          background(COLOR.red[5]),
+          border({
+            borderWidth: 1,
+            color: COLOR.red[50],
+          }),
+        ],
+        isSuccess && [
+          background(COLOR.green[5]),
+          border({
+            borderWidth: 1,
+            color: COLOR.green[70],
+          }),
+        ],
       ]}
-      className="px-2 py-1 bg-yellow-200 border border-yellow-400">
+      className="px-2 py-1">
       <Text
         style={[
           font.size[10],
-          // textColor(COLOR.text.green.default)
+          isWarning && [textColor(COLOR.yellow[70])],
+          isDanger && [textColor(COLOR.red[50])],
+          isSuccess && [textColor(COLOR.green[70])],
         ]}
-        className="font-semibold text-yellow-600">
+        className="font-semibold">
         {status}
       </Text>
     </View>
