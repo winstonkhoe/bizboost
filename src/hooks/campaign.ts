@@ -10,6 +10,7 @@ export const useOngoingCampaign = () => {
 
   useEffect(() => {
     if (uid) {
+      console.log('hook:useOngoingCampaign');
       Campaign.getUserCampaignsReactive(
         uid,
         (campaigns: Campaign[], unsubscribe: () => void) => {

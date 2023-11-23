@@ -40,13 +40,11 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
-    User.getById(transaction.contentCreatorId || '').then(u =>
-      setContentCreator(u),
-    );
+    User.getById(transaction.contentCreatorId || '').then(setContentCreator);
   }, [transaction]);
 
   useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(c => setCampaign(c));
+    Campaign.getById(transaction.campaignId || '').then(setCampaign);
   }, [transaction]);
 
   return (
@@ -99,15 +97,13 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(c => setCampaign(c));
+    Campaign.getById(transaction.campaignId || '').then(setCampaign);
   }, [transaction]);
 
   const [businessPeople, setBusinessPeople] = useState<User | null>();
 
   useEffect(() => {
-    User.getById(transaction.businessPeopleId || '').then(u =>
-      setBusinessPeople(u),
-    );
+    User.getById(transaction.businessPeopleId || '').then(setBusinessPeople);
   }, [transaction]);
 
   return (

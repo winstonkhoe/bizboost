@@ -143,13 +143,14 @@ export class Campaign extends BaseModel {
 
   static async getAll(): Promise<Campaign[]> {
     try {
+      console.log('model:Campaign getAll');
       const campaigns = await this.getCampaignCollections()
         .where('type', '==', CampaignType.Public)
         .get();
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
-      return campaigns.docs.map(doc => this.fromSnapshot(doc));
+      return campaigns.docs.map(this.fromSnapshot);
     } catch (error) {
       throw Error('Error!');
     }
@@ -164,7 +165,7 @@ export class Campaign extends BaseModel {
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
-      return campaigns.docs.map(doc => this.fromSnapshot(doc));
+      return campaigns.docs.map(this.fromSnapshot);
     } catch (error) {
       throw Error('Error!');
     }

@@ -37,16 +37,17 @@ const HomeScreen = () => {
   const [userLimit, setUserLimit] = useState(3);
   const [ongoingCampaignsLimit, setOngoingCampaignsLimit] = useState(3);
   useEffect(() => {
-    const unsubscribe = User.getAll(u => setUsers(u));
-
+    console.log('homeScreen:userGetall');
+    const unsubscribe = User.getAll(setUsers);
     return unsubscribe;
   }, []);
 
   useEffect(() => {
+    console.log('homeScreen:getAllTransactionsByRole');
     const unsubscribe = Transaction.getAllTransactionsByRole(
       uid || '',
-      activeRole,
-      t => setTransactions(t),
+      activeRole!!,
+      setTransactions,
     );
 
     return unsubscribe;
