@@ -1,4 +1,4 @@
-import {Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {rounded} from '../../styles/BorderRadius';
@@ -17,7 +17,7 @@ import {
 import FastImage from 'react-native-fast-image';
 import {padding} from '../../styles/Padding';
 import {Label} from '../atoms/Label';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {COLOR} from '../../styles/Color';
 import {User} from '../../model/User';
 import {font} from '../../styles/Font';
@@ -25,6 +25,8 @@ import {textColor} from '../../styles/Text';
 import {AnimatedPressable} from '../atoms/AnimatedPressable';
 import {dimension} from '../../styles/Dimension';
 import {formatToRupiah} from '../../utils/currency';
+import {size} from '../../styles/Size';
+import {useCategory} from '../../hooks/category';
 type Props = {
   campaign: Campaign;
 };
@@ -32,6 +34,16 @@ type Props = {
 const OngoingCampaignCard = ({campaign}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [user, setUser] = useState<User | null>();
+  const {categories} = useCategory();
+  const currentCategory = useMemo(() => {
+    return categories.find(
+      category => category.id === campaign?.categories?.[0],
+    );
+  }, [categories, campaign]);
+  const now = new Date();
+  const campaignUnderAWeek =
+    getDateDiff(now, new Date(new Campaign(campaign).getTimelineStart().end)) <
+    7;
 
   useEffect(() => {
     if (campaign.userId) {
@@ -63,22 +75,13 @@ const OngoingCampaignCard = ({campaign}: Props) => {
           padding.vertical.default,
         ]}>
         <View style={[flex.flexRow, gap.small, justify.start, items.center]}>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-            {user?.businessPeople?.fullname}
-          </Text>
-          {campaign.categories?.map(category => (
-            <Label
-              key={category}
-              radius="default"
-              fontSize={10}
-              text={`${category}`}
-            />
-          ))}
+          <View style={[flex.flexCol, items.start, gap.xsmall2]}>
+            <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+              {user?.businessPeople?.fullname}
+            </Text>
+          </View>
         </View>
-        {getDateDiff(
-          new Date(new Campaign(campaign).getTimelineStart().start),
-          new Date(new Campaign(campaign).getTimelineStart().end),
-        ) < 7 ? (
+        {campaignUnderAWeek ? (
           <Label
             radius="default"
             fontSize={20}
@@ -87,9 +90,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
           />
         ) : (
           <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-            {`${formatDateToDayMonthYear(
-              new Date(new Campaign(campaign).getTimelineStart().start),
-            )} - ${formatDateToDayMonthYear(
+            {`Until ${formatDateToDayMonthYear(
               new Date(new Campaign(campaign).getTimelineStart().end),
             )}`}
           </Text>
@@ -97,7 +98,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
       </View>
       <View style={[flex.flexCol]}>
         <View style={[flex.flexRow, gap.medium, padding.default]}>
-          <View style={[flex.flexRow, items.start]}>
+          <View style={[flex.flexCol, items.center, gap.default]}>
             <View
               className="w-20 h-20 overflow-hidden"
               style={[rounded.medium]}>
@@ -110,10 +111,22 @@ const OngoingCampaignCard = ({campaign}: Props) => {
           <View style={[flex.flex1, flex.flexCol, gap.small]}>
             <Text
               className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}
+              style={[font.size[30], textColor(COLOR.text.neutral.high)]}
               numberOfLines={2}>
               {campaign.title}
             </Text>
+            {campaign.categories?.slice(0, 1).map(category => (
+              <View key={category} style={[flex.flexRow]}>
+                <Label
+                  key={category}
+                  radius="default"
+                  fontSize={10}
+                  text={`${
+                    currentCategory?.alias || currentCategory?.id || category
+                  }`}
+                />
+              </View>
+            ))}
             <View style={[flex.flexRow, gap.small]}>
               {campaign?.platforms?.map(platform => (
                 <Label
@@ -128,7 +141,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
               {campaign.fee && (
                 <Text
                   className="font-semibold"
-                  style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
                   {formatToRupiah(campaign.fee)}
                 </Text>
               )}
