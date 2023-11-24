@@ -9,14 +9,15 @@ import {
 import {View} from 'react-native';
 import {flex} from '../styles/Flex';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
-import {Campaign} from '../model/Campaign';
+import {Campaign, CampaignType} from '../model/Campaign';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
 import {useAppSelector} from '../redux/hooks';
 import {getSimilarCampaigns} from '../validations/campaign';
+import {useUser} from '../hooks/user';
 
 const CampaignsScreen = () => {
-  // TODO: validasi, CC gabisa liat campaigns yang punyanya dia sebagai BP
+  const {uid} = useUser();
   const now = useMemo(() => new Date(), []);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const {searchTerm} = useAppSelector(select => select.search);
@@ -24,11 +25,13 @@ const CampaignsScreen = () => {
     Campaign.getAll().then(cs => {
       setCampaigns(
         cs
+          .filter(c => c.userId !== uid)
+          .filter(c => c.type === CampaignType.Public)
           .filter(c => c.getTimelineStart().end >= now.getTime())
           .sort((a, b) => a.getTimelineStart().end - b.getTimelineStart().end),
       );
     });
-  }, [now]);
+  }, [now, uid]);
 
   return (
     <PageWithSearchBar>
