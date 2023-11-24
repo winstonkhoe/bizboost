@@ -220,16 +220,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   }, [isCampaignOwner, campaignId, uid]);
 
-  const brainstormFocusHook = (effect: EffectCallback) => {
-    useEffect(() => {
-      console.log('brainstormFocusHook effect');
-      if (keyboardHeight > 0) {
-        console.log('kepanggil effect');
-        effect();
-      }
-    }, [effect]);
-  };
-
   if (!campaign) {
     return <LoadingScreen />;
   }
