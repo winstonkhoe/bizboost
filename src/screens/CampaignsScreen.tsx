@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Text} from 'react-native';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -17,11 +17,18 @@ import {getSimilarCampaigns} from '../validations/campaign';
 
 const CampaignsScreen = () => {
   // TODO: validasi, CC gabisa liat campaigns yang punyanya dia sebagai BP
+  const now = useMemo(() => new Date(), []);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const {searchTerm} = useAppSelector(select => select.search);
   useEffect(() => {
-    Campaign.getAll().then(value => setCampaigns(value));
-  }, []);
+    Campaign.getAll().then(cs => {
+      setCampaigns(
+        cs
+          .filter(c => c.getTimelineStart().end >= now.getTime())
+          .sort((a, b) => a.getTimelineStart().end - b.getTimelineStart().end),
+      );
+    });
+  }, [now]);
 
   return (
     <PageWithSearchBar>
