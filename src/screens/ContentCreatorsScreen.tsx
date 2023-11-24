@@ -21,13 +21,13 @@ import {COLOR} from '../styles/Color';
 import ContentCreatorCard from '../components/atoms/ContentCreatorCard';
 import {gap} from '../styles/Gap';
 import {User} from '../model/User';
-import {Category} from '../model/Category';
 import {background} from '../styles/BackgroundColor';
 import {CustomButton} from '../components/atoms/Button';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
 import {Location} from '../model/Location';
 import {useAppSelector} from '../redux/hooks';
 import {getSimilarContentCreators} from '../validations/user';
+import {useCategory} from '../hooks/category';
 
 interface SelectedFilters {
   locations: string[];
@@ -37,7 +37,7 @@ interface SelectedFilters {
 const ContentCreatorsScreen: React.FC = () => {
   const [contentCreators, setContentCreators] = useState<User[]>([]);
   const [filterModalState, setFilterModalState] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const categories = useCategory();
   const [locations, setLocations] = useState<Location[]>([]);
   const {searchTerm} = useAppSelector(select => select.search);
 
@@ -56,8 +56,7 @@ const ContentCreatorsScreen: React.FC = () => {
       setContentCreators(contentCreatorsData);
       setFilteredContentCreators(contentCreatorsData);
     });
-    Category.getAll().then(categoriesData => setCategories(categoriesData));
-    Location.getAll().then(locationsData => setLocations(locationsData));
+    Location.getAll().then(setLocations);
   }, []);
 
   useEffect(() => {
@@ -73,6 +72,7 @@ const ContentCreatorsScreen: React.FC = () => {
     if (selectedFilters.categories.length > 0) {
       sortedContentCreators = sortedContentCreators.filter(
         contentCreator =>
+          contentCreator.contentCreator?.specializedCategoryIds &&
           contentCreator.contentCreator?.specializedCategoryIds?.length > 0 &&
           contentCreator.contentCreator?.specializedCategoryIds.some(cat =>
             selectedFilters.categories.includes(cat),
