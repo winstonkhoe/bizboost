@@ -22,7 +22,7 @@ import {Campaign, CampaignType} from '../model/Campaign';
 import {LoadingScreen} from './LoadingScreen';
 import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
 import {font} from '../styles/Font';
-import { textColor } from '../styles/Text';
+import {textColor} from '../styles/Text';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants
