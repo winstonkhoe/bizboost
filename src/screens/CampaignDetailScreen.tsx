@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -80,9 +80,9 @@ const CampaignDetailScreen = ({route}: Props) => {
     User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
   }, [campaign]);
 
-  const userIsCampaignOwner = () => {
+  const isCampaignOwner = useMemo(() => {
     return campaign?.userId === uid;
-  };
+  }, [campaign, uid]);
 
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
@@ -280,7 +280,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               />
             </View>
             {/* <Text>{transactionStatus}</Text> */}
-            {!userIsCampaignOwner() &&
+            {!isCampaignOwner &&
               transactionStatus === TransactionStatus.notRegistered && (
                 <View className="py-2" style={[flex.flexCol, gap.default]}>
                   {/* TODO: validate join only for CC */}
@@ -303,7 +303,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               }
             />
             {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
-            {userIsCampaignOwner() && (
+            {isCampaignOwner && (
               <View className="py-2">
                 <CustomButton
                   customBackgroundColor={COLOR.background.neutral}
