@@ -37,7 +37,7 @@ interface SelectedFilters {
 const ContentCreatorsScreen: React.FC = () => {
   const [contentCreators, setContentCreators] = useState<User[]>([]);
   const [filterModalState, setFilterModalState] = useState(false);
-  const categories = useCategory();
+  const {categories} = useCategory();
   const [locations, setLocations] = useState<Location[]>([]);
   const {searchTerm} = useAppSelector(select => select.search);
 
