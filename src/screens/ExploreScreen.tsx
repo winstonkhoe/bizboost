@@ -84,7 +84,7 @@ const ExploreScreen = () => {
           active={isAppFocused && isFocused && activeVideoIndex === index}
         />
       )}
-      extraData={[activeVideoIndex, isFocused]}
+      extraData={[activeVideoIndex, isFocused, isAppFocused]}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       pagingEnabled
