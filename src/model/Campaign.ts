@@ -173,19 +173,19 @@ export class Campaign extends BaseModel {
 
   static getUserCampaignsReactive(
     userId: string,
-    callback: (campaigns: Campaign[], unsubscribe: () => void) => void,
-  ): void {
+    callback: (campaigns: Campaign[]) => void,
+  ): (() => void) | undefined {
     try {
       const userRef = User.getDocumentReference(userId);
-      const subscriber = this.getCampaignCollections()
+      return this.getCampaignCollections()
         .where('userId', '==', userRef)
         .onSnapshot(
           querySnapshots => {
             const userCampaigns = this.fromQuerySnapshot(querySnapshots);
-            callback(userCampaigns, subscriber);
+            callback(userCampaigns);
           },
           (error: Error) => {
-            callback([], subscriber);
+            callback([]);
             console.log('getUserCampaignsReactive', error.message);
           },
         );
