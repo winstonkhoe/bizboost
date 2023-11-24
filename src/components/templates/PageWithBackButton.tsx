@@ -20,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {gap} from '../../styles/Gap';
 import {border} from '../../styles/Border';
+import {size} from '../../styles/Size';
 
 interface Props extends PressableProps {
   children: ReactNode;
@@ -101,7 +102,7 @@ export const PageWithBackButton = ({
             padding.horizontal.default,
             padding.bottom.small,
             {
-              paddingTop: insets.top,
+              paddingTop: Math.max(insets.top, size.medium),
             },
             menuStyle,
             exceedThreshold &&
