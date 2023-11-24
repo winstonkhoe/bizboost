@@ -233,6 +233,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
             <Stepper
               type="content"
               currentPosition={currentActiveIndex}
+              decreasePreviousVisibility={!isCampaignOwner}
               // currentPosition={0}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
