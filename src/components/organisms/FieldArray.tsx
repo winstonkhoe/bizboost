@@ -9,6 +9,8 @@ import {gap} from '../../styles/Gap';
 import {CustomButton} from '../atoms/Button';
 import {FieldArrayLabel} from '../molecules/FieldArrayLabel';
 import {BottomSheetModalWithTitle} from '../templates/BottomSheetModalWithTitle';
+import {padding} from '../../styles/Padding';
+import {useKeyboard} from '../../hooks/keyboard';
 
 type Props = {
   control: Control<any>;
@@ -32,6 +34,7 @@ const FieldArray = ({
   maxFieldLength = 40,
   helperText,
 }: Props) => {
+  const keyboardHeight = useKeyboard();
   const [temporaryText, setTemporaryText] = useState<string>('');
   const [updateIndex, setUpdateIndex] = useState<number | null>(null);
   const [isModalOpened, setIsModalOpened] = useState(false);
@@ -101,42 +104,49 @@ const FieldArray = ({
         </View>
       </View>
       <SheetModal
-        maxHeight={750}
+        snapPoints={[keyboardHeight > 0 ? '70%' : '50%']}
+        bottomInsetType="default"
+        fullHeight
+        enableDynamicSizing={false}
         open={isModalOpened}
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
         <BottomSheetModalWithTitle title={title}>
-          <View style={[flex.flexRow]}>
-            <Controller
-              control={control}
-              name={`${parentName}.${updateIndex}.${childName}`}
-              render={({field: {value, onChange}}) => (
-                <View style={[flex.flexCol, gap.medium]}>
-                  <FormlessCustomTextInput
-                    counter
-                    type={fieldType}
-                    max={maxFieldLength}
-                    defaultValue={`${value || ''}`}
-                    placeholder={placeholder ?? `Add ${parentName}`}
-                    description={helperText}
-                    onChange={updateText}
-                  />
-                  <CustomButton
-                    disabled={temporaryText.length === 0}
-                    text={updateIndex !== null ? 'Update' : 'Save'}
-                    onPress={() => {
-                      if (updateIndex !== null) {
-                        updateEntry(onChange);
-                      } else {
-                        addNewEntry();
-                      }
-                    }}
-                  />
-                </View>
-              )}
-            />
-          </View>
+          <Controller
+            control={control}
+            name={`${parentName}.${updateIndex}.${childName}`}
+            render={({field: {value, onChange}}) => (
+              <View
+                style={[
+                  flex.flex1,
+                  flex.flexCol,
+                  padding.top.large,
+                  gap.xlarge,
+                ]}>
+                <FormlessCustomTextInput
+                  counter
+                  type={fieldType}
+                  max={maxFieldLength}
+                  defaultValue={`${value || ''}`}
+                  placeholder={placeholder ?? `Add ${parentName}`}
+                  description={helperText}
+                  onChange={updateText}
+                />
+                <CustomButton
+                  disabled={temporaryText.length === 0}
+                  text={updateIndex !== null ? 'Update' : 'Save'}
+                  onPress={() => {
+                    if (updateIndex !== null) {
+                      updateEntry(onChange);
+                    } else {
+                      addNewEntry();
+                    }
+                  }}
+                />
+              </View>
+            )}
+          />
         </BottomSheetModalWithTitle>
       </SheetModal>
     </>

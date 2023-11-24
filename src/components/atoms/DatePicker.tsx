@@ -185,20 +185,17 @@ const DatePicker = ({
       </AnimatedPressable>
       <SheetModal
         open={isSheetOpen}
+        maxHeight={windowDimension.height - insets.top}
         onDismiss={() => setIsSheetOpen(false)}
         fullHeight>
         <View style={[flex.flexCol, horizontalPadding]}>
-          <View
-            style={[
-              flex.flexRow,
-              dimension.width.xlarge2,
-              dimension.height.xlarge2,
-              justify.start,
-            ]}>
-            <BackButtonPlaceholder
-              icon="close"
-              onPress={() => setIsSheetOpen(false)}
-            />
+          <View style={[flex.flexRow, justify.start]}>
+            <View style={[dimension.square.xlarge2]}>
+              <BackButtonPlaceholder
+                icon="close"
+                onPress={() => setIsSheetOpen(false)}
+              />
+            </View>
           </View>
           <View
             style={[
@@ -236,7 +233,7 @@ const DatePicker = ({
           </View>
         </View>
         <FlatList
-          style={[flex.grow]}
+          style={[flex.flex1]}
           contentContainerStyle={[flex.grow]}
           data={[...Array(12)]}
           renderItem={({index}) => (

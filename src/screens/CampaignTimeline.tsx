@@ -1,11 +1,11 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {EffectCallback, useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
 
 import {Campaign, CampaignStep} from '../model/Campaign';
 
@@ -30,7 +30,11 @@ import {
   formatDateToDayMonthYearHourMinute,
 } from '../utils/date';
 import StatusTag from '../components/atoms/StatusTag';
-import {Transaction, TransactionStatus} from '../model/Transaction';
+import {
+  Transaction,
+  TransactionStatus,
+  transactionStatusTypeMap,
+} from '../model/Transaction';
 import {LoadingScreen} from './LoadingScreen';
 import {shadow} from '../styles/Shadow';
 import {SheetModal} from '../containers/SheetModal';
@@ -45,6 +49,10 @@ import ChevronRight from '../assets/vectors/chevron-right.svg';
 import {User} from '../model/User';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import {formatNumberWithThousandSeparator} from '../utils/number';
+import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
+import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useKeyboard} from '../hooks/keyboard';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -72,6 +80,9 @@ interface TransactionView {
 
 const CampaignTimelineScreen = ({route}: Props) => {
   const {uid} = useUser();
+  const keyboardHeight = useKeyboard();
+  const safeAreaInsets = useSafeAreaInsets();
+  const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
@@ -209,6 +220,16 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   }, [isCampaignOwner, campaignId, uid]);
 
+  const brainstormFocusHook = (effect: EffectCallback) => {
+    useEffect(() => {
+      console.log('brainstormFocusHook effect');
+      if (keyboardHeight > 0) {
+        console.log('kepanggil effect');
+        effect();
+      }
+    }, [effect]);
+  };
+
   if (!campaign) {
     return <LoadingScreen />;
   }
@@ -221,8 +242,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
           <View style={[flex.flexCol, gap.default, padding.top.xlarge3]}>
             <Stepper
               type="content"
-              // currentPosition={currentActiveIndex}
-              currentPosition={0}
+              currentPosition={currentActiveIndex}
+              // currentPosition={0}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
                 <View
@@ -286,7 +307,12 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       transaction?.status &&
                       transaction.status !==
                         TransactionStatus.notRegistered && (
-                        <StatusTag status={transaction?.status} />
+                        <StatusTag
+                          status={transaction?.status}
+                          statusType={
+                            transactionStatusTypeMap[transaction?.status]
+                          }
+                        />
                       )
                     )}
                   </View>
@@ -695,21 +721,35 @@ const CampaignTimelineScreen = ({route}: Props) => {
         open={isBrainstormingModalOpened}
         onDismiss={() => {
           setIsBrainstormingModalOpened(false);
-        }}>
-        <BottomSheetModalWithTitle title="Brainstorming">
-          <View style={[flex.flexCol, gap.medium]}>
-            <View style={[flex.flexCol, gap.default]}>
+        }}
+        snapPoints={[windowDimension.height - safeAreaInsets.top]}
+        disablePanDownToClose
+        fullHeight
+        enableHandlePanningGesture={false}
+        enableOverDrag={false}
+        overDragResistanceFactor={0}
+        enableDynamicSizing={false}>
+        <BottomSheetModalWithTitle
+          title="Brainstorming"
+          type="modal"
+          onPress={() => {
+            setIsBrainstormingModalOpened(false);
+          }}>
+          <View style={[flex.grow, flex.flexCol, gap.medium]}>
+            <View style={[flex.flex1, flex.flexCol, gap.default]}>
               <FormFieldHelper
                 title="Idea draft"
                 description="Showcase your creativity in this idea to stand out and be chosen by the business owner."
               />
-              <FormlessCustomTextInput
-                type="textarea"
-                description={`Submit your idea in ${rules.brainstorm.min} - ${rules.brainstorm.max} characters.\nBe concise yet comprehensive.`}
-                max={rules.brainstorm.max}
-                counter
-                onChange={setTemporaryBrainstorm}
-              />
+              <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
+                <FormlessCustomTextInput
+                  type="textarea"
+                  description={`Submit your idea in ${rules.brainstorm.min} - ${rules.brainstorm.max} characters.\nBe concise yet comprehensive.`}
+                  max={rules.brainstorm.max}
+                  counter
+                  onChange={setTemporaryBrainstorm}
+                />
+              </BottomSheetScrollView>
             </View>
             <CustomButton
               text="Submit"
