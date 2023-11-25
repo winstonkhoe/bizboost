@@ -1,5 +1,5 @@
 import {Text, View} from 'react-native';
-import {font} from '../../styles/Font';
+import {FontSizeType, font} from '../../styles/Font';
 import {rounded} from '../../styles/BorderRadius';
 import {useMemo} from 'react';
 import {background} from '../../styles/BackgroundColor';
@@ -15,9 +15,14 @@ export enum StatusType {
 
 type Props = {
   status: string;
+  fontSize?: FontSizeType;
   statusType?: StatusType;
 };
-const StatusTag = ({status, statusType = StatusType.warning}: Props) => {
+const StatusTag = ({
+  status,
+  fontSize = 10,
+  statusType = StatusType.warning,
+}: Props) => {
   // TODO: fix colors, bedain per status?
   const isWarning = useMemo(
     () => statusType === StatusType.warning,
@@ -61,7 +66,7 @@ const StatusTag = ({status, statusType = StatusType.warning}: Props) => {
       className="px-2 py-1">
       <Text
         style={[
-          font.size[10],
+          font.size[fontSize],
           isWarning && [textColor(COLOR.yellow[70])],
           isDanger && [textColor(COLOR.red[50])],
           isSuccess && [textColor(COLOR.green[70])],
