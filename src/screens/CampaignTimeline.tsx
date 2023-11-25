@@ -12,7 +12,7 @@ import {Campaign, CampaignStep} from '../model/Campaign';
 import {useUser} from '../hooks/user';
 
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {useNavigation} from '@react-navigation/native';
+import {Link, useNavigation} from '@react-navigation/native';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {Stepper} from '../components/atoms/Stepper';
@@ -29,8 +29,9 @@ import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
 } from '../utils/date';
-import StatusTag from '../components/atoms/StatusTag';
+import StatusTag, {StatusType} from '../components/atoms/StatusTag';
 import {
+  BasicStatus,
   Transaction,
   TransactionStatus,
   transactionStatusTypeMap,
@@ -53,6 +54,7 @@ import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useKeyboard} from '../hooks/keyboard';
+import {InternalLink} from '../components/atoms/Link';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -220,6 +222,13 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   }, [isCampaignOwner, campaignId, uid]);
 
+  const navigateToDetail = (status: TransactionStatus) => {
+    navigation.navigate(AuthenticatedNavigation.CampaignRegistrants, {
+      campaignId: campaignId,
+      initialTransactionStatusFilter: status,
+    });
+  };
+
   if (!campaign) {
     return <LoadingScreen />;
   }
@@ -293,6 +302,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                               TransactionStatus.registrationApproved,
                           ).length,
                         )} Registrant Approved`}
+                        statusType={StatusType.success}
                       />
                     ) : (
                       transaction?.status &&
@@ -311,14 +321,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     <AnimatedPressable
                       scale={1}
                       onPress={() => {
-                        navigation.navigate(
-                          AuthenticatedNavigation.CampaignRegistrants,
-                          {
-                            campaignId: campaignId,
-                            initialTransactionStatusFilter:
-                              TransactionStatus.registrationPending,
-                          },
-                        );
+                        navigateToDetail(TransactionStatus.registrationPending);
                       }}
                       style={[flex.flexRow, padding.default, gap.small]}>
                       <View style={[flex.flex1, flex.flexCol, gap.small]}>
@@ -451,7 +454,114 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           })}
                       </View>
                     </View>
-                    {transaction?.brainstorms &&
+                    {isCampaignOwner ? (
+                      <>
+                        <View
+                          style={[dimension.width.full, styles.headerBorder]}
+                        />
+                        <View style={[flex.flexCol, gap.default]}>
+                          <View style={[flex.flexRow, justify.between]}>
+                            <Text
+                              className="font-medium"
+                              style={[
+                                font.size[30],
+                                textColor(COLOR.text.neutral.med),
+                              ]}>
+                              Pending Approval
+                            </Text>
+                            <InternalLink
+                              size={30}
+                              text="See all"
+                              onPress={() => {
+                                navigateToDetail(
+                                  TransactionStatus.brainstormSubmitted,
+                                );
+                              }}
+                            />
+                          </View>
+                          <ScrollView
+                            horizontal
+                            contentContainerStyle={[flex.flexRow, gap.default]}>
+                            {transactions
+                              .filter(
+                                t =>
+                                  t.transaction?.getLatestBrainstorm() !== null,
+                              )
+                              .sort(
+                                (a, b) =>
+                                  a.transaction.getLatestBrainstorm()!!
+                                    .createdAt -
+                                  b.transaction?.getLatestBrainstorm()!!
+                                    .createdAt,
+                              )
+                              .reverse()
+                              .map(t => {
+                                const brainstorm =
+                                  t.transaction.getLatestBrainstorm();
+                                if (!brainstorm) {
+                                  return null;
+                                }
+                                return (
+                                  <AnimatedPressable
+                                    onPress={() => {
+                                      if (t.transaction.id) {
+                                        navigation.navigate(
+                                          AuthenticatedNavigation.TransactionDetail,
+                                          {
+                                            transactionId: t.transaction.id,
+                                          },
+                                        );
+                                      }
+                                    }}
+                                    scale={0.95}
+                                    key={t.transaction.id}
+                                    style={[
+                                      flex.flex1,
+                                      flex.flexCol,
+                                      justify.around,
+                                      gap.default,
+                                      styles.cardBorder,
+                                      padding.default,
+                                      rounded.default,
+                                      dimension.width.xlarge14,
+                                    ]}>
+                                    <View style={[flex.flexCol]}>
+                                      <Text
+                                        style={[
+                                          font.size[20],
+                                          textColor(COLOR.text.neutral.med),
+                                        ]}>
+                                        {
+                                          t.contentCreator?.contentCreator
+                                            ?.fullname
+                                        }
+                                      </Text>
+                                      <Text
+                                        style={[
+                                          font.size[10],
+                                          textColor(COLOR.text.neutral.med),
+                                        ]}>
+                                        {formatDateToDayMonthYearHourMinute(
+                                          new Date(brainstorm.createdAt),
+                                        )}
+                                      </Text>
+                                    </View>
+                                    <Text
+                                      style={[
+                                        font.size[20],
+                                        textColor(COLOR.text.neutral.high),
+                                      ]}
+                                      numberOfLines={3}>
+                                      {brainstorm.content}
+                                    </Text>
+                                  </AnimatedPressable>
+                                );
+                              })}
+                          </ScrollView>
+                        </View>
+                      </>
+                    ) : (
+                      transaction?.brainstorms &&
                       transaction?.brainstorms.length > 0 && (
                         <>
                           <View
@@ -459,7 +569,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           />
                           <View style={[flex.flexCol, gap.small]}>
                             <Text
-                              className="font-semibold"
+                              className="font-medium"
                               style={[
                                 font.size[30],
                                 textColor(COLOR.text.neutral.med),
@@ -530,13 +640,19 @@ const CampaignTimelineScreen = ({route}: Props) => {
                             </ScrollView>
                           </View>
                         </>
+                      )
+                    )}
+                    {!isCampaignOwner &&
+                      (!transaction?.getLatestBrainstorm() ||
+                        transaction?.getLatestBrainstorm()?.status ===
+                          BasicStatus.rejected) && (
+                        <CustomButton
+                          text="Submit idea"
+                          onPress={() => {
+                            setIsBrainstormingModalOpened(true);
+                          }}
+                        />
                       )}
-                    <CustomButton
-                      text="Submit idea"
-                      onPress={() => {
-                        setIsBrainstormingModalOpened(true);
-                      }}
-                    />
                   </View>
                 </View>
               )}
@@ -765,6 +881,6 @@ const styles = StyleSheet.create({
   },
   cardBorder: {
     borderWidth: 1,
-    borderColor: COLOR.black[20],
+    borderColor: COLOR.green[20],
   },
 });
