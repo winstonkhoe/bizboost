@@ -325,6 +325,7 @@ export class Transaction extends BaseModel {
       };
       try {
         await Transaction.getDocumentReference(id).update({
+          status: TransactionStatus.brainstormSubmitted,
           brainstorms: firestore.FieldValue.arrayUnion(brainstorm),
         });
         return true;
@@ -352,6 +353,7 @@ export class Transaction extends BaseModel {
           if (brainstormIndex >= 0) {
             brainstorms[brainstormIndex] = latestBrainstorm;
             await Transaction.getDocumentReference(id).update({
+              status: TransactionStatus.brainstormRejected,
               brainstorms: brainstorms,
             });
             return true;
@@ -380,6 +382,7 @@ export class Transaction extends BaseModel {
           if (brainstormIndex >= 0) {
             brainstorms[brainstormIndex] = latestBrainstorm;
             await Transaction.getDocumentReference(id).update({
+              status: TransactionStatus.brainstormApproved,
               brainstorms: brainstorms,
             });
             return true;
