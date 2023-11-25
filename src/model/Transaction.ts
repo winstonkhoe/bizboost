@@ -74,6 +74,7 @@ export class Transaction extends BaseModel {
   importantNotes?: string[];
   brainstorms?: Brainstorm[];
   status?: TransactionStatus;
+  createdAt?: number;
   updatedAt?: number;
 
   constructor({
@@ -84,6 +85,7 @@ export class Transaction extends BaseModel {
     importantNotes,
     brainstorms,
     status,
+    createdAt,
     updatedAt,
   }: Partial<Transaction>) {
     super();
@@ -98,6 +100,7 @@ export class Transaction extends BaseModel {
     this.importantNotes = importantNotes;
     this.brainstorms = brainstorms;
     this.status = status;
+    this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
 
@@ -115,6 +118,7 @@ export class Transaction extends BaseModel {
         campaignId: data.campaignId.id,
         brainstorms: data.brainstorms,
         status: data.status,
+        createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       });
     }
@@ -138,18 +142,19 @@ export class Transaction extends BaseModel {
   }
 
   async register() {
-    return await this.updateStatus(TransactionStatus.registrationPending);
+    return await this.insert(TransactionStatus.registrationPending);
   }
 
   async offer() {
-    return await this.updateStatus(TransactionStatus.offering);
+    return await this.insert(TransactionStatus.offering);
   }
 
-  async updateStatus(status: TransactionStatus) {
+  async insert(status: TransactionStatus) {
     try {
-      this.status = status;
-
       const {id, ...rest} = this;
+      if (!id) {
+        throw Error('Missing id');
+      }
       const data = {
         ...rest,
         contentCreatorId: User.getDocumentReference(
@@ -160,14 +165,34 @@ export class Transaction extends BaseModel {
           this.businessPeopleId ?? '',
         ),
         status: status,
-        updatedAt: new Date().getTime(),
+        createdAt: new Date().getTime(),
       };
-      await firestore().collection(TRANSACTION_COLLECTION).doc(id).set(data);
-      return true;
+      await Transaction.getDocumentReference(id).set(data);
     } catch (error) {
       console.log(error);
     }
     throw Error('Error!');
+  }
+
+  async updateStatus(status: TransactionStatus) {
+    try {
+      const {id} = this;
+      if (!id) {
+        throw Error('Missing id');
+      }
+      await Transaction.getDocumentReference(id).update({
+        status: status,
+        updatedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+    throw Error('Error!');
+  }
+
+  static async getById(id: string) {
+    const doc = await Transaction.getDocumentReference(id).get();
+    return this.fromSnapshot(doc);
   }
 
   static getAllTransactionsByCampaign(
