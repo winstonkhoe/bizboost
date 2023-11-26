@@ -18,6 +18,7 @@ import {textColor} from '../../styles/Text';
 import {font, fontSize} from '../../styles/Font';
 import {COLOR} from '../../styles/Color';
 import PasswordIcon from '../../assets/vectors/password.svg';
+import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import InfoIcon from '../../assets/vectors/info.svg';
 import DateIcon from '../../assets/vectors/date.svg';
 import {AddIcon} from '../../components/atoms/Icon';
@@ -204,7 +205,9 @@ const AboutMeScreen = () => {
           ]}
           className="flex-1 justify-between">
           <View style={[flex.flexCol, gap.medium]}>
-            <Text className="text-lg font-bold">About Me</Text>
+            <Text className="font-bold" style={[font.size[40]]}>
+              About Me
+            </Text>
 
             <CustomTextInput
               label="Name"
@@ -248,16 +251,163 @@ const AboutMeScreen = () => {
               </Text>
             </Pressable>
 
+            <View className="border-t border-gray-400 pt-4">
+              <Text
+                className="font-bold"
+                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                Content Creator Information
+              </Text>
+            </View>
+
+            <Pressable
+              className="flex flex-row items-center justify-between"
+              onPress={() => {}}>
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Max Content Revisions
+              </Text>
+              <View
+                className="flex flex-row items-center"
+                style={[gap.default]}>
+                <Text
+                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  {user?.contentCreator?.contentRevisionLimit || 0} times
+                </Text>
+                <ChevronRight fill={COLOR.black[20]} />
+              </View>
+            </Pressable>
+
+            <Pressable
+              className="flex flex-row items-center justify-between"
+              onPress={() => {}}>
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Posting Schedules
+              </Text>
+              <View
+                className="flex flex-row items-center"
+                style={[gap.default]}>
+                <Text
+                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  {user?.contentCreator?.postingSchedules.at(0) &&
+                    formatDateToTime12Hrs(
+                      new Date(user?.contentCreator?.postingSchedules.at(0)!),
+                    )}
+                  {(user?.contentCreator?.postingSchedules.length || -1) > 1 &&
+                    `, and ${
+                      user?.contentCreator?.postingSchedules.length! - 1
+                    } more`}
+                </Text>
+                <ChevronRight fill={COLOR.black[20]} />
+              </View>
+            </Pressable>
+
+            <Pressable
+              className="flex flex-row items-center justify-between"
+              onPress={() => {}}>
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Preferences
+              </Text>
+              <View
+                className="flex flex-row items-center justify-end"
+                style={[gap.default]}>
+                <View className="w-1/2 flex flex-row items-center justify-end">
+                  <Text
+                    className="overflow-hidden text-right"
+                    numberOfLines={1}
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {user?.contentCreator?.preferences.at(0) &&
+                      user?.contentCreator?.preferences.at(0)}
+                  </Text>
+                  <Text
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {(user?.contentCreator?.preferences.length || -1) > 1 &&
+                      `, and ${
+                        user?.contentCreator?.preferences.length! - 1
+                      } more`}
+                  </Text>
+                </View>
+                <ChevronRight fill={COLOR.black[20]} />
+              </View>
+            </Pressable>
+
+            <Pressable
+              className="flex flex-row items-center justify-between"
+              onPress={() => {}}>
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Prefered Locations
+              </Text>
+              <View
+                className="flex flex-row items-center justify-end"
+                style={[gap.default]}>
+                <View className="w-1/2 flex flex-row items-center justify-end">
+                  <Text
+                    className="overflow-hidden text-right"
+                    numberOfLines={1}
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {user?.contentCreator?.preferredLocationIds.at(0) &&
+                      user?.contentCreator?.preferredLocationIds.at(0)}
+                  </Text>
+                  <Text
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {(user?.contentCreator?.preferredLocationIds.length || -1) >
+                      1 &&
+                      `, and ${
+                        user?.contentCreator?.preferredLocationIds.length! - 1
+                      } more`}
+                  </Text>
+                </View>
+                <ChevronRight fill={COLOR.black[20]} />
+              </View>
+            </Pressable>
+
+            <Pressable
+              className="flex flex-row items-center justify-between"
+              onPress={() => {}}>
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Specialized Categories
+              </Text>
+              <View
+                className="flex flex-row items-center justify-end"
+                style={[gap.default]}>
+                <View className="w-1/2 flex flex-row items-center justify-end">
+                  <Text
+                    className="overflow-hidden text-right"
+                    numberOfLines={1}
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {user?.contentCreator?.specializedCategoryIds.at(0) &&
+                      user?.contentCreator?.specializedCategoryIds.at(0)}
+                  </Text>
+                  <Text
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {(user?.contentCreator?.specializedCategoryIds.length ||
+                      -1) > 1 &&
+                      `, and ${
+                        user?.contentCreator?.specializedCategoryIds.length! - 1
+                      } more`}
+                  </Text>
+                </View>
+                <ChevronRight fill={COLOR.black[20]} />
+              </View>
+            </Pressable>
             {/* TODO: ONLY IF CC */}
-            <View style={[flex.flexCol, gap.xlarge]}>
+            {/* <View style={[flex.flexCol, gap.xlarge]}>
               <View style={[flex.flexCol, gap.medium]}>
                 <View style={[flex.flexRow, items.center]}>
                   <View style={[flex.flexCol, flex.growShrink, gap.small]}>
                     <Text
-                      className="font-bold"
+                      className="font-medium"
                       style={[
                         textColor(COLOR.text.neutral.high),
-                        font.size[50],
+                        font.size[30],
                       ]}>
                       Content Revision <FormLabel type="required" />
                     </Text>
@@ -265,7 +415,7 @@ const AboutMeScreen = () => {
                       className="font-medium"
                       style={[
                         textColor(COLOR.text.neutral.med),
-                        font.size[30],
+                        font.size[20],
                       ]}>
                       Max revision to limit business people revision request
                     </Text>
@@ -285,10 +435,10 @@ const AboutMeScreen = () => {
                 <View style={[flex.flexRow, items.center]}>
                   <View style={[flex.flexCol, flex.growShrink, gap.small]}>
                     <Text
-                      className="font-bold"
+                      className="font-medium"
                       style={[
                         textColor(COLOR.text.neutral.high),
-                        font.size[50],
+                        font.size[30],
                       ]}>
                       Posting Schedule <FormLabel type="optional" />
                     </Text>
@@ -296,7 +446,7 @@ const AboutMeScreen = () => {
                       className="font-medium"
                       style={[
                         textColor(COLOR.text.neutral.med),
-                        font.size[30],
+                        font.size[20],
                       ]}>
                       Let business people know your frequent posting schedule
                     </Text>
@@ -398,10 +548,10 @@ const AboutMeScreen = () => {
                 <View style={[flex.flexRow, items.center]}>
                   <View style={[flex.flexCol, flex.growShrink, gap.small]}>
                     <Text
-                      className="font-bold"
+                      className="font-medium"
                       style={[
                         textColor(COLOR.text.neutral.high),
-                        font.size[50],
+                        font.size[30],
                       ]}>
                       Preferences <FormLabel type="optional" />
                     </Text>
@@ -409,7 +559,7 @@ const AboutMeScreen = () => {
                       className="font-medium"
                       style={[
                         textColor(COLOR.text.neutral.med),
-                        font.size[30],
+                        font.size[20],
                       ]}>
                       Let business people know what you like or things you don't
                       like
@@ -642,7 +792,7 @@ const AboutMeScreen = () => {
                   </View>
                 </VerticalPadding>
               </HorizontalPadding>
-            </SheetModal>
+            </SheetModal> */}
           </View>
 
           <View className="mt-8">
