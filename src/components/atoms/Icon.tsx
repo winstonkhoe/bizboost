@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import {SizeType} from '../../styles/Size';
+import {SizeType, size} from '../../styles/Size';
 import {dimension} from '../../styles/Dimension';
 import {COLOR} from '../../styles/Color';
 import {flex, items, justify} from '../../styles/Flex';
@@ -9,6 +9,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {useEffect} from 'react';
+import InstagramMono from '../../assets/vectors/instagram-mono.svg';
+import TiktokMono from '../../assets/vectors/tiktok-mono.svg';
+import {SocialPlatform} from '../../model/User';
+import Svg, {Path} from 'react-native-svg';
 
 interface IconProps {
   size?: SizeType;
@@ -91,3 +95,64 @@ export const MinusIcon = ({
     </View>
   );
 };
+
+export const InstagramIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  return (
+    <InstagramMono
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+    />
+  );
+};
+
+export const TiktokIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  return (
+    <TiktokMono width={size[sizeType]} height={size[sizeType]} color={color} />
+  );
+};
+
+export interface PlatformIconProps extends IconProps {
+  platform: SocialPlatform;
+}
+
+export const PlatformIcon = ({platform, ...props}: PlatformIconProps) => {
+  switch (platform) {
+    case SocialPlatform.Instagram:
+      return <InstagramIcon {...props} />;
+    case SocialPlatform.Tiktok:
+      return <TiktokIcon {...props} />;
+    default:
+      return null;
+  }
+};
+
+const ChevronRight = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  const dimension = size[sizeType];
+  return (
+    <Svg
+      width={dimension}
+      height={dimension}
+      viewBox={`0 0 ${dimension} ${dimension}`}>
+      <Path
+        d={`M ${dimension * 0.2} ${dimension * 0.2} L ${dimension * 0.5} ${
+          dimension * 0.5
+        } ${dimension * 0.2} ${dimension * 0.8}`}
+        stroke={color}
+        strokeWidth="2"
+        fill="transparent"
+      />
+    </Svg>
+  );
+};
+
+export default ChevronRight;
