@@ -157,10 +157,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
       setIsLoading(true);
       data
         .register()
-        .then(isSuccess => {
-          if (isSuccess) {
-            console.log('Joined!');
-          }
+        .then(() => {
+          console.log('Joined!');
         })
         .catch(err => {
           console.log(err);
