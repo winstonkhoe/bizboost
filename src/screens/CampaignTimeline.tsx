@@ -34,6 +34,7 @@ import {
   BasicStatus,
   Transaction,
   TransactionStatus,
+  basicStatusTypeMap,
   transactionStatusTypeMap,
 } from '../model/Transaction';
 import {LoadingScreen} from './LoadingScreen';
@@ -102,6 +103,21 @@ const CampaignTimelineScreen = ({route}: Props) => {
       timeline => now >= timeline.start && now <= timeline.end,
     );
   }, [campaign]);
+
+  const filteredPendingBrainstormApproval = useMemo(() => {
+    return transactions
+      .filter(t => t.transaction?.getLatestBrainstorm() !== null)
+      .filter(
+        t => TransactionStatus.brainstormSubmitted === t.transaction.status,
+      )
+      .sort(
+        (a, b) =>
+          a.transaction.getLatestBrainstorm()!!.createdAt -
+          b.transaction?.getLatestBrainstorm()!!.createdAt,
+      )
+      .reverse();
+  }, [transactions]);
+
   const isCampaignOwner = useMemo(() => {
     return uid === campaign?.userId;
   }, [uid, campaign]);
@@ -467,35 +483,30 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                 font.size[30],
                                 textColor(COLOR.text.neutral.med),
                               ]}>
-                              Pending Approval
+                              {filteredPendingBrainstormApproval.length > 0
+                                ? 'Pending Approval'
+                                : 'No Pending Approval'}
                             </Text>
-                            <InternalLink
-                              size={30}
-                              text="See all"
-                              onPress={() => {
-                                navigateToDetail(
-                                  TransactionStatus.brainstormSubmitted,
-                                );
-                              }}
-                            />
+                            {filteredPendingBrainstormApproval.length > 0 && (
+                              <InternalLink
+                                size={30}
+                                text="See all"
+                                onPress={() => {
+                                  navigateToDetail(
+                                    TransactionStatus.brainstormSubmitted,
+                                  );
+                                }}
+                              />
+                            )}
                           </View>
-                          <ScrollView
-                            horizontal
-                            contentContainerStyle={[flex.flexRow, gap.default]}>
-                            {transactions
-                              .filter(
-                                t =>
-                                  t.transaction?.getLatestBrainstorm() !== null,
-                              )
-                              .sort(
-                                (a, b) =>
-                                  a.transaction.getLatestBrainstorm()!!
-                                    .createdAt -
-                                  b.transaction?.getLatestBrainstorm()!!
-                                    .createdAt,
-                              )
-                              .reverse()
-                              .map(t => {
+                          {filteredPendingBrainstormApproval.length > 0 && (
+                            <ScrollView
+                              horizontal
+                              contentContainerStyle={[
+                                flex.flexRow,
+                                gap.default,
+                              ]}>
+                              {filteredPendingBrainstormApproval.map(t => {
                                 const brainstorm =
                                   t.transaction.getLatestBrainstorm();
                                 if (!brainstorm) {
@@ -520,7 +531,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                       flex.flexCol,
                                       justify.around,
                                       gap.default,
-                                      styles.cardBorder,
+                                      styles.pendingCardBorder,
                                       padding.default,
                                       rounded.default,
                                       dimension.width.xlarge14,
@@ -557,7 +568,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                   </AnimatedPressable>
                                 );
                               })}
-                          </ScrollView>
+                            </ScrollView>
+                          )}
                         </View>
                       </>
                     ) : (
@@ -574,7 +586,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                 font.size[30],
                                 textColor(COLOR.text.neutral.med),
                               ]}>
-                              Previous Submission
+                              Your previous submission
                             </Text>
                             <ScrollView
                               horizontal
@@ -582,61 +594,86 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                 flex.flexRow,
                                 gap.default,
                               ]}>
-                              {transaction.brainstorms.map(brainstorm => {
-                                return (
-                                  <View
-                                    key={brainstorm.createdAt}
-                                    style={[
-                                      flex.flex1,
-                                      flex.flexCol,
-                                      justify.around,
-                                      gap.default,
-                                      styles.cardBorder,
-                                      padding.default,
-                                      rounded.default,
-                                      dimension.width.xlarge14,
-                                    ]}>
-                                    <Text
+                              {transaction.brainstorms
+                                .sort((a, b) => a.createdAt - b.createdAt)
+                                .reverse()
+                                .map(brainstorm => {
+                                  return (
+                                    <View
+                                      key={brainstorm.createdAt}
                                       style={[
-                                        font.size[20],
-                                        textColor(COLOR.text.neutral.med),
+                                        flex.flex1,
+                                        flex.flexCol,
+                                        gap.default,
+                                        BasicStatus.rejected ===
+                                          brainstorm.status &&
+                                          styles.rejectedCardBorder,
+                                        BasicStatus.pending ===
+                                          brainstorm.status &&
+                                          styles.pendingCardBorder,
+                                        BasicStatus.approved ===
+                                          brainstorm.status &&
+                                          styles.approvedCardBorder,
+                                        padding.default,
+                                        rounded.default,
+                                        dimension.width.xlarge14,
                                       ]}>
-                                      {formatDateToDayMonthYearHourMinute(
-                                        new Date(brainstorm.createdAt),
-                                      )}
-                                    </Text>
-                                    <Text
-                                      style={[
-                                        font.size[20],
-                                        textColor(COLOR.text.neutral.high),
-                                      ]}
-                                      numberOfLines={3}>
-                                      {brainstorm.content}
-                                    </Text>
-                                    {brainstorm.rejectReason && (
                                       <View
                                         style={[
-                                          padding.small,
-                                          rounded.small,
-                                          background(COLOR.red[5], 0.3),
-                                          dimension.width.full,
+                                          flex.flexRow,
+                                          gap.medium,
+                                          justify.between,
                                         ]}>
                                         <Text
-                                          className="font-medium"
                                           style={[
                                             font.size[20],
-                                            textColor(
-                                              COLOR.text.danger.default,
-                                            ),
-                                          ]}
-                                          numberOfLines={3}>
-                                          {brainstorm.rejectReason}
+                                            textColor(COLOR.text.neutral.med),
+                                          ]}>
+                                          {formatDateToDayMonthYearHourMinute(
+                                            new Date(brainstorm.createdAt),
+                                          )}
                                         </Text>
+                                        <StatusTag
+                                          status={brainstorm.status}
+                                          statusType={
+                                            basicStatusTypeMap[
+                                              brainstorm.status
+                                            ]
+                                          }
+                                        />
                                       </View>
-                                    )}
-                                  </View>
-                                );
-                              })}
+                                      <Text
+                                        style={[
+                                          font.size[20],
+                                          textColor(COLOR.text.neutral.high),
+                                        ]}
+                                        numberOfLines={3}>
+                                        {brainstorm.content}
+                                      </Text>
+                                      {brainstorm.rejectReason && (
+                                        <View
+                                          style={[
+                                            padding.small,
+                                            rounded.small,
+                                            background(COLOR.red[10], 0.3),
+                                            dimension.width.full,
+                                          ]}>
+                                          <Text
+                                            className="font-medium"
+                                            style={[
+                                              font.size[20],
+                                              textColor(
+                                                COLOR.text.danger.default,
+                                              ),
+                                            ]}
+                                            numberOfLines={3}>
+                                            {brainstorm.rejectReason}
+                                          </Text>
+                                        </View>
+                                      )}
+                                    </View>
+                                  );
+                                })}
                             </ScrollView>
                           </View>
                         </>
@@ -879,8 +916,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLOR.black[20],
   },
-  cardBorder: {
+  approvedCardBorder: {
     borderWidth: 1,
-    borderColor: COLOR.green[20],
+    borderColor: COLOR.green[50],
+  },
+  pendingCardBorder: {
+    borderWidth: 1,
+    borderColor: COLOR.yellow[30],
+  },
+  rejectedCardBorder: {
+    borderWidth: 1,
+    borderColor: COLOR.red[60],
   },
 });
