@@ -1,6 +1,3 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Text} from 'react-native';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native-gesture-handler';
 import {
   HorizontalPadding,
@@ -9,29 +6,16 @@ import {
 import {View} from 'react-native';
 import {flex} from '../styles/Flex';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
-import {Campaign, CampaignType} from '../model/Campaign';
+import {Campaign} from '../model/Campaign';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
 import {useAppSelector} from '../redux/hooks';
 import {getSimilarCampaigns} from '../validations/campaign';
-import {useUser} from '../hooks/user';
+import {useOngoingCampaign} from '../hooks/campaign';
 
 const CampaignsScreen = () => {
-  const {uid} = useUser();
-  const now = useMemo(() => new Date(), []);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const {nonUserCampaigns} = useOngoingCampaign();
   const {searchTerm} = useAppSelector(select => select.search);
-  useEffect(() => {
-    Campaign.getAll().then(cs => {
-      setCampaigns(
-        cs
-          .filter(c => c.userId !== uid)
-          .filter(c => c.type === CampaignType.Public)
-          .filter(c => c.getTimelineStart().end >= now.getTime())
-          .sort((a, b) => a.getTimelineStart().end - b.getTimelineStart().end),
-      );
-    });
-  }, [now, uid]);
 
   return (
     <PageWithSearchBar>
@@ -39,7 +23,7 @@ const CampaignsScreen = () => {
         <VerticalPadding>
           <HorizontalPadding>
             <View style={[flex.flexCol, gap.medium]}>
-              {getSimilarCampaigns(campaigns, searchTerm).map(
+              {getSimilarCampaigns(nonUserCampaigns, searchTerm).map(
                 (c: Campaign, index: number) => (
                   <OngoingCampaignCard campaign={c} key={index} />
                 ),
