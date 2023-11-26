@@ -154,7 +154,7 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
           padding.horizontal.default,
           background(COLOR.background.neutral.default),
           {
-            paddingTop: safeAreaInsets.top + size.xlarge5,
+            paddingTop: safeAreaInsets.top + size.xlarge6,
             paddingBottom: Math.max(safeAreaInsets.bottom, size.xlarge),
           },
         ]}>
