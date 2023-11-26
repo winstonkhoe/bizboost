@@ -41,6 +41,16 @@ type TransactionStatusMap = {
   [key in TransactionStatus]: StatusType;
 };
 
+type BasicStatusMap = {
+  [key in BasicStatus]: StatusType;
+};
+
+export const basicStatusTypeMap: BasicStatusMap = {
+  [BasicStatus.pending]: StatusType.warning,
+  [BasicStatus.approved]: StatusType.success,
+  [BasicStatus.rejected]: StatusType.danger,
+};
+
 export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.notRegistered]: StatusType.warning,
   [TransactionStatus.registrationPending]: StatusType.warning,
