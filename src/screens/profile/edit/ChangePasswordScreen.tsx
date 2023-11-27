@@ -29,7 +29,7 @@ const ChangePasswordScreen = () => {
   const onSubmitButtonClicked = (data: FormData) => {
     console.log(typeof user);
     console.log(user instanceof User);
-    // TODO: temporary solve (@win ini kenapa ya si user dari useUser typenya ga dianggep User, jadi gw mau akses method non-staticnya ga bisa)
+    // TODO: (@win ini kenapa ya si user dari useUser typenya ga dianggep User, jadi gw mau akses method non-staticnya ga bisa? apakah memang ini cr terbaik?)
 
     const temp = new User({...user});
     temp
