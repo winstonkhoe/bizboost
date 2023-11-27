@@ -11,6 +11,7 @@ export enum StatusType {
   success = 'success',
   danger = 'danger',
   warning = 'warning',
+  terminated = 'terminated',
 }
 
 type Props = {
@@ -24,18 +25,10 @@ const StatusTag = ({
   statusType = StatusType.warning,
 }: Props) => {
   // TODO: fix colors, bedain per status?
-  const isWarning = useMemo(
-    () => statusType === StatusType.warning,
-    [statusType],
-  );
-  const isDanger = useMemo(
-    () => statusType === StatusType.danger,
-    [statusType],
-  );
-  const isSuccess = useMemo(
-    () => statusType === StatusType.success,
-    [statusType],
-  );
+  const isWarning = statusType === StatusType.warning;
+  const isDanger = statusType === StatusType.danger;
+  const isSuccess = statusType === StatusType.success;
+  const isTerminated = statusType === StatusType.terminated;
   return (
     <View
       style={[
@@ -62,6 +55,13 @@ const StatusTag = ({
             color: COLOR.green[70],
           }),
         ],
+        isTerminated && [
+          background(COLOR.black[10]),
+          border({
+            borderWidth: 1,
+            color: COLOR.black[70],
+          }),
+        ],
       ]}
       className="px-2 py-1">
       <Text
@@ -70,6 +70,7 @@ const StatusTag = ({
           isWarning && [textColor(COLOR.yellow[70])],
           isDanger && [textColor(COLOR.red[50])],
           isSuccess && [textColor(COLOR.green[70])],
+          isTerminated && [textColor(COLOR.black[50])],
         ]}
         className="font-semibold">
         {status}
