@@ -1,16 +1,16 @@
-import {Pressable, ScrollView, Text, View} from 'react-native';
-import SafeAreaContainer from '../../containers/SafeAreaContainer';
-import {CloseModal} from '../../components/atoms/Close';
-import {flex} from '../../styles/Flex';
-import {gap} from '../../styles/Gap';
-import {padding} from '../../styles/Padding';
+import {Text, View} from 'react-native';
+import SafeAreaContainer from '../../../containers/SafeAreaContainer';
+import {CloseModal} from '../../../components/atoms/Close';
+import {flex} from '../../../styles/Flex';
+import {gap} from '../../../styles/Gap';
+import {padding} from '../../../styles/Padding';
 import {FormProvider, useForm} from 'react-hook-form';
-import {useUser} from '../../hooks/user';
-import {CustomTextInput} from '../../components/atoms/Input';
-import {CustomButton} from '../../components/atoms/Button';
+import {useUser} from '../../../hooks/user';
+import {CustomTextInput} from '../../../components/atoms/Input';
+import {CustomButton} from '../../../components/atoms/Button';
 import {useNavigation} from '@react-navigation/native';
-import {NavigationStackProps} from '../../navigation/StackNavigation';
-import {User} from '../../model/User';
+import {NavigationStackProps} from '../../../navigation/StackNavigation';
+import {User} from '../../../model/User';
 
 type FormData = {
   oldPassword: string;

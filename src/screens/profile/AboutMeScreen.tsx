@@ -1,4 +1,4 @@
-import {Platform, Pressable, Text, View} from 'react-native';
+import {Platform, Pressable, ScrollView, Text, View} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
@@ -192,7 +192,7 @@ const AboutMeScreen = () => {
   return (
     <PageWithBackButton fullHeight enableSafeAreaContainer>
       <FormProvider {...methods}>
-        <View
+        <ScrollView
           style={[
             flex.flexCol,
             padding.horizontal.default,
@@ -202,8 +202,7 @@ const AboutMeScreen = () => {
                 safeAreaInsets.top < 10 ? size.large : size.xlarge2,
               ),
             },
-          ]}
-          className="flex-1 justify-between">
+          ]}>
           <View style={[flex.flexCol, gap.medium]}>
             <Text className="font-bold" style={[font.size[40]]}>
               About Me
@@ -261,7 +260,11 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {}}>
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditMaxContentRevision,
+                );
+              }}>
               <Text
                 className="font-medium"
                 style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
@@ -819,7 +822,7 @@ const AboutMeScreen = () => {
               onPress={methods.handleSubmit(d => console.log(d))}
             />
           </View>
-        </View>
+        </ScrollView>
       </FormProvider>
     </PageWithBackButton>
   );
