@@ -27,7 +27,6 @@ import {
   Campaign,
   CampaignPlatform,
   CampaignStep,
-  CampaignSteps,
   CampaignTimeline,
   CampaignType,
 } from '../model/Campaign';
@@ -65,7 +64,7 @@ import {formatDateToDayMonthYear} from '../utils/date';
 import {Category} from '../model/Category';
 import FastImage from 'react-native-fast-image';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {SocialPlatform, SocialPlatforms} from '../model/User';
+import {SocialPlatform} from '../model/User';
 import {FieldArrayLabel} from '../components/molecules/FieldArrayLabel';
 import {SheetModal} from '../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
@@ -120,7 +119,7 @@ interface SocialTaskOptions {
 }
 
 interface SocialTask {
-  name: SocialPlatforms;
+  name: SocialPlatform;
   tasks: SocialTaskOptions[];
 }
 
@@ -286,14 +285,14 @@ const CreateCampaignScreen = () => {
     setActivePosition(activePosition - 1);
   };
 
-  const getCampaignTimelineIndex = (campaignStep: CampaignSteps) => {
+  const getCampaignTimelineIndex = (campaignStep: CampaignStep) => {
     return getValues('timeline').findIndex(t => t.step === campaignStep);
   };
 
   const updateCampaignTimeline = (
     startDate: Date | null,
     endDate: Date | null,
-    campaignStep: CampaignSteps,
+    campaignStep: CampaignStep,
   ) => {
     if (startDate?.getTime() && endDate?.getTime()) {
       const updateIndex = getCampaignTimelineIndex(campaignStep);
@@ -1109,7 +1108,7 @@ const CreateCampaignScreen = () => {
 
 type SocialFieldArrayProps = {
   control: Control<any>;
-  platform: SocialPlatforms;
+  platform: SocialPlatform;
   title: string;
   parentName: any; // string
   childName?: string;

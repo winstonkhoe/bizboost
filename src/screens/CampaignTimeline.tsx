@@ -98,10 +98,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
     useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentActiveTimeline = useMemo(() => {
-    const now = new Date().getTime();
-    return campaign?.timeline?.find(
-      timeline => now >= timeline.start && now <= timeline.end,
-    );
+    return campaign?.getActiveTimeline();
   }, [campaign]);
 
   const filteredPendingBrainstormApproval = useMemo(() => {

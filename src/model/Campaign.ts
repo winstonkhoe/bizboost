@@ -1,7 +1,7 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {SocialPlatforms, User} from './User';
+import {SocialPlatform, User} from './User';
 import {BaseModel} from './BaseModel';
 import {Location} from './Location';
 import {Category} from './Category';
@@ -13,20 +13,27 @@ export interface CampaignTask {
   description?: string;
 }
 
-export type CampaignPlatform = {name: SocialPlatforms; tasks: CampaignTask[]};
+export type CampaignPlatform = {name: SocialPlatform; tasks: CampaignTask[]};
 
 export enum CampaignStep {
   Registration = 'Registration',
   Brainstorming = 'Brainstorming',
   ContentSubmission = 'Content Submission',
   EngagementResultSubmission = 'Engagement Result Submission',
+  Completed = 'Completed',
 }
 
-export type CampaignSteps =
-  | CampaignStep.Registration
-  | CampaignStep.Brainstorming
-  | CampaignStep.ContentSubmission
-  | CampaignStep.EngagementResultSubmission;
+type CampainStepIndexMap = {
+  [key in CampaignStep]: number;
+};
+
+export const campaignIndexMap: CampainStepIndexMap = {
+  [CampaignStep.Registration]: 0,
+  [CampaignStep.Brainstorming]: 1,
+  [CampaignStep.ContentSubmission]: 2,
+  [CampaignStep.EngagementResultSubmission]: 3,
+  [CampaignStep.Completed]: 4,
+};
 
 export interface CampaignTimeline {
   step: CampaignStep;
@@ -232,6 +239,13 @@ export class Campaign extends BaseModel {
       console.log(error);
     }
     throw Error('Error!');
+  }
+
+  getActiveTimeline(): CampaignTimeline {
+    const now = new Date().getTime();
+    return this.timeline?.find(
+      timeline => timeline.start <= now && now <= timeline.end,
+    )!!;
   }
 
   getTimelineStart(): CampaignTimeline {

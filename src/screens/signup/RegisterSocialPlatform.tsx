@@ -7,7 +7,7 @@ import {gap} from '../../styles/Gap';
 import {ScrollView} from 'react-native-gesture-handler';
 import {SocialPlatformChip} from '../../components/molecules/SocialCard';
 import {isValidField} from '../../utils/form';
-import {SocialData, SocialPlatform, SocialPlatforms} from '../../model/User';
+import {SocialData, SocialPlatform} from '../../model/User';
 import Carousel, {ICarouselInstance} from 'react-native-reanimated-carousel';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormProvider, useForm, useFormContext} from 'react-hook-form';
@@ -349,7 +349,7 @@ export const RegisterSocialPlatform = ({
 };
 
 interface SocialCardProps extends PressableProps {
-  platform: SocialPlatforms;
+  platform: SocialPlatform;
   isActive: boolean;
   isVerified?: boolean;
   index: number;
