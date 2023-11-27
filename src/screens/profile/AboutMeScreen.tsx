@@ -283,7 +283,11 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {}}>
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditPostingSchedule,
+                );
+              }}>
               <Text
                 className="font-medium"
                 style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
@@ -309,7 +313,9 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {}}>
+              onPress={() => {
+                navigation.navigate(AuthenticatedNavigation.EditPreferences);
+              }}>
               <Text
                 className="font-medium"
                 style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
@@ -340,11 +346,15 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {}}>
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditPreferredLocation,
+                );
+              }}>
               <Text
                 className="font-medium"
                 style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
-                Prefered Locations
+                Preferred Locations
               </Text>
               <View
                 className="flex flex-row items-center justify-end"
@@ -372,7 +382,11 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {}}>
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditSpecializedCategory,
+                );
+              }}>
               <Text
                 className="font-medium"
                 style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
