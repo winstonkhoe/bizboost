@@ -20,7 +20,7 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
-import {UserRole} from '../../model/User';
+import {User, UserRole} from '../../model/User';
 import {formatDateToTime12Hrs} from '../../utils/date';
 type FormData = {
   email: string;
@@ -39,6 +39,29 @@ const AboutMeScreen = () => {
       phone: user?.phone,
     },
   });
+
+  const onSubmit = (d: FormData) => {
+    const temp = new User({...user});
+
+    if (activeRole === UserRole.BusinessPeople) {
+      temp.businessPeople = {
+        ...temp.businessPeople!,
+        fullname: d.fullname,
+      };
+    } else if (activeRole === UserRole.ContentCreator) {
+      temp.contentCreator = {
+        ...temp.contentCreator!,
+        fullname: d.fullname,
+      };
+    }
+
+    temp.email = d.email;
+    temp.phone = d.phone;
+
+    temp.updateUserData().then(() => {
+      navigation.goBack();
+    });
+  };
 
   return (
     <PageWithBackButton fullHeight enableSafeAreaContainer>
@@ -293,7 +316,7 @@ const AboutMeScreen = () => {
             </View>
             <CustomButton
               text="Save"
-              onPress={methods.handleSubmit(d => console.log(d))}
+              onPress={methods.handleSubmit(onSubmit)}
             />
           </View>
         </ScrollView>
