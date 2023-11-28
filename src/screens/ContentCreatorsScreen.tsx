@@ -461,7 +461,7 @@ const ContentCreatorsScreen: React.FC = () => {
 
                 {filteredContentCreators.length > 0 ? (
                   <View style={[flex.flexRow, justify.between]}>
-                    <View style={(flex.flexCol, gap.medium)}>
+                    <View style={(flex.flexCol, gap.default)}>
                       {filteredContentCreators.map((item, index) =>
                         index % 2 === 0 ? (
                           <ContentCreatorCard
@@ -480,7 +480,7 @@ const ContentCreatorsScreen: React.FC = () => {
                         ) : null,
                       )}
                     </View>
-                    <View style={(flex.flexCol, gap.medium)}>
+                    <View style={(flex.flexCol, gap.default)}>
                       {filteredContentCreators.map((item, index) =>
                         index % 2 !== 0 ? (
                           <ContentCreatorCard

@@ -59,7 +59,7 @@ const ChatScreen = ({route}: Props) => {
   );
 
   useEffect(() => {
-    Offer.getAllByCCBP(
+    Offer.getPendingOffersbyCCBP(
       businessPeopleId?.ref ?? '',
       contentCreatorId?.ref ?? '',
       res => {
@@ -133,8 +133,6 @@ const ChatScreen = ({route}: Props) => {
       scrollViewRef.current.scrollToEnd({animated: true});
     }
   };
-
-  console.log(chat.recipient);
 
   return (
     <SafeAreaContainer>

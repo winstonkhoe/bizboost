@@ -24,7 +24,6 @@ export enum TransactionStatus {
   // private
   offering = 'Offering',
   offeringApproved = 'Offering Approved',
-  offerRejected = 'Offering Rejected', // soft delete
 
   // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
 
@@ -49,7 +48,6 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.registrationApproved]: StatusType.success,
   [TransactionStatus.offering]: StatusType.warning,
   [TransactionStatus.offeringApproved]: StatusType.success,
-  [TransactionStatus.offerRejected]: StatusType.danger,
   [TransactionStatus.brainstormSubmitted]: StatusType.warning,
   [TransactionStatus.brainstormApproved]: StatusType.success,
   [TransactionStatus.brainstormRejected]: StatusType.danger,
@@ -140,7 +138,7 @@ export class Transaction extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  static getCampaignCollections =
+  static getTransactionCollections =
     (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
       return firestore().collection(TRANSACTION_COLLECTION);
     };
@@ -152,7 +150,20 @@ export class Transaction extends BaseModel {
     firestore().settings({
       ignoreUndefinedProperties: true,
     });
-    return this.getCampaignCollections().doc(documentId);
+    return this.getTransactionCollections().doc(documentId);
+  }
+
+  static async getById(id: string): Promise<Transaction> {
+    try {
+      const snapshot = await this.getDocumentReference(id).get();
+      if (!snapshot.exists) {
+        throw Error('Transaction not found!');
+      }
+
+      const transaction = this.fromSnapshot(snapshot);
+      return transaction;
+    } catch (error) {}
+    throw Error('Error!');
   }
 
   async register() {
@@ -161,6 +172,11 @@ export class Transaction extends BaseModel {
 
   async offer() {
     return await this.updateStatus(TransactionStatus.offering);
+  }
+
+  async acceptOffer(transactionAmount: number) {
+    this.transactionAmount = transactionAmount;
+    return await this.updateStatus(TransactionStatus.offeringApproved);
   }
 
   async updateStatus(status: TransactionStatus) {

@@ -7,7 +7,7 @@ import {Campaign} from './Campaign';
 
 export const OFFER_COLLECTION = 'offers';
 
-export enum BasicStatus {
+export enum OfferStatus {
   pending = 'Pending',
   approved = 'Approved',
   rejected = 'Rejected',
@@ -20,7 +20,7 @@ export class Offer extends BaseModel {
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   offeredPrice?: number;
   importantNotes?: string[];
-  status?: BasicStatus;
+  status?: OfferStatus;
   createdAt?: number;
 
   constructor({
@@ -30,7 +30,7 @@ export class Offer extends BaseModel {
     businessPeopleId,
     offeredPrice,
     importantNotes,
-    status = BasicStatus.pending,
+    status = OfferStatus.pending,
     createdAt,
   }: Partial<Offer>) {
     super();
@@ -119,7 +119,7 @@ export class Offer extends BaseModel {
     throw Error('Error!');
   }
 
-  static getAllByCCBP(
+  static getPendingOffersbyCCBP(
     businessPeopleId: string,
     contentCreatorId: string,
     onComplete: (offers: Offer[]) => void,
@@ -137,6 +137,7 @@ export class Offer extends BaseModel {
           '==',
           firestore().collection('users').doc(contentCreatorId),
         )
+        .where('status', '==', OfferStatus.pending)
         .onSnapshot(
           querySnapshot => {
             if (querySnapshot.empty) {
@@ -155,5 +156,42 @@ export class Offer extends BaseModel {
       console.error(error);
       throw Error('Error!');
     }
+  }
+
+  async accept() {
+    await this.updateStatus(OfferStatus.approved);
+  }
+
+  async reject() {
+    await this.updateStatus(OfferStatus.rejected);
+  }
+
+  async updateStatus(status: OfferStatus) {
+    try {
+      this.status = status;
+
+      const {id, ...rest} = this;
+      const data = {
+        ...rest,
+        contentCreatorId: User.getDocumentReference(
+          this.contentCreatorId ?? '',
+        ),
+        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
+        businessPeopleId: User.getDocumentReference(
+          this.businessPeopleId ?? '',
+        ),
+        status: status,
+      };
+
+      await firestore().collection(OFFER_COLLECTION).doc(id).set(data);
+      return true;
+    } catch (error) {
+      console.log(error);
+    }
+    throw Error('Error!');
+  }
+
+  static filterByCampaignId(offers: Offer[], campaignId: string): Offer[] {
+    return offers.filter(offer => offer.campaignId === campaignId);
   }
 }

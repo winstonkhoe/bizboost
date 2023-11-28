@@ -50,6 +50,8 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
       );
     };
 
+    const concatenatedCategories = categories?.join(', ') || '';
+
     return (
       <View style={styles.cardContainer}>
         <Pressable
@@ -59,16 +61,6 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
             });
           }}>
           <View style={{width: Dimensions.get('window').width * 0.45}}>
-            {rating && (
-              <View style={styles.ratingContainer}>
-                <View
-                  style={flex.flexRow}
-                  className="p-1 justify-end items-center rounded-md bg-black">
-                  <StarIcon width={10} height={10} fill={'rgb(245, 208, 27)'} />
-                  <Text style={styles.rating}>{rating}</Text>
-                </View>
-              </View>
-            )}
             <ScaledImage
               uri={imageUrl}
               style={styles.image}
@@ -78,10 +70,38 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
               colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
               style={styles.nameContainer}>
               <Text style={styles.name}>{name}</Text>
+              <View style={flex.flexRow} className="items-center">
+                {rating && (
+                  <View style={flex.flexRow} className="items-center">
+                    <StarIcon width={8} height={8} fill={'rgb(245, 208, 27)'} />
+                    <Text
+                      style={(flex.flexRow, styles.rating)}
+                      className="text-xs text-white items-center">
+                      {' '}
+                      {rating}
+                    </Text>
+                    <Text className="text-xs text-white" style={styles.rating}>
+                      {' '}
+                      •{' '}
+                    </Text>
+                  </View>
+                )}
+                {categories && categories?.length > 0 && (
+                  <View style={flex.flexRow} className="items-center">
+                    <Text
+                      className="text-xs text-white"
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      style={styles.rating}>
+                      {concatenatedCategories}
+                    </Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.location}>Tangerang, Indonesia</Text>
             </LinearGradient>
           </View>
-          {renderCategories()}
+          {/* {renderCategories()} */}
         </Pressable>
       </View>
     );
@@ -139,13 +159,12 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   rating: {
-    fontSize: 10,
-    paddingLeft: 2,
+    fontSize: 8,
     color: 'white',
   },
   location: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'normal',
     textAlign: 'left',
   },

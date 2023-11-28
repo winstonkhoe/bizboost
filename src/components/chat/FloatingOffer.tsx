@@ -26,6 +26,7 @@ import {rounded} from '../../styles/BorderRadius';
 import {HorizontalPadding} from '../atoms/ViewPadding';
 import {CustomButton} from '../atoms/Button';
 import {font} from '../../styles/Font';
+import {Transaction} from '../../model/Transaction';
 
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -38,6 +39,11 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [campaign, setCampaign] = useState<Campaign>();
   const navigation = useNavigation<NavigationStackProps>();
+  const [showAllNotes, setShowAllNotes] = useState(false);
+
+  const handleSeeMore = () => {
+    setShowAllNotes(true);
+  };
 
   useEffect(() => {
     Campaign.getById(offers[0].campaignId || '').then(c => setCampaign(c));
@@ -49,15 +55,41 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
       ? user?.businessPeople?.fullname
       : recipientName;
 
-  // Function to toggle the expansion
   const toggleExpansion = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsExpanded(!isExpanded);
   };
 
-  for (let i = 0; i < offers.length; i++) {
-    console.log(offers[i].toString());
-  }
+  const acceptOffer = (offer: Offer) => {
+    offer.accept().then(async () => {
+      const rejectedOffers = Offer.filterByCampaignId(
+        offers,
+        offer.campaignId ?? '',
+      );
+
+      for (let i = 0; i < rejectedOffers.length; i++) {
+        console.log('Rejected offer:', rejectedOffers[i].toString());
+        await rejectedOffers[i].reject();
+      }
+
+      console.log(offer.campaignId + offer.contentCreatorId);
+      Transaction.getById(offer.campaignId + offer.contentCreatorId).then(
+        transaction => {
+          if (transaction) {
+            transaction.acceptOffer(offer.offeredPrice ?? 0);
+          }
+        },
+      );
+    });
+  };
+
+  const declineOffer = (offer: Offer) => {
+    offer.reject();
+  };
+
+  // for (let i = 0; i < offers.length; i++) {
+  //   console.log(offers[i].toString());
+  // }
 
   return (
     <View
@@ -79,10 +111,8 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
             </View>
             <TouchableOpacity onPress={toggleExpansion}>
               {isExpanded ? (
-                // Display the new SVG icon when expanded
                 <ChevronUp width={20} height={10} color={COLOR.black[100]} />
               ) : (
-                // Display the original ChevronDown icon when not expanded
                 <ChevronDown width={20} height={10} color={COLOR.black[100]} />
               )}
             </TouchableOpacity>
@@ -125,12 +155,31 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                           <Text className="text-xs font-semibold pb-1">
                             Important Notes
                           </Text>
-                          {offers[0].importantNotes &&
-                            offers[0].importantNotes.map((note, idx) => (
-                              <Text className="text-xs" key={idx}>
-                                • {note}
-                              </Text>
-                            ))}
+                          {offers[0].importantNotes && (
+                            <>
+                              {showAllNotes
+                                ? offers[0].importantNotes.map((note, idx) => (
+                                    <Text className="text-xs" key={idx}>
+                                      • {note}
+                                    </Text>
+                                  ))
+                                : offers[0].importantNotes
+                                    .slice(0, 2)
+                                    .map((note, idx) => (
+                                      <Text className="text-xs" key={idx}>
+                                        • {note}
+                                      </Text>
+                                    ))}
+                              {!showAllNotes &&
+                                offers[0].importantNotes.length > 2 && (
+                                  <Pressable onPress={handleSeeMore}>
+                                    <Text style={{color: 'blue'}}>
+                                      See more
+                                    </Text>
+                                  </Pressable>
+                                )}
+                            </>
+                          )}
                         </View>
                       </View>
                     </View>
@@ -145,6 +194,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                         scale={1}
                         rounded="small"
                         className="w-full"
+                        onPress={() => acceptOffer(offers[0])}
                         customTextSize={font.size[20]}
                       />
                     </View>
@@ -154,6 +204,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                         scale={1}
                         rounded="small"
                         className="w-ful"
+                        onPress={() => declineOffer(offers[0])}
                         customTextSize={font.size[20]}
                         type="tertiary"
                       />
@@ -168,6 +219,8 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                         key={offer.id}
                         offer={offer}
                         businessPeople={businessPeople}
+                        handleClickAccept={() => acceptOffer(offer)}
+                        handleClickReject={() => declineOffer(offer)}
                       />
                     ))}
               </View>
@@ -184,9 +237,16 @@ export default FloatingOffer;
 type OfferCardProps = {
   offer: Offer;
   businessPeople: string;
+  handleClickAccept: () => void;
+  handleClickReject: () => void;
 };
 
-const OfferCard = ({offer, businessPeople}: OfferCardProps) => {
+const OfferCard = ({
+  offer,
+  businessPeople,
+  handleClickAccept,
+  handleClickReject,
+}: OfferCardProps) => {
   const [campaign, setCampaign] = useState<Campaign>();
   const navigation = useNavigation<NavigationStackProps>();
 
@@ -238,12 +298,15 @@ const OfferCard = ({offer, businessPeople}: OfferCardProps) => {
               <Text className="text-xs font-semibold pb-1">
                 Important Notes
               </Text>
-              {offer.importantNotes &&
+              {offer.importantNotes && offer.importantNotes?.length > 0 ? (
                 offer.importantNotes.map((note, idx) => (
                   <Text className="text-xs" key={idx}>
                     • {note}
                   </Text>
-                ))}
+                ))
+              ) : (
+                <Text className="text-xs">-</Text>
+              )}
             </View>
           </View>
         </View>
@@ -258,6 +321,7 @@ const OfferCard = ({offer, businessPeople}: OfferCardProps) => {
             scale={1}
             rounded="small"
             className="w-full"
+            onPress={handleClickAccept}
             customTextSize={font.size[20]}
           />
         </View>
@@ -267,6 +331,7 @@ const OfferCard = ({offer, businessPeople}: OfferCardProps) => {
             scale={1}
             rounded="small"
             className="w-ful"
+            onPress={handleClickReject}
             customTextSize={font.size[20]}
             type="tertiary"
           />
