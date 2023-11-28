@@ -22,8 +22,9 @@ import {
 } from '../../navigation/StackNavigation';
 import {User, UserRole} from '../../model/User';
 import {formatDateToTime12Hrs} from '../../utils/date';
-import {openLocationModal} from '../../utils/modal';
+import {openCategoryModal, openLocationModal} from '../../utils/modal';
 import {Location} from '../../model/Location';
+import {Category} from '../../model/Category';
 type FormData = {
   email: string;
   fullname: string;
@@ -238,7 +239,7 @@ const AboutMeScreen = () => {
                       pl => new Location({id: pl}),
                     ) || [],
                   setPreferredLocations: locations => {
-                    // TODO: extract method
+                    // TODO: extract method?
                     const temp = new User({...user});
                     temp.contentCreator = {
                       ...temp.contentCreator!,
@@ -282,7 +283,24 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {}}>
+              onPress={() => {
+                openCategoryModal({
+                  favoriteCategories:
+                    user?.contentCreator?.specializedCategoryIds.map(
+                      sc => new Category({id: sc}),
+                    ) || [],
+                  setFavoriteCategories: categories => {
+                    const temp = new User({...user});
+                    temp.contentCreator = {
+                      ...temp.contentCreator!,
+                      specializedCategoryIds: categories.map(c => c.id || ''),
+                    };
+
+                    temp.updateUserData();
+                  },
+                  navigation: navigation,
+                });
+              }}>
               <Text
                 className="font-medium"
                 style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
