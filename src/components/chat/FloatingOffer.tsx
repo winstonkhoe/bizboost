@@ -173,7 +173,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                               {!showAllNotes &&
                                 offers[0].importantNotes.length > 2 && (
                                   <Pressable onPress={handleSeeMore}>
-                                    <Text style={{color: 'blue'}}>
+                                    <Text className="text-xs text-blue-600">
                                       See more
                                     </Text>
                                   </Pressable>
@@ -187,29 +187,31 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                       <ChevronRight fill={COLOR.black[20]} />
                     </HorizontalPadding>
                   </Pressable>
-                  <View className="pt-2 flex flex-row items-center justify-between w-full">
-                    <View className="w-1/2">
-                      <CustomButton
-                        text="Accept"
-                        scale={1}
-                        rounded="small"
-                        className="w-full"
-                        onPress={() => acceptOffer(offers[0])}
-                        customTextSize={font.size[20]}
-                      />
+                  {activeRole === UserRole.ContentCreator && (
+                    <View className="pt-2 flex flex-row items-center justify-between w-full">
+                      <View className="w-1/2">
+                        <CustomButton
+                          text="Accept"
+                          scale={1}
+                          rounded="small"
+                          className="w-full"
+                          onPress={() => acceptOffer(offers[0])}
+                          customTextSize={font.size[20]}
+                        />
+                      </View>
+                      <View className="w-1/2">
+                        <CustomButton
+                          text="Reject"
+                          scale={1}
+                          rounded="small"
+                          className="w-ful"
+                          onPress={() => declineOffer(offers[0])}
+                          customTextSize={font.size[20]}
+                          type="tertiary"
+                        />
+                      </View>
                     </View>
-                    <View className="w-1/2">
-                      <CustomButton
-                        text="Reject"
-                        scale={1}
-                        rounded="small"
-                        className="w-ful"
-                        onPress={() => declineOffer(offers[0])}
-                        customTextSize={font.size[20]}
-                        type="tertiary"
-                      />
-                    </View>
-                  </View>
+                  )}
                 </View>
                 {offers.length > 1 &&
                   offers
@@ -219,6 +221,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                         key={offer.id}
                         offer={offer}
                         businessPeople={businessPeople}
+                        activeRole={activeRole}
                         handleClickAccept={() => acceptOffer(offer)}
                         handleClickReject={() => declineOffer(offer)}
                       />
@@ -237,6 +240,7 @@ export default FloatingOffer;
 type OfferCardProps = {
   offer: Offer;
   businessPeople: string;
+  activeRole: UserRole;
   handleClickAccept: () => void;
   handleClickReject: () => void;
 };
@@ -244,6 +248,7 @@ type OfferCardProps = {
 const OfferCard = ({
   offer,
   businessPeople,
+  activeRole,
   handleClickAccept,
   handleClickReject,
 }: OfferCardProps) => {
@@ -314,29 +319,31 @@ const OfferCard = ({
           <ChevronRight fill={COLOR.black[20]} />
         </HorizontalPadding>
       </Pressable>
-      <View className="pt-2 flex flex-row items-center justify-between w-full">
-        <View className="w-1/2">
-          <CustomButton
-            text="Accept"
-            scale={1}
-            rounded="small"
-            className="w-full"
-            onPress={handleClickAccept}
-            customTextSize={font.size[20]}
-          />
+      {activeRole === UserRole.ContentCreator && (
+        <View className="pt-2 flex flex-row items-center justify-between w-full">
+          <View className="w-1/2">
+            <CustomButton
+              text="Accept"
+              scale={1}
+              rounded="small"
+              className="w-full"
+              onPress={handleClickAccept}
+              customTextSize={font.size[20]}
+            />
+          </View>
+          <View className="w-1/2">
+            <CustomButton
+              text="Reject"
+              scale={1}
+              rounded="small"
+              className="w-ful"
+              onPress={handleClickReject}
+              customTextSize={font.size[20]}
+              type="tertiary"
+            />
+          </View>
         </View>
-        <View className="w-1/2">
-          <CustomButton
-            text="Reject"
-            scale={1}
-            rounded="small"
-            className="w-ful"
-            onPress={handleClickReject}
-            customTextSize={font.size[20]}
-            type="tertiary"
-          />
-        </View>
-      </View>
+      )}
     </View>
   );
 };
