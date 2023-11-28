@@ -317,6 +317,7 @@ export const CustomTextInput = ({
 
 interface FormlessCustomTextInputProps extends Partial<CustomTextInputProps> {
   onChange: (text: string) => void;
+  onValidChange?: (value: boolean) => void;
 }
 
 type TextData = {
@@ -325,19 +326,28 @@ type TextData = {
 
 export const FormlessCustomTextInput = ({
   onChange,
+  onValidChange,
   ...props
 }: FormlessCustomTextInputProps) => {
   const methods = useForm<TextData>({
+    mode: 'all',
     defaultValues: {
       value: props.defaultValue || '',
     },
   });
-  const {watch} = methods;
+  const {
+    watch,
+    formState: {isValid},
+  } = methods;
   const value = watch('value');
 
   useEffect(() => {
     onChange(value);
   }, [value, onChange]);
+
+  useEffect(() => {
+    onValidChange && onValidChange(isValid);
+  }, [isValid, onValidChange]);
 
   return (
     <FormProvider {...methods}>
