@@ -149,10 +149,11 @@ const AboutMeScreen = () => {
                 style={[gap.default]}>
                 <Text
                   style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                  {user?.contentCreator?.postingSchedules.at(0) &&
-                    formatDateToTime12Hrs(
-                      new Date(user?.contentCreator?.postingSchedules.at(0)!),
-                    )}
+                  {user?.contentCreator?.postingSchedules.at(0)
+                    ? formatDateToTime12Hrs(
+                        new Date(user?.contentCreator?.postingSchedules.at(0)!),
+                      )
+                    : 'None'}
                   {(user?.contentCreator?.postingSchedules.length || -1) > 1 &&
                     `, and ${
                       user?.contentCreator?.postingSchedules.length! - 1
@@ -180,8 +181,9 @@ const AboutMeScreen = () => {
                     className="overflow-hidden text-right"
                     numberOfLines={1}
                     style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {user?.contentCreator?.preferences.at(0) &&
-                      user?.contentCreator?.preferences.at(0)}
+                    {user?.contentCreator?.preferences.at(0)
+                      ? user?.contentCreator?.preferences.at(0)
+                      : 'None'}
                   </Text>
                   <Text
                     style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
@@ -215,8 +217,9 @@ const AboutMeScreen = () => {
                     className="overflow-hidden text-right"
                     numberOfLines={1}
                     style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {user?.contentCreator?.preferredLocationIds.at(0) &&
-                      user?.contentCreator?.preferredLocationIds.at(0)}
+                    {user?.contentCreator?.preferredLocationIds.at(0)
+                      ? user?.contentCreator?.preferredLocationIds.at(0)
+                      : 'None'}
                   </Text>
                   <Text
                     style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
@@ -251,8 +254,9 @@ const AboutMeScreen = () => {
                     className="overflow-hidden text-right"
                     numberOfLines={1}
                     style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {user?.contentCreator?.specializedCategoryIds.at(0) &&
-                      user?.contentCreator?.specializedCategoryIds.at(0)}
+                    {user?.contentCreator?.specializedCategoryIds.at(0)
+                      ? user?.contentCreator?.specializedCategoryIds.at(0)
+                      : 'None'}
                   </Text>
                   <Text
                     style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
