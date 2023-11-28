@@ -22,10 +22,15 @@ import {
 } from '../../navigation/StackNavigation';
 import {User, UserRole} from '../../model/User';
 import {formatDateToTime12Hrs} from '../../utils/date';
+import {openLocationModal} from '../../utils/modal';
+import {Location} from '../../model/Location';
 type FormData = {
   email: string;
   fullname: string;
   phone: string;
+
+  //
+  // preferredLocations: Location[]
 };
 const AboutMeScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -39,7 +44,6 @@ const AboutMeScreen = () => {
       phone: user?.phone,
     },
   });
-
   const onSubmit = (d: FormData) => {
     const temp = new User({...user});
 
@@ -223,9 +227,28 @@ const AboutMeScreen = () => {
             <Pressable
               className="flex flex-row items-center justify-between"
               onPress={() => {
-                navigation.navigate(
-                  AuthenticatedNavigation.EditPreferredLocation,
-                );
+                // TODO: baru liat ada uda RegisterLocation sama RegisterFocusCategory, jadi kyknya nanti yang lainnya akan disamain hehe
+                // navigation.navigate(
+                //   AuthenticatedNavigation.EditSpecializedCategory,
+                // );
+
+                openLocationModal({
+                  preferredLocations:
+                    user?.contentCreator?.preferredLocationIds.map(
+                      pl => new Location({id: pl}),
+                    ) || [],
+                  setPreferredLocations: locations => {
+                    // TODO: extract method
+                    const temp = new User({...user});
+                    temp.contentCreator = {
+                      ...temp.contentCreator!,
+                      preferredLocationIds: locations.map(l => l.id || ''),
+                    };
+
+                    temp.updateUserData();
+                  },
+                  navigation: navigation,
+                });
               }}>
               <Text
                 className="font-medium"
@@ -259,11 +282,7 @@ const AboutMeScreen = () => {
 
             <Pressable
               className="flex flex-row items-center justify-between"
-              onPress={() => {
-                navigation.navigate(
-                  AuthenticatedNavigation.EditSpecializedCategory,
-                );
-              }}>
+              onPress={() => {}}>
               <Text
                 className="font-medium"
                 style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
