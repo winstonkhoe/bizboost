@@ -145,9 +145,9 @@ interface ContentTask {
   uri: string[];
 }
 
-interface TransactionContent {
+export interface TransactionContent {
   platform: SocialPlatform;
-  task: ContentTask[];
+  tasks: ContentTask[];
 }
 
 interface Content {
@@ -610,13 +610,17 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id or brainstorms');
   }
 
-  async submitContent(content: Content): Promise<boolean> {
+  async submitContent(content: TransactionContent[]): Promise<boolean> {
     const {id} = this;
     if (id) {
       try {
         await Transaction.getDocumentReference(id).update({
           status: TransactionStatus.contentSubmitted,
-          contents: firestore.FieldValue.arrayUnion(content),
+          contents: firestore.FieldValue.arrayUnion({
+            status: BasicStatus.pending,
+            content: content,
+            createdAt: new Date().getTime(),
+          }),
         });
         return true;
       } catch (error) {
