@@ -6,28 +6,21 @@ import {gap} from '../../styles/Gap';
 import {MediaUploader} from '../atoms/Input';
 import {flex} from '../../styles/Flex';
 import {Options} from 'react-native-image-crop-picker';
-import {useNavigation} from '@react-navigation/native';
-import {
-  AuthenticatedNavigation,
-  NavigationStackProps,
-} from '../../navigation/StackNavigation';
+
 import {UserRole} from '../../model/User';
 import {useUser} from '../../hooks/user';
 
 interface Props {
   options: Options;
   handleImageUpload: (downloadURL: string) => void;
-  businessPeopleId: string;
-  contentCreatorId: string;
+  handleMakeOffer: () => void;
 }
 
 const ChatWidget = ({
   options,
   handleImageUpload,
-  businessPeopleId,
-  contentCreatorId,
+  handleMakeOffer,
 }: Props) => {
-  const navigation = useNavigation<NavigationStackProps>();
   const {activeRole} = useUser();
 
   return (
@@ -50,12 +43,7 @@ const ChatWidget = ({
       {/* Make Offer Button */}
       {activeRole === UserRole.BusinessPeople && (
         <Pressable
-          onPress={() =>
-            navigation.navigate(AuthenticatedNavigation.MakeOffer, {
-              businessPeopleId: businessPeopleId,
-              contentCreatorId: contentCreatorId,
-            })
-          }
+          onPress={handleMakeOffer}
           className="flex flex-col justify-center items-center">
           <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
             <MakeOfferIcon width={30} height={30} />

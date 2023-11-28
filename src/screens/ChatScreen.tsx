@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {View, ScrollView, Animated, Text, TouchableOpacity} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
@@ -12,18 +12,18 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
-import {Chat, ChatView, Message, MessageType} from '../model/Chat';
+import {Chat, Message, MessageType} from '../model/Chat';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
+  NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Button} from 'react-native-elements';
 import FloatingOffer from '../components/chat/FloatingOffer';
 import {UserRole} from '../model/User';
-import {Transaction} from '../model/Transaction';
 import {Offer} from '../model/Offer';
+import {useNavigation} from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -37,6 +37,7 @@ const ChatScreen = ({route}: Props) => {
   const {uid, user, activeRole} = useUser();
 
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
+  const navigation = useNavigation<NavigationStackProps>();
 
   useEffect(() => {
     const chatRef = Chat.getDocumentReference(chat.chat.id ?? '');
@@ -78,7 +79,6 @@ const ChatScreen = ({route}: Props) => {
   console.log('--------------------------------Chat Screen');
 
   useEffect(() => {
-    // Assuming that chat.messages is an array of Message objects
     if (chatData.messages) {
       setChatMessages(chatData.messages);
     }
@@ -86,13 +86,11 @@ const ChatScreen = ({route}: Props) => {
 
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Handle sending a message
   const handleSendPress = async (message: string) => {
-    // Add the new message to the chatMessages state
     if (message !== '') {
       const newMessage: Message = {
         message: message,
-        sender: uid!!,
+        role: activeRole!!,
         type: MessageType.Text,
         createdAt: new Date().getTime(),
       };
@@ -120,7 +118,7 @@ const ChatScreen = ({route}: Props) => {
     const newMessage: Message = {
       message: downloadURL,
       type: MessageType.Photo,
-      sender: uid!!,
+      role: activeRole!!,
       createdAt: new Date().getTime(),
     };
 
@@ -132,6 +130,13 @@ const ChatScreen = ({route}: Props) => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({animated: true});
     }
+  };
+
+  const handleMakeOffer = () => {
+    navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+      businessPeopleId: businessPeopleId?.ref ?? '',
+      contentCreatorId: contentCreatorId?.ref ?? '',
+    });
   };
 
   return (
@@ -172,7 +177,7 @@ const ChatScreen = ({route}: Props) => {
                     <ChatBubble
                       key={index}
                       message={message.message}
-                      isSender={message.sender === uid}
+                      isSender={message.role === activeRole}
                       type={message.type}
                     />
                   </View>
@@ -199,8 +204,7 @@ const ChatScreen = ({route}: Props) => {
                   cropping: true,
                 }}
                 handleImageUpload={handleImageUpload}
-                businessPeopleId={businessPeopleId?.ref ?? ''}
-                contentCreatorId={contentCreatorId?.ref ?? ''}
+                handleMakeOffer={handleMakeOffer}
               />
             </View>
           ) : null}

@@ -26,7 +26,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Chat, ChatView} from '../model/Chat';
+import {Chat, ChatService, ChatView, Message, MessageType} from '../model/Chat';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
@@ -48,7 +48,7 @@ const MakeOfferScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const methods = useForm<MakeOfferFormData>();
 
-  const {activeRole} = useUser();
+  const {uid, user, activeRole} = useUser();
   const chatViews = useUserChats().chats;
 
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
@@ -67,65 +67,75 @@ const MakeOfferScreen = ({route}: Props) => {
       importantNotes: data.importantNotes.map(getStringObjectValue) ?? [],
     });
 
-    transaction.offer().then(isSuccess => {
-      if (isSuccess) {
-        console.log(transaction);
+    console.log(transaction);
+    transaction.offer().then(() => {
+      const offer = new Offer({
+        contentCreatorId: contentCreatorId,
+        businessPeopleId: businessPeopleId,
+        campaignId: selectedCampaign.id ?? '',
+        importantNotes: data.importantNotes.map(getStringObjectValue) ?? [],
+        offeredPrice: data.fee ?? 0,
+      });
 
-        const offer = new Offer({
-          contentCreatorId: contentCreatorId,
-          businessPeopleId: businessPeopleId,
-          campaignId: selectedCampaign.id ?? '',
-          importantNotes: data.importantNotes.map(getStringObjectValue) ?? [],
-          offeredPrice: data.fee ?? 0,
-        });
+      offer.insert().then(insertion => {
+        if (insertion) {
+          const participants = [
+            {ref: businessPeopleId, role: UserRole.BusinessPeople},
+            {ref: contentCreatorId, role: UserRole.ContentCreator},
+          ];
+          const matchingChatView = chatViews.find(chatView => {
+            const chatParticipants = chatView.chat.participants || [];
 
-        offer.insert().then(insertion => {
-          if (insertion) {
-            const participants = [
-              {ref: businessPeopleId, role: UserRole.BusinessPeople},
-              {ref: contentCreatorId, role: UserRole.ContentCreator},
-            ];
-            const matchingChatView = chatViews.find(chatView => {
-              const chatParticipants = chatView.chat.participants || [];
+            if (chatParticipants.length !== participants.length) {
+              return false;
+            }
 
-              if (chatParticipants.length !== participants.length) {
-                return false;
-              }
-
-              return chatParticipants.every((participant, index) => {
-                return (
-                  participant.ref === participants[index].ref &&
-                  participant.role === participants[index].role
-                );
-              });
+            return chatParticipants.every((participant, index) => {
+              return (
+                participant.ref === participants[index].ref &&
+                participant.role === participants[index].role
+              );
             });
-            console.log('matchingChatView: ', matchingChatView);
+          });
+          console.log('matchingChatView: ', matchingChatView);
 
-            if (matchingChatView !== undefined) {
+          if (matchingChatView !== undefined) {
+            console.log('ada chat');
+            const newMessage: Message = {
+              message: data.fee.toString(),
+              role: activeRole!!,
+              type: MessageType.Offer,
+              createdAt: new Date().getTime(),
+            };
+
+            ChatService.insertMessage(
+              matchingChatView.chat?.id,
+              newMessage,
+            ).then(() => {
+              console.log('send!');
               navigation.navigate(AuthenticatedNavigation.ChatDetail, {
                 chat: matchingChatView,
               });
-            } else {
-              const chat = new Chat({
-                participants: participants,
-              });
-              chat.insert().then(success => {
-                if (success) {
-                  console.log('onsubmit chat:', chat);
-                  chat.convertToChatView(activeRole).then(cv => {
-                    console.log('cv:', cv);
-                    navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                      chat: cv,
-                    });
+            });
+          } else {
+            console.log('ga ada chat');
+            const chat = new Chat({
+              participants: participants,
+            });
+            chat.insert().then(success => {
+              if (success) {
+                console.log('onsubmit chat:', chat);
+                chat.convertToChatView(activeRole).then(cv => {
+                  console.log('cv:', cv);
+                  navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+                    chat: cv,
                   });
-                }
-              });
-            }
+                });
+              }
+            });
           }
-        });
-      } else {
-        navigation.goBack();
-      }
+        }
+      });
     });
   };
 

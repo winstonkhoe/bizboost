@@ -306,9 +306,9 @@ export class Transaction extends BaseModel {
       };
       await Transaction.getDocumentReference(id).set(data);
     } catch (error) {
-      console.log(error);
+      console.error('Error in Transaction.insert:', error);
+      throw Error('Transaction.insert err!');
     }
-    throw Error('Transaction.insert err!');
   }
 
   async update(fields?: Partial<Transaction>) {

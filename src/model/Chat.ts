@@ -7,14 +7,20 @@ import {BaseModel} from './BaseModel';
 export enum MessageType {
   Photo = 'Photo',
   Text = 'Text',
+  Offer = 'Offer',
+  Negotiation = 'Negotiation',
 }
 
-export type MessageTypes = MessageType.Photo | MessageType.Text;
+export type MessageTypes =
+  | MessageType.Photo
+  | MessageType.Text
+  | MessageType.Offer
+  | MessageType.Negotiation;
 
 export type Message = {
   message: string;
   type: MessageTypes;
-  sender: string;
+  role: UserRole;
   createdAt: number;
 };
 
@@ -47,7 +53,7 @@ export class Chat extends BaseModel {
       chat.messages?.map((messageData: any) => ({
         message: messageData.message,
         type: messageData.type,
-        sender: messageData.sender,
+        role: messageData.role,
         createdAt: messageData.createdAt,
       })) || [];
 
@@ -87,7 +93,7 @@ export class Chat extends BaseModel {
       const messages: Message[] = data.messages?.map((messageData: any) => ({
         message: messageData.message,
         type: messageData.type,
-        sender: messageData.sender,
+        role: messageData.role,
         createdAt: messageData.createdAt.seconds,
       }));
       console.log('[fromSnapshot] data.messages: ' + data.messages);
@@ -179,30 +185,12 @@ export class Chat extends BaseModel {
   }
 
   async insertMessage(newMessage: Message) {
-    try {
-      const chatRef = Chat.getDocumentReference(this.id ?? '');
-
-      const chatDoc = await chatRef.get();
-      if (chatDoc.exists) {
-        const chatData = chatDoc.data() as Chat;
-
-        const updatedMessages = chatData.messages || [];
-        updatedMessages.push(newMessage);
-
-        await chatRef.update({messages: updatedMessages});
-
-        console.log('Message inserted successfully');
-      } else {
-        console.error('Chat document does not exist');
-      }
-    } catch (error) {
-      console.error('Error inserting message:', error);
-    }
+    await ChatService.insertMessage(this.id || '', newMessage);
   }
 
   async convertToChatView(currentRole: UserRole): Promise<ChatView> {
     const cv: ChatView = {
-      chat: this.toJSON(),
+      chat: Chat.serialize(this),
       recipient: {},
     };
     console.log('convertToChatView', this.toJSON());
@@ -231,7 +219,6 @@ export class Chat extends BaseModel {
         }
       }
     }
-
     return cv;
   }
 }
@@ -242,4 +229,28 @@ export interface ChatView {
     fullname?: string;
     profilePicture?: string;
   };
+}
+
+export class ChatService {
+  static async insertMessage(chatId: string, newMessage: Message) {
+    try {
+      const chatRef = Chat.getDocumentReference(chatId);
+
+      const chatDoc = await chatRef.get();
+      if (chatDoc.exists) {
+        const chatData = chatDoc.data() as Chat;
+
+        const updatedMessages = chatData.messages || [];
+        updatedMessages.push(newMessage);
+
+        await chatRef.update({messages: updatedMessages});
+
+        console.log('Message inserted successfully');
+      } else {
+        console.error('Chat document does not exist');
+      }
+    } catch (error) {
+      console.error('Error inserting message:', error);
+    }
+  }
 }
