@@ -1,6 +1,7 @@
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
+  BottomSheetModalProps,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import {ReactNode, useCallback, useEffect, useRef, useState} from 'react';
@@ -12,13 +13,14 @@ import {flex} from '../styles/Flex';
 import {useKeyboard} from '../hooks/keyboard';
 import {View} from 'react-native';
 
-interface SheetModalProps {
+interface SheetModalProps extends Partial<BottomSheetModalProps> {
   open: boolean;
   fullHeight?: boolean;
   children: ReactNode;
   bottomInsetType?: 'auto' | 'default' | 'padding';
   maxHeight?: number;
   onDismiss?: () => void;
+  disablePanDownToClose?: boolean;
 }
 
 const safeKeyboardOffset = 10;
@@ -30,6 +32,9 @@ export const SheetModal = ({
   maxHeight,
   children,
   bottomInsetType = 'auto',
+  disablePanDownToClose = false,
+  snapPoints,
+  ...props
 }: SheetModalProps) => {
   const keyboardHeight = useKeyboard();
   const [currentLayoutHeight, setCurrentLayoutHeight] = useState(0);
@@ -57,16 +62,28 @@ export const SheetModal = ({
     bottomSheetModalRef.current?.close();
   }, [open]);
 
+  console.log(
+    'currentLayoutHeight',
+    currentLayoutHeight,
+    'currentWindowHeight',
+    windowDimensions.height,
+  );
+
   return (
     <BottomSheetModal
+      {...props}
       ref={bottomSheetModalRef}
       onDismiss={onDismiss}
       backdropComponent={renderBackdrop}
       maxDynamicContentSize={
         maxHeight
           ? maxHeight
-          : windowDimensions.height - (safeAreaInsets.top + 30)
+          : windowDimensions.height -
+            (safeAreaInsets.top + 30 + Platform.OS === 'android'
+              ? keyboardHeight
+              : 0)
       }
+      topInset={safeAreaInsets.top}
       bottomInset={
         ((bottomInsetType === 'auto' &&
           currentLayoutHeight >= keyboardHeight - safeKeyboardOffset) ||
@@ -75,9 +92,10 @@ export const SheetModal = ({
           ? keyboardHeight
           : undefined
       }
-      // snapPoints={[fullHeight ? '100%' : '50%', '100%']}
-      enableDynamicSizing
-      enablePanDownToClose>
+      snapPoints={snapPoints}
+      handleComponent={disablePanDownToClose ? null : undefined}
+      enableDynamicSizing={props.enableDynamicSizing ?? true}
+      enablePanDownToClose={!disablePanDownToClose}>
       <BottomSheetView
         style={[
           fullHeight && flex.flex1,

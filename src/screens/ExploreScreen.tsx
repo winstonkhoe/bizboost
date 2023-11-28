@@ -35,11 +35,13 @@ import {
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {LoadingScreen} from './LoadingScreen';
+import {useAppFocus} from '../hooks/app';
 
 const ExploreScreen = () => {
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const {contents} = useContent();
   const shuffledContents = useMemo(() => shuffle(contents), [contents]);
+  const isAppFocused = useAppFocus();
   const isFocused = useIsFocused();
   const bottomTabHeight = useBottomTabBarHeight();
 
@@ -79,10 +81,10 @@ const ExploreScreen = () => {
         <ExploreItemMemo
           content={item}
           bottomTabHeight={bottomTabHeight}
-          active={isFocused && activeVideoIndex === index}
+          active={isAppFocused && isFocused && activeVideoIndex === index}
         />
       )}
-      extraData={[activeVideoIndex, isFocused]}
+      extraData={[activeVideoIndex, isFocused, isAppFocused]}
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       pagingEnabled

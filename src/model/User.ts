@@ -36,8 +36,6 @@ export enum UserStatus {
   Suspended = 'Suspended',
 }
 
-export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
-
 export interface ContentCreatorPreference {
   contentRevisionLimit?: number;
   postingSchedules: number[];

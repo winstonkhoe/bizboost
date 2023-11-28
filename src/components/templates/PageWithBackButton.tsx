@@ -20,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {gap} from '../../styles/Gap';
 import {border} from '../../styles/Border';
+import {size} from '../../styles/Size';
 
 interface Props extends PressableProps {
   children: ReactNode;
@@ -47,7 +48,7 @@ export const PageWithBackButton = ({
   withoutScrollView = false,
   ...props
 }: Props) => {
-  const [exceedThreshold, setExceedThreshold] = useState(false);
+  const [exceedThreshold, setExceedThreshold] = useState(threshold === 0);
   const topMenuOpacity = useSharedValue(exceedThreshold ? 1 : 0);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -101,15 +102,15 @@ export const PageWithBackButton = ({
             padding.horizontal.default,
             padding.bottom.small,
             {
-              paddingTop: insets.top,
+              paddingTop: Math.max(insets.top, size.medium),
             },
             menuStyle,
-            exceedThreshold &&
-              border({
-                borderWidth: 0.5,
-                color: COLOR.black[100],
-                opacity: 0.2,
-              }),
+            // exceedThreshold &&
+            //   border({
+            //     borderWidth: 0.5,
+            //     color: COLOR.black[100],
+            //     opacity: 0.2,
+            //   }),
           ]}>
           <View
             style={[

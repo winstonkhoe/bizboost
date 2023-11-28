@@ -21,18 +21,46 @@ import {Campaign, CampaignType} from '../model/Campaign';
 import {LoadingScreen} from './LoadingScreen';
 import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
 import {font} from '../styles/Font';
+import {textColor} from '../styles/Text';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants
 >;
 const CampaignRegistrantsScreen = ({route}: Props) => {
-  const {campaignId, initialTransactionStatusFilter} = route.params;
   const safeAreaInsets = useSafeAreaInsets();
+  const {campaignId, initialTransactionStatusFilter} = route.params;
+  const [campaign, setCampaign] = useState<Campaign>();
+
+  const isPrivateCampaign = useMemo(() => {
+    return campaign?.type === CampaignType.Private;
+  }, [campaign]);
+
+  const statusFilters = useMemo(() => {
+    if (isPrivateCampaign) {
+      return [
+        TransactionStatus.offering,
+        TransactionStatus.brainstormSubmitted,
+      ];
+    }
+    return [
+      TransactionStatus.registrationPending,
+      TransactionStatus.brainstormSubmitted,
+    ];
+  }, [isPrivateCampaign]);
+
   const [statusFilter, setStatusFilter] = useState<
     TransactionStatus | undefined
-  >(initialTransactionStatusFilter);
-  const [campaign, setCampaign] = useState<Campaign>();
+  >(() => {
+    if (
+      initialTransactionStatusFilter &&
+      statusFilters.includes(initialTransactionStatusFilter)
+    ) {
+      return initialTransactionStatusFilter;
+    }
+    return undefined;
+  });
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const filteredTransactions = useMemo(
     () =>
@@ -41,10 +69,6 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
       ),
     [transactions, statusFilter],
   );
-
-  const isPrivateCampaign = useMemo(() => {
-    return campaign?.type === CampaignType.Private;
-  }, [campaign]);
 
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
@@ -74,13 +98,13 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
         <View style={[flex.flex1, flex.flexCol]}>
           <Text
             className="font-semibold"
-            style={[font.size[30]]}
+            style={[font.size[30], textColor(COLOR.text.neutral.high)]}
             numberOfLines={1}>
             {campaign.title}
           </Text>
           <Text
             className="font-light"
-            style={[font.size[20]]}
+            style={[font.size[20], textColor(COLOR.text.neutral.high)]}
             numberOfLines={1}>
             {`${campaign.type} campaign`}
           </Text>
@@ -109,33 +133,16 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
                 updateStatusFilter(undefined);
               }}
             />
-            <SelectableTag
-              text={TransactionStatus.registrationPending}
-              isSelected={
-                statusFilter === TransactionStatus.registrationPending
-              }
-              onPress={() => {
-                updateStatusFilter(TransactionStatus.registrationPending);
-              }}
-            />
-            {isPrivateCampaign && (
+            {statusFilters.map(sf => (
               <SelectableTag
-                text={TransactionStatus.offering}
-                isSelected={statusFilter === TransactionStatus.offering}
+                key={sf}
+                text={sf}
+                isSelected={statusFilter === sf}
                 onPress={() => {
-                  updateStatusFilter(TransactionStatus.offering);
+                  updateStatusFilter(sf);
                 }}
               />
-            )}
-            <SelectableTag
-              text={TransactionStatus.brainstormSubmitted}
-              isSelected={
-                statusFilter === TransactionStatus.brainstormSubmitted
-              }
-              onPress={() => {
-                updateStatusFilter(TransactionStatus.brainstormSubmitted);
-              }}
-            />
+            ))}
           </ScrollView>
         </View>
       }>
@@ -147,7 +154,7 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
           padding.horizontal.default,
           background(COLOR.background.neutral.default),
           {
-            paddingTop: safeAreaInsets.top + size.xlarge5,
+            paddingTop: safeAreaInsets.top + size.xlarge6,
             paddingBottom: Math.max(safeAreaInsets.bottom, size.xlarge),
           },
         ]}>

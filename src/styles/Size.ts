@@ -29,7 +29,7 @@ type Size = {
 };
 
 export type SizeStyle = {
-  [key in SizeType]?: ViewStyle;
+  [key in SizeType]: ViewStyle;
 };
 
 export const size: Size = {

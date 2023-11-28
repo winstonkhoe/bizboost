@@ -2,7 +2,11 @@ import {Pressable, View} from 'react-native';
 import {Text} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
-import {Transaction, TransactionStatus} from '../../model/Transaction';
+import {
+  Transaction,
+  TransactionStatus,
+  transactionStatusTypeMap,
+} from '../../model/Transaction';
 import {User, UserRole} from '../../model/User';
 import {ReactNode, useEffect, useState} from 'react';
 import {border} from '../../styles/Border';
@@ -36,13 +40,11 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
-    User.getById(transaction.contentCreatorId || '').then(u =>
-      setContentCreator(u),
-    );
+    User.getById(transaction.contentCreatorId || '').then(setContentCreator);
   }, [transaction]);
 
   useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(c => setCampaign(c));
+    Campaign.getById(transaction.campaignId || '').then(setCampaign);
   }, [transaction]);
 
   return (
@@ -64,7 +66,10 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
         console.log('open CC detail / campaign detail');
-        // navigation.navigate(AuthenticatedNavigation.)
+        navigation.navigate(AuthenticatedNavigation.CampaignRegistrants, {
+          campaignId: campaign?.id || '',
+          initialTransactionStatusFilter: transaction.status,
+        });
       }}
       imageSource={
         contentCreator?.contentCreator?.profilePicture
@@ -74,7 +79,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           : require('../../assets/images/bizboost-avatar.png')
       }
       bodyText={contentCreator?.contentCreator?.fullname || ''}
-      statusText={transaction.status || ''}
+      statusText={transaction.status}
       doesNeedApproval={
         transaction.status === TransactionStatus.registrationPending
       }
@@ -92,15 +97,13 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(c => setCampaign(c));
+    Campaign.getById(transaction.campaignId || '').then(setCampaign);
   }, [transaction]);
 
   const [businessPeople, setBusinessPeople] = useState<User | null>();
 
   useEffect(() => {
-    User.getById(transaction.businessPeopleId || '').then(u =>
-      setBusinessPeople(u),
-    );
+    User.getById(transaction.businessPeopleId || '').then(setBusinessPeople);
   }, [transaction]);
 
   return (
@@ -126,7 +129,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
           : require('../../assets/images/bizboost-avatar.png')
       }
       bodyText={campaign?.title || ''}
-      statusText={transaction.status || ''}
+      statusText={transaction.status}
     />
   );
 };
@@ -140,7 +143,7 @@ type BaseCardProps = {
   handleClickBody: () => void;
   imageSource: Source | ImageRequireSource;
   bodyText: string;
-  statusText: string;
+  statusText?: TransactionStatus;
   doesNeedApproval?: boolean;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
@@ -197,33 +200,34 @@ const BaseCard = ({
                 {bodyText}
               </Text>
               <View>
-                <StatusTag status={statusText} />
+                <StatusTag
+                  status={statusText}
+                  statusType={transactionStatusTypeMap[statusText]}
+                />
               </View>
             </View>
           </View>
           <ChevronRight fill={COLOR.black[20]} />
         </Pressable>
         {doesNeedApproval && (
-          <View className="flex flex-row items-center justify-between w-full">
-            <View className="w-1/2">
-              <CustomButton
-                text="Accept"
-                scale={1}
-                onPress={handleClickAccept}
-                rounded="none"
-                className="w-full"
-                customTextSize={font.size[20]}
-              />
-            </View>
-            <View className="w-1/2">
+          <View style={[flex.flexRow]}>
+            <View style={[flex.flex1]}>
               <CustomButton
                 text="Reject"
                 scale={1}
                 onPress={handleClickReject}
                 rounded="none"
-                className="w-full"
                 customTextSize={font.size[20]}
                 type="alternate"
+              />
+            </View>
+            <View style={[flex.flex1]}>
+              <CustomButton
+                text="Accept"
+                scale={1}
+                onPress={handleClickAccept}
+                rounded="none"
+                customTextSize={font.size[20]}
               />
             </View>
           </View>

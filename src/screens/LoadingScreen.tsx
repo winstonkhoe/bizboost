@@ -33,6 +33,7 @@ export const LoadingScreen = ({
   });
 
   useEffect(() => {
+    console.log('loading screen opacity');
     opacity.value = withTiming(visible ? 1 : 0, {duration: 200});
   }, [visible, opacity]);
 

@@ -1,9 +1,7 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Pressable, Text} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
-import {
-  HorizontalPadding,
-} from '../components/atoms/ViewPadding';
+import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import PhotosIcon from '../assets/vectors/photos.svg';
 import {flex, items, justify} from '../styles/Flex';
@@ -29,7 +27,6 @@ import {
   Campaign,
   CampaignPlatform,
   CampaignStep,
-  CampaignSteps,
   CampaignTimeline,
   CampaignType,
 } from '../model/Campaign';
@@ -67,11 +64,12 @@ import {formatDateToDayMonthYear} from '../utils/date';
 import {Category} from '../model/Category';
 import FastImage from 'react-native-fast-image';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {SocialPlatform, SocialPlatforms} from '../model/User';
+import {SocialPlatform} from '../model/User';
 import {FieldArrayLabel} from '../components/molecules/FieldArrayLabel';
 import {SheetModal} from '../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
 import {LoadingScreen} from './LoadingScreen';
+import {useWindowDimensions} from 'react-native';
 
 export type CampaignFormData = {
   title: string;
@@ -121,7 +119,7 @@ interface SocialTaskOptions {
 }
 
 interface SocialTask {
-  name: SocialPlatforms;
+  name: SocialPlatform;
   tasks: SocialTaskOptions[];
 }
 
@@ -227,8 +225,6 @@ const CreateCampaignScreen = () => {
       campaign
         .insert()
         .then(isSuccess => {
-          setIsUploading(false);
-
           if (isSuccess) {
             navigation.goBack();
           }
@@ -289,14 +285,14 @@ const CreateCampaignScreen = () => {
     setActivePosition(activePosition - 1);
   };
 
-  const getCampaignTimelineIndex = (campaignStep: CampaignSteps) => {
+  const getCampaignTimelineIndex = (campaignStep: CampaignStep) => {
     return getValues('timeline').findIndex(t => t.step === campaignStep);
   };
 
   const updateCampaignTimeline = (
     startDate: Date | null,
     endDate: Date | null,
-    campaignStep: CampaignSteps,
+    campaignStep: CampaignStep,
   ) => {
     if (startDate?.getTime() && endDate?.getTime()) {
       const updateIndex = getCampaignTimelineIndex(campaignStep);
@@ -370,6 +366,7 @@ const CreateCampaignScreen = () => {
               />
             </HorizontalPadding>
             <PagerView
+              initialPage={4}
               ref={pagerViewRef}
               className="flex-1"
               scrollEnabled={false}>
@@ -1111,7 +1108,7 @@ const CreateCampaignScreen = () => {
 
 type SocialFieldArrayProps = {
   control: Control<any>;
-  platform: SocialPlatforms;
+  platform: SocialPlatform;
   title: string;
   parentName: any; // string
   childName?: string;
@@ -1131,6 +1128,8 @@ const SocialFieldArray = ({
   maxFieldLength = 40,
   helperText,
 }: SocialFieldArrayProps) => {
+  const safeAreaInsets = useSafeAreaInsets();
+  const windowDimension = useWindowDimensions();
   const [taskQuantity, setTaskQuantity] = useState<number>(1);
   const [taskName, setTaskName] = useState<string>('');
   const [taskType, setTaskType] = useState<string>('');
@@ -1249,99 +1248,99 @@ const SocialFieldArray = ({
         </View>
       </View>
       <SheetModal
-        maxHeight={790}
+        fullHeight
+        snapPoints={[windowDimension.height - safeAreaInsets.top]}
         open={isModalOpened}
         onDismiss={() => {
           setIsModalOpened(false);
-        }}>
+        }}
+        enableDynamicSizing={false}>
         <BottomSheetModalWithTitle title={title}>
-          <View style={[flex.flexRow]}>
-            <Controller
-              control={control}
-              name={`${parentName}.${updateIndex}${
-                childName ? `.${childName}` : ''
-              }`}
-              render={({field: {value, onChange}}) => (
-                <View style={[flex.flex1, flex.flexCol, gap.medium]}>
-                  {currentTask && (
-                    <View style={[flex.flexCol, gap.default]}>
-                      <FormFieldHelper title="Task type" />
-                      <View style={[flex.flexRow, gap.default]}>
-                        {currentTask.tasks.map((task, index) => (
-                          <View key={index}>
-                            <SelectableTag
-                              text={task.name}
-                              isSelected={taskName === task.name}
-                              onPress={() => {
-                                setTaskName(task.name);
-                              }}
-                            />
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                  {taskName.length > 0 && currentTaskTypes && (
-                    <View style={[flex.flexCol, gap.default]}>
-                      <FormFieldHelper title={`${taskName} type`} />
-                      <View style={[flex.flexRow, flex.wrap, gap.default]}>
-                        {currentTaskTypes?.map((types, index) => (
-                          <View key={index}>
-                            <SelectableTag
-                              text={types}
-                              isSelected={taskType === types}
-                              onPress={() => {
-                                setTaskType(types);
-                              }}
-                            />
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                  <View style={[flex.flexCol, gap.default, items.start]}>
-                    <FormFieldHelper title="Description" />
-                    <View style={[flex.flexRow, gap.default, items.end]}>
-                      <View style={[flex.flex1]}>
-                        <FormlessCustomTextInput
-                          counter
-                          type={fieldType}
-                          max={maxFieldLength}
-                          defaultValue={`${value?.description || ''}`}
-                          placeholder={placeholder ?? `Add ${parentName}`}
-                          description={helperText}
-                          onChange={updateText}
-                        />
-                      </View>
-                      <FormlessCustomNumberInput
-                        min={1}
-                        max={5}
-                        type="field"
-                        onChange={setTaskQuantity}
-                      />
+          <Controller
+            control={control}
+            name={`${parentName}.${updateIndex}${
+              childName ? `.${childName}` : ''
+            }`}
+            render={({field: {value, onChange}}) => (
+              <View style={[flex.flex1, flex.flexCol, gap.medium]}>
+                {currentTask && (
+                  <View style={[flex.flexCol, gap.default]}>
+                    <FormFieldHelper title="Task type" />
+                    <View style={[flex.flexRow, gap.default]}>
+                      {currentTask.tasks.map((task, index) => (
+                        <View key={index}>
+                          <SelectableTag
+                            text={task.name}
+                            isSelected={taskName === task.name}
+                            onPress={() => {
+                              setTaskName(task.name);
+                            }}
+                          />
+                        </View>
+                      ))}
                     </View>
                   </View>
-                  <CustomButton
-                    disabled={
-                      taskQuantity < 1 ||
-                      taskName.length === 0 ||
-                      (currentTaskTypes &&
-                        currentTaskTypes?.length > 0 &&
-                        taskType?.length === 0)
-                    }
-                    text={updateIndex !== null ? 'Update' : 'Save'}
-                    onPress={() => {
-                      if (updateIndex !== null) {
-                        updateEntry(onChange);
-                      } else {
-                        addNewEntry();
-                      }
-                    }}
-                  />
+                )}
+                {taskName.length > 0 && currentTaskTypes && (
+                  <View style={[flex.flexCol, gap.default]}>
+                    <FormFieldHelper title={`${taskName} type`} />
+                    <View style={[flex.flexRow, flex.wrap, gap.default]}>
+                      {currentTaskTypes?.map((types, index) => (
+                        <View key={index}>
+                          <SelectableTag
+                            text={types}
+                            isSelected={taskType === types}
+                            onPress={() => {
+                              setTaskType(types);
+                            }}
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+                <View style={[flex.flexCol, gap.default, items.start]}>
+                  <FormFieldHelper title="Description" />
+                  <View style={[flex.flexRow, gap.default, items.end]}>
+                    <View style={[flex.flex1, padding.top.default]}>
+                      <FormlessCustomTextInput
+                        counter
+                        type={fieldType}
+                        max={maxFieldLength}
+                        defaultValue={`${value?.description || ''}`}
+                        placeholder={placeholder ?? `Add ${parentName}`}
+                        description={helperText}
+                        onChange={updateText}
+                      />
+                    </View>
+                    <FormlessCustomNumberInput
+                      min={1}
+                      max={5}
+                      type="field"
+                      onChange={setTaskQuantity}
+                    />
+                  </View>
                 </View>
-              )}
-            />
-          </View>
+                <CustomButton
+                  disabled={
+                    taskQuantity < 1 ||
+                    taskName.length === 0 ||
+                    (currentTaskTypes &&
+                      currentTaskTypes?.length > 0 &&
+                      taskType?.length === 0)
+                  }
+                  text={updateIndex !== null ? 'Update' : 'Save'}
+                  onPress={() => {
+                    if (updateIndex !== null) {
+                      updateEntry(onChange);
+                    } else {
+                      addNewEntry();
+                    }
+                  }}
+                />
+              </View>
+            )}
+          />
         </BottomSheetModalWithTitle>
       </SheetModal>
     </>

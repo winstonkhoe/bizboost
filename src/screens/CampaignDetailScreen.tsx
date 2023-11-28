@@ -1,11 +1,11 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {Pressable, Text} from 'react-native';
+import {Pressable, StyleSheet, Text} from 'react-native';
 import {View} from 'react-native';
 import TagCard from '../components/atoms/TagCard';
 import {Campaign} from '../model/Campaign';
@@ -30,6 +30,8 @@ import {textColor} from '../styles/Text';
 import {formatToRupiah} from '../utils/currency';
 import {LoadingScreen} from './LoadingScreen';
 import FastImage from 'react-native-fast-image';
+import LinearGradient from 'react-native-linear-gradient';
+import {dimension} from '../styles/Dimension';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -80,9 +82,9 @@ const CampaignDetailScreen = ({route}: Props) => {
     User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
   }, [campaign]);
 
-  const userIsCampaignOwner = () => {
+  const isCampaignOwner = useMemo(() => {
     return campaign?.userId === uid;
-  };
+  }, [campaign, uid]);
 
   // TODO: validate join only for CC
   const handleJoinCampaign = () => {
@@ -115,10 +117,18 @@ const CampaignDetailScreen = ({route}: Props) => {
       {isLoading && <LoadingScreen />}
       <PageWithBackButton fullHeight threshold={180}>
         <View className="flex-1">
-          <View className="w-full h-72 overflow-hidden ">
+          <View className="relative w-full h-72 overflow-hidden ">
             <FastImage
               className="w-full h-full object-cover"
               source={{uri: campaign.image}}
+            />
+            <LinearGradient
+              colors={[COLOR.black[100], 'transparent']}
+              style={[
+                dimension.width.full,
+                dimension.height.xlarge6,
+                StyleSheet.absoluteFill,
+              ]}
             />
           </View>
           <View className="flex flex-col p-4 gap-4">
@@ -127,9 +137,9 @@ const CampaignDetailScreen = ({route}: Props) => {
               <View className="flex flex-row justify-between">
                 <Text className="font-bold text-xs">
                   {`${formatDateToDayMonthYear(
-                    new Campaign(campaign).getStartDate(),
+                    new Date(new Campaign(campaign).getTimelineStart().start),
                   )} - ${formatDateToDayMonthYear(
-                    new Campaign(campaign).getEndDate(),
+                    new Date(new Campaign(campaign).getTimelineEnd().end),
                   )}`}
                 </Text>
                 <View className="flex flex-row items-center">
@@ -280,7 +290,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               />
             </View>
             {/* <Text>{transactionStatus}</Text> */}
-            {!userIsCampaignOwner() &&
+            {!isCampaignOwner &&
               transactionStatus === TransactionStatus.notRegistered && (
                 <View className="py-2" style={[flex.flexCol, gap.default]}>
                   {/* TODO: validate join only for CC */}
@@ -303,7 +313,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               }
             />
             {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
-            {userIsCampaignOwner() && (
+            {isCampaignOwner && (
               <View className="py-2">
                 <CustomButton
                   customBackgroundColor={COLOR.background.neutral}

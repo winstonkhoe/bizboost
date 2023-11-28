@@ -1,18 +1,18 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {EffectCallback, useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
 
 import {Campaign, CampaignStep} from '../model/Campaign';
 
 import {useUser} from '../hooks/user';
 
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {useNavigation} from '@react-navigation/native';
+import {Link, useNavigation} from '@react-navigation/native';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {Stepper} from '../components/atoms/Stepper';
@@ -29,8 +29,14 @@ import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
 } from '../utils/date';
-import StatusTag from '../components/atoms/StatusTag';
-import {Transaction, TransactionStatus} from '../model/Transaction';
+import StatusTag, {StatusType} from '../components/atoms/StatusTag';
+import {
+  BasicStatus,
+  Transaction,
+  TransactionStatus,
+  basicStatusTypeMap,
+  transactionStatusTypeMap,
+} from '../model/Transaction';
 import {LoadingScreen} from './LoadingScreen';
 import {shadow} from '../styles/Shadow';
 import {SheetModal} from '../containers/SheetModal';
@@ -45,6 +51,11 @@ import ChevronRight from '../assets/vectors/chevron-right.svg';
 import {User} from '../model/User';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import {formatNumberWithThousandSeparator} from '../utils/number';
+import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
+import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useKeyboard} from '../hooks/keyboard';
+import {InternalLink} from '../components/atoms/Link';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -72,6 +83,9 @@ interface TransactionView {
 
 const CampaignTimelineScreen = ({route}: Props) => {
   const {uid} = useUser();
+  const keyboardHeight = useKeyboard();
+  const safeAreaInsets = useSafeAreaInsets();
+  const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
@@ -84,11 +98,23 @@ const CampaignTimelineScreen = ({route}: Props) => {
     useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentActiveTimeline = useMemo(() => {
-    const now = new Date().getTime();
-    return campaign?.timeline?.find(
-      timeline => now >= timeline.start && now <= timeline.end,
-    );
+    return campaign?.getActiveTimeline();
   }, [campaign]);
+
+  const filteredPendingBrainstormApproval = useMemo(() => {
+    return transactions
+      .filter(t => t.transaction?.getLatestBrainstorm() !== null)
+      .filter(
+        t => TransactionStatus.brainstormSubmitted === t.transaction.status,
+      )
+      .sort(
+        (a, b) =>
+          a.transaction.getLatestBrainstorm()!!.createdAt -
+          b.transaction?.getLatestBrainstorm()!!.createdAt,
+      )
+      .reverse();
+  }, [transactions]);
+
   const isCampaignOwner = useMemo(() => {
     return uid === campaign?.userId;
   }, [uid, campaign]);
@@ -128,10 +154,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
       setIsLoading(true);
       data
         .register()
-        .then(isSuccess => {
-          if (isSuccess) {
-            console.log('Joined!');
-          }
+        .then(() => {
+          console.log('Joined!');
         })
         .catch(err => {
           console.log(err);
@@ -209,6 +233,13 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   }, [isCampaignOwner, campaignId, uid]);
 
+  const navigateToDetail = (status: TransactionStatus) => {
+    navigation.navigate(AuthenticatedNavigation.CampaignRegistrants, {
+      campaignId: campaignId,
+      initialTransactionStatusFilter: status,
+    });
+  };
+
   if (!campaign) {
     return <LoadingScreen />;
   }
@@ -221,8 +252,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
           <View style={[flex.flexCol, gap.default, padding.top.xlarge3]}>
             <Stepper
               type="content"
-              // currentPosition={currentActiveIndex}
-              currentPosition={0}
+              currentPosition={currentActiveIndex}
+              decreasePreviousVisibility={!isCampaignOwner}
+              // currentPosition={0}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
                 <View
@@ -281,12 +313,18 @@ const CampaignTimelineScreen = ({route}: Props) => {
                               TransactionStatus.registrationApproved,
                           ).length,
                         )} Registrant Approved`}
+                        statusType={StatusType.success}
                       />
                     ) : (
                       transaction?.status &&
                       transaction.status !==
                         TransactionStatus.notRegistered && (
-                        <StatusTag status={transaction?.status} />
+                        <StatusTag
+                          status={transaction?.status}
+                          statusType={
+                            transactionStatusTypeMap[transaction?.status]
+                          }
+                        />
                       )
                     )}
                   </View>
@@ -294,14 +332,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     <AnimatedPressable
                       scale={1}
                       onPress={() => {
-                        navigation.navigate(
-                          AuthenticatedNavigation.CampaignRegistrants,
-                          {
-                            campaignId: campaignId,
-                            initialTransactionStatusFilter:
-                              TransactionStatus.registrationPending,
-                          },
-                        );
+                        navigateToDetail(TransactionStatus.registrationPending);
                       }}
                       style={[flex.flexRow, padding.default, gap.small]}>
                       <View style={[flex.flex1, flex.flexCol, gap.small]}>
@@ -339,10 +370,16 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                     style={[dimension.full, rounded.max]}>
                                     <FastImage
                                       style={[dimension.full]}
-                                      source={{
-                                        uri: t.contentCreator?.contentCreator
-                                          ?.profilePicture,
-                                      }}
+                                      source={
+                                        t.contentCreator?.contentCreator
+                                          ?.profilePicture
+                                          ? {
+                                              uri: t.contentCreator
+                                                ?.contentCreator
+                                                ?.profilePicture,
+                                            }
+                                          : require('../assets/images/bizboost-avatar.png')
+                                      }
                                     />
                                   </View>
                                 </View>
@@ -428,50 +465,93 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           })}
                       </View>
                     </View>
-                    {transaction?.brainstorms &&
-                      transaction?.brainstorms.length > 0 && (
-                        <>
-                          <View
-                            style={[dimension.width.full, styles.headerBorder]}
-                          />
-                          <View style={[flex.flexCol, gap.small]}>
+                    {isCampaignOwner ? (
+                      <>
+                        <View
+                          style={[dimension.width.full, styles.headerBorder]}
+                        />
+                        <View style={[flex.flexCol, gap.default]}>
+                          <View style={[flex.flexRow, justify.between]}>
                             <Text
-                              className="font-semibold"
+                              className="font-medium"
                               style={[
                                 font.size[30],
                                 textColor(COLOR.text.neutral.med),
                               ]}>
-                              Previous Submission
+                              {filteredPendingBrainstormApproval.length > 0
+                                ? 'Pending Approval'
+                                : 'No Pending Approval'}
                             </Text>
+                            {filteredPendingBrainstormApproval.length > 0 && (
+                              <InternalLink
+                                size={30}
+                                text="See all"
+                                onPress={() => {
+                                  navigateToDetail(
+                                    TransactionStatus.brainstormSubmitted,
+                                  );
+                                }}
+                              />
+                            )}
+                          </View>
+                          {filteredPendingBrainstormApproval.length > 0 && (
                             <ScrollView
                               horizontal
                               contentContainerStyle={[
                                 flex.flexRow,
                                 gap.default,
                               ]}>
-                              {transaction.brainstorms.map(brainstorm => {
+                              {filteredPendingBrainstormApproval.map(t => {
+                                const brainstorm =
+                                  t.transaction.getLatestBrainstorm();
+                                if (!brainstorm) {
+                                  return null;
+                                }
                                 return (
-                                  <View
-                                    key={brainstorm.createdAt}
+                                  <AnimatedPressable
+                                    onPress={() => {
+                                      if (t.transaction.id) {
+                                        navigation.navigate(
+                                          AuthenticatedNavigation.TransactionDetail,
+                                          {
+                                            transactionId: t.transaction.id,
+                                          },
+                                        );
+                                      }
+                                    }}
+                                    scale={0.95}
+                                    key={t.transaction.id}
                                     style={[
                                       flex.flex1,
                                       flex.flexCol,
                                       justify.around,
                                       gap.default,
-                                      styles.cardBorder,
+                                      styles.pendingCardBorder,
                                       padding.default,
                                       rounded.default,
                                       dimension.width.xlarge14,
                                     ]}>
-                                    <Text
-                                      style={[
-                                        font.size[20],
-                                        textColor(COLOR.text.neutral.med),
-                                      ]}>
-                                      {formatDateToDayMonthYearHourMinute(
-                                        new Date(brainstorm.createdAt),
-                                      )}
-                                    </Text>
+                                    <View style={[flex.flexCol]}>
+                                      <Text
+                                        style={[
+                                          font.size[20],
+                                          textColor(COLOR.text.neutral.med),
+                                        ]}>
+                                        {
+                                          t.contentCreator?.contentCreator
+                                            ?.fullname
+                                        }
+                                      </Text>
+                                      <Text
+                                        style={[
+                                          font.size[10],
+                                          textColor(COLOR.text.neutral.med),
+                                        ]}>
+                                        {formatDateToDayMonthYearHourMinute(
+                                          new Date(brainstorm.createdAt),
+                                        )}
+                                      </Text>
+                                    </View>
                                     <Text
                                       style={[
                                         font.size[20],
@@ -480,40 +560,131 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                       numberOfLines={3}>
                                       {brainstorm.content}
                                     </Text>
-                                    {brainstorm.rejectReason && (
-                                      <View
-                                        style={[
-                                          padding.small,
-                                          rounded.small,
-                                          background(COLOR.red[5], 0.3),
-                                          dimension.width.full,
-                                        ]}>
-                                        <Text
-                                          className="font-medium"
-                                          style={[
-                                            font.size[20],
-                                            textColor(
-                                              COLOR.text.danger.default,
-                                            ),
-                                          ]}
-                                          numberOfLines={3}>
-                                          {brainstorm.rejectReason}
-                                        </Text>
-                                      </View>
-                                    )}
-                                  </View>
+                                  </AnimatedPressable>
                                 );
                               })}
                             </ScrollView>
+                          )}
+                        </View>
+                      </>
+                    ) : (
+                      transaction?.brainstorms &&
+                      transaction?.brainstorms.length > 0 && (
+                        <>
+                          <View
+                            style={[dimension.width.full, styles.headerBorder]}
+                          />
+                          <View style={[flex.flexCol, gap.small]}>
+                            <Text
+                              className="font-medium"
+                              style={[
+                                font.size[30],
+                                textColor(COLOR.text.neutral.med),
+                              ]}>
+                              Your previous submission
+                            </Text>
+                            <ScrollView
+                              horizontal
+                              contentContainerStyle={[
+                                flex.flexRow,
+                                gap.default,
+                              ]}>
+                              {transaction.brainstorms
+                                .sort((a, b) => a.createdAt - b.createdAt)
+                                .reverse()
+                                .map(brainstorm => {
+                                  return (
+                                    <View
+                                      key={brainstorm.createdAt}
+                                      style={[
+                                        flex.flex1,
+                                        flex.flexCol,
+                                        gap.default,
+                                        BasicStatus.rejected ===
+                                          brainstorm.status &&
+                                          styles.rejectedCardBorder,
+                                        BasicStatus.pending ===
+                                          brainstorm.status &&
+                                          styles.pendingCardBorder,
+                                        BasicStatus.approved ===
+                                          brainstorm.status &&
+                                          styles.approvedCardBorder,
+                                        padding.default,
+                                        rounded.default,
+                                        dimension.width.xlarge14,
+                                      ]}>
+                                      <View
+                                        style={[
+                                          flex.flexRow,
+                                          gap.medium,
+                                          justify.between,
+                                        ]}>
+                                        <Text
+                                          style={[
+                                            font.size[20],
+                                            textColor(COLOR.text.neutral.med),
+                                          ]}>
+                                          {formatDateToDayMonthYearHourMinute(
+                                            new Date(brainstorm.createdAt),
+                                          )}
+                                        </Text>
+                                        <StatusTag
+                                          status={brainstorm.status}
+                                          statusType={
+                                            basicStatusTypeMap[
+                                              brainstorm.status
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <Text
+                                        style={[
+                                          font.size[20],
+                                          textColor(COLOR.text.neutral.high),
+                                        ]}
+                                        numberOfLines={3}>
+                                        {brainstorm.content}
+                                      </Text>
+                                      {brainstorm.rejectReason && (
+                                        <View
+                                          style={[
+                                            padding.small,
+                                            rounded.small,
+                                            background(COLOR.red[10], 0.3),
+                                            dimension.width.full,
+                                          ]}>
+                                          <Text
+                                            className="font-medium"
+                                            style={[
+                                              font.size[20],
+                                              textColor(
+                                                COLOR.text.danger.default,
+                                              ),
+                                            ]}
+                                            numberOfLines={3}>
+                                            {brainstorm.rejectReason}
+                                          </Text>
+                                        </View>
+                                      )}
+                                    </View>
+                                  );
+                                })}
+                            </ScrollView>
                           </View>
                         </>
+                      )
+                    )}
+                    {!isCampaignOwner &&
+                      (!transaction?.getLatestBrainstorm() ||
+                        transaction?.getLatestBrainstorm()?.status ===
+                          BasicStatus.rejected) && (
+                        <CustomButton
+                          text="Submit idea"
+                          onPress={() => {
+                            setIsBrainstormingModalOpened(true);
+                          }}
+                        />
                       )}
-                    <CustomButton
-                      text="Submit idea"
-                      onPress={() => {
-                        setIsBrainstormingModalOpened(true);
-                      }}
-                    />
                   </View>
                 </View>
               )}
@@ -689,21 +860,35 @@ const CampaignTimelineScreen = ({route}: Props) => {
         open={isBrainstormingModalOpened}
         onDismiss={() => {
           setIsBrainstormingModalOpened(false);
-        }}>
-        <BottomSheetModalWithTitle title="Brainstorming">
-          <View style={[flex.flexCol, gap.medium]}>
-            <View style={[flex.flexCol, gap.default]}>
+        }}
+        snapPoints={[windowDimension.height - safeAreaInsets.top]}
+        disablePanDownToClose
+        fullHeight
+        enableHandlePanningGesture={false}
+        enableOverDrag={false}
+        overDragResistanceFactor={0}
+        enableDynamicSizing={false}>
+        <BottomSheetModalWithTitle
+          title="Brainstorming"
+          type="modal"
+          onPress={() => {
+            setIsBrainstormingModalOpened(false);
+          }}>
+          <View style={[flex.grow, flex.flexCol, gap.medium]}>
+            <View style={[flex.flex1, flex.flexCol, gap.default]}>
               <FormFieldHelper
                 title="Idea draft"
                 description="Showcase your creativity in this idea to stand out and be chosen by the business owner."
               />
-              <FormlessCustomTextInput
-                type="textarea"
-                description={`Submit your idea in ${rules.brainstorm.min} - ${rules.brainstorm.max} characters.\nBe concise yet comprehensive.`}
-                max={rules.brainstorm.max}
-                counter
-                onChange={setTemporaryBrainstorm}
-              />
+              <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
+                <FormlessCustomTextInput
+                  type="textarea"
+                  description={`Submit your idea in ${rules.brainstorm.min} - ${rules.brainstorm.max} characters.\nBe concise yet comprehensive.`}
+                  max={rules.brainstorm.max}
+                  counter
+                  onChange={setTemporaryBrainstorm}
+                />
+              </BottomSheetScrollView>
             </View>
             <CustomButton
               text="Submit"
@@ -726,8 +911,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLOR.black[20],
   },
-  cardBorder: {
+  approvedCardBorder: {
     borderWidth: 1,
-    borderColor: COLOR.black[20],
+    borderColor: COLOR.green[50],
+  },
+  pendingCardBorder: {
+    borderWidth: 1,
+    borderColor: COLOR.yellow[30],
+  },
+  rejectedCardBorder: {
+    borderWidth: 1,
+    borderColor: COLOR.red[60],
   },
 });

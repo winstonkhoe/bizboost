@@ -3,10 +3,12 @@ import {Campaign} from '../../model/Campaign';
 
 interface CampaignState {
   userCampaigns: Campaign[];
+  nonUserCampaigns: Campaign[];
 }
 
 const initialState = {
   userCampaigns: [],
+  nonUserCampaigns: [],
 } as CampaignState;
 
 const campaignSlice = createSlice({
@@ -16,8 +18,11 @@ const campaignSlice = createSlice({
     setUserCampaigns(state, action) {
       state.userCampaigns = action.payload;
     },
+    setNonUserCampaigns(state, action) {
+      state.nonUserCampaigns = action.payload;
+    },
   },
 });
 
-export const {setUserCampaigns} = campaignSlice.actions;
+export const {setUserCampaigns, setNonUserCampaigns} = campaignSlice.actions;
 export default campaignSlice.reducer;

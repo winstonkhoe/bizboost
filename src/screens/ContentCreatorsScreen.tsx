@@ -32,7 +32,6 @@ import {COLOR} from '../styles/Color';
 import ContentCreatorCard from '../components/atoms/ContentCreatorCard';
 import {gap} from '../styles/Gap';
 import {User} from '../model/User';
-import {Category} from '../model/Category';
 import {background} from '../styles/BackgroundColor';
 import {CustomButton} from '../components/atoms/Button';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
@@ -45,6 +44,7 @@ import {
 } from '../components/atoms/ViewPadding';
 import {useDispatch, useSelector} from 'react-redux';
 import {setOnSearchPage} from '../redux/searchSlice';
+import {useCategory} from '../hooks/category';
 
 interface SelectedFilters {
   locations: string[];
@@ -55,7 +55,7 @@ const ContentCreatorsScreen: React.FC = () => {
   const [contentCreators, setContentCreators] = useState<User[]>([]);
   const [filterModalState, setFilterModalState] = useState(false);
   const [navbarState, setNavbarState] = useState(true);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const {categories} = useCategory();
   const [locations, setLocations] = useState<Location[]>([]);
 
   const {isOnSearchPage, searchTerm} = useSelector(state => state.search);
@@ -78,8 +78,7 @@ const ContentCreatorsScreen: React.FC = () => {
       setContentCreators(contentCreatorsData);
       setFilteredContentCreators(contentCreatorsData);
     });
-    Category.getAll().then(categoriesData => setCategories(categoriesData));
-    Location.getAll().then(locationsData => setLocations(locationsData));
+    Location.getAll().then(setLocations);
   }, []);
 
   useEffect(() => {
@@ -95,6 +94,7 @@ const ContentCreatorsScreen: React.FC = () => {
     if (selectedFilters.categories.length > 0) {
       sortedContentCreators = sortedContentCreators.filter(
         contentCreator =>
+          contentCreator.contentCreator?.specializedCategoryIds &&
           contentCreator.contentCreator?.specializedCategoryIds?.length > 0 &&
           contentCreator.contentCreator?.specializedCategoryIds.some(cat =>
             selectedFilters.categories.includes(cat),

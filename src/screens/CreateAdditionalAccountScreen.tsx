@@ -215,7 +215,7 @@ export const CreateAdditionalAccountScreen = () => {
           </View>
         }
         disableDefaultOnPress={activePosition > 0}>
-        <View className="flex-1" style={[flex.flexCol, padding.top.xlarge2]}>
+        <View className="flex-1" style={[flex.flexCol, padding.top.xlarge3]}>
           <HorizontalPadding paddingSize="large">
             <FadeInOut visible={true}>
               <Stepper

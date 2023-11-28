@@ -11,23 +11,17 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import React, {
-  Children,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import React, {Children, ReactNode, useEffect, useState} from 'react';
 import {textColor} from '../../styles/Text';
 import {dimension} from '../../styles/Dimension';
 import {padding} from '../../styles/Padding';
-import {shadow} from '../../styles/Shadow';
 
 type StepperType = 'simple' | 'content';
 
 interface BaseStepperProps {
   currentPosition: number;
   maxPosition: number;
+  decreasePreviousVisibility?: boolean; //currently only support content stepper
   children?: ReactNode;
 }
 
@@ -35,11 +29,20 @@ interface StepperProps extends BaseStepperProps {
   type?: StepperType;
 }
 
-export const Stepper = ({type = 'simple', ...props}: StepperProps) => {
+export const Stepper = ({
+  type = 'simple',
+  decreasePreviousVisibility = true,
+  ...props
+}: StepperProps) => {
   return (
     <View>
       {type === 'simple' && <SimpleStepper {...props} />}
-      {type === 'content' && <ContentStepper {...props} />}
+      {type === 'content' && (
+        <ContentStepper
+          decreasePreviousVisibility={decreasePreviousVisibility}
+          {...props}
+        />
+      )}
     </View>
   );
 };
@@ -170,7 +173,9 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
                 //   opacity: 0.5,
                 // },
               ]}>
-              {index !== props.currentPosition && (
+              {((props.decreasePreviousVisibility &&
+                index < props.currentPosition) ||
+                index > props.currentPosition) && (
                 <View
                   className="absolute z-10 top-0 left-0"
                   style={[

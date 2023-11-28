@@ -35,6 +35,7 @@ import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
 import ChangePasswordScreen from '../screens/profile/ChangePasswordScreen';
+import TransactionDetailScreen from '../screens/TransactionDetailScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -48,6 +49,7 @@ export enum AuthenticatedNavigation {
   Home = 'Home',
   BusinessPeopleDetail = 'Business People Detail',
   CampaignDetail = 'Campaign Detail',
+  TransactionDetail = 'Transaction Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
   ChatDetail = 'Chat Screen',
@@ -90,6 +92,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.Home]: undefined;
   [AuthenticatedNavigation.BusinessPeopleDetail]: {businessPeopleId: string};
   [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
+  [AuthenticatedNavigation.TransactionDetail]: {transactionId: string};
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
@@ -211,6 +214,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.CampaignDetail}
                   component={CampaignDetailScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.TransactionDetail}
+                  component={TransactionDetailScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CampaignTimeline}
