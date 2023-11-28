@@ -144,9 +144,6 @@ const taskTypes: SocialTask[] = [
       {
         name: 'Reels',
       },
-      {
-        name: 'Live',
-      },
     ],
   },
   {
@@ -154,9 +151,6 @@ const taskTypes: SocialTask[] = [
     tasks: [
       {
         name: 'Post',
-      },
-      {
-        name: 'Live',
       },
     ],
   },
