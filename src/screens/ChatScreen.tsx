@@ -72,12 +72,6 @@ const ChatScreen = ({route}: Props) => {
     );
   }, [businessPeopleId, contentCreatorId]);
 
-  console.log('--------------------------------Chat Screen');
-  for (let i = 0; i < offers.length; i++) {
-    console.log(offers[i].toString());
-  }
-  console.log('--------------------------------Chat Screen');
-
   useEffect(() => {
     if (chatData.messages) {
       setChatMessages(chatData.messages);

@@ -510,6 +510,11 @@ export class Transaction extends BaseModel {
     return unsubscribe;
   }
 
+  async acceptOffer(transactionAmount: number) {
+    this.transactionAmount = transactionAmount;
+    return await this.updateStatus(TransactionStatus.offerApproved);
+  }
+
   async updateTermination(): Promise<boolean> {
     const {campaignId, lastCheckedAt, status} = this;
     if (

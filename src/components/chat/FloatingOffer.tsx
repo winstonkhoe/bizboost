@@ -72,8 +72,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
         await rejectedOffers[i].reject();
       }
 
-      console.log(offer.campaignId + offer.contentCreatorId);
-      Transaction.getById(offer.campaignId + offer.contentCreatorId).then(
+      Transaction.getById(offer.campaignId ?? '' + offer.contentCreatorId).then(
         transaction => {
           if (transaction) {
             transaction.acceptOffer(offer.offeredPrice ?? 0);
@@ -86,10 +85,6 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
   const declineOffer = (offer: Offer) => {
     offer.reject();
   };
-
-  // for (let i = 0; i < offers.length; i++) {
-  //   console.log(offers[i].toString());
-  // }
 
   return (
     <View
@@ -189,7 +184,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                   </Pressable>
                   {activeRole === UserRole.ContentCreator && (
                     <View className="pt-2 flex flex-row items-center justify-between w-full">
-                      <View className="w-1/2">
+                      <View className="w-1/3">
                         <CustomButton
                           text="Accept"
                           scale={1}
@@ -199,7 +194,16 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                           customTextSize={font.size[20]}
                         />
                       </View>
-                      <View className="w-1/2">
+                      <View className="w-1/3">
+                        <CustomButton
+                          text="Negotiate"
+                          scale={1}
+                          rounded="small"
+                          className="w-full"
+                          customTextSize={font.size[20]}
+                        />
+                      </View>
+                      <View className="w-1/3">
                         <CustomButton
                           text="Reject"
                           scale={1}
@@ -321,7 +325,7 @@ const OfferCard = ({
       </Pressable>
       {activeRole === UserRole.ContentCreator && (
         <View className="pt-2 flex flex-row items-center justify-between w-full">
-          <View className="w-1/2">
+          <View className="w-1/3">
             <CustomButton
               text="Accept"
               scale={1}
@@ -331,7 +335,16 @@ const OfferCard = ({
               customTextSize={font.size[20]}
             />
           </View>
-          <View className="w-1/2">
+          <View className="w-1/3">
+            <CustomButton
+              text="Negotiate"
+              scale={1}
+              rounded="small"
+              className="w-full"
+              customTextSize={font.size[20]}
+            />
+          </View>
+          <View className="w-1/3">
             <CustomButton
               text="Reject"
               scale={1}
