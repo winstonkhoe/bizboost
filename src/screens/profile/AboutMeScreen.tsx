@@ -1,28 +1,16 @@
-import {Platform, Pressable, ScrollView, Text, View} from 'react-native';
-import {flex, items, justify} from '../../styles/Flex';
+import {Pressable, ScrollView, Text, View} from 'react-native';
+import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
 import {useUser} from '../../hooks/user';
-import {
-  CustomNumberInput,
-  CustomTextInput,
-  FormlessTextInput,
-} from '../../components/atoms/Input';
-import {
-  Controller,
-  FormProvider,
-  useFieldArray,
-  useForm,
-} from 'react-hook-form';
+import {CustomTextInput} from '../../components/atoms/Input';
+import {FormProvider, useForm} from 'react-hook-form';
 import {textColor} from '../../styles/Text';
 import {font, fontSize} from '../../styles/Font';
 import {COLOR} from '../../styles/Color';
 import PasswordIcon from '../../assets/vectors/password.svg';
 import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import InfoIcon from '../../assets/vectors/info.svg';
-import DateIcon from '../../assets/vectors/date.svg';
-import {AddIcon} from '../../components/atoms/Icon';
-
 import {CustomButton} from '../../components/atoms/Button';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -33,29 +21,11 @@ import {
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {UserRole} from '../../model/User';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../../components/atoms/ViewPadding';
-import {FormLabel} from '../../components/atoms/FormLabel';
-import {StringObject} from '../../utils/stringObject';
-import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
-import {useCallback, useEffect, useState} from 'react';
-import {useKeyboard} from '../../hooks/keyboard';
-import {rounded} from '../../styles/BorderRadius';
-import {border} from '../../styles/Border';
 import {formatDateToTime12Hrs} from '../../utils/date';
-import {background} from '../../styles/BackgroundColor';
-import {SheetModal} from '../../containers/SheetModal';
-import {PostingScheduleDatePicker} from '../signup/RegisterContentCreatorPreferences';
-
 type FormData = {
   email: string;
   fullname: string;
   phone: string;
-  contentRevisionLimit: number | string;
-  postingSchedules: {value: number}[];
-  preferences: StringObject[];
 };
 const AboutMeScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -67,128 +37,9 @@ const AboutMeScreen = () => {
       fullname: activeData?.fullname,
       email: user?.email,
       phone: user?.phone,
-      postingSchedules: user?.contentCreator?.postingSchedules.map(ps => ({
-        value: ps,
-      })),
-      contentRevisionLimit: user?.contentCreator?.contentRevisionLimit,
-      preferences: user?.contentCreator?.preferences.map(p => ({value: p})),
     },
   });
 
-  const {watch, control} = methods;
-
-  const keyboardHeight = useKeyboard();
-  const [isDatePickerModalOpened, setIsDatePickerModalOpened] = useState(false);
-  const [isPreferencesModalOpened, setIsPreferencesModalOpened] =
-    useState(false);
-  const [updatePostingSchedulesIndex, setUpdatePostingSchedulesIndex] =
-    useState<number | undefined>(undefined);
-  const [updatePreferenceIndex, setUpdatePreferenceIndex] = useState<
-    number | undefined
-  >(undefined);
-  const [temporaryDate, setTemporaryDate] = useState<number>(
-    new Date().getTime(),
-  );
-  const [temporaryPreference, setTemporaryPreference] = useState<string>('');
-
-  const {
-    fields: fieldsPostingSchedule,
-    append: appendPostingSchedule,
-    remove: removePostingSchedule,
-  } = useFieldArray({
-    name: 'postingSchedules',
-    control,
-  });
-
-  const {
-    fields: fieldsPreferences,
-    append: appendPreferences,
-    remove: removePreferences,
-  } = useFieldArray({
-    name: 'preferences',
-    control,
-  });
-
-  const closeDatePickerSheetModal = () => {
-    setIsDatePickerModalOpened(false);
-  };
-
-  const resetDatePickerSheetModal = useCallback(() => {
-    setTemporaryDate(new Date().getTime());
-    if (updatePostingSchedulesIndex !== undefined) {
-      setUpdatePostingSchedulesIndex(undefined);
-    }
-  }, [updatePostingSchedulesIndex]);
-
-  const closePreferenceSheetModal = () => {
-    setIsPreferencesModalOpened(false);
-  };
-
-  const resetPreferenceSheetModal = useCallback(() => {
-    setTemporaryPreference('');
-    if (updatePreferenceIndex !== undefined) {
-      setUpdatePreferenceIndex(undefined);
-    }
-  }, [updatePreferenceIndex]);
-
-  useEffect(() => {
-    if (!isDatePickerModalOpened) {
-      resetDatePickerSheetModal();
-    }
-  }, [isDatePickerModalOpened, resetDatePickerSheetModal]);
-
-  useEffect(() => {
-    if (!isPreferencesModalOpened) {
-      resetPreferenceSheetModal();
-    }
-  }, [isPreferencesModalOpened, resetPreferenceSheetModal]);
-
-  useEffect(() => {
-    const subscription = watch(value => {
-      let contentRevisionLimit = value.contentRevisionLimit;
-      if (
-        contentRevisionLimit === undefined ||
-        typeof contentRevisionLimit === 'string'
-      ) {
-        contentRevisionLimit = undefined;
-      }
-      // onPreferenceChange({
-      //   contentRevisionLimit: contentRevisionLimit,
-      //   postingSchedules: (
-      //     value?.postingSchedules?.map(item => item?.value) || []
-      //   ).filter((item): item is number => item !== undefined),
-      //   preferences: (
-      //     value?.preferences?.map(item => item?.value) || []
-      //   ).filter((item): item is string => item !== undefined),
-      // });
-    });
-
-    return () => subscription.unsubscribe();
-  }, [watch]);
-
-  const savePostingSchedule = () => {
-    appendPostingSchedule({
-      value: temporaryDate,
-    });
-    closeDatePickerSheetModal();
-  };
-
-  const updatePostingSchedule = (onChange: (...event: any[]) => void) => {
-    onChange(temporaryDate);
-    closeDatePickerSheetModal();
-  };
-
-  const savePreference = () => {
-    appendPreferences({
-      value: temporaryPreference,
-    });
-    closePreferenceSheetModal();
-  };
-
-  const updatePreference = (onChange: (...event: any[]) => void) => {
-    onChange(temporaryPreference);
-    closePreferenceSheetModal();
-  };
   return (
     <PageWithBackButton fullHeight enableSafeAreaContainer>
       <FormProvider {...methods}>
