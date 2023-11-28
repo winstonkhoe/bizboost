@@ -1,4 +1,4 @@
-import {Platform, Pressable, ScrollView, View} from 'react-native';
+import {Platform, Pressable, View} from 'react-native';
 import {CloseModal} from '../../../components/atoms/Close';
 import SafeAreaContainer from '../../../containers/SafeAreaContainer';
 import {flex, items, justify} from '../../../styles/Flex';
@@ -27,7 +27,6 @@ import DateIcon from '../../../assets/vectors/date.svg';
 type FormData = {
   postingSchedules: {value: number}[];
 };
-import InfoIcon from '../../../assets/vectors/info.svg';
 import {formatDateToTime12Hrs} from '../../../utils/date';
 import {CustomButton} from '../../../components/atoms/Button';
 import {SheetModal} from '../../../containers/SheetModal';
@@ -42,7 +41,7 @@ const EditPostingScheduleScreen = () => {
 
   const keyboardHeight = useKeyboard();
 
-  const {user, activeData, activeRole} = useUser();
+  const {user} = useUser();
   const [isDatePickerModalOpened, setIsDatePickerModalOpened] = useState(false);
   const [updatePostingSchedulesIndex, setUpdatePostingSchedulesIndex] =
     useState<number | undefined>(undefined);
