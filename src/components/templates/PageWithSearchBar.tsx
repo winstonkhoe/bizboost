@@ -26,10 +26,11 @@ export const PageWithSearchBar = ({children}: Props) => {
   const {isOnSearchPage, searchTerm} = useAppSelector(state => state.search);
 
   useEffect(() => {
-    Campaign.getAll().then(campaignsData => setCampaigns(campaignsData));
-    User.getContentCreators().then(contentCreatorsData => {
-      setContentCreators(contentCreatorsData);
-    });
+    console.log(
+      'page with search bar, fetch campaign get all, user get content creators',
+    );
+    Campaign.getAll().then(setCampaigns);
+    User.getContentCreators().then(setContentCreators);
   }, []);
 
   return (

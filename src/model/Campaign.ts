@@ -1,7 +1,7 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {SocialPlatforms, User} from './User';
+import {SocialPlatform, User} from './User';
 import {BaseModel} from './BaseModel';
 import {Location} from './Location';
 import {Category} from './Category';
@@ -13,20 +13,27 @@ export interface CampaignTask {
   description?: string;
 }
 
-export type CampaignPlatform = {name: SocialPlatforms; tasks: CampaignTask[]};
+export type CampaignPlatform = {name: SocialPlatform; tasks: CampaignTask[]};
 
 export enum CampaignStep {
   Registration = 'Registration',
   Brainstorming = 'Brainstorming',
   ContentSubmission = 'Content Submission',
   EngagementResultSubmission = 'Engagement Result Submission',
+  Completed = 'Completed',
 }
 
-export type CampaignSteps =
-  | CampaignStep.Registration
-  | CampaignStep.Brainstorming
-  | CampaignStep.ContentSubmission
-  | CampaignStep.EngagementResultSubmission;
+type CampainStepIndexMap = {
+  [key in CampaignStep]: number;
+};
+
+export const campaignIndexMap: CampainStepIndexMap = {
+  [CampaignStep.Registration]: 0,
+  [CampaignStep.Brainstorming]: 1,
+  [CampaignStep.ContentSubmission]: 2,
+  [CampaignStep.EngagementResultSubmission]: 3,
+  [CampaignStep.Completed]: 4,
+};
 
 export interface CampaignTimeline {
   step: CampaignStep;
@@ -39,8 +46,6 @@ export enum CampaignType {
   Private = 'Private',
 }
 
-export type CampaignTypes = CampaignType.Public | CampaignType.Private;
-
 export const CAMPAIGN_COLLECTION = 'campaigns';
 
 export class Campaign extends BaseModel {
@@ -48,7 +53,7 @@ export class Campaign extends BaseModel {
   userId?: string;
   title?: string;
   description?: string;
-  type?: CampaignTypes;
+  type?: CampaignType;
   locations?: string[];
   categories?: string[];
   platforms?: CampaignPlatform[];
@@ -145,13 +150,14 @@ export class Campaign extends BaseModel {
 
   static async getAll(): Promise<Campaign[]> {
     try {
+      console.log('model:Campaign getAll');
       const campaigns = await this.getCampaignCollections()
         .where('type', '==', CampaignType.Public)
         .get();
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
-      return campaigns.docs.map(doc => this.fromSnapshot(doc));
+      return campaigns.docs.map(this.fromSnapshot);
     } catch (error) {
       throw Error('Error!');
     }
@@ -166,7 +172,7 @@ export class Campaign extends BaseModel {
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
-      return campaigns.docs.map(doc => this.fromSnapshot(doc));
+      return campaigns.docs.map(this.fromSnapshot);
     } catch (error) {
       throw Error('Error!');
     }
@@ -175,10 +181,10 @@ export class Campaign extends BaseModel {
   static getUserCampaignsReactive(
     userId: string,
     callback: (campaigns: Campaign[]) => void,
-  ) {
+  ): (() => void) | undefined {
     try {
       const userRef = User.getDocumentReference(userId);
-      const subscriber = this.getCampaignCollections()
+      return this.getCampaignCollections()
         .where('userId', '==', userRef)
         .onSnapshot(
           querySnapshots => {
@@ -190,8 +196,6 @@ export class Campaign extends BaseModel {
             console.log('getUserCampaignsReactive', error.message);
           },
         );
-
-      return subscriber;
     } catch (error) {
       console.log('getUserCampaignsReactive', error);
     }
@@ -238,19 +242,22 @@ export class Campaign extends BaseModel {
     throw Error('Error!');
   }
 
-  getStartDate(): Date {
-    return new Date(
-      this.timeline?.find(
-        timeline => CampaignStep.Registration === timeline.step,
-      )?.start!!,
-    );
+  getActiveTimeline(): CampaignTimeline {
+    const now = new Date().getTime();
+    return this.timeline?.find(
+      timeline => timeline.start <= now && now <= timeline.end,
+    )!!;
   }
 
-  getEndDate(): Date {
-    return new Date(
-      this.timeline?.find(
-        timeline => CampaignStep.EngagementResultSubmission === timeline.step,
-      )?.end!!,
-    );
+  getTimelineStart(): CampaignTimeline {
+    return this.timeline?.find(
+      timeline => CampaignStep.Registration === timeline.step,
+    )!!;
+  }
+
+  getTimelineEnd(): CampaignTimeline {
+    return this.timeline?.find(
+      timeline => CampaignStep.EngagementResultSubmission === timeline.step,
+    )!!;
   }
 }

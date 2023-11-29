@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Image} from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 export default class ScaledImage extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -40,7 +41,7 @@ export default class ScaledImage extends React.Component<Props, State> {
 
   render() {
     return (
-      <Image
+      <FastImage
         source={this.state.source}
         style={[
           this.props.style,

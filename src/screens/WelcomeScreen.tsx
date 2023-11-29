@@ -22,36 +22,45 @@ import {
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {AuthProviderButton} from '../components/molecules/AuthProviderButton';
+import {LoadingScreen} from './LoadingScreen';
+import {useState} from 'react';
 
 const WelcomeScreen = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation<NavigationStackProps>();
   const dispatch = useAppDispatch();
 
   const continueWithGoogle = async () => {
-    const data = await User.continueWithGoogle();
-    if (data.token && data.token !== '') {
-      dispatch(
-        updateSignupData(
-          new User({
-            email: data.email,
-          }).toJSON(),
-        ),
-      );
-      dispatch(
-        updateTemporarySignupData({
-          fullname: data.name,
-          profilePicture: data.photo,
-          token: data.token,
-        }),
-      );
-      dispatch(setProviderId(data.id));
-      dispatch(setSignupProvider(Provider.GOOGLE));
-      navigateToSignupPage();
-    }
+    User.continueWithGoogle()
+      .then(data => {
+        if (data.token && data.token !== '') {
+          dispatch(
+            updateSignupData(
+              new User({
+                email: data.email,
+              }).toJSON(),
+            ),
+          );
+          dispatch(
+            updateTemporarySignupData({
+              fullname: data.name,
+              profilePicture: data.photo,
+              token: data.token,
+            }),
+          );
+          dispatch(setProviderId(data.id));
+          dispatch(setSignupProvider(Provider.GOOGLE));
+          navigateToSignupPage();
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   const continueWithFacebook = () => {
     try {
+      setIsLoading(true);
       User.continueWithFacebook((data: UserAuthProviderData) => {
         dispatch(
           updateSignupData(
@@ -70,8 +79,12 @@ const WelcomeScreen = () => {
         );
         dispatch(setProviderId(data.id));
         dispatch(setSignupProvider(Provider.FACEBOOK));
+        setIsLoading(false);
         navigateToSignupPage();
-      }).catch(err => console.log('err nih', err));
+      }).catch(err => {
+        console.log('err nih', err);
+        setIsLoading(false);
+      });
     } catch (error) {
       console.log('trycatch fb', error);
     }
@@ -87,58 +100,61 @@ const WelcomeScreen = () => {
   };
 
   return (
-    <SafeAreaContainer enable>
-      <View className="flex-1 items-center" style={[flex.flexCol]}>
-        <View
-          className="flex-1 justify-between items-center pt-6 px-3"
-          style={[flex.flexCol]}>
-          <View className="flex flex-col items-center px-5">
-            <Text
-              className="font-extrabold text-5xl"
-              style={[textColor(COLOR.text.neutral.high)]}>
-              bizboost
-            </Text>
-            <Text
-              className="font-semibold text-lg text-center tracking-tighter"
-              style={[textColor(COLOR.text.neutral.med)]}>
-              a place where content creator and business people meet
-            </Text>
+    <>
+      {isLoading && <LoadingScreen />}
+      <SafeAreaContainer enable>
+        <View className="flex-1 items-center" style={[flex.flexCol]}>
+          <View
+            className="flex-1 justify-between items-center pt-6 px-3"
+            style={[flex.flexCol]}>
+            <View className="flex flex-col items-center px-5">
+              <Text
+                className="font-extrabold text-5xl"
+                style={[textColor(COLOR.text.neutral.high)]}>
+                bizboost
+              </Text>
+              <Text
+                className="font-semibold text-lg text-center tracking-tighter"
+                style={[textColor(COLOR.text.neutral.med)]}>
+                a place where content creator and business people meet
+              </Text>
+            </View>
+            <Logo width={280} height={280} />
           </View>
-          <Logo width={280} height={280} />
-        </View>
-        <View className="w-full flex justify-center rounded-t-[80px] pb-5">
-          <View className="w-full justify-between items-center px-5 py-7">
-            <View className="w-full" style={[flex.flexCol, gap.default]}>
-              <CustomButton
-                verticalPadding="medium"
-                text="Sign up"
-                rounded="max"
-                onPress={handleEmailSignup}
-              />
-              <AuthProviderButton
-                verticalPadding="medium"
-                provider={Provider.GOOGLE}
-                onPress={async () => await continueWithGoogle()}
-              />
-              <AuthProviderButton
-                verticalPadding="medium"
-                provider={Provider.FACEBOOK}
-                onPress={continueWithFacebook}
-              />
+          <View className="w-full flex justify-center rounded-t-[80px] pb-5">
+            <View className="w-full justify-between items-center px-5 py-7">
+              <View className="w-full" style={[flex.flexCol, gap.default]}>
+                <CustomButton
+                  verticalPadding="medium"
+                  text="Sign up"
+                  rounded="max"
+                  onPress={handleEmailSignup}
+                />
+                <AuthProviderButton
+                  verticalPadding="medium"
+                  provider={Provider.GOOGLE}
+                  onPress={async () => await continueWithGoogle()}
+                />
+                <AuthProviderButton
+                  verticalPadding="medium"
+                  provider={Provider.FACEBOOK}
+                  onPress={continueWithFacebook}
+                />
 
-              <AuthProviderButton
-                verticalPadding="medium"
-                provider={Provider.EMAIL}
-                type="tertiary"
-                onPress={() => {
-                  navigation.navigate(GuestNavigation.Login);
-                }}
-              />
+                <AuthProviderButton
+                  verticalPadding="medium"
+                  provider={Provider.EMAIL}
+                  type="tertiary"
+                  onPress={() => {
+                    navigation.navigate(GuestNavigation.Login);
+                  }}
+                />
+              </View>
             </View>
           </View>
         </View>
-      </View>
-    </SafeAreaContainer>
+      </SafeAreaContainer>
+    </>
   );
 };
 

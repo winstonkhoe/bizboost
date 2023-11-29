@@ -1,32 +1,26 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {
   Controller,
   FormProvider,
   UseControllerProps,
   useForm,
   useFormContext,
-  useWatch,
 } from 'react-hook-form';
-import {
-  Animated,
-  KeyboardTypeOptions,
-  Pressable,
-  PressableProps,
-  TextInputProps,
-} from 'react-native';
+import {KeyboardTypeOptions, Pressable, PressableProps} from 'react-native';
 import {TextInput} from 'react-native';
 import {Text} from 'react-native';
 import {View} from 'react-native';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
-import Reanimated, {
+import Animated, {
+  interpolate,
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {flex, items, justify} from '../../styles/Flex';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {CustomButton} from './Button';
 import ImagePicker, {
@@ -34,30 +28,30 @@ import ImagePicker, {
   ImageOrVideo,
 } from 'react-native-image-crop-picker';
 import {gap} from '../../styles/Gap';
-import {
-  horizontalPadding,
-  padding,
-  verticalPadding,
-} from '../../styles/Padding';
+import {padding} from '../../styles/Padding';
 import {textColor} from '../../styles/Text';
 import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {AddIcon, MinusIcon} from './Icon';
-import {font, fontSize, lineHeight} from '../../styles/Font';
-import uuid from 'react-native-uuid';
-import storage from '@react-native-firebase/storage';
+import {font, lineHeight} from '../../styles/Font';
 import {ProgressBar} from './ProgressBar';
-import {border} from '../../styles/Border';
 import {uploadFile} from '../../helpers/storage';
 
-interface Props extends UseControllerProps {
-  label: string;
+interface CustomTextInputProps extends UseControllerProps {
+  label?: string;
   placeholder?: string;
-  multiline?: boolean;
+  disabled?: boolean;
+  error?: boolean;
+  success?: boolean;
+  focus?: boolean;
+  description?: string;
+  counter?: boolean;
+  max?: number;
   hideInputText?: boolean;
   forceLowercase?: boolean;
   keyboardType?: KeyboardTypeOptions;
+  type?: 'default' | 'textarea';
   inputType?: 'default' | 'number' | 'price';
   prefix?: string;
 }
@@ -65,14 +59,20 @@ interface Props extends UseControllerProps {
 export const CustomTextInput = ({
   label,
   placeholder = label,
-  multiline = false,
+  error: isError,
+  success,
+  description,
+  counter,
+  max,
+  focus = false,
   hideInputText = false,
   forceLowercase = false,
   keyboardType,
+  type = 'default',
   inputType = 'default',
   prefix,
   ...controllerProps
-}: Props) => {
+}: CustomTextInputProps) => {
   const {
     control,
     watch,
@@ -81,19 +81,43 @@ export const CustomTextInput = ({
   const maxTranslateX = 40;
   const animationDuration = 400;
   const translateX = useSharedValue(maxTranslateX);
-  const [isFocus, setIsFocus] = useState<boolean>(false);
+  const [isFocus, setIsFocus] = useState<boolean>(focus);
   const [parentWidth, setParentWidth] = useState<number>(0);
-  const animatedWidth = useRef(new Animated.Value(0)).current;
+  const animatedWidth = useSharedValue(0);
   const fieldFilled = watch(controllerProps.name);
-  const [height, setHeight] = useState(0);
 
   useEffect(() => {
-    Animated.timing(animatedWidth, {
-      toValue: !errors?.[controllerProps.name] && isFocus ? 1 : 0,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
+    animatedWidth.value = withTiming(
+      !errors?.[controllerProps.name] && isFocus ? 1 : 0,
+      {
+        duration: 500,
+      },
+    );
   }, [isFocus, animatedWidth, errors, controllerProps]);
+
+  const activeBorderOffset = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: interpolate(
+            animatedWidth.value,
+            [0, 1],
+            [-parentWidth, 0],
+          ),
+        },
+      ],
+    };
+  });
+
+  const animatedTextAreaBorder = useAnimatedStyle(() => {
+    return {
+      borderColor: interpolateColor(
+        animatedWidth.value,
+        [0, 1],
+        [COLOR.text.neutral.low, COLOR.green[50]],
+      ),
+    };
+  });
 
   useEffect(() => {
     if (fieldFilled?.length > 0 || controllerProps.disabled) {
@@ -122,136 +146,213 @@ export const CustomTextInput = ({
     onChange: (...event: any[]) => void,
   ) => {
     let actual = text;
-    if (inputType === 'price' || inputType === 'number') {
-      if (text !== '') {
-        actual = actual.replaceAll('.', '');
-        const parsedNumber = parseInt(actual, 10);
-        if (!isNaN(parsedNumber)) {
-          actual = `${parsedNumber}`;
-        } else {
-          actual = '0';
+    if (!max || (max && actual.length <= max)) {
+      if (inputType === 'price' || inputType === 'number') {
+        if (text !== '') {
+          actual = actual.replaceAll('.', '');
+          const parsedNumber = parseInt(actual, 10);
+          if (!isNaN(parsedNumber)) {
+            actual = `${parsedNumber}`;
+          } else {
+            actual = '0';
+          }
         }
       }
+      if (forceLowercase) {
+        actual = actual.toLocaleLowerCase();
+      }
+      onChange(actual);
+    } else if (max && actual.length > max) {
+      onChange(actual.substring(0, max));
     }
-    if (forceLowercase) {
-      actual = actual.toLocaleLowerCase();
-    }
-    onChange(actual);
   };
 
   return (
     <View style={[flex.flexCol, gap.xsmall2]}>
-      <Reanimated.View style={[animatedStyles]}>
-        <Text
-          className="font-medium"
-          style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
-          {label}
-        </Text>
-      </Reanimated.View>
-      <View style={[flex.flexCol]}>
-        <Controller
-          {...controllerProps}
-          control={control}
-          render={({field: {onChange, onBlur, value}}) => (
-            <View
-              style={[
-                flex.flexRow,
-                justify.start,
-                gap.default,
-                controllerProps.disabled && rounded.default,
-                controllerProps.disabled && horizontalPadding.small,
-                controllerProps.disabled &&
-                  background(COLOR.background.neutral.disabled),
-              ]}>
-              {(prefix || inputType === 'price') && (
-                <View style={[flex.flexRow, justify.start, items.center]}>
-                  <Text
-                    className="font-semibold"
-                    style={[textColor(COLOR.text.neutral.low), font.size[30]]}>
-                    {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
-                  </Text>
+      {label && (
+        <Animated.View style={[animatedStyles]}>
+          <Text
+            className="font-medium"
+            style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+            {label}
+          </Text>
+        </Animated.View>
+      )}
+      <Controller
+        {...controllerProps}
+        control={control}
+        render={({
+          field: {onChange, onBlur, value},
+          fieldState: {error, invalid},
+        }) => (
+          <View style={[flex.flexCol, gap.small]}>
+            <View style={[flex.flexCol]}>
+              <Animated.View
+                style={[
+                  flex.flexRow,
+                  justify.start,
+                  gap.default,
+                  animatedTextAreaBorder,
+                  type === 'textarea' && [
+                    padding.default,
+                    rounded.default,
+                    {
+                      borderWidth: 1,
+                    },
+                  ],
+                  type !== 'textarea' && padding.bottom.xsmall,
+                  controllerProps.disabled && rounded.default,
+                  controllerProps.disabled && padding.horizontal.small,
+                  controllerProps.disabled &&
+                    background(COLOR.background.neutral.disabled),
+                ]}>
+                {(prefix || inputType === 'price') && (
+                  <View style={[flex.flexRow, justify.start, items.end]}>
+                    <Text
+                      className="font-semibold"
+                      style={[
+                        textColor(COLOR.text.neutral.low),
+                        font.size[30],
+                      ]}>
+                      {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
+                    </Text>
+                  </View>
+                )}
+                <TextInput
+                  keyboardType={
+                    keyboardType
+                      ? keyboardType
+                      : inputType === 'number' || inputType === 'price'
+                      ? 'number-pad'
+                      : undefined
+                  }
+                  maxLength={max}
+                  secureTextEntry={hideInputText}
+                  textAlignVertical={type === 'textarea' ? 'top' : 'bottom'}
+                  multiline={type === 'textarea'}
+                  style={[
+                    flex.flexRow,
+                    self.start,
+                    font.size[30],
+                    font.lineHeight[30],
+                    padding.vertical.zero,
+                    padding.horizontal.zero,
+                    type === 'textarea' && {
+                      minHeight: lineHeight[30] * 3,
+                    },
+                    textColor(
+                      controllerProps.disabled
+                        ? COLOR.text.neutral.low
+                        : COLOR.text.neutral.high,
+                    ),
+                  ]}
+                  value={
+                    inputType === 'number' || inputType === 'price'
+                      ? formatNumberWithThousandSeparator(value)
+                      : value
+                  }
+                  onFocus={() => {
+                    setIsFocus(true);
+                  }}
+                  onBlur={() => {
+                    onBlur();
+                    setIsFocus(false);
+                  }}
+                  editable={!controllerProps.disabled}
+                  onChangeText={text => handleChangeText(text, onChange)}
+                  placeholder={placeholder}
+                  className="w-full font-medium"
+                />
+              </Animated.View>
+
+              {!controllerProps.disabled && type !== 'textarea' && (
+                <View
+                  onLayout={event => {
+                    const {width} = event.nativeEvent.layout;
+                    setParentWidth(width);
+                  }}
+                  className="relative w-full overflow-hidden"
+                  style={[
+                    {height: 1},
+                    invalid || isError
+                      ? background(COLOR.red.error)
+                      : background(COLOR.text.neutral.low),
+                  ]}>
+                  <Animated.View
+                    className="absolute top-0 left-0 w-full h-full"
+                    style={[activeBorderOffset, background(COLOR.green[50])]}
+                  />
                 </View>
               )}
-              <TextInput
-                keyboardType={
-                  keyboardType
-                    ? keyboardType
-                    : inputType === 'number' || inputType === 'price'
-                    ? 'number-pad'
-                    : undefined
-                }
-                secureTextEntry={hideInputText}
-                multiline={multiline}
-                onContentSizeChange={event =>
-                  setHeight(event.nativeEvent.contentSize.height + 15)
-                }
-                style={[
-                  font.size[30],
-                  padding.vertical.zero,
-                  padding.horizontal.zero,
-                  {height: Math.max(35, height)},
-                  textColor(
-                    controllerProps.disabled
-                      ? COLOR.text.neutral.low
-                      : COLOR.text.neutral.high,
-                  ),
-                ]}
-                value={
-                  inputType === 'number' || inputType === 'price'
-                    ? formatNumberWithThousandSeparator(value)
-                    : value
-                }
-                onFocus={() => {
-                  setIsFocus(true);
-                }}
-                onBlur={() => {
-                  onBlur();
-                  setIsFocus(false);
-                }}
-                editable={!controllerProps.disabled}
-                onChangeText={text => handleChangeText(text, onChange)}
-                placeholder={placeholder}
-                className="w-full font-medium"
-              />
             </View>
-          )}
-          name={controllerProps.name}
-        />
-        {!controllerProps.disabled && (
-          <View
-            onLayout={event => {
-              const {width} = event.nativeEvent.layout;
-              setParentWidth(width);
-            }}
-            className="relative w-full overflow-hidden"
-            style={[
-              {height: 1},
-              errors?.[controllerProps.name]
-                ? background(COLOR.red.error)
-                : background(COLOR.black[100]),
-            ]}>
-            <Animated.View
-              className="absolute top-0 left-0 w-full h-full bg-green-700"
-              style={{
-                transform: [
-                  {
-                    translateX: animatedWidth.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [-parentWidth, 0],
-                    }),
-                  },
-                ],
-              }}
-            />
+            <View style={[flex.flexRow, gap.medium, justify.between]}>
+              <Text
+                style={[
+                  flex.flex1,
+                  flex.grow,
+                  font.size[20],
+                  textColor(COLOR.text.neutral.med),
+                  (error || isError) && textColor(COLOR.text.danger.default),
+                ]}>
+                {error?.message || description}
+              </Text>
+              {counter && (
+                <Text
+                  style={[
+                    font.size[20],
+                    textColor(COLOR.text.neutral.med),
+                  ]}>{`${value?.length || 0} / ${parseInt(
+                  `${max}`,
+                  10,
+                )}`}</Text>
+              )}
+            </View>
           </View>
         )}
-        <Text
-          className="text-xs mt-2 font-medium"
-          style={[textColor(COLOR.text.danger.default)]}>
-          {`${errors?.[controllerProps.name]?.message || ''}`}
-        </Text>
-      </View>
+        name={controllerProps.name}
+      />
     </View>
+  );
+};
+
+interface FormlessCustomTextInputProps extends Partial<CustomTextInputProps> {
+  onChange: (text: string) => void;
+  onValidChange?: (value: boolean) => void;
+}
+
+type TextData = {
+  value: string;
+};
+
+export const FormlessCustomTextInput = ({
+  onChange,
+  onValidChange,
+  ...props
+}: FormlessCustomTextInputProps) => {
+  const methods = useForm<TextData>({
+    mode: 'all',
+    defaultValues: {
+      value: props.defaultValue || '',
+    },
+  });
+  const {
+    watch,
+    formState: {isValid},
+  } = methods;
+  const value = watch('value');
+
+  useEffect(() => {
+    onChange(value);
+  }, [value, onChange]);
+
+  useEffect(() => {
+    onValidChange && onValidChange(isValid);
+  }, [isValid, onValidChange]);
+
+  return (
+    <FormProvider {...methods}>
+      <CustomTextInput {...props} name="value" />
+    </FormProvider>
   );
 };
 
@@ -359,7 +460,7 @@ export const CustomNumberInput = ({
         {...controllerProps}
         control={control}
         render={({field: {onChange, onBlur, value}}) => (
-          <Reanimated.View
+          <Animated.View
             style={[
               flex.flexRow,
               gap.default,
@@ -429,7 +530,7 @@ export const CustomNumberInput = ({
               removeBackground={type === 'field' ? true : false}
               onPress={() => increment(value, onChange)}
             />
-          </Reanimated.View>
+          </Animated.View>
         )}
         name={controllerProps.name}
       />
@@ -513,7 +614,7 @@ const IncrementDecrementButton = ({
   }, [props.disabled, disableProgress]);
   return (
     <Pressable {...props}>
-      <Reanimated.View
+      <Animated.View
         className="justify-center items-center"
         style={[
           flex.flexRow,
@@ -538,7 +639,7 @@ const IncrementDecrementButton = ({
             }
           />
         )}
-      </Reanimated.View>
+      </Animated.View>
     </Pressable>
   );
 };
@@ -610,226 +711,5 @@ export const MediaUploader = ({
         <ProgressBar currentProgress={uploadProgress} showProgressNumber />
       )}
     </TouchableOpacity>
-  );
-};
-
-interface FormlessTextInputProps extends TextInputProps {
-  label?: string;
-  placeholder?: string;
-  disabled?: boolean;
-  error?: boolean;
-  success?: boolean;
-  description?: string;
-  counter?: boolean;
-  max?: number;
-  type?: 'default' | 'textarea';
-  inputType?: 'default' | 'number' | 'price';
-  prefix?: string;
-  focus?: boolean;
-  onChangeText?: (text: string) => void;
-}
-
-export const FormlessTextInput = ({
-  label,
-  placeholder = label,
-  disabled = false,
-  error,
-  success,
-  description,
-  counter,
-  max,
-  type = 'default',
-  inputType = 'default',
-  prefix,
-  focus = false,
-  onChangeText,
-  ...props
-}: FormlessTextInputProps) => {
-  const fieldRef = useRef<TextInput>(null);
-  const [fieldValue, setFieldValue] = useState(props.defaultValue || '');
-  const maxTranslateX = 40;
-  const animationDuration = 400;
-  const translateX = useSharedValue(maxTranslateX);
-  const [parentWidth, setParentWidth] = useState<number>(0);
-  const animatedWidth = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(animatedWidth, {
-      toValue: !error && focus ? 1 : 0,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, [focus, animatedWidth, error, props]);
-
-  useEffect(() => {
-    if (fieldValue?.length > 0 || disabled) {
-      translateX.value = 0;
-    } else {
-      translateX.value = maxTranslateX;
-    }
-  }, [fieldValue, translateX, disabled]);
-
-  useEffect(() => {
-    if (onChangeText) {
-      onChangeText(fieldValue);
-    }
-  }, [fieldValue, onChangeText]);
-
-  useEffect(() => {
-    if (focus) {
-      fieldRef.current?.focus();
-    } else {
-      fieldRef.current?.blur();
-    }
-  }, [focus]);
-
-  const animatedStyles = useAnimatedStyle(() => ({
-    opacity: withTiming(fieldValue?.length > 0 || disabled ? 1 : 0, {
-      duration: animationDuration,
-    }),
-    transform: [
-      {
-        translateX: withSpring(translateX.value * 2),
-      },
-    ],
-  }));
-
-  const handleChangeText = (text: string) => {
-    let actual = text;
-    if (!max || (max && actual.length <= max)) {
-      if (inputType === 'price' || inputType === 'number') {
-        if (text !== '') {
-          actual = actual.replaceAll('.', '');
-          const parsedNumber = parseInt(actual, 10);
-          if (!isNaN(parsedNumber)) {
-            actual = `${parsedNumber}`;
-          } else {
-            actual = '0';
-          }
-        }
-      }
-      setFieldValue(actual);
-    }
-  };
-
-  return (
-    <View style={[flex.flexCol, gap.small]}>
-      <Reanimated.View style={[animatedStyles]}>
-        <Text
-          className="text-base font-medium"
-          style={[textColor(COLOR.text.neutral.high)]}>
-          {label}
-        </Text>
-      </Reanimated.View>
-      <View
-        style={[
-          flex.flexRow,
-          justify.start,
-          gap.default,
-          type === 'textarea' && [
-            padding.default,
-            rounded.default,
-            border({
-              borderWidth: 1,
-              color: COLOR.green[50],
-            }),
-          ],
-          disabled && rounded.default,
-          disabled && horizontalPadding.small,
-          disabled && background(COLOR.background.neutral.disabled),
-        ]}>
-        {(prefix || inputType === 'price') && (
-          <View
-            style={[
-              flex.flexRow,
-              verticalPadding.xsmall2,
-              justify.start,
-              items.end,
-            ]}>
-            <Text
-              className="text-base font-semibold"
-              style={[textColor(COLOR.text.neutral.low)]}>
-              {prefix ? prefix : inputType === 'price' ? 'Rp' : null}
-            </Text>
-          </View>
-        )}
-        <TextInput
-          ref={fieldRef}
-          {...props}
-          multiline={type === 'textarea'}
-          keyboardType={
-            props.keyboardType
-              ? props.keyboardType
-              : inputType === 'number' || inputType === 'price'
-              ? 'number-pad'
-              : undefined
-          }
-          style={[
-            textColor(
-              disabled ? COLOR.text.neutral.low : COLOR.text.neutral.high,
-            ),
-            font.size[30],
-            font.lineHeight[30],
-            type === 'textarea' && {
-              minHeight: lineHeight[30] * 3,
-            },
-          ]}
-          value={
-            inputType === 'number' || inputType === 'price'
-              ? `${formatNumberWithThousandSeparator(parseInt(fieldValue, 10))}`
-              : fieldValue
-          }
-          editable={!disabled}
-          onChangeText={text => handleChangeText(text)}
-          placeholder={placeholder}
-          className="w-full font-medium"
-        />
-      </View>
-      {!disabled && type !== 'textarea' && (
-        <View
-          onLayout={event => {
-            const {width} = event.nativeEvent.layout;
-            setParentWidth(width);
-          }}
-          className="relative w-full overflow-hidden"
-          style={[
-            {height: 1},
-            error ? background(COLOR.red.error) : background(COLOR.black[100]),
-          ]}>
-          <Animated.View
-            className="absolute top-0 left-0 w-full h-full bg-green-700"
-            style={{
-              transform: [
-                {
-                  translateX: animatedWidth.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-parentWidth, 0],
-                  }),
-                },
-              ],
-            }}
-          />
-        </View>
-      )}
-      <View style={[flex.flexRow, gap.medium, justify.between]}>
-        <Text
-          className="text-xs"
-          style={[
-            flex.flex1,
-            flex.grow,
-            textColor(COLOR.text.neutral.med),
-            error && textColor(COLOR.text.danger.default),
-          ]}>
-          {description}
-        </Text>
-        {counter && (
-          <Text
-            className="text-xs"
-            style={[textColor(COLOR.text.neutral.med)]}>{`${
-            fieldValue.length
-          } / ${parseInt(`${max}`, 10)}`}</Text>
-        )}
-      </View>
-    </View>
   );
 };

@@ -37,6 +37,9 @@ interface RGBA2HexProps {
 }
 
 export const rgba2hex = ({rgba, alpha}: RGBA2HexProps) => {
+  if (rgba === undefined) {
+    return '#FFFFFF';
+  }
   // Check if the input is a hex color
   if (isHex(rgba)) {
     // If an alpha value is provided, append it to the hex color
@@ -48,27 +51,27 @@ export const rgba2hex = ({rgba, alpha}: RGBA2HexProps) => {
     }
     // If no alpha value is provided, return the hex color as is
     return rgba;
-  } else if (rgba.match) {
-    // TODO: temporary fix @winston
-    let values: any = rgba.match(/(\d+\.?\d*)/g);
-    if (values && values.length >= 3) {
-      // Convert each RGBA value to hexadecimal
-      let r = parseInt(values[0], 10).toString(16).padStart(2, '0');
-      let g = parseInt(values[1], 10).toString(16).padStart(2, '0');
-      let b = parseInt(values[2], 10).toString(16).padStart(2, '0');
-      let a =
-        alpha !== undefined
-          ? Math.round(alpha * 255)
-              .toString(16)
-              .padStart(2, '0')
-          : values.length === 4
-          ? Math.round(values[3] * 255)
-              .toString(16)
-              .padStart(2, '0')
-          : 'FF';
-      // Return the hex code with a hash sign
-      return `#${r}${g}${b}${a}`;
-    }
+  }
+
+  // TODO: temporary fix @winston
+  let values: any = rgba.match(/(\d+\.?\d*)/g);
+  if (values && values.length >= 3) {
+    // Convert each RGBA value to hexadecimal
+    let r = parseInt(values[0], 10).toString(16).padStart(2, '0');
+    let g = parseInt(values[1], 10).toString(16).padStart(2, '0');
+    let b = parseInt(values[2], 10).toString(16).padStart(2, '0');
+    let a =
+      alpha !== undefined
+        ? Math.round(alpha * 255)
+            .toString(16)
+            .padStart(2, '0')
+        : values.length === 4
+        ? Math.round(values[3] * 255)
+            .toString(16)
+            .padStart(2, '0')
+        : 'FF';
+    // Return the hex code with a hash sign
+    return `#${r}${g}${b}${a}`;
   }
 };
 

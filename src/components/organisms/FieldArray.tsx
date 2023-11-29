@@ -1,43 +1,68 @@
 import React, {useEffect, useState} from 'react';
-import {Control, Controller, useFieldArray} from 'react-hook-form';
-import {Text, View} from 'react-native';
-import {FormlessTextInput} from '../atoms/Input';
-import {FormFieldHelper} from '../atoms/FormLabel';
+import {
+  Control,
+  Controller,
+  ControllerProps,
+  useFieldArray,
+} from 'react-hook-form';
+import {Text, View, useWindowDimensions} from 'react-native';
+import {FormlessCustomTextInput} from '../atoms/Input';
+import {FormFieldHelper, FormFieldType} from '../atoms/FormLabel';
 import {SheetModal} from '../../containers/SheetModal';
-import {HorizontalPadding, VerticalPadding} from '../atoms/ViewPadding';
 import {flex, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
-import {textColor} from '../../styles/Text';
-import {COLOR} from '../../styles/Color';
-import {padding} from '../../styles/Padding';
-import {font} from '../../styles/Font';
 import {CustomButton} from '../atoms/Button';
-import {Platform} from 'react-native';
-import {useKeyboard} from '../../hooks/keyboard';
 import {FieldArrayLabel} from '../molecules/FieldArrayLabel';
-type Props = {
+import {BottomSheetModalWithTitle} from '../templates/BottomSheetModalWithTitle';
+import {padding} from '../../styles/Padding';
+import {useKeyboard} from '../../hooks/keyboard';
+import {AnimatedPressable} from '../atoms/AnimatedPressable';
+import {InternalLink} from '../atoms/Link';
+import WebView from 'react-native-webview';
+import {CustomModal} from '../atoms/CustomModal';
+import {dimension} from '../../styles/Dimension';
+import {background} from '../../styles/BackgroundColor';
+import {COLOR} from '../../styles/Color';
+import SafeAreaContainer from '../../containers/SafeAreaContainer';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {rounded} from '../../styles/BorderRadius';
+import {font} from '../../styles/Font';
+import {shadow} from '../../styles/Shadow';
+
+interface Props extends Partial<ControllerProps> {
   control: Control<any>;
-  title: string;
+  title?: string;
+  description?: string;
   parentName: any; // string
   childName: string;
+  type?: FormFieldType;
   placeholder?: string;
   fieldType?: 'default' | 'textarea';
   maxFieldLength?: number;
   helperText?: string;
-};
+  forceLowerCase?: boolean;
+}
 const FieldArray = ({
   control,
   title,
+  description,
   parentName,
   childName,
   placeholder,
+  type = 'required',
   fieldType = 'default',
   maxFieldLength = 40,
   helperText,
+  forceLowerCase = false,
+  ...props
 }: Props) => {
   const keyboardHeight = useKeyboard();
+  const windowDimension = useWindowDimensions();
+  const safeAreaInsets = useSafeAreaInsets();
   const [temporaryText, setTemporaryText] = useState<string>('');
+  const [isValidField, setIsValidField] = useState(true);
   const [updateIndex, setUpdateIndex] = useState<number | null>(null);
+  const [isWebviewModalOpen, setIsWebviewModalOpen] = useState(false);
   const [isModalOpened, setIsModalOpened] = useState(false);
   const {fields, append, remove} = useFieldArray({
     name: parentName,
@@ -65,10 +90,58 @@ const FieldArray = ({
     setIsModalOpened(false);
   };
 
+  useEffect(() => {
+    console.log('isValidField', isValidField);
+  }, [isValidField]);
+
   return (
     <>
+      <CustomModal
+        transparent
+        visible={isWebviewModalOpen}
+        removeDefaultBackground
+        removeDefaultPadding>
+        <View
+          style={[
+            flex.flexCol,
+            gap.medium,
+            justify.center,
+            dimension.width.full,
+            dimension.height.full,
+            background(COLOR.black[0], 0.4),
+            padding.horizontal.medium,
+            {
+              paddingTop: safeAreaInsets.top,
+              paddingBottom: safeAreaInsets.bottom,
+            },
+          ]}>
+          <View
+            style={[
+              dimension.width.full,
+              {
+                height: '85%',
+              },
+            ]}>
+            <WebView
+              style={[rounded.large]}
+              source={{
+                uri: temporaryText,
+              }}
+            />
+          </View>
+          <CustomButton
+            text="Close Preview"
+            customTextSize={font.size[30]}
+            rounded="large"
+            verticalPadding="medium"
+            onPress={() => {
+              setIsWebviewModalOpen(false);
+            }}
+          />
+        </View>
+      </CustomModal>
       <View style={[flex.flexCol, gap.default]}>
-        <FormFieldHelper title={title} />
+        <FormFieldHelper title={title} description={description} type={type} />
         <View style={[flex.flexCol, gap.medium]}>
           {fields.length > 0 && (
             <View style={[flex.flexCol, gap.small]}>
@@ -105,61 +178,73 @@ const FieldArray = ({
         </View>
       </View>
       <SheetModal
+        snapPoints={[keyboardHeight > 0 ? '70%' : '50%']}
+        bottomInsetType="default"
+        fullHeight
+        enableDynamicSizing={false}
         open={isModalOpened}
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <HorizontalPadding paddingSize="large">
-          <VerticalPadding paddingSize="default">
-            <View style={[flex.flexCol, gap.default, padding.bottom.xlarge]}>
-              <View style={[flex.flexRow, justify.center]}>
-                <Text
-                  className="font-bold"
-                  style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                  {title}
-                </Text>
-              </View>
-              <View style={[flex.flexRow, justify.center]}>
-                <Controller
-                  control={control}
-                  name={`${parentName}.${updateIndex}.${childName}`}
-                  render={({field: {value, onChange}}) => (
-                    <View style={[flex.flexCol, gap.medium]}>
-                      <FormlessTextInput
-                        counter
-                        type={fieldType}
-                        max={maxFieldLength}
-                        defaultValue={`${value || ''}`}
-                        placeholder={placeholder ?? `Add ${parentName}`}
-                        focus={isModalOpened}
-                        description={helperText}
-                        onChangeText={updateText}
-                      />
-                      <CustomButton
-                        disabled={temporaryText.length === 0}
-                        text={updateIndex !== null ? 'Update' : 'Save'}
-                        onPress={() => {
-                          if (updateIndex !== null) {
-                            updateEntry(onChange);
-                          } else {
-                            addNewEntry();
-                          }
-                        }}
-                      />
-                    </View>
-                  )}
-                />
-              </View>
+        <BottomSheetModalWithTitle title={title || ''}>
+          <Controller
+            control={control}
+            {...props}
+            name={`${parentName}.${updateIndex}.${childName}`}
+            render={({
+              field: {value, onChange},
+              formState: {isValid, errors},
+            }) => (
               <View
                 style={[
-                  Platform.OS !== 'android' && {
-                    paddingBottom: keyboardHeight,
-                  },
-                ]}
-              />
-            </View>
-          </VerticalPadding>
-        </HorizontalPadding>
+                  flex.flex1,
+                  flex.flexCol,
+                  padding.top.large,
+                  gap.xlarge,
+                ]}>
+                <View style={[flex.flexCol, gap.small]}>
+                  {new RegExp('^(http|https)://[^ "]+$', 'i').test(
+                    temporaryText,
+                  ) && (
+                    <View style={[flex.flexRow, justify.end]}>
+                      <AnimatedPressable>
+                        <InternalLink
+                          text="Preview url"
+                          onPress={() => {
+                            setIsWebviewModalOpen(true);
+                          }}
+                        />
+                      </AnimatedPressable>
+                    </View>
+                  )}
+                  <FormlessCustomTextInput
+                    counter={maxFieldLength > 0}
+                    type={fieldType}
+                    max={maxFieldLength > 0 ? maxFieldLength : undefined}
+                    defaultValue={`${value || ''}`}
+                    {...props}
+                    forceLowercase={forceLowerCase}
+                    placeholder={placeholder ?? `Add ${parentName}`}
+                    description={helperText}
+                    onChange={updateText}
+                    onValidChange={setIsValidField}
+                  />
+                </View>
+                <CustomButton
+                  disabled={temporaryText.length === 0 || !isValidField}
+                  text={updateIndex !== null ? 'Update' : 'Save'}
+                  onPress={() => {
+                    if (updateIndex !== null) {
+                      updateEntry(onChange);
+                    } else {
+                      addNewEntry();
+                    }
+                  }}
+                />
+              </View>
+            )}
+          />
+        </BottomSheetModalWithTitle>
       </SheetModal>
     </>
   );

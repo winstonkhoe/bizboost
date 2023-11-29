@@ -73,13 +73,36 @@ export const formatDateToDayMonthYear = (date: Date): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
+export const formatDateToDayMonthYearHourMinute = (date: Date): string => {
+  const options = {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Jakarta',
+  } as const;
+  return `${date.toLocaleDateString('en-US', options)} WIB`;
+};
+
+export const formatDateToHourMinute = (date: Date): string => {
+  const options = {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Jakarta',
+  } as const;
+  return `${date.toLocaleTimeString('en-US', options)} WIB`;
+};
+
 export const formatDateToTime12Hrs = (date: Date): string => {
-  let hours = date.getHours();
-  let minutes = date.getMinutes();
-  let ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12; // the hour '0' should be '12'
-  return `${hours}:${`${minutes}`.padStart(2, '0')} ${ampm}`;
+  const options = {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Jakarta',
+  } as const;
+  return `${date.toLocaleTimeString('en-US', options)} WIB`;
 };
 
 export const getTimeAgo = (date: Date | number) => {

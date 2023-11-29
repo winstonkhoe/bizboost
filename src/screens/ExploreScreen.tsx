@@ -1,15 +1,22 @@
 import {
-  FlatList,
   Pressable,
   StatusBar,
   Text,
   View,
+  ViewToken,
   useWindowDimensions,
 } from 'react-native';
-import Video from 'react-native-video';
-import {useMemo, useState} from 'react';
+import {FlashList} from '@shopify/flash-list';
+import Video, {
+  OnBufferData,
+  OnVideoErrorData,
+  ReactVideoProps,
+  ReactVideoSource,
+  ResizeMode,
+} from 'react-native-video';
+import {memo, useCallback, useMemo, useState} from 'react';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
-import {flex, items, justify} from '../styles/Flex';
+import {flex, items} from '../styles/Flex';
 import {rounded} from '../styles/BorderRadius';
 import {dimension} from '../styles/Dimension';
 import FastImage from 'react-native-fast-image';
@@ -22,40 +29,65 @@ import {padding} from '../styles/Padding';
 import {useIsFocused, useNavigation} from '@react-navigation/core';
 import {useContent} from '../hooks/content';
 import {ContentView} from '../model/Content';
-import {LoadingSpinner} from '../components/atoms/LoadingSpinner';
 import {shuffle} from '../utils/array';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
+import {LoadingScreen} from './LoadingScreen';
+import {useAppFocus} from '../hooks/app';
 
 const ExploreScreen = () => {
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const {contents} = useContent();
   const shuffledContents = useMemo(() => shuffle(contents), [contents]);
+  const isAppFocused = useAppFocus();
   const isFocused = useIsFocused();
   const bottomTabHeight = useBottomTabBarHeight();
-  const windowDimension = useWindowDimensions();
+
+  const keyExtractor = useCallback(
+    (item: ContentView) => item.content.id!!,
+    [],
+  );
+
+  const viewabilityConfig = useMemo(() => {
+    return {
+      itemVisiblePercentThreshold: 90,
+    };
+  }, []);
+
+  const onViewableItemsChanged = useCallback(
+    (info: {viewableItems: ViewToken[]}) => {
+      if (info.viewableItems.length > 0) {
+        const index = info.viewableItems[0].index;
+        if (index) {
+          setActiveVideoIndex(index);
+        }
+      }
+    },
+    [],
+  );
+
+  if (!shuffledContents || shuffledContents.length === 0) {
+    return <LoadingScreen />;
+  }
 
   return (
-    <FlatList
+    <FlashList
+      estimatedItemSize={shuffledContents.length}
       data={shuffledContents}
-      pagingEnabled
-      showsVerticalScrollIndicator={false}
+      keyExtractor={keyExtractor}
       renderItem={({item, index}) => (
-        <ExploreItem
+        <ExploreItemMemo
           content={item}
           bottomTabHeight={bottomTabHeight}
-          active={isFocused && activeVideoIndex === index}
+          active={isAppFocused && isFocused && activeVideoIndex === index}
         />
       )}
-      onScroll={e => {
-        const index = Math.round(
-          e.nativeEvent.contentOffset.y /
-            (windowDimension.height - bottomTabHeight),
-        );
-        setActiveVideoIndex(index);
-      }}
+      extraData={[activeVideoIndex, isFocused, isAppFocused]}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={viewabilityConfig}
+      pagingEnabled
     />
   );
 };
@@ -71,10 +103,42 @@ export const ExploreItem = ({
   active,
   bottomTabHeight = 0,
 }: ExploreItemProps) => {
+  const [isBuffering, setIsBuffering] = useState<boolean>(() => {
+    return true;
+  });
+
   const navigation = useNavigation<NavigationStackProps>();
   const windowDimension = useWindowDimensions();
-  const [isBuffering, setIsBuffering] = useState<boolean>(true);
   const statusBarHeight = StatusBar.currentHeight || 0;
+
+  const handleBuffer = useCallback(
+    (buff: OnBufferData) => {
+      console.log(buff);
+      if (buff.isBuffering !== isBuffering) {
+        setIsBuffering(buff.isBuffering);
+      }
+    },
+    [isBuffering],
+  );
+
+  const handleLoadStart = useCallback(() => {
+    console.log('onload start');
+    if (!isBuffering) {
+      setIsBuffering(true);
+    }
+  }, [isBuffering]);
+
+  const handleLoad = useCallback(() => {
+    console.log('onload');
+    if (isBuffering) {
+      setIsBuffering(false);
+    }
+  }, [isBuffering]);
+
+  const handleError = useCallback((err: OnVideoErrorData) => {
+    console.log(err);
+  }, []);
+
   return (
     <View
       style={[
@@ -83,22 +147,7 @@ export const ExploreItem = ({
           height: windowDimension.height - bottomTabHeight - statusBarHeight,
         },
       ]}>
-      {isBuffering && contentView?.content?.thumbnail && (
-        <View
-          style={[
-            flex.flexRow,
-            justify.center,
-            items.center,
-            {
-              position: 'absolute',
-              zIndex: 50,
-            },
-            background(`${COLOR.black[0]}a3`),
-            dimension.full,
-          ]}>
-          <LoadingSpinner />
-        </View>
-      )}
+      {active && isBuffering && <LoadingScreen />}
       {isBuffering && contentView?.content?.thumbnail && (
         <View
           style={[
@@ -118,24 +167,18 @@ export const ExploreItem = ({
           />
         </View>
       )}
-      <Video
-        source={{
-          uri: contentView.content.uri,
-        }} // Can be a URL or a local file.
-        paused={!active}
-        repeat
-        resizeMode="cover"
-        onBuffer={buff => {
-          setIsBuffering(buff.isBuffering);
-        }}
-        onError={err => console.log('error', err)}
-        style={{
-          position: 'absolute',
-          zIndex: 5,
-          width: '100%',
-          height: '100%',
-        }}
-      />
+      {active && contentView?.content?.uri && (
+        <VideoMemo
+          active={active}
+          source={{
+            uri: contentView.content.uri,
+          }}
+          onBuffer={handleBuffer}
+          onLoad={handleLoad}
+          onLoadStart={handleLoadStart}
+          onError={handleError}
+        />
+      )}
       <View
         className="bottom-4 left-4 w-72"
         style={[
@@ -195,5 +238,64 @@ export const ExploreItem = ({
     </View>
   );
 };
+
+interface VideoMemoProps {
+  source: ReactVideoSource;
+  active: boolean;
+  onBuffer?: (buff: OnBufferData) => void;
+  onLoad?: ReactVideoProps['onLoad'];
+  onLoadStart?: ReactVideoProps['onLoadStart'];
+  onError?: (e: OnVideoErrorData) => void;
+}
+
+const VideoMemo = memo(
+  ({
+    source,
+    active,
+    onBuffer,
+    onLoad,
+    onLoadStart,
+    onError,
+  }: VideoMemoProps) => {
+    return (
+      <Video
+        source={source} // Can be a URL or a local file.
+        paused={!active}
+        repeat
+        resizeMode={ResizeMode.COVER}
+        onBuffer={onBuffer}
+        onLoad={onLoad}
+        onLoadStart={onLoadStart}
+        onError={onError}
+        style={[flex.flex1]}
+      />
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.source === nextProps.source &&
+      prevProps.active === nextProps.active
+    );
+  },
+);
+
+const ExploreItemMemo = memo(
+  ({content, active, bottomTabHeight}: ExploreItemProps) => {
+    return (
+      <ExploreItem
+        active={active}
+        content={content}
+        bottomTabHeight={bottomTabHeight}
+      />
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.active === nextProps.active &&
+      prevProps.content.content.id === nextProps.content.content.id &&
+      prevProps.bottomTabHeight === nextProps.bottomTabHeight
+    );
+  },
+);
 
 export default ExploreScreen;

@@ -36,8 +36,6 @@ export enum UserStatus {
   Suspended = 'Suspended',
 }
 
-export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
-
 export interface ContentCreatorPreference {
   contentRevisionLimit?: number;
   postingSchedules: number[];
@@ -156,6 +154,10 @@ export class User extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
+  static getCollectionReference() {
+    return firestore().collection(USER_COLLECTION);
+  }
+
   static getDocumentReference(
     documentId: string,
   ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
@@ -163,7 +165,7 @@ export class User extends BaseModel {
     firestore().settings({
       ignoreUndefinedProperties: true,
     });
-    return firestore().collection(USER_COLLECTION).doc(documentId);
+    return this.getCollectionReference().doc(documentId);
   }
 
   static async createUserWithEmailAndPassword(
@@ -290,6 +292,18 @@ export class User extends BaseModel {
       );
 
     return unsubscribe;
+  }
+
+  static async getByIds(documentIds: string[]): Promise<User[]> {
+    try {
+      const users = await this.getCollectionReference()
+        .where(firestore.FieldPath.documentId(), 'in', documentIds)
+        .get();
+      return users?.docs?.map(this.fromSnapshot) || [];
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
   }
 
   static async getById(documentId: string): Promise<User | null> {

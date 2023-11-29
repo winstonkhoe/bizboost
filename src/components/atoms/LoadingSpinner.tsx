@@ -9,10 +9,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {COLOR} from '../../styles/Color';
+import Svg, {Path, SvgProps} from 'react-native-svg';
 
 export const LoadingSpinner = () => {
   const rotation1 = useSharedValue(0);
-  const rotation2 = useSharedValue(0);
+  const rotation2 = useSharedValue(180);
 
   const animatedStyles1 = useAnimatedStyle(() => {
     return {
@@ -28,51 +29,55 @@ export const LoadingSpinner = () => {
 
   React.useEffect(() => {
     rotation1.value = withRepeat(
-      withTiming(360, {duration: 2000, easing: Easing.linear}),
+      withTiming(360, {duration: 1000, easing: Easing.linear}),
       -1,
     );
-    rotation2.value = withDelay(
-      1000,
-      withRepeat(withTiming(360, {duration: 1000, easing: Easing.linear}), -1),
+    rotation2.value = withRepeat(
+      withTiming(360 + 180, {duration: 500, easing: Easing.linear}),
+      -1,
     );
-  }, []);
+  }, [rotation1, rotation2]);
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.spinner, animatedStyles1]} />
-      <Animated.View style={[styles.innerSpinner, animatedStyles2]} />
+      <Animated.View style={[styles.spinner, animatedStyles1]}>
+        <HalfCircle stroke={COLOR.green[70]} />
+      </Animated.View>
+      <Animated.View style={[styles.innerSpinner, animatedStyles2]}>
+        <HalfCircle stroke={COLOR.green[50]} />
+      </Animated.View>
     </View>
   );
 };
 
+const HalfCircle = ({...props}: SvgProps) => (
+  <Svg height="100%" width="100%" viewBox="0 0 100 100">
+    <Path
+      d="M50 50 m -40, 0 a 40,40 0 1,0 80,0"
+      stroke={props.stroke}
+      strokeWidth="10"
+      fill="transparent"
+    />
+  </Svg>
+);
+
 const styles = StyleSheet.create({
   container: {
+    display: 'flex',
     position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 30,
-    height: 30,
+    width: 35,
+    height: 35,
   },
   spinner: {
     position: 'absolute',
     zIndex: 10,
     width: '100%',
     height: '100%',
-    borderRadius: 15,
-    borderWidth: 3,
-    borderColor: COLOR.green[70],
-    borderTopColor: 'transparent',
-    borderLeftColor: 'transparent',
   },
   innerSpinner: {
     position: 'absolute',
     zIndex: 5,
     width: '100%',
     height: '100%',
-    borderRadius: 15,
-    borderWidth: 3,
-    borderColor: COLOR.green[50],
-    borderTopColor: 'transparent',
-    borderLeftColor: 'transparent',
   },
 });

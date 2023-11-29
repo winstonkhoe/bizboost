@@ -8,7 +8,6 @@ import {
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {rounded} from '../styles/BorderRadius';
-import {Image} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
@@ -22,6 +21,7 @@ import {ProfileItem} from '../components/molecules/ProfileItem';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TikTokLogo from '../assets/vectors/tiktok.svg';
+import FastImage from 'react-native-fast-image';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -62,7 +62,7 @@ const UserDetailScreen = ({route}: Props) => {
                   <View
                     className="w-24 h-24 overflow-hidden"
                     style={[rounded.max]}>
-                    <Image
+                    <FastImage
                       className="w-full flex-1"
                       source={
                         user.contentCreator?.profilePicture

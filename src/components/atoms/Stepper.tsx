@@ -11,13 +11,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import React, {
-  Children,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import React, {Children, ReactNode, useEffect, useState} from 'react';
 import {textColor} from '../../styles/Text';
 import {dimension} from '../../styles/Dimension';
 import {padding} from '../../styles/Padding';
@@ -27,6 +21,7 @@ type StepperType = 'simple' | 'content';
 interface BaseStepperProps {
   currentPosition: number;
   maxPosition: number;
+  decreasePreviousVisibility?: boolean; //currently only support content stepper
   children?: ReactNode;
 }
 
@@ -34,11 +29,20 @@ interface StepperProps extends BaseStepperProps {
   type?: StepperType;
 }
 
-export const Stepper = ({type = 'simple', ...props}: StepperProps) => {
+export const Stepper = ({
+  type = 'simple',
+  decreasePreviousVisibility = true,
+  ...props
+}: StepperProps) => {
   return (
     <View>
       {type === 'simple' && <SimpleStepper {...props} />}
-      {type === 'content' && <ContentStepper {...props} />}
+      {type === 'content' && (
+        <ContentStepper
+          decreasePreviousVisibility={decreasePreviousVisibility}
+          {...props}
+        />
+      )}
     </View>
   );
 };
@@ -122,11 +126,11 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
     <View style={[flex.flexCol, gap.small]}>
       {children.map((child: ReactNode, index: number) => {
         return (
-          <View style={[flex.flexRow, gap.default]}>
+          <View key={index} style={[flex.flexRow, gap.default]}>
             <View style={[flex.flexCol, gap.small, items.center]}>
               <View
                 style={[
-                  dimension.square.xlarge2,
+                  dimension.square.large,
                   background(
                     props.currentPosition >= index
                       ? COLOR.green[50]
@@ -155,19 +159,32 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
               />
             </View>
             <View
+              className="relative"
               style={[
                 flex.flex1,
                 padding.bottom.large,
-                index < props.currentPosition && {
-                  opacity: 0.5,
-                },
-                index === props.currentPosition && {
-                  opacity: 1,
-                },
-                index > props.currentPosition && {
-                  opacity: 0.5,
-                },
+                // index < props.currentPosition && {
+                //   opacity: 0.5,
+                // },
+                // index === props.currentPosition && {
+                //   opacity: 1,
+                // },
+                // index > props.currentPosition && {
+                //   opacity: 0.5,
+                // },
               ]}>
+              {((props.decreasePreviousVisibility &&
+                index < props.currentPosition) ||
+                index > props.currentPosition) && (
+                <View
+                  className="absolute z-10 top-0 left-0"
+                  style={[
+                    dimension.full,
+                    background(COLOR.black[0], 0.5),
+                    rounded.medium,
+                  ]}
+                />
+              )}
               {child}
             </View>
           </View>

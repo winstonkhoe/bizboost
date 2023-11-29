@@ -2,10 +2,12 @@ import {useNavigation} from '@react-navigation/native';
 import {Category} from '../model/Category';
 import {Location} from '../model/Location';
 import {
+  AuthenticatedNavigation,
   GeneralNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {DeviceEventEmitter} from 'react-native';
+import {Campaign} from '../model/Campaign';
 
 interface LocationModalProps {
   preferredLocations: Location[];
@@ -54,6 +56,32 @@ export const openCategoryModal = ({
 
   const listener = DeviceEventEmitter.addListener(eventType, categories => {
     setFavoriteCategories(categories);
+  });
+
+  const closeListener = DeviceEventEmitter.addListener('close.category', () => {
+    listener.remove();
+    closeListener.remove();
+  });
+};
+
+interface CampaignModalProps {
+  selectedCampaign: Campaign;
+  setSelectedCampaign: (campaign: Campaign) => void;
+  navigation: NavigationStackProps;
+}
+export const openCampaignModal = ({
+  selectedCampaign,
+  setSelectedCampaign,
+  navigation,
+}: CampaignModalProps) => {
+  const eventType = 'callback.category';
+  navigation.navigate(AuthenticatedNavigation.CampaignModal, {
+    initialSelectedCampaign: selectedCampaign,
+    eventType: eventType,
+  });
+
+  const listener = DeviceEventEmitter.addListener(eventType, campaign => {
+    setSelectedCampaign(campaign);
   });
 
   const closeListener = DeviceEventEmitter.addListener('close.category', () => {

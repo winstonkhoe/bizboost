@@ -21,6 +21,7 @@ import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
 import CampaignTimelineScreen from '../screens/CampaignTimeline';
+import MakeOfferScreen from '../screens/MakeOfferScreen';
 import {useEffect, useState} from 'react';
 import SplashScreen from '../screens/SplashScreen';
 import MyTransactionsScreen from '../screens/profile/MyTransactionsScreen';
@@ -36,6 +37,10 @@ import EditPostingScheduleScreen from '../screens/profile/edit/EditPostingSchedu
 import EditPreferencesScreen from '../screens/profile/edit/EditPreferencesScreen';
 import EditPreferredLocationScreen from '../screens/profile/edit/EditPreferredLocationScreen';
 import EditSpecializedCategoryScreen from '../screens/profile/edit/EditSpecializedCategoryScreen';
+import {Campaign} from '../model/Campaign';
+import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
+import {TransactionStatus} from '../model/Transaction';
+import TransactionDetailScreen from '../screens/TransactionDetailScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -49,6 +54,7 @@ export enum AuthenticatedNavigation {
   Home = 'Home',
   BusinessPeopleDetail = 'Business People Detail',
   CampaignDetail = 'Campaign Detail',
+  TransactionDetail = 'Transaction Detail',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
   ChatDetail = 'Chat Screen',
@@ -70,6 +76,8 @@ export enum AuthenticatedNavigation {
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
   SpecificExploreModal = 'Specific Explore Modal',
+  MakeOffer = 'Make Offer',
+  CampaignModal = 'Campaign Modal',
 }
 
 export enum GeneralNavigation {
@@ -84,17 +92,26 @@ export type GuestStack = {
   [GuestNavigation.Authenticated]: undefined;
 };
 
+interface CampaignModalProps {
+  initialSelectedCampaign: Campaign;
+  eventType: string;
+}
+
 export type AuthenticatedStack = {
   [AuthenticatedNavigation.Main]: undefined;
   [AuthenticatedNavigation.Home]: undefined;
   [AuthenticatedNavigation.BusinessPeopleDetail]: {businessPeopleId: string};
   [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
+  [AuthenticatedNavigation.TransactionDetail]: {transactionId: string};
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
   [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
   [AuthenticatedNavigation.ChatList]: undefined;
-  [AuthenticatedNavigation.CampaignRegistrants]: {campaignId: string};
+  [AuthenticatedNavigation.CampaignRegistrants]: {
+    campaignId: string;
+    initialTransactionStatusFilter?: TransactionStatus;
+  };
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
@@ -110,6 +127,11 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
+  [AuthenticatedNavigation.MakeOffer]: {
+    contentCreatorId: string;
+    businessPeopleId: string;
+  };
+  [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
   [AuthenticatedNavigation.SpecificExploreModal]: {
     contentCreatorId: string;
     targetContentId?: string;
@@ -209,6 +231,10 @@ const StackNavigator = () => {
                   component={CampaignDetailScreen}
                 />
                 <Stack.Screen
+                  name={AuthenticatedNavigation.TransactionDetail}
+                  component={TransactionDetailScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.CampaignTimeline}
                   component={CampaignTimelineScreen}
                 />
@@ -236,6 +262,10 @@ const StackNavigator = () => {
                   cardOverlayEnabled: true,
                   ...TransitionPresets.ModalSlideFromBottomIOS,
                 }}>
+                <Stack.Screen
+                  name={AuthenticatedNavigation.MakeOffer}
+                  component={MakeOfferScreen}
+                />
                 <Stack.Screen
                   name={AuthenticatedNavigation.ChatDetail}
                   component={ChatScreen}
@@ -321,6 +351,10 @@ const StackNavigator = () => {
               <Stack.Screen
                 name={GeneralNavigation.CategoryModal}
                 component={ModalCategoryScreen}
+              />
+              <Stack.Screen
+                name={AuthenticatedNavigation.CampaignModal}
+                component={ModalCampaignScreen}
               />
             </Stack.Group>
           </Stack.Group>
