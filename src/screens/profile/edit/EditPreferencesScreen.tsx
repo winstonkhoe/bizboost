@@ -23,7 +23,7 @@ import {AddIcon} from '../../../components/atoms/Icon';
 import {CustomButton} from '../../../components/atoms/Button';
 import {User} from '../../../model/User';
 import {SheetModal} from '../../../containers/SheetModal';
-import {FormlessTextInput} from '../../../components/atoms/Input';
+import {FormlessCustomTextInput} from '../../../components/atoms/Input';
 import {useKeyboard} from '../../../hooks/keyboard';
 
 type FormData = {
@@ -215,14 +215,14 @@ const EditPreferencesScreen = () => {
                 name={`preferences.${updatePreferenceIndex}.value`}
                 render={({field: {value, onChange}}) => (
                   <View style={[flex.flexCol, gap.medium]}>
-                    <FormlessTextInput
+                    <FormlessCustomTextInput
                       counter
                       max={30}
                       defaultValue={value}
                       placeholder="Don't accept cigarette campaigns"
                       focus={isPreferencesModalOpened}
                       description="Write things that you want to let business people know about you"
-                      onChangeText={setTemporaryPreference}
+                      onChange={setTemporaryPreference}
                     />
                     <CustomButton
                       text="Update"
@@ -233,13 +233,13 @@ const EditPreferencesScreen = () => {
               />
             ) : (
               <View style={[flex.flexCol, gap.medium]}>
-                <FormlessTextInput
+                <FormlessCustomTextInput
                   counter
                   max={30}
                   placeholder="Don't accept cigarette campaigns"
                   focus={isPreferencesModalOpened}
                   description="Write things that you want to let business people know about you"
-                  onChangeText={setTemporaryPreference}
+                  onChange={setTemporaryPreference}
                 />
                 <CustomButton
                   text="Save"
