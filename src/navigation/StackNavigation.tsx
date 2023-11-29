@@ -24,7 +24,19 @@ import CampaignTimelineScreen from '../screens/CampaignTimeline';
 import MakeOfferScreen from '../screens/MakeOfferScreen';
 import {useEffect, useState} from 'react';
 import SplashScreen from '../screens/SplashScreen';
+import MyTransactionsScreen from '../screens/profile/MyTransactionsScreen';
+import MyCampaignsScreen from '../screens/profile/MyCampaignsScreen';
+import AboutMeScreen from '../screens/profile/AboutMeScreen';
+import PayContentCreatorScreen from '../screens/profile/PayContentCreatorScreen';
+import UploadVideoScreen from '../screens/profile/UploadVideoScreen';
+import WithdrawMoneyScreen from '../screens/profile/WithdrawMoneyScreen';
 import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
+import ChangePasswordScreen from '../screens/profile/edit/ChangePasswordScreen';
+import EditMaxContentRevisionScreen from '../screens/profile/edit/EditMaxContentRevisionScreen';
+import EditPostingScheduleScreen from '../screens/profile/edit/EditPostingScheduleScreen';
+import EditPreferencesScreen from '../screens/profile/edit/EditPreferencesScreen';
+import EditPreferredLocationScreen from '../screens/profile/edit/EditPreferredLocationScreen';
+import EditSpecializedCategoryScreen from '../screens/profile/edit/EditSpecializedCategoryScreen';
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
@@ -51,6 +63,18 @@ export enum AuthenticatedNavigation {
   CampaignTimeline = 'Campaign Timeline',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
+  MyTransactions = 'My Transactions',
+  MyCampaigns = 'My Campaigns',
+  AboutMe = 'About Me',
+  ChangePassword = 'Change Password',
+  EditMaxContentRevision = 'Edit Max Content Revision',
+  EditPostingSchedule = 'Edit Posting Schedule',
+  EditPreferences = 'Edit Preferences',
+  EditPreferredLocation = 'Edit Preferred Location',
+  EditSpecializedCategory = 'Edit Specialized Category',
+  PayContentCreator = 'Pay Content Creator',
+  UploadVideo = 'Upload Video',
+  WithdrawMoney = 'Withdraw Money',
   SpecificExploreModal = 'Specific Explore Modal',
   MakeOffer = 'Make Offer',
   CampaignModal = 'Campaign Modal',
@@ -91,6 +115,18 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
+  [AuthenticatedNavigation.MyTransactions]: undefined;
+  [AuthenticatedNavigation.MyCampaigns]: undefined;
+  [AuthenticatedNavigation.AboutMe]: undefined;
+  [AuthenticatedNavigation.ChangePassword]: undefined;
+  [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
+  [AuthenticatedNavigation.EditPostingSchedule]: undefined;
+  [AuthenticatedNavigation.EditPreferences]: undefined;
+  [AuthenticatedNavigation.EditPreferredLocation]: undefined;
+  [AuthenticatedNavigation.EditSpecializedCategory]: undefined;
+  [AuthenticatedNavigation.PayContentCreator]: undefined;
+  [AuthenticatedNavigation.UploadVideo]: undefined;
+  [AuthenticatedNavigation.WithdrawMoney]: undefined;
   [AuthenticatedNavigation.MakeOffer]: {
     contentCreatorId: string;
     businessPeopleId: string;
@@ -214,6 +250,10 @@ const StackNavigator = () => {
                   name={AuthenticatedNavigation.CreateCampaign}
                   component={CreateCampaignScreen}
                 />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.AboutMe}
+                  component={AboutMeScreen}
+                />
               </Stack.Group>
 
               <Stack.Group
@@ -237,6 +277,51 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.CampaignRegistrants}
                   component={CampaignRegistrantsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.MyTransactions}
+                  component={MyTransactionsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.MyCampaigns}
+                  component={MyCampaignsScreen}
+                />
+
+                <Stack.Screen
+                  name={AuthenticatedNavigation.PayContentCreator}
+                  component={PayContentCreatorScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.UploadVideo}
+                  component={UploadVideoScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.WithdrawMoney}
+                  component={WithdrawMoneyScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.ChangePassword}
+                  component={ChangePasswordScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditMaxContentRevision}
+                  component={EditMaxContentRevisionScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditPostingSchedule}
+                  component={EditPostingScheduleScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditPreferences}
+                  component={EditPreferencesScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditPreferredLocation}
+                  component={EditPreferredLocationScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditSpecializedCategory}
+                  component={EditSpecializedCategoryScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}

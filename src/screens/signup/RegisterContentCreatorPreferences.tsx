@@ -556,7 +556,7 @@ interface PostingScheduleDatePickerProps {
   onDateChange: (date: Date) => void;
 }
 
-const PostingScheduleDatePicker = ({
+export const PostingScheduleDatePicker = ({
   date,
   onDateChange,
 }: PostingScheduleDatePickerProps) => {

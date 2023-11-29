@@ -1,3 +1,4 @@
+import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {Text, View} from 'react-native';
 import {
   AuthenticatedNavigation,
@@ -10,8 +11,8 @@ import RegisteredUserListCard from '../components/molecules/RegisteredUserListCa
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {UserRole} from '../model/User';
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {padding} from '../styles/Padding';
+import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../styles/Size';
 import {ScrollView} from 'react-native-gesture-handler';

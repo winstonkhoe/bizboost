@@ -4,6 +4,8 @@ import ChatListScreen from '../screens/ChatListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
+import CampaignLogoFilled from '../assets/vectors/campaign-filled.svg';
+import CampaignLogoOutline from '../assets/vectors/campaign-outline.svg';
 import ChatLogoFilled from '../assets/vectors/chat-filled.svg';
 import ChatLogoOutline from '../assets/vectors/chat-outline.svg';
 import ListLogoFilled from '../assets/vectors/list-box.svg';
@@ -83,6 +85,17 @@ export const TabNavigator = () => {
     [],
   );
 
+  // TODO: kayaknya kureng icon campaignnya
+  const campaignIcon = useCallback(
+    (focused: boolean) =>
+      focused ? (
+        <CampaignLogoFilled width={30} fill={'black'} />
+      ) : (
+        <CampaignLogoOutline width={30} fill={'black'} />
+      ),
+    [],
+  );
+
   const chatIcon = useCallback(
     (focused: boolean) =>
       focused ? (
@@ -147,6 +160,9 @@ export const TabNavigator = () => {
               tabPress: () => {
                 resetSearchState();
               },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => campaignIcon(focused),
             }}
           />
           <Tab.Screen
