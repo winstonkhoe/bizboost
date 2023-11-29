@@ -3,7 +3,12 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
 import {SocialPlatform, User, UserRole} from './User';
-import {Campaign, CampaignStep, campaignIndexMap} from './Campaign';
+import {
+  Campaign,
+  CampaignPlatform,
+  CampaignStep,
+  campaignIndexMap,
+} from './Campaign';
 import {StatusType} from '../components/atoms/StatusTag';
 import {isEqualDate} from '../utils/date';
 
@@ -173,6 +178,7 @@ export class Transaction extends BaseModel {
   updatedAt?: number;
   lastCheckedAt?: number;
   contentRevisionLimit?: number;
+  platformTasks?: CampaignPlatform[];
 
   constructor({
     contentCreatorId,
@@ -186,6 +192,7 @@ export class Transaction extends BaseModel {
     updatedAt,
     lastCheckedAt,
     contentRevisionLimit,
+    platformTasks,
   }: Partial<Transaction>) {
     super();
     // this.id = id;
@@ -203,6 +210,7 @@ export class Transaction extends BaseModel {
     this.updatedAt = updatedAt;
     this.lastCheckedAt = lastCheckedAt;
     this.contentRevisionLimit = contentRevisionLimit;
+    this.platformTasks = platformTasks;
   }
 
   private static fromSnapshot(
@@ -225,6 +233,7 @@ export class Transaction extends BaseModel {
         updatedAt: data.updatedAt,
         lastCheckedAt: data.lastCheckedAt,
         contentRevisionLimit: data.contentRevisionLimit,
+        platformTasks: data.platformTasks,
       });
       transaction.updateTermination();
       return transaction;
@@ -246,14 +255,6 @@ export class Transaction extends BaseModel {
       ignoreUndefinedProperties: true,
     });
     return this.getCampaignCollections().doc(documentId);
-  }
-
-  async register() {
-    return await this.insert(TransactionStatus.registrationPending);
-  }
-
-  async offer() {
-    return await this.insert(TransactionStatus.offering);
   }
 
   async insert(status: TransactionStatus) {
@@ -508,6 +509,40 @@ export class Transaction extends BaseModel {
       console.log('updateTermination err: ', error);
     }
     return false;
+  }
+
+  async register() {
+    return await this.insert(TransactionStatus.registrationPending);
+  }
+
+  async approveRegistration(): Promise<boolean> {
+    const {campaignId, contentCreatorId} = this;
+    if (!campaignId) {
+      throw Error('Missing campaign id');
+    }
+    if (!contentCreatorId) {
+      throw Error('Missing content creator id');
+    }
+    try {
+      const contentCreator = await User.getById(contentCreatorId);
+      const campaign = await Campaign.getById(campaignId);
+      if (contentCreator && campaign) {
+        await this.updateStatus(TransactionStatus.registrationApproved, {
+          contentRevisionLimit:
+            contentCreator.contentCreator?.contentRevisionLimit,
+          platformTasks: campaign.platforms,
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.log('approveRegistration err', error);
+    }
+    return false;
+  }
+
+  async offer() {
+    return await this.insert(TransactionStatus.offering);
   }
 
   getLatestBrainstorm(): Brainstorm | null {

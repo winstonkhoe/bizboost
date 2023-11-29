@@ -87,7 +87,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         transaction.updateStatus(TransactionStatus.registrationRejected);
       }}
       handleClickAccept={() => {
-        transaction.updateStatus(TransactionStatus.registrationApproved);
+        transaction.approveRegistration();
       }}
     />
   );
