@@ -15,6 +15,7 @@ import React, {Children, ReactNode, useEffect, useState} from 'react';
 import {textColor} from '../../styles/Text';
 import {dimension} from '../../styles/Dimension';
 import {padding} from '../../styles/Padding';
+import {border} from '../../styles/Border';
 
 interface BaseStepperProps {
   currentPosition: number;
@@ -102,30 +103,61 @@ const SimpleStepperBar = ({barIndex, currentPosition}: SimpleStepperBar) => {
   );
 };
 
+export enum StepperState {
+  success = 'success',
+  danger = 'danger',
+  warning = 'warning',
+  inProgress = 'inProgress',
+  upcoming = 'upcoming',
+  terminated = 'terminated',
+}
+
 interface ContentStepperProps extends BaseStepperProps {
   decreasePreviousVisibility?: boolean; //currently only support content stepper
+  stepperStates?: StepperState[];
   children?: ReactNode;
 }
 
 export const ContentStepper = ({
   decreasePreviousVisibility = true,
+  stepperStates = [],
   ...props
 }: ContentStepperProps) => {
   const children = Children.toArray(props.children);
   return (
     <View style={[flex.flexCol, gap.small]}>
       {children.map((child: ReactNode, index: number) => {
+        const isUpcoming =
+          !stepperStates[index] ||
+          StepperState.upcoming === stepperStates[index];
+        const isSuccess =
+          !isUpcoming && StepperState.success === stepperStates[index];
+        const isDanger =
+          !isUpcoming && StepperState.danger === stepperStates[index];
+        const isWarning =
+          !isUpcoming && StepperState.warning === stepperStates[index];
+        const isInProgress =
+          !isUpcoming && StepperState.inProgress === stepperStates[index];
+        const isTerminated =
+          !isUpcoming && StepperState.terminated === stepperStates[index];
         return (
           <View key={index} style={[flex.flexRow, gap.default]}>
             <View style={[flex.flexCol, gap.small, items.center]}>
               <View
                 style={[
                   dimension.square.large,
-                  background(
-                    props.currentPosition >= index
-                      ? COLOR.green[50]
-                      : COLOR.black[20],
-                  ),
+                  isUpcoming && background(COLOR.black[20]),
+                  isSuccess && background(COLOR.green[50]),
+                  isDanger && background(COLOR.red[50]),
+                  isWarning && background(COLOR.yellow[30]),
+                  isInProgress && [
+                    border({
+                      borderWidth: 2,
+                      color: COLOR.green[50],
+                    }),
+                    background(COLOR.background.neutral.default),
+                  ],
+                  isTerminated && background(COLOR.black[70]),
                   index < props.currentPosition && {
                     opacity: 0.5,
                   },
@@ -135,11 +167,9 @@ export const ContentStepper = ({
               <View
                 style={[
                   flex.flex1,
-                  background(
-                    props.currentPosition - 1 >= index
-                      ? COLOR.green[50]
-                      : COLOR.black[20],
-                  ),
+                  index < props.currentPosition
+                    ? [background(COLOR.green[50])]
+                    : [background(COLOR.black[20])],
                   index < props.currentPosition && {
                     opacity: 0.5,
                   },
