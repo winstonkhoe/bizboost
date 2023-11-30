@@ -278,7 +278,6 @@ const CampaignDetailScreen = ({route}: Props) => {
             )}
             <View>
               <CustomButton
-                verticalPadding="small"
                 type="secondary"
                 text={
                   isMoreInfoVisible
@@ -314,7 +313,7 @@ const CampaignDetailScreen = ({route}: Props) => {
             />
             {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
             {isCampaignOwner && (
-              <View className="py-2">
+              <View className="">
                 <CustomButton
                   customBackgroundColor={COLOR.background.neutral}
                   customTextColor={COLOR.text.neutral}
@@ -332,6 +331,22 @@ const CampaignDetailScreen = ({route}: Props) => {
                 ))} */}
               </View>
             )}
+
+            <View className="">
+              <CustomButton
+                customBackgroundColor={COLOR.background.danger}
+                customTextColor={COLOR.text.neutral}
+                type="secondary"
+                text="Complete Payment"
+                rounded="default"
+                onPress={() =>
+                  navigation.navigate(
+                    AuthenticatedNavigation.CampaignRegistrants,
+                    {campaignId: campaignId},
+                  )
+                }
+              />
+            </View>
           </View>
         </View>
       </PageWithBackButton>
