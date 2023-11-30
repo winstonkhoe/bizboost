@@ -133,7 +133,7 @@ export const PlatformIcon = ({platform, ...props}: PlatformIconProps) => {
   }
 };
 
-const ChevronRight = ({
+export const ChevronRight = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
 }: IconProps) => {
@@ -155,4 +155,28 @@ const ChevronRight = ({
   );
 };
 
-export default ChevronRight;
+interface IconArrowProps extends IconProps {
+  type?: 'default' | 'singleSided';
+}
+
+export const ArrowIcon = ({
+  type = 'default',
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconArrowProps) => {
+  const dimension = size[sizeType];
+  return (
+    <Svg
+      height={dimension}
+      width={dimension}
+      viewBox={`0 0 ${dimension * 2} ${dimension * 2}`}>
+      <Path
+        d={`M0 12L22 12M15 5l7 7-${type === 'default' ? 7 : 99999} 7`}
+        stroke={color}
+        fill="transparent"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+};

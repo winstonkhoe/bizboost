@@ -5,15 +5,12 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {Pressable, StyleSheet, Text, useWindowDimensions} from 'react-native';
+import {StyleSheet, Text, useWindowDimensions} from 'react-native';
 import {View} from 'react-native';
-import TagCard from '../components/atoms/TagCard';
 import {Campaign} from '../model/Campaign';
 import {
-  formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
   formatDateToHourMinute,
-  formatDateToTime12Hrs,
 } from '../utils/date';
 import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
@@ -24,39 +21,35 @@ import {
 } from '../model/Transaction';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 
-import People from '../assets/vectors/people.svg';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
-import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
-import {SocialData, SocialPlatform, User} from '../model/User';
-import {flex, items, justify, self} from '../styles/Flex';
-import {horizontalPadding, padding, verticalPadding} from '../styles/Padding';
+import {SocialPlatform, User} from '../model/User';
+import {flex, items, justify} from '../styles/Flex';
+import {padding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
 import {border} from '../styles/Border';
 import {textColor} from '../styles/Text';
-import {formatToRupiah} from '../utils/currency';
 import {LoadingScreen} from './LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import {font} from '../styles/Font';
 import {background} from '../styles/BackgroundColor';
 import {dimension} from '../styles/Dimension';
-import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../styles/Size';
 import StatusTag, {StatusType} from '../components/atoms/StatusTag';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Label} from '../components/atoms/Label';
 import {PlatformData} from './signup/RegisterSocialPlatform';
-import ChevronRight, {PlatformIcon} from '../components/atoms/Icon';
+import {ChevronRight, PlatformIcon} from '../components/atoms/Icon';
 import {formatNumberWithThousandSeparator} from '../utils/number';
-import {DefaultDatePickerPlaceholder} from '../components/atoms/DatePicker';
 import {CustomModal} from '../components/atoms/CustomModal';
 import {SheetModal} from '../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
 import {FormFieldHelper} from '../components/atoms/FormLabel';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {FormlessCustomTextInput} from '../components/atoms/Input';
+
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.TransactionDetail

@@ -1,5 +1,11 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -7,7 +13,12 @@ import {
 } from '../navigation/StackNavigation';
 import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
 
-import {Campaign, CampaignStep, campaignIndexMap} from '../model/Campaign';
+import {
+  Campaign,
+  CampaignStep,
+  CampaignTimeline,
+  campaignIndexMap,
+} from '../model/Campaign';
 
 import {useUser} from '../hooks/user';
 
@@ -28,6 +39,8 @@ import {textColor} from '../styles/Text';
 import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
+  formatDateToHourMinute,
+  formatTimeDifferenceInDayHourMinute,
 } from '../utils/date';
 import StatusTag, {StatusType} from '../components/atoms/StatusTag';
 import {
@@ -51,7 +64,6 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {dimension} from '../styles/Dimension';
 import {CustomModal} from '../components/atoms/CustomModal';
 import FastImage from 'react-native-fast-image';
-import ChevronRight from '../assets/vectors/chevron-right.svg';
 import {SocialPlatform, User} from '../model/User';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import {formatNumberWithThousandSeparator} from '../utils/number';
@@ -63,6 +75,7 @@ import {InternalLink} from '../components/atoms/Link';
 import FieldArray from '../components/organisms/FieldArray';
 import {FormProvider, useForm} from 'react-hook-form';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
+import {ArrowIcon, ChevronRight} from '../components/atoms/Icon';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -70,10 +83,7 @@ type Props = NativeStackScreenProps<
 >;
 
 type CampaignTimelineMap = {
-  [key in CampaignStep]?: {
-    start: number;
-    end: number;
-  };
+  [key in CampaignStep]?: CampaignTimeline;
 };
 
 type SubmissionFormData = {
@@ -177,6 +187,19 @@ const CampaignTimelineScreen = ({route}: Props) => {
     [currentActiveTimeline, campaign],
   );
 
+  const campaignTimelineMap = useMemo(
+    () =>
+      campaign?.timeline?.reduce((accumulated, currentTimeline) => {
+        accumulated[currentTimeline.step] = {
+          step: currentTimeline.step,
+          start: currentTimeline.start,
+          end: currentTimeline.end,
+        };
+        return accumulated;
+      }, {} as CampaignTimelineMap),
+    [campaign],
+  );
+
   const stepperStates = useMemo(() => {
     if (campaign && transaction?.status) {
       if (isCampaignOwner) {
@@ -208,9 +231,14 @@ const CampaignTimelineScreen = ({route}: Props) => {
             : transactionStatusIndex;
         let steps = [
           ...Array(
-            calculatedTransactionStatusIndex <= 0
-              ? calculatedTransactionStatusIndex + 1
-              : calculatedTransactionStatusIndex,
+            (calculatedTransactionStatusIndex <= 0
+              ? 0
+              : calculatedTransactionStatusIndex) +
+              (currentActiveTimeline &&
+              calculatedTransactionStatusIndex <=
+                campaignIndexMap[currentActiveTimeline?.step]
+                ? 1
+                : 0),
           ),
         ].map(() => StepperState.success);
         console.log(
@@ -235,18 +263,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
     return [];
   }, [campaign, transaction, currentActiveTimeline, isCampaignOwner]);
-
-  const campaignTimelineMap = useMemo(
-    () =>
-      campaign?.timeline?.reduce((accumulated, currentTimeline) => {
-        accumulated[currentTimeline.step] = {
-          start: currentTimeline.start,
-          end: currentTimeline.end,
-        };
-        return accumulated;
-      }, {} as CampaignTimelineMap),
-    [campaign],
-  );
 
   const registerCampaign = () => {
     if (uid && campaign?.userId) {
@@ -422,36 +438,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           TransactionStatus.notRegistered) &&
                         styles.headerBorder,
                     ]}>
-                    <View style={[flex.flexCol]}>
-                      <Text
-                        className="font-semibold"
-                        style={[
-                          font.size[40],
-                          textColor(COLOR.text.neutral.high),
-                        ]}
-                        numberOfLines={1}>
-                        {CampaignStep.Registration}
-                      </Text>
-                      <Text
-                        style={[
-                          font.size[20],
-                          textColor(COLOR.text.neutral.high),
-                        ]}
-                        numberOfLines={1}>
-                        {`${formatDateToDayMonthYear(
-                          new Date(
-                            campaignTimelineMap[
-                              CampaignStep.Registration
-                            ].start,
-                          ),
-                        )} - ${formatDateToDayMonthYear(
-                          new Date(
-                            campaignTimelineMap[CampaignStep.Registration].end,
-                          ),
-                        )}`}
-                      </Text>
-                    </View>
-                    <View style={[flex.flex1, flex.flexRow, justify.center]}>
+                    <StepperLabel
+                      timeline={campaignTimelineMap[CampaignStep.Registration]}>
                       {transaction?.status &&
                       transactionStatusCampaignStepMap[transaction?.status] ===
                         CampaignStep.Registration ? (
@@ -486,7 +474,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           )
                         )
                       ) : null}
-                    </View>
+                    </StepperLabel>
                   </View>
                   {isCampaignOwner ? (
                     <AnimatedPressable
@@ -548,7 +536,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         </View>
                       </View>
                       <View style={[flex.flexRow, items.center]}>
-                        <ChevronRight fill={COLOR.black[20]} />
+                        <ChevronRight color={COLOR.black[20]} />
                       </View>
                     </AnimatedPressable>
                   ) : (
@@ -577,28 +565,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       padding.default,
                       styles.headerBorder,
                     ]}>
-                    <Text
-                      className="font-semibold"
-                      style={[font.size[40]]}
-                      numberOfLines={1}>
-                      {CampaignStep.Brainstorming}
-                    </Text>
-                    <Text
-                      style={[
-                        font.size[20],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      {`${formatDateToDayMonthYear(
-                        new Date(
-                          campaignTimelineMap[CampaignStep.Brainstorming].start,
-                        ),
-                      )} - ${formatDateToDayMonthYear(
-                        new Date(
-                          campaignTimelineMap[CampaignStep.Brainstorming].end,
-                        ),
-                      )}`}
-                    </Text>
+                    <StepperLabel
+                      timeline={campaignTimelineMap[CampaignStep.Brainstorming]}
+                    />
                   </View>
                   <View style={[flex.flexCol, padding.default, gap.medium]}>
                     <View style={[flex.flexCol, gap.default]}>
@@ -862,35 +831,11 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       padding.default,
                       styles.headerBorder,
                     ]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        font.size[40],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      {CampaignStep.ContentSubmission}
-                    </Text>
-                    <Text
-                      style={[
-                        font.size[20],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      {`${formatDateToDayMonthYear(
-                        new Date(
-                          campaignTimelineMap[
-                            CampaignStep.ContentSubmission
-                          ].start,
-                        ),
-                      )} - ${formatDateToDayMonthYear(
-                        new Date(
-                          campaignTimelineMap[
-                            CampaignStep.ContentSubmission
-                          ].end,
-                        ),
-                      )}`}
-                    </Text>
+                    <StepperLabel
+                      timeline={
+                        campaignTimelineMap[CampaignStep.ContentSubmission]
+                      }
+                    />
                   </View>
                   {isCampaignOwner ? <></> : <></>}
                   <View style={[flex.flexCol, gap.small, padding.default]}>
@@ -924,35 +869,13 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       padding.default,
                       styles.headerBorder,
                     ]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        font.size[40],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      {CampaignStep.EngagementResultSubmission}
-                    </Text>
-                    <Text
-                      style={[
-                        font.size[20],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      {`${formatDateToDayMonthYear(
-                        new Date(
-                          campaignTimelineMap[
-                            CampaignStep.EngagementResultSubmission
-                          ].start,
-                        ),
-                      )} - ${formatDateToDayMonthYear(
-                        new Date(
-                          campaignTimelineMap[
-                            CampaignStep.EngagementResultSubmission
-                          ].end,
-                        ),
-                      )}`}
-                    </Text>
+                    <StepperLabel
+                      timeline={
+                        campaignTimelineMap[
+                          CampaignStep.EngagementResultSubmission
+                        ]
+                      }
+                    />
                   </View>
                   <View
                     style={[
@@ -1008,7 +931,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
           </View>
           <View style={[flex.flexRow, gap.large, justify.center]}>
             <CustomButton
-              text="Cancel"
+              text="Edit"
               type="tertiary"
               customTextColor={{
                 default: COLOR.text.danger.default,
@@ -1117,44 +1040,46 @@ const CampaignTimelineScreen = ({route}: Props) => {
             <View style={[flex.grow, flex.flexCol, gap.medium]}>
               <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
                 <View style={[flex.flex1, flex.flexCol, gap.xlarge2]}>
-                  {campaign.platforms?.map((platform, platformIndex) => (
-                    <View
-                      key={platform.name}
-                      style={[flex.flexCol, gap.medium]}>
-                      {platform.tasks.map((task, taskIndex) => (
-                        <View
-                          key={taskIndex}
-                          style={[flex.flexRow, gap.medium, items.center]}>
-                          <FieldArray
-                            title={`[${platform.name}] - ${task.quantity} x ${task.name}`}
-                            description={task.description}
-                            placeholder="Add url"
-                            maxFieldLength={0}
-                            helperText={`Make sure url is publicly accessible.\nEx. https://drive.google.com/file/d/1Go0RYsRgia9ZoMy10O8XBrfnIWMCopHs/view?usp=sharing`}
-                            control={control}
-                            fieldType="textarea"
-                            type="required"
-                            rules={{
-                              required: 'URL is required',
-                              pattern: {
-                                value: /^(http|https):\/\/[^ "]+$/i,
-                                message: 'Invalid URL',
-                              },
-                            }}
-                            parentName={`submission.${platformIndex}.tasks.${taskIndex}`}
-                            childName="value"
-                          />
-                        </View>
-                      ))}
-                    </View>
-                  ))}
+                  {transaction?.platformTasks?.map(
+                    (platform, platformIndex) => (
+                      <View
+                        key={platform.name}
+                        style={[flex.flexCol, gap.medium]}>
+                        {platform.tasks.map((task, taskIndex) => (
+                          <View
+                            key={taskIndex}
+                            style={[flex.flexRow, gap.medium, items.center]}>
+                            <FieldArray
+                              title={`[${platform.name}] - ${task.quantity} x ${task.name}`}
+                              description={task.description}
+                              placeholder="Add url"
+                              maxFieldLength={0}
+                              helperText={`Make sure url is publicly accessible.\nEx. https://drive.google.com/file/d/1Go0RYsRgia9ZoMy10O8XBrfnIWMCopHs/view?usp=sharing`}
+                              control={control}
+                              fieldType="textarea"
+                              type="required"
+                              rules={{
+                                required: 'URL is required',
+                                pattern: {
+                                  value: /^(http|https):\/\/[^ "]+$/i,
+                                  message: 'Invalid URL',
+                                },
+                              }}
+                              parentName={`submission.${platformIndex}.tasks.${taskIndex}`}
+                              childName="value"
+                            />
+                          </View>
+                        ))}
+                      </View>
+                    ),
+                  )}
                 </View>
               </BottomSheetScrollView>
               <CustomButton
                 text="Submit"
                 disabled={
-                  campaign?.platforms &&
-                  campaign.platforms.filter(
+                  transaction?.platformTasks &&
+                  transaction.platformTasks.filter(
                     (platform, platformIndex) =>
                       platform.tasks?.filter(
                         (task, taskIndex) =>
@@ -1173,6 +1098,75 @@ const CampaignTimelineScreen = ({route}: Props) => {
         </BottomSheetModalWithTitle>
       </SheetModal>
     </>
+  );
+};
+
+interface StepperLabelProps {
+  timeline: CampaignTimeline;
+  children?: ReactNode;
+}
+
+const StepperLabel = ({timeline, children}: StepperLabelProps) => {
+  return (
+    <View style={[flex.flex1, flex.flexCol, gap.medium]}>
+      <View style={[flex.flexRow, justify.between]}>
+        <Text
+          className="font-semibold"
+          style={[font.size[40], textColor(COLOR.text.neutral.high)]}
+          numberOfLines={1}>
+          {timeline.step}
+        </Text>
+        {children}
+      </View>
+      <View style={[flex.flexRow, gap.medium, justify.between]}>
+        <View style={[flex.flexCol]}>
+          <Text
+            style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+            numberOfLines={1}>
+            {formatDateToDayMonthYear(new Date(timeline.start))}
+          </Text>
+          <Text
+            className="font-semibold"
+            style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+            numberOfLines={1}>
+            {formatDateToHourMinute(new Date(timeline.start))}
+          </Text>
+        </View>
+        <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
+          <View style={[flex.flexRow, justify.center]}>
+            <Text
+              className="text-center font-medium"
+              style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+              {formatTimeDifferenceInDayHourMinute(
+                new Date(timeline.start),
+                new Date(timeline.end),
+              )}
+            </Text>
+          </View>
+          <View
+            style={[
+              {
+                height: 1.5,
+              },
+              background(COLOR.black[30]),
+            ]}
+          />
+        </View>
+        <View style={[flex.flexCol, items.end]}>
+          <Text
+            style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+            numberOfLines={1}>
+            {formatDateToDayMonthYear(new Date(timeline.end))}
+          </Text>
+          <Text
+            className="font-semibold"
+            style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+            numberOfLines={1}>
+            {formatDateToHourMinute(new Date(timeline.end))}
+          </Text>
+        </View>
+      </View>
+    </View>
   );
 };
 
