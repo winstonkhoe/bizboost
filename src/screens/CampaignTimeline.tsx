@@ -1,11 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {
-  EffectCallback,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -13,7 +7,7 @@ import {
 } from '../navigation/StackNavigation';
 import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
 
-import {Campaign, CampaignStep} from '../model/Campaign';
+import {Campaign, CampaignStep, campaignIndexMap} from '../model/Campaign';
 
 import {useUser} from '../hooks/user';
 
@@ -21,7 +15,7 @@ import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {Link, useNavigation} from '@react-navigation/native';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {Stepper} from '../components/atoms/Stepper';
+import {ContentStepper, StepperState} from '../components/atoms/Stepper';
 import {font} from '../styles/Font';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {padding} from '../styles/Padding';
@@ -42,6 +36,9 @@ import {
   TransactionContent,
   TransactionStatus,
   basicStatusTypeMap,
+  transactionStatusCampaignStepMap,
+  transactionStatusIndexMap,
+  transactionStatusStepperStateMap,
   transactionStatusTypeMap,
 } from '../model/Transaction';
 import {LoadingScreen} from './LoadingScreen';
@@ -137,25 +134,16 @@ const CampaignTimelineScreen = ({route}: Props) => {
     console.log('submission', sub);
   }, [sub]);
 
-  const resetOriginalField = useCallback(
-    (campaign: Campaign) => {
-      reset({
-        submission: campaign?.platforms?.map(platform => {
-          return {
-            platform: platform.name,
-            tasks: [],
-          };
-        }),
-      });
-    },
-    [reset],
-  );
-
-  useEffect(() => {
-    if (campaign) {
-      resetOriginalField(campaign);
-    }
-  }, [campaign, resetOriginalField]);
+  const resetOriginalField = useCallback(() => {
+    reset({
+      submission: transaction?.platformTasks?.map(platformTask => {
+        return {
+          platform: platformTask.name,
+          tasks: [],
+        };
+      }),
+    });
+  }, [reset, transaction]);
 
   const filteredPendingBrainstormApproval = useMemo(() => {
     return transactions
@@ -174,6 +162,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const isCampaignOwner = useMemo(() => {
     return uid === campaign?.userId;
   }, [uid, campaign]);
+
   const currentActiveIndex = useMemo(
     () =>
       currentActiveTimeline
@@ -187,6 +176,66 @@ const CampaignTimelineScreen = ({route}: Props) => {
           ).length + 1,
     [currentActiveTimeline, campaign],
   );
+
+  const stepperStates = useMemo(() => {
+    if (campaign && transaction?.status) {
+      if (isCampaignOwner) {
+        return [
+          ...Array(
+            (currentActiveTimeline
+              ? campaignIndexMap[currentActiveTimeline?.step]
+              : campaignIndexMap[CampaignStep.Completed]) + 1,
+          ),
+        ].map(() => StepperState.success);
+      }
+      const transactionStatusIndex =
+        transactionStatusIndexMap[transaction?.status];
+      if (transactionStatusIndex >= 0) {
+        const campaignHaveBrainstorming =
+          campaign.timeline?.find(
+            timeline => CampaignStep.Brainstorming === timeline.step,
+          ) !== undefined;
+        const indexOffset = !campaignHaveBrainstorming
+          ? Math.abs(
+              campaignIndexMap[CampaignStep.Brainstorming] -
+                campaignIndexMap[CampaignStep.ContentSubmission],
+            )
+          : 0;
+        const calculatedTransactionStatusIndex =
+          transactionStatusIndex >=
+          transactionStatusIndexMap[TransactionStatus.brainstormApproved]
+            ? transactionStatusIndex - indexOffset
+            : transactionStatusIndex;
+        let steps = [
+          ...Array(
+            calculatedTransactionStatusIndex <= 0
+              ? calculatedTransactionStatusIndex + 1
+              : calculatedTransactionStatusIndex,
+          ),
+        ].map(() => StepperState.success);
+        console.log(
+          'calculatedtransactionstatusindex',
+          calculatedTransactionStatusIndex,
+        );
+        steps[steps.length - 1] =
+          transactionStatusStepperStateMap[transaction.status];
+        const currentTransactionStep =
+          transactionStatusCampaignStepMap[transaction.status];
+        console.log(currentTransactionStep);
+        if (
+          currentActiveTimeline &&
+          currentTransactionStep !== currentActiveTimeline?.step
+        ) {
+          steps[campaignIndexMap[currentActiveTimeline.step] - indexOffset] =
+            StepperState.inProgress;
+        }
+        return steps;
+      }
+      return [StepperState.terminated];
+    }
+    return [];
+  }, [campaign, transaction, currentActiveTimeline, isCampaignOwner]);
+
   const campaignTimelineMap = useMemo(
     () =>
       campaign?.timeline?.reduce((accumulated, currentTimeline) => {
@@ -268,8 +317,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
         if (isSuccess) {
           console.log('submit content success!');
           setIsContentSubmissionModalOpen(false);
-          if (campaign) {
-            resetOriginalField(campaign);
+          if (transaction) {
+            resetOriginalField();
           }
           return;
         }
@@ -285,6 +334,12 @@ const CampaignTimelineScreen = ({route}: Props) => {
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
+
+  useEffect(() => {
+    if (transaction) {
+      resetOriginalField();
+    }
+  }, [transaction, resetOriginalField]);
 
   useEffect(() => {
     const unsubscribe = Transaction.getTransactionByContentCreator(
@@ -342,9 +397,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
       <PageWithBackButton enableSafeAreaContainer fullHeight>
         <HorizontalPadding>
           <View style={[flex.flexCol, gap.default, padding.top.xlarge3]}>
-            <Stepper
-              type="content"
+            <ContentStepper
               currentPosition={currentActiveIndex}
+              stepperStates={stepperStates}
               decreasePreviousVisibility={!isCampaignOwner}
               // currentPosition={2}
               maxPosition={0}>
@@ -396,29 +451,42 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         )}`}
                       </Text>
                     </View>
-                    {isCampaignOwner ? (
-                      <StatusTag
-                        status={`${formatNumberWithThousandSeparator(
-                          transactions.filter(
-                            t =>
-                              t.transaction.status ===
-                              TransactionStatus.registrationApproved,
-                          ).length,
-                        )} Registrant Approved`}
-                        statusType={StatusType.success}
-                      />
-                    ) : (
-                      transaction?.status &&
-                      transaction.status !==
-                        TransactionStatus.notRegistered && (
-                        <StatusTag
-                          status={transaction?.status}
-                          statusType={
-                            transactionStatusTypeMap[transaction?.status]
-                          }
-                        />
-                      )
-                    )}
+                    <View style={[flex.flex1, flex.flexRow, justify.center]}>
+                      {transaction?.status &&
+                      transactionStatusCampaignStepMap[transaction?.status] ===
+                        CampaignStep.Registration ? (
+                        isCampaignOwner ? (
+                          <StatusTag
+                            status={`${formatNumberWithThousandSeparator(
+                              transactions.filter(
+                                t =>
+                                  t.transaction.status ===
+                                  TransactionStatus.registrationApproved,
+                              ).length,
+                            )} Registrant Approved`}
+                            statusType={StatusType.success}
+                          />
+                        ) : (
+                          transaction.status !==
+                            TransactionStatus.notRegistered && (
+                            <StatusTag
+                              status={
+                                transaction?.status ===
+                                TransactionStatus.registrationApproved
+                                  ? BasicStatus.approved
+                                  : transaction?.status ===
+                                    TransactionStatus.registrationRejected
+                                  ? BasicStatus.rejected
+                                  : BasicStatus.pending
+                              }
+                              statusType={
+                                transactionStatusTypeMap[transaction?.status]
+                              }
+                            />
+                          )
+                        )
+                      ) : null}
+                    </View>
                   </View>
                   {isCampaignOwner ? (
                     <AnimatedPressable
@@ -824,6 +892,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       )}`}
                     </Text>
                   </View>
+                  {isCampaignOwner ? <></> : <></>}
                   <View style={[flex.flexCol, gap.small, padding.default]}>
                     <View style={[flex.flexRow, justify.between, items.center]}>
                       <Text className="font-semibold" style={[font.size[30]]}>
@@ -922,7 +991,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   </View>
                 </View>
               )}
-            </Stepper>
+            </ContentStepper>
           </View>
         </HorizontalPadding>
       </PageWithBackButton>
