@@ -35,8 +35,6 @@ import ChangePasswordScreen from '../screens/profile/edit/ChangePasswordScreen';
 import EditMaxContentRevisionScreen from '../screens/profile/edit/EditMaxContentRevisionScreen';
 import EditPostingScheduleScreen from '../screens/profile/edit/EditPostingScheduleScreen';
 import EditPreferencesScreen from '../screens/profile/edit/EditPreferencesScreen';
-import EditPreferredLocationScreen from '../screens/profile/edit/EditPreferredLocationScreen';
-import EditSpecializedCategoryScreen from '../screens/profile/edit/EditSpecializedCategoryScreen';
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
@@ -71,8 +69,6 @@ export enum AuthenticatedNavigation {
   EditMaxContentRevision = 'Edit Max Content Revision',
   EditPostingSchedule = 'Edit Posting Schedule',
   EditPreferences = 'Edit Preferences',
-  EditPreferredLocation = 'Edit Preferred Location',
-  EditSpecializedCategory = 'Edit Specialized Category',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -124,8 +120,6 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
   [AuthenticatedNavigation.EditPostingSchedule]: undefined;
   [AuthenticatedNavigation.EditPreferences]: undefined;
-  [AuthenticatedNavigation.EditPreferredLocation]: undefined;
-  [AuthenticatedNavigation.EditSpecializedCategory]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
@@ -317,14 +311,6 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.EditPreferences}
                   component={EditPreferencesScreen}
-                />
-                <Stack.Screen
-                  name={AuthenticatedNavigation.EditPreferredLocation}
-                  component={EditPreferredLocationScreen}
-                />
-                <Stack.Screen
-                  name={AuthenticatedNavigation.EditSpecializedCategory}
-                  component={EditSpecializedCategoryScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}
