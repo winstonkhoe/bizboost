@@ -242,20 +242,14 @@ export class Transaction extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  static getCampaignCollections =
-    (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
-      return firestore().collection(TRANSACTION_COLLECTION);
-    };
+  static getCollectionReference = () => {
+    return firestore().collection(TRANSACTION_COLLECTION);
+  };
 
-  static getDocumentReference(
-    documentId: string,
-  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    //TODO: tidy up, move somewhere else neater
-    firestore().settings({
-      ignoreUndefinedProperties: true,
-    });
-    return this.getCampaignCollections().doc(documentId);
-  }
+  static getDocumentReference = (documentId: string) => {
+    this.setFirestoreSettings();
+    return this.getCollectionReference().doc(documentId);
+  };
 
   async insert(status: TransactionStatus) {
     try {
@@ -327,8 +321,7 @@ export class Transaction extends BaseModel {
     onComplete: (transactions: Transaction[]) => void,
   ) {
     try {
-      const unsubscribe = firestore()
-        .collection(TRANSACTION_COLLECTION)
+      const unsubscribe = Transaction.getCollectionReference()
         .where(
           'campaignId',
           '==',
@@ -360,8 +353,7 @@ export class Transaction extends BaseModel {
     onComplete: (transactions: Transaction[]) => void,
   ) {
     try {
-      const unsubscribe = firestore()
-        .collection(TRANSACTION_COLLECTION)
+      const unsubscribe = Transaction.getCollectionReference()
         .where(
           role === UserRole.BusinessPeople
             ? 'businessPeopleId'
@@ -425,8 +417,7 @@ export class Transaction extends BaseModel {
     onComplete: (status: TransactionStatus) => void,
   ) {
     const id = campaignId + contentCreatorId;
-    const unsubscribe = firestore()
-      .collection(TRANSACTION_COLLECTION)
+    const unsubscribe = Transaction.getCollectionReference()
       .doc(id)
       .onSnapshot(
         docSnapshot => {

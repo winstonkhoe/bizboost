@@ -158,13 +158,8 @@ export class User extends BaseModel {
     return firestore().collection(USER_COLLECTION);
   }
 
-  static getDocumentReference(
-    documentId: string,
-  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    //TODO: tidy up, move somewhere else neater
-    firestore().settings({
-      ignoreUndefinedProperties: true,
-    });
+  static getDocumentReference(documentId: string) {
+    this.setFirestoreSettings();
     return this.getCollectionReference().doc(documentId);
   }
 

@@ -143,15 +143,19 @@ export class Campaign extends BaseModel {
     return querySnapshots.docs.map(this.fromSnapshot);
   }
 
-  static getCampaignCollections =
-    (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
-      return firestore().collection(CAMPAIGN_COLLECTION);
-    };
+  static getCollectionReference = () => {
+    return firestore().collection(CAMPAIGN_COLLECTION);
+  };
+
+  static getDocumentReference(documentId: string) {
+    this.setFirestoreSettings();
+    return this.getCollectionReference().doc(documentId);
+  }
 
   static async getAll(): Promise<Campaign[]> {
     try {
       console.log('model:Campaign getAll');
-      const campaigns = await this.getCampaignCollections()
+      const campaigns = await this.getCollectionReference()
         .where('type', '==', CampaignType.Public)
         .get();
       if (campaigns.empty) {
@@ -166,7 +170,7 @@ export class Campaign extends BaseModel {
   static async getUserCampaigns(userId: string): Promise<Campaign[]> {
     try {
       const userRef = User.getDocumentReference(userId);
-      const campaigns = await this.getCampaignCollections()
+      const campaigns = await this.getCollectionReference()
         .where('userId', '==', userRef)
         .get();
       if (campaigns.empty) {
@@ -184,7 +188,7 @@ export class Campaign extends BaseModel {
   ): (() => void) | undefined {
     try {
       const userRef = User.getDocumentReference(userId);
-      return this.getCampaignCollections()
+      return this.getCollectionReference()
         .where('userId', '==', userRef)
         .onSnapshot(
           querySnapshots => {
@@ -200,11 +204,7 @@ export class Campaign extends BaseModel {
       console.log('getUserCampaignsReactive', error);
     }
   }
-  static getDocumentReference(
-    documentId: string,
-  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    return this.getCampaignCollections().doc(documentId);
-  }
+
   static async getById(id: string): Promise<Campaign> {
     try {
       const snapshot = await this.getDocumentReference(id).get();
@@ -234,7 +234,7 @@ export class Campaign extends BaseModel {
         createdAt: new Date().getTime(),
       };
 
-      await Campaign.getCampaignCollections().add(data);
+      await Campaign.getCollectionReference().add(data);
       return true;
     } catch (error) {
       console.log(error);
