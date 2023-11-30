@@ -62,12 +62,14 @@ export const SheetModal = ({
     bottomSheetModalRef.current?.close();
   }, [open]);
 
-  console.log(
-    'currentLayoutHeight',
-    currentLayoutHeight,
-    'currentWindowHeight',
-    windowDimensions.height,
-  );
+  useEffect(() => {
+    console.log(
+      'currentLayoutHeight y',
+      currentLayoutHeight,
+      'currentWindowHeight',
+      windowDimensions.height,
+    );
+  }, [currentLayoutHeight, windowDimensions]);
 
   return (
     <BottomSheetModal
@@ -106,7 +108,10 @@ export const SheetModal = ({
         <View
           style={[fullHeight && flex.flex1]}
           onLayout={e => {
-            setCurrentLayoutHeight(e.nativeEvent.layout.height);
+            const height = e.nativeEvent.layout.height;
+            if (currentLayoutHeight !== height) {
+              setCurrentLayoutHeight(height);
+            }
           }}>
           {children}
         </View>
