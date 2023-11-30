@@ -87,7 +87,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         transaction.updateStatus(TransactionStatus.registrationRejected);
       }}
       handleClickAccept={() => {
-        transaction.updateStatus(TransactionStatus.registrationApproved);
+        transaction.approveRegistration();
       }}
     />
   );
@@ -175,13 +175,13 @@ const BaseCard = ({
             {/* {isPrivate && (
               <Private width={15} height={15} stroke={COLOR.black[40]} />
             )} */}
-            <Text style={[textColor(COLOR.green[50]), font.size[20]]}>
+            <Text
+              style={[textColor(COLOR.green[50]), font.size[20]]}
+              numberOfLines={1}
+              className="w-2/3">
               {headerTextLeading}
             </Text>
           </View>
-          <Text style={[textColor(COLOR.black[30]), font.size[20]]}>
-            {headerTextTrailing}
-          </Text>
         </Pressable>
         <Pressable
           onPress={handleClickBody}
@@ -201,7 +201,7 @@ const BaseCard = ({
               </Text>
               <View>
                 <StatusTag
-                  status={statusText}
+                  status={`${statusText}`}
                   statusType={transactionStatusTypeMap[statusText]}
                 />
               </View>

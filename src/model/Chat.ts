@@ -114,9 +114,8 @@ export class Chat extends BaseModel {
     throw new Error("Error, document doesn't exist!");
   }
 
-  static getDocumentReference(
-    documentId: string,
-  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
+  static getDocumentReference(documentId: string) {
+    this.setFirestoreSettings();
     return firestore().collection(CHAT_COLLECTION).doc(documentId);
   }
 
@@ -126,10 +125,9 @@ export class Chat extends BaseModel {
     return querySnapshots.docs.map(this.fromSnapshot);
   }
 
-  static getChatCollections =
-    (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
-      return firestore().collection(CHAT_COLLECTION);
-    };
+  static getCollectionReference = () => {
+    return firestore().collection(CHAT_COLLECTION);
+  };
 
   async insert() {
     try {
@@ -163,7 +161,7 @@ export class Chat extends BaseModel {
   ): void {
     try {
       const userRef = User.getDocumentReference(userId);
-      const subscriber = this.getChatCollections()
+      const subscriber = this.getCollectionReference()
         .where('participants', 'array-contains', {
           ref: userRef,
           role: activeRole,

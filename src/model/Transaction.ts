@@ -3,7 +3,12 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
 import {SocialPlatform, User, UserRole} from './User';
-import {Campaign, CampaignStep, campaignIndexMap} from './Campaign';
+import {
+  Campaign,
+  CampaignPlatform,
+  CampaignStep,
+  campaignIndexMap,
+} from './Campaign';
 import {StatusType} from '../components/atoms/StatusTag';
 import {isEqualDate} from '../utils/date';
 
@@ -145,9 +150,9 @@ interface ContentTask {
   uri: string[];
 }
 
-interface TransactionContent {
+export interface TransactionContent {
   platform: SocialPlatform;
-  task: ContentTask[];
+  tasks: ContentTask[];
 }
 
 interface Content {
@@ -173,6 +178,7 @@ export class Transaction extends BaseModel {
   updatedAt?: number;
   lastCheckedAt?: number;
   contentRevisionLimit?: number;
+  platformTasks?: CampaignPlatform[];
 
   constructor({
     contentCreatorId,
@@ -186,6 +192,7 @@ export class Transaction extends BaseModel {
     updatedAt,
     lastCheckedAt,
     contentRevisionLimit,
+    platformTasks,
   }: Partial<Transaction>) {
     super();
     // this.id = id;
@@ -203,6 +210,7 @@ export class Transaction extends BaseModel {
     this.updatedAt = updatedAt;
     this.lastCheckedAt = lastCheckedAt;
     this.contentRevisionLimit = contentRevisionLimit;
+    this.platformTasks = platformTasks;
   }
 
   toString(): string {
@@ -242,27 +250,13 @@ export class Transaction extends BaseModel {
         updatedAt: data.updatedAt,
         lastCheckedAt: data.lastCheckedAt,
         contentRevisionLimit: data.contentRevisionLimit,
+        platformTasks: data.platformTasks,
       });
       transaction.updateTermination();
       return transaction;
     }
 
     throw Error("Error, document doesn't exist!");
-  }
-
-  static getTransactionCollections =
-    (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
-      return firestore().collection(TRANSACTION_COLLECTION);
-    };
-
-  static getDocumentReference(
-    documentId: string,
-  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    //TODO: tidy up, move somewhere else neater
-    firestore().settings({
-      ignoreUndefinedProperties: true,
-    });
-    return this.getTransactionCollections().doc(documentId);
   }
 
   static async getById(id: string): Promise<Transaction> {
@@ -278,13 +272,14 @@ export class Transaction extends BaseModel {
     throw Error('Error!');
   }
 
-  async register() {
-    return await this.insert(TransactionStatus.registrationPending);
-  }
+  static getCollectionReference = () => {
+    return firestore().collection(TRANSACTION_COLLECTION);
+  };
 
-  async offer() {
-    return await this.insert(TransactionStatus.offering);
-  }
+  static getDocumentReference = (documentId: string) => {
+    this.setFirestoreSettings();
+    return this.getCollectionReference().doc(documentId);
+  };
 
   async insert(status: TransactionStatus) {
     try {
@@ -351,8 +346,7 @@ export class Transaction extends BaseModel {
     onComplete: (transactions: Transaction[]) => void,
   ) {
     try {
-      const unsubscribe = firestore()
-        .collection(TRANSACTION_COLLECTION)
+      const unsubscribe = Transaction.getCollectionReference()
         .where(
           'campaignId',
           '==',
@@ -422,8 +416,7 @@ export class Transaction extends BaseModel {
     onComplete: (transactions: Transaction[]) => void,
   ) {
     try {
-      const unsubscribe = firestore()
-        .collection(TRANSACTION_COLLECTION)
+      const unsubscribe = Transaction.getCollectionReference()
         .where(
           role === UserRole.BusinessPeople
             ? 'businessPeopleId'
@@ -487,8 +480,7 @@ export class Transaction extends BaseModel {
     onComplete: (status: TransactionStatus) => void,
   ) {
     const id = campaignId + contentCreatorId;
-    const unsubscribe = firestore()
-      .collection(TRANSACTION_COLLECTION)
+    const unsubscribe = Transaction.getCollectionReference()
       .doc(id)
       .onSnapshot(
         docSnapshot => {
@@ -576,6 +568,40 @@ export class Transaction extends BaseModel {
       console.log('updateTermination err: ', error);
     }
     return false;
+  }
+
+  async register() {
+    return await this.insert(TransactionStatus.registrationPending);
+  }
+
+  async approveRegistration(): Promise<boolean> {
+    const {campaignId, contentCreatorId} = this;
+    if (!campaignId) {
+      throw Error('Missing campaign id');
+    }
+    if (!contentCreatorId) {
+      throw Error('Missing content creator id');
+    }
+    try {
+      const contentCreator = await User.getById(contentCreatorId);
+      const campaign = await Campaign.getById(campaignId);
+      if (contentCreator && campaign) {
+        await this.updateStatus(TransactionStatus.registrationApproved, {
+          contentRevisionLimit:
+            contentCreator.contentCreator?.contentRevisionLimit,
+          platformTasks: campaign.platforms,
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.log('approveRegistration err', error);
+    }
+    return false;
+  }
+
+  async offer() {
+    return await this.insert(TransactionStatus.offering);
   }
 
   getLatestBrainstorm(): Brainstorm | null {
@@ -680,13 +706,17 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id or brainstorms');
   }
 
-  async submitContent(content: Content): Promise<boolean> {
+  async submitContent(content: TransactionContent[]): Promise<boolean> {
     const {id} = this;
     if (id) {
       try {
         await Transaction.getDocumentReference(id).update({
           status: TransactionStatus.contentSubmitted,
-          contents: firestore.FieldValue.arrayUnion(content),
+          contents: firestore.FieldValue.arrayUnion({
+            status: BasicStatus.pending,
+            content: content,
+            createdAt: new Date().getTime(),
+          }),
         });
         return true;
       } catch (error) {

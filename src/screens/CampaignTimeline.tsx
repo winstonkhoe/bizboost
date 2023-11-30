@@ -1,5 +1,11 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {EffectCallback, useEffect, useMemo, useState} from 'react';
+import React, {
+  EffectCallback,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -33,6 +39,7 @@ import StatusTag, {StatusType} from '../components/atoms/StatusTag';
 import {
   BasicStatus,
   Transaction,
+  TransactionContent,
   TransactionStatus,
   basicStatusTypeMap,
   transactionStatusTypeMap,
@@ -48,7 +55,7 @@ import {dimension} from '../styles/Dimension';
 import {CustomModal} from '../components/atoms/CustomModal';
 import FastImage from 'react-native-fast-image';
 import ChevronRight from '../assets/vectors/chevron-right.svg';
-import {User} from '../model/User';
+import {SocialPlatform, User} from '../model/User';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import {formatNumberWithThousandSeparator} from '../utils/number';
 import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
@@ -56,6 +63,9 @@ import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useKeyboard} from '../hooks/keyboard';
 import {InternalLink} from '../components/atoms/Link';
+import FieldArray from '../components/organisms/FieldArray';
+import {FormProvider, useForm} from 'react-hook-form';
+import {StringObject, getStringObjectValue} from '../utils/stringObject';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -67,6 +77,13 @@ type CampaignTimelineMap = {
     start: number;
     end: number;
   };
+};
+
+type SubmissionFormData = {
+  submission: {
+    platform: SocialPlatform;
+    tasks: StringObject[][];
+  }[];
 };
 
 const rules = {
@@ -94,12 +111,51 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const [temporaryBrainstorm, setTemporaryBrainstorm] = useState('');
   const [isBrainstormingModalOpened, setIsBrainstormingModalOpened] =
     useState(false);
+  const [isContentSubmissionModalOpen, setIsContentSubmissionModalOpen] =
+    useState(false);
   const [isConfirmBrainstormModalOpened, setIsConfirmBrainstormModalOpened] =
     useState(false);
+  const [
+    isConfirmContentSubmissionModalOpen,
+    setIsConfirmContentSubmissionModalOpen,
+  ] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentActiveTimeline = useMemo(() => {
     return campaign?.getActiveTimeline();
   }, [campaign]);
+
+  const methods = useForm<SubmissionFormData>({
+    defaultValues: {
+      submission: [],
+    },
+  });
+
+  const {reset, control, watch, getValues} = methods;
+
+  const sub = watch('submission');
+  useEffect(() => {
+    console.log('submission', sub);
+  }, [sub]);
+
+  const resetOriginalField = useCallback(
+    (campaign: Campaign) => {
+      reset({
+        submission: campaign?.platforms?.map(platform => {
+          return {
+            platform: platform.name,
+            tasks: [],
+          };
+        }),
+      });
+    },
+    [reset],
+  );
+
+  useEffect(() => {
+    if (campaign) {
+      resetOriginalField(campaign);
+    }
+  }, [campaign, resetOriginalField]);
 
   const filteredPendingBrainstormApproval = useMemo(() => {
     return transactions
@@ -190,6 +246,42 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   };
 
+  const submitContentSubmission = () => {
+    const data = methods.getValues();
+    const transactionContent: TransactionContent[] = data.submission.map(
+      submission => {
+        return {
+          platform: submission.platform,
+          tasks: submission.tasks.map(task => {
+            return {
+              uri: task.map(getStringObjectValue),
+            };
+          }),
+        };
+      },
+    );
+    setIsConfirmContentSubmissionModalOpen(false);
+    setIsLoading(true);
+    transaction
+      ?.submitContent(transactionContent)
+      .then(isSuccess => {
+        if (isSuccess) {
+          console.log('submit content success!');
+          setIsContentSubmissionModalOpen(false);
+          if (campaign) {
+            resetOriginalField(campaign);
+          }
+          return;
+        }
+        console.log('submit content failed!');
+      })
+      .catch(err => console.log('submitContentSubmission err', err))
+      .finally(() => {
+        setIsLoading(false);
+      });
+    console.log(data);
+  };
+
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
@@ -254,7 +346,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
               type="content"
               currentPosition={currentActiveIndex}
               decreasePreviousVisibility={!isCampaignOwner}
-              // currentPosition={0}
+              // currentPosition={2}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
                 <View
@@ -744,7 +836,12 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     <Text>
                       {`1. The introduction should have a brief explanation about the brand and also please make the transition between shots smoother.\n2. The audio quality is kinda bad, please provide caption for it`}
                     </Text>
-                    <CustomButton text="Upload" />
+                    <CustomButton
+                      text="Upload"
+                      onPress={() => {
+                        setIsContentSubmissionModalOpen(true);
+                      }}
+                    />
                   </View>
                 </View>
               )}
@@ -856,6 +953,35 @@ const CampaignTimelineScreen = ({route}: Props) => {
           </View>
         </View>
       </CustomModal>
+      <CustomModal
+        transparent={true}
+        visible={isConfirmContentSubmissionModalOpen}>
+        <View style={[flex.flexCol, padding.default, gap.large]}>
+          <View style={[flex.flexRow, justify.center, padding.medium]}>
+            <Text className="text-center font-medium" style={[font.size[30]]}>
+              Please review your submission carefully. Once you submit your
+              task's content,{' '}
+              <Text className="font-bold">
+                you will not be able to edit it.
+              </Text>
+            </Text>
+          </View>
+          <View style={[flex.flexRow, gap.large, justify.center]}>
+            <CustomButton
+              text="Adjust again"
+              type="tertiary"
+              customTextColor={{
+                default: COLOR.text.danger.default,
+                disabled: COLOR.red[10],
+              }}
+              onPress={() => {
+                setIsConfirmContentSubmissionModalOpen(false);
+              }}
+            />
+            <CustomButton text="Submit" onPress={submitContentSubmission} />
+          </View>
+        </View>
+      </CustomModal>
       <SheetModal
         open={isBrainstormingModalOpened}
         onDismiss={() => {
@@ -898,6 +1024,83 @@ const CampaignTimelineScreen = ({route}: Props) => {
               }}
             />
           </View>
+        </BottomSheetModalWithTitle>
+      </SheetModal>
+      <SheetModal
+        open={isContentSubmissionModalOpen}
+        onDismiss={() => {
+          setIsContentSubmissionModalOpen(false);
+        }}
+        snapPoints={[windowDimension.height - safeAreaInsets.top]}
+        disablePanDownToClose
+        fullHeight
+        enableHandlePanningGesture={false}
+        enableOverDrag={false}
+        overDragResistanceFactor={0}
+        enableDynamicSizing={false}>
+        <BottomSheetModalWithTitle
+          title="Content Submission"
+          type="modal"
+          onPress={() => {
+            setIsContentSubmissionModalOpen(false);
+          }}>
+          <FormProvider {...methods}>
+            <View style={[flex.grow, flex.flexCol, gap.medium]}>
+              <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
+                <View style={[flex.flex1, flex.flexCol, gap.xlarge2]}>
+                  {campaign.platforms?.map((platform, platformIndex) => (
+                    <View
+                      key={platform.name}
+                      style={[flex.flexCol, gap.medium]}>
+                      {platform.tasks.map((task, taskIndex) => (
+                        <View
+                          key={taskIndex}
+                          style={[flex.flexRow, gap.medium, items.center]}>
+                          <FieldArray
+                            title={`[${platform.name}] - ${task.quantity} x ${task.name}`}
+                            description={task.description}
+                            placeholder="Add url"
+                            maxFieldLength={0}
+                            helperText={`Make sure url is publicly accessible.\nEx. https://drive.google.com/file/d/1Go0RYsRgia9ZoMy10O8XBrfnIWMCopHs/view?usp=sharing`}
+                            control={control}
+                            fieldType="textarea"
+                            type="required"
+                            rules={{
+                              required: 'URL is required',
+                              pattern: {
+                                value: /^(http|https):\/\/[^ "]+$/i,
+                                message: 'Invalid URL',
+                              },
+                            }}
+                            parentName={`submission.${platformIndex}.tasks.${taskIndex}`}
+                            childName="value"
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+              </BottomSheetScrollView>
+              <CustomButton
+                text="Submit"
+                disabled={
+                  campaign?.platforms &&
+                  campaign.platforms.filter(
+                    (platform, platformIndex) =>
+                      platform.tasks?.filter(
+                        (task, taskIndex) =>
+                          getValues(
+                            `submission.${platformIndex}.tasks.${taskIndex}`,
+                          )?.length < task.quantity,
+                      ).length > 0,
+                  ).length > 0
+                }
+                onPress={() => {
+                  setIsConfirmContentSubmissionModalOpen(true);
+                }}
+              />
+            </View>
+          </FormProvider>
         </BottomSheetModalWithTitle>
       </SheetModal>
     </>

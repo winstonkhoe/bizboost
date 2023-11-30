@@ -60,18 +60,12 @@ export class AuthMethod extends BaseModel {
     return querySnapshots.docs.map(this.fromSnapshot);
   }
 
-  static getCollectionReference =
-    (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
-      return firestore().collection(AUTH_METHOD_COLLECTION);
-    };
+  static getCollectionReference = () => {
+    return firestore().collection(AUTH_METHOD_COLLECTION);
+  };
 
-  static getDocumentReference(
-    documentId: string,
-  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    //TODO: tidy up, move somewhere else neater
-    firestore().settings({
-      ignoreUndefinedProperties: true,
-    });
+  static getDocumentReference(documentId: string) {
+    this.setFirestoreSettings();
     return this.getCollectionReference().doc(documentId);
   }
 

@@ -31,10 +31,15 @@ import PayContentCreatorScreen from '../screens/profile/PayContentCreatorScreen'
 import UploadVideoScreen from '../screens/profile/UploadVideoScreen';
 import WithdrawMoneyScreen from '../screens/profile/WithdrawMoneyScreen';
 import {ModalSpecificExploreScreen} from '../screens/modals/ModalSpecificExploreScreen';
+import ChangePasswordScreen from '../screens/profile/edit/ChangePasswordScreen';
+import EditMaxContentRevisionScreen from '../screens/profile/edit/EditMaxContentRevisionScreen';
+import EditPostingScheduleScreen from '../screens/profile/edit/EditPostingScheduleScreen';
+import EditPreferencesScreen from '../screens/profile/edit/EditPreferencesScreen';
+import EditPreferredLocationScreen from '../screens/profile/edit/EditPreferredLocationScreen';
+import EditSpecializedCategoryScreen from '../screens/profile/edit/EditSpecializedCategoryScreen';
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
-import ChangePasswordScreen from '../screens/profile/ChangePasswordScreen';
 import TransactionDetailScreen from '../screens/TransactionDetailScreen';
 
 export enum GuestNavigation {
@@ -62,6 +67,11 @@ export enum AuthenticatedNavigation {
   MyCampaigns = 'My Campaigns',
   AboutMe = 'About Me',
   ChangePassword = 'Change Password',
+  EditMaxContentRevision = 'Edit Max Content Revision',
+  EditPostingSchedule = 'Edit Posting Schedule',
+  EditPreferences = 'Edit Preferences',
+  EditPreferredLocation = 'Edit Preferred Location',
+  EditSpecializedCategory = 'Edit Specialized Category',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -114,9 +124,19 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.MyCampaigns]: undefined;
   [AuthenticatedNavigation.AboutMe]: undefined;
   [AuthenticatedNavigation.ChangePassword]: undefined;
+  [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
+  [AuthenticatedNavigation.EditPostingSchedule]: undefined;
+  [AuthenticatedNavigation.EditPreferences]: undefined;
+  [AuthenticatedNavigation.EditPreferredLocation]: undefined;
+  [AuthenticatedNavigation.EditSpecializedCategory]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
+  [AuthenticatedNavigation.MakeOffer]: {
+    contentCreatorId: string;
+    businessPeopleId: string;
+  };
+  [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
   [AuthenticatedNavigation.SpecificExploreModal]: {
     contentCreatorId: string;
     targetContentId?: string;
@@ -287,6 +307,26 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.ChangePassword}
                   component={ChangePasswordScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditMaxContentRevision}
+                  component={EditMaxContentRevisionScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditPostingSchedule}
+                  component={EditPostingScheduleScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditPreferences}
+                  component={EditPreferencesScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditPreferredLocation}
+                  component={EditPreferredLocationScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditSpecializedCategory}
+                  component={EditSpecializedCategoryScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}
