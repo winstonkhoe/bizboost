@@ -1,11 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {
-  EffectCallback,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -21,7 +15,7 @@ import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {Link, useNavigation} from '@react-navigation/native';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {Stepper} from '../components/atoms/Stepper';
+import {ContentStepper} from '../components/atoms/Stepper';
 import {font} from '../styles/Font';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {padding} from '../styles/Padding';
@@ -137,25 +131,16 @@ const CampaignTimelineScreen = ({route}: Props) => {
     console.log('submission', sub);
   }, [sub]);
 
-  const resetOriginalField = useCallback(
-    (campaign: Campaign) => {
-      reset({
-        submission: campaign?.platforms?.map(platform => {
-          return {
-            platform: platform.name,
-            tasks: [],
-          };
-        }),
-      });
-    },
-    [reset],
-  );
-
-  useEffect(() => {
-    if (campaign) {
-      resetOriginalField(campaign);
-    }
-  }, [campaign, resetOriginalField]);
+  const resetOriginalField = useCallback(() => {
+    reset({
+      submission: transaction?.platformTasks?.map(platformTask => {
+        return {
+          platform: platformTask.name,
+          tasks: [],
+        };
+      }),
+    });
+  }, [reset, transaction]);
 
   const filteredPendingBrainstormApproval = useMemo(() => {
     return transactions
@@ -174,6 +159,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const isCampaignOwner = useMemo(() => {
     return uid === campaign?.userId;
   }, [uid, campaign]);
+
   const currentActiveIndex = useMemo(
     () =>
       currentActiveTimeline
@@ -187,6 +173,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
           ).length + 1,
     [currentActiveTimeline, campaign],
   );
+
   const campaignTimelineMap = useMemo(
     () =>
       campaign?.timeline?.reduce((accumulated, currentTimeline) => {
@@ -268,8 +255,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
         if (isSuccess) {
           console.log('submit content success!');
           setIsContentSubmissionModalOpen(false);
-          if (campaign) {
-            resetOriginalField(campaign);
+          if (transaction) {
+            resetOriginalField();
           }
           return;
         }
@@ -285,6 +272,12 @@ const CampaignTimelineScreen = ({route}: Props) => {
   useEffect(() => {
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
+
+  useEffect(() => {
+    if (transaction) {
+      resetOriginalField();
+    }
+  }, [transaction, resetOriginalField]);
 
   useEffect(() => {
     const unsubscribe = Transaction.getTransactionByContentCreator(
@@ -342,11 +335,10 @@ const CampaignTimelineScreen = ({route}: Props) => {
       <PageWithBackButton enableSafeAreaContainer fullHeight>
         <HorizontalPadding>
           <View style={[flex.flexCol, gap.default, padding.top.xlarge3]}>
-            <Stepper
-              type="content"
-              currentPosition={currentActiveIndex}
+            <ContentStepper
+              // currentPosition={currentActiveIndex}
               decreasePreviousVisibility={!isCampaignOwner}
-              // currentPosition={2}
+              currentPosition={2}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
                 <View
@@ -824,6 +816,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       )}`}
                     </Text>
                   </View>
+                  {isCampaignOwner ? <></> : <></>}
                   <View style={[flex.flexCol, gap.small, padding.default]}>
                     <View style={[flex.flexRow, justify.between, items.center]}>
                       <Text className="font-semibold" style={[font.size[30]]}>
@@ -922,7 +915,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   </View>
                 </View>
               )}
-            </Stepper>
+            </ContentStepper>
           </View>
         </HorizontalPadding>
       </PageWithBackButton>

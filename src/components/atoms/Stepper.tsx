@@ -16,35 +16,17 @@ import {textColor} from '../../styles/Text';
 import {dimension} from '../../styles/Dimension';
 import {padding} from '../../styles/Padding';
 
-type StepperType = 'simple' | 'content';
-
 interface BaseStepperProps {
   currentPosition: number;
   maxPosition: number;
-  decreasePreviousVisibility?: boolean; //currently only support content stepper
-  children?: ReactNode;
 }
 
 interface StepperProps extends BaseStepperProps {
-  type?: StepperType;
+  type?: 'simple';
 }
 
-export const Stepper = ({
-  type = 'simple',
-  decreasePreviousVisibility = true,
-  ...props
-}: StepperProps) => {
-  return (
-    <View>
-      {type === 'simple' && <SimpleStepper {...props} />}
-      {type === 'content' && (
-        <ContentStepper
-          decreasePreviousVisibility={decreasePreviousVisibility}
-          {...props}
-        />
-      )}
-    </View>
-  );
+export const Stepper = ({type = 'simple', ...props}: StepperProps) => {
+  return <View>{type === 'simple' && <SimpleStepper {...props} />}</View>;
 };
 
 const SimpleStepper = ({...props}: BaseStepperProps) => {
@@ -120,7 +102,15 @@ const SimpleStepperBar = ({barIndex, currentPosition}: SimpleStepperBar) => {
   );
 };
 
-const ContentStepper = ({...props}: BaseStepperProps) => {
+interface ContentStepperProps extends BaseStepperProps {
+  decreasePreviousVisibility?: boolean; //currently only support content stepper
+  children?: ReactNode;
+}
+
+export const ContentStepper = ({
+  decreasePreviousVisibility = true,
+  ...props
+}: ContentStepperProps) => {
   const children = Children.toArray(props.children);
   return (
     <View style={[flex.flexCol, gap.small]}>
@@ -173,8 +163,7 @@ const ContentStepper = ({...props}: BaseStepperProps) => {
                 //   opacity: 0.5,
                 // },
               ]}>
-              {((props.decreasePreviousVisibility &&
-                index < props.currentPosition) ||
+              {((decreasePreviousVisibility && index < props.currentPosition) ||
                 index > props.currentPosition) && (
                 <View
                   className="absolute z-10 top-0 left-0"
