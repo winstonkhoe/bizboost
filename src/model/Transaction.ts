@@ -521,7 +521,7 @@ export class Transaction extends BaseModel {
         await this.updateStatus(TransactionStatus.registrationApproved, {
           contentRevisionLimit:
             contentCreator.contentCreator?.contentRevisionLimit,
-          platformTasks: campaign.platforms,
+          platformTasks: campaign.platformTasks,
         });
         return true;
       }
