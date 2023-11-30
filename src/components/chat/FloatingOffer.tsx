@@ -27,6 +27,7 @@ import {HorizontalPadding} from '../atoms/ViewPadding';
 import {CustomButton} from '../atoms/Button';
 import {font} from '../../styles/Font';
 import {Transaction} from '../../model/Transaction';
+import {ScrollView} from 'react-native-gesture-handler';
 
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -39,11 +40,6 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [campaign, setCampaign] = useState<Campaign>();
   const navigation = useNavigation<NavigationStackProps>();
-  const [showAllNotes, setShowAllNotes] = useState(false);
-
-  const handleSeeMore = () => {
-    setShowAllNotes(true);
-  };
 
   useEffect(() => {
     Campaign.getById(offers[0].campaignId || '').then(c => setCampaign(c));
@@ -87,153 +83,75 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
   };
 
   return (
-    <View
-      className="w-full items-center justify-center relative z-50"
-      style={flex.flexCol}>
-      <View style={flex.flexCol} className="w-full p-1 rounded-md">
-        <View style={flex.flexCol} className="w-full bg-gray-100 py-3">
+    <View className="w-full absolute top-16 z-50">
+      <View className={`${isExpanded ? 'h-2/3' : 'h-16'}`} style={flex.flexCol}>
+        <ScrollView style={flex.flexCol} className="w-full p-1 rounded-md z-50">
           <View
-            style={flex.flexRow}
-            className="justify-between items-center px-3">
-            <View>
-              <Text className="text-md text-left text-black">
-                Last Offer:{' '}
-                <Text className="font-bold">
-                  {offers[0]?.offeredPrice?.toLocaleString('en-ID')}
+            style={flex.flexCol}
+            className="w-full bg-gray-100 py-3 z-30 rounded-md">
+            <View
+              style={flex.flexRow}
+              className="justify-between items-center px-3 bg-gray-100">
+              <View>
+                <Text className="text-md text-left text-black">
+                  Last Offer:{' '}
+                  <Text className="font-bold">
+                    {offers[0]?.offeredPrice?.toLocaleString('en-ID')}
+                  </Text>
                 </Text>
-              </Text>
-              <Text className="text-xs text-left">by {businessPeople}</Text>
-            </View>
-            <TouchableOpacity onPress={toggleExpansion}>
-              {isExpanded ? (
-                <ChevronUp width={20} height={10} color={COLOR.black[100]} />
-              ) : (
-                <ChevronDown width={20} height={10} color={COLOR.black[100]} />
+                <Text className="text-xs text-left">by {businessPeople}</Text>
+              </View>
+              {!isExpanded && (
+                <TouchableOpacity onPress={toggleExpansion}>
+                  <ChevronDown
+                    width={20}
+                    height={10}
+                    color={COLOR.black[100]}
+                  />
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
-          </View>
-          {isExpanded && (
-            <React.Fragment>
-              <View className="w-full bg-gray-100 absolute top-14 z-20">
-                <View className="pb-4 px-3">
-                  <Pressable
-                    style={flex.flexRow}
-                    className="justify-between items-center"
-                    onPress={() => {
-                      navigation.navigate(
-                        AuthenticatedNavigation.CampaignDetail,
-                        {
-                          campaignId: offers[0]?.campaignId || '',
-                        },
-                      );
-                    }}>
-                    <View style={flex.flexRow} className="w-4/5 items-start">
-                      <View
-                        className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-                        style={[flex.flexRow, rounded.default]}>
-                        <FastImage
-                          className="w-full h-full object-cover"
-                          source={
-                            campaign?.image
-                              ? {
-                                  uri: campaign?.image,
-                                }
-                              : require('../../assets/images/bizboost-avatar.png')
-                          }
-                        />
-                      </View>
-                      <View className="flex-1" style={flex.flexCol}>
-                        <Text className="font-bold pb-1">
-                          {campaign?.title}
-                        </Text>
-                        <View className="bg-white rounded-sm p-2">
-                          <Text className="text-xs font-semibold pb-1">
-                            Important Notes
-                          </Text>
-                          {offers[0].importantNotes && (
-                            <>
-                              {showAllNotes
-                                ? offers[0].importantNotes.map((note, idx) => (
-                                    <Text className="text-xs" key={idx}>
-                                      • {note}
-                                    </Text>
-                                  ))
-                                : offers[0].importantNotes
-                                    .slice(0, 2)
-                                    .map((note, idx) => (
-                                      <Text className="text-xs" key={idx}>
-                                        • {note}
-                                      </Text>
-                                    ))}
-                              {!showAllNotes &&
-                                offers[0].importantNotes.length > 2 && (
-                                  <Pressable onPress={handleSeeMore}>
-                                    <Text className="text-xs text-blue-600">
-                                      See more
-                                    </Text>
-                                  </Pressable>
-                                )}
-                            </>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-                    <HorizontalPadding paddingSize="small">
-                      <ChevronRight fill={COLOR.black[20]} />
-                    </HorizontalPadding>
-                  </Pressable>
-                  {activeRole === UserRole.ContentCreator && (
-                    <View className="pt-2 flex flex-row items-center justify-between w-full">
-                      <View className="w-1/3">
-                        <CustomButton
-                          text="Accept"
-                          scale={1}
-                          rounded="small"
-                          className="w-full"
-                          onPress={() => acceptOffer(offers[0])}
-                          customTextSize={font.size[20]}
-                        />
-                      </View>
-                      <View className="w-1/3">
-                        <CustomButton
-                          text="Negotiate"
-                          scale={1}
-                          rounded="small"
-                          className="w-full"
-                          customTextSize={font.size[20]}
-                        />
-                      </View>
-                      <View className="w-1/3">
-                        <CustomButton
-                          text="Reject"
-                          scale={1}
-                          rounded="small"
-                          className="w-ful"
-                          onPress={() => declineOffer(offers[0])}
-                          customTextSize={font.size[20]}
-                          type="tertiary"
-                        />
-                      </View>
-                    </View>
+            </View>
+            {isExpanded && (
+              <React.Fragment>
+                <View className="py-3 px-3">
+                  {activeRole && (
+                    <CampaignCard
+                      offer={offers[0]}
+                      businessPeople={businessPeople || ''}
+                      activeRole={activeRole}
+                      handleClickAccept={() => acceptOffer(offers[0])}
+                      handleClickReject={() => declineOffer(offers[0])}
+                    />
                   )}
                 </View>
                 {offers.length > 1 &&
                   offers
                     .slice(1)
-                    .map(offer => (
-                      <OfferCard
-                        key={offer.id}
-                        offer={offer}
-                        businessPeople={businessPeople}
-                        activeRole={activeRole}
-                        handleClickAccept={() => acceptOffer(offer)}
-                        handleClickReject={() => declineOffer(offer)}
-                      />
-                    ))}
-              </View>
-            </React.Fragment>
-          )}
-        </View>
+                    .map(
+                      offer =>
+                        activeRole && (
+                          <OfferCard
+                            key={offer.id}
+                            offer={offer}
+                            businessPeople={businessPeople || ''}
+                            activeRole={activeRole}
+                            handleClickAccept={() => acceptOffer(offer)}
+                            handleClickReject={() => declineOffer(offer)}
+                          />
+                        ),
+                    )}
+              </React.Fragment>
+            )}
+          </View>
+        </ScrollView>
+        {isExpanded && (
+          <TouchableOpacity
+            style={flex.flexRow}
+            className="bg-gray-100 border-t border-t-zinc-300 justify-end items-center px-3 py-3"
+            onPress={toggleExpansion}>
+            <ChevronUp width={20} height={10} color={COLOR.black[100]} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -256,19 +174,6 @@ const OfferCard = ({
   handleClickAccept,
   handleClickReject,
 }: OfferCardProps) => {
-  const [campaign, setCampaign] = useState<Campaign>();
-  const navigation = useNavigation<NavigationStackProps>();
-
-  useEffect(() => {
-    Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
-  }, [offer]);
-
-  const imageSource = campaign?.image
-    ? {
-        uri: campaign?.image,
-      }
-    : require('../../assets/images/bizboost-avatar.png');
-
   return (
     <View
       style={flex.flexCol}
@@ -284,15 +189,61 @@ const OfferCard = ({
           <Text className="text-xs text-left">by {businessPeople}</Text>
         </View>
       </View>
+      <CampaignCard
+        offer={offer}
+        businessPeople={businessPeople}
+        activeRole={activeRole}
+        handleClickAccept={handleClickAccept}
+        handleClickReject={handleClickReject}
+      />
+    </View>
+  );
+};
+
+type CampaignCardProps = {
+  offer: Offer;
+  businessPeople: string;
+  activeRole: UserRole;
+  handleClickAccept: () => void;
+  handleClickReject: () => void;
+};
+
+const CampaignCard = ({
+  offer,
+  activeRole,
+  handleClickAccept,
+  handleClickReject,
+}: CampaignCardProps) => {
+  const [campaign, setCampaign] = useState<Campaign>();
+  const navigation = useNavigation<NavigationStackProps>();
+
+  const [showAllNotes, setShowAllNotes] = useState(false);
+
+  const handleSeeMore = () => {
+    setShowAllNotes(true);
+  };
+
+  useEffect(() => {
+    Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
+  }, [offer]);
+
+  const imageSource = campaign?.image
+    ? {
+        uri: campaign?.image,
+      }
+    : require('../../assets/images/bizboost-avatar.png');
+
+  return (
+    <View style={flex.flexCol}>
       <Pressable
         style={flex.flexRow}
-        className="justify-between items-center"
+        className="justify-between items-center py-1"
         onPress={() => {
           navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
             campaignId: offer?.campaignId || '',
           });
         }}>
-        <View style={flex.flexRow} className="w-4/5 items-start">
+        <View style={flex.flexRow} className="w-full items-start">
           <View
             className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
             style={[flex.flexRow, rounded.default]}>
@@ -307,14 +258,14 @@ const OfferCard = ({
               <Text className="text-xs font-semibold pb-1">
                 Important Notes
               </Text>
-              {offer.importantNotes && offer.importantNotes?.length > 0 ? (
-                offer.importantNotes.map((note, idx) => (
-                  <Text className="text-xs" key={idx}>
-                    • {note}
-                  </Text>
-                ))
+              {offer.importantNotes && offer.importantNotes !== '' ? (
+                <Text numberOfLines={2} className="text-xs">
+                  {offer.importantNotes}
+                </Text>
               ) : (
-                <Text className="text-xs">-</Text>
+                <Text numberOfLines={2} className="text-xs">
+                  -
+                </Text>
               )}
             </View>
           </View>
@@ -326,34 +277,26 @@ const OfferCard = ({
       {activeRole === UserRole.ContentCreator && (
         <View className="pt-2 flex flex-row items-center justify-between w-full">
           <View className="w-1/3">
-            <CustomButton
-              text="Accept"
-              scale={1}
-              rounded="small"
-              className="w-full"
-              onPress={handleClickAccept}
-              customTextSize={font.size[20]}
-            />
+            <TouchableOpacity
+              className="bg-secondary py-3 px-2 rounded-l-md"
+              onPress={handleClickReject}>
+              <Text className="text-white text-center text-xs">Reject</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="w-1/3">
+            <TouchableOpacity
+              className="bg-yellow-500 py-3 px-2"
+              onPress={handleClickAccept}>
+              <Text className="text-center text-xs text-white">Negotiate</Text>
+            </TouchableOpacity>
           </View>
           <View className="w-1/3">
-            <CustomButton
-              text="Negotiate"
-              scale={1}
-              rounded="small"
-              className="w-full"
-              customTextSize={font.size[20]}
-            />
-          </View>
-          <View className="w-1/3">
-            <CustomButton
-              text="Reject"
-              scale={1}
-              rounded="small"
-              className="w-ful"
-              onPress={handleClickReject}
-              customTextSize={font.size[20]}
-              type="tertiary"
-            />
+            <TouchableOpacity
+              className="bg-primary py-3 px-2 rounded-r-md"
+              onPress={handleClickAccept}>
+              <Text className="text-white text-center text-xs">Accept</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}

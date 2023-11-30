@@ -1,12 +1,11 @@
 import React, {useState} from 'react';
-import {View, TouchableOpacity, ScrollView, TextInput} from 'react-native';
+import {View, TouchableOpacity, ScrollView} from 'react-native';
 import {Text} from 'react-native-elements';
 import {useNavigation} from '@react-navigation/native';
-import {useForm, Controller, FormProvider} from 'react-hook-form';
+import {useForm, FormProvider} from 'react-hook-form';
 import BackNav from '../assets/vectors/chevron-left.svg';
 import {COLOR} from '../styles/Color';
 import {flex} from '../styles/Flex';
-import FieldArray from '../components/organisms/FieldArray';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {FormFieldHelper} from '../components/atoms/FormLabel';
@@ -26,8 +25,8 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Chat, ChatService, ChatView, Message, MessageType} from '../model/Chat';
-import {User, UserRole} from '../model/User';
+import {Chat, ChatService, Message, MessageType} from '../model/Chat';
+import {UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
 import {CustomButton} from '../components/atoms/Button';
@@ -64,7 +63,6 @@ const MakeOfferScreen = ({route}: Props) => {
       contentCreatorId: contentCreatorId,
       businessPeopleId: businessPeopleId,
       campaignId: selectedCampaign.id ?? '',
-      importantNotes: data.importantNotes.map(getStringObjectValue) ?? [],
     });
 
     console.log(transaction);
@@ -73,7 +71,7 @@ const MakeOfferScreen = ({route}: Props) => {
         contentCreatorId: contentCreatorId,
         businessPeopleId: businessPeopleId,
         campaignId: selectedCampaign.id ?? '',
-        importantNotes: data.importantNotes.map(getStringObjectValue) ?? [],
+        importantNotes: data.importantNotes ?? '',
         offeredPrice: data.fee ?? 0,
       });
 
@@ -170,25 +168,14 @@ const MakeOfferScreen = ({route}: Props) => {
                     />
                   </View>
 
-                  <Controller
-                    control={methods.control}
-                    name="importantNotes"
-                    render={({fieldState: {error}}) => (
-                      <View>
-                        <FieldArray
-                          control={methods.control}
-                          title="Important Notes"
-                          parentName="importantNotes"
-                          childName="value"
-                          type="optional"
-                          placeholder="Add important notes for content creator"
-                          helperText={
-                            'Ex. "Don\'t use profanity", "Be natural"'
-                          }
-                        />
-                      </View>
-                    )}
-                  />
+                  <View style={[flex.flexCol, gap.default]}>
+                    <FormFieldHelper title="Important Notes" type="optional" />
+                    <CustomTextInput
+                      placeholder="Things to note for your offer"
+                      name="importantNotes"
+                      type="textarea"
+                    />
+                  </View>
                 </HorizontalPadding>
               </View>
               <VerticalPadding paddingSize="large">

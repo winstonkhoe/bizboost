@@ -24,6 +24,7 @@ import FloatingOffer from '../components/chat/FloatingOffer';
 import {UserRole} from '../model/User';
 import {Offer} from '../model/Offer';
 import {useNavigation} from '@react-navigation/native';
+import {Pressable} from 'react-native';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -157,27 +158,30 @@ const ChatScreen = ({route}: Props) => {
 
         {/* Chat Messages */}
         <ScrollView
+          className={`offers ${offers && offers.length > 0 ? 'mt-16' : ''}`}
           ref={scrollViewRef}
           onContentSizeChange={() => {
             if (scrollViewRef.current) {
               scrollViewRef.current?.scrollToEnd({animated: true});
             }
           }}>
-          <View style={[flex.flexCol, gap.default]} className="py-3">
-            {chatMessages &&
-              chatMessages.map((message: Message, index: number) => (
-                <HorizontalPadding key={index} paddingSize="xsmall2">
-                  <View className="w-full px-3">
-                    <ChatBubble
-                      key={index}
-                      message={message.message}
-                      isSender={message.role === activeRole}
-                      type={message.type}
-                    />
-                  </View>
-                </HorizontalPadding>
-              ))}
-          </View>
+          <Pressable onPress={() => setIsWidgetVisible(false)}>
+            <View style={[flex.flexCol, gap.default]} className="py-3">
+              {chatMessages &&
+                chatMessages.map((message: Message, index: number) => (
+                  <HorizontalPadding key={index} paddingSize="xsmall2">
+                    <View className="w-full px-3">
+                      <ChatBubble
+                        key={index}
+                        message={message.message}
+                        isSender={message.role === activeRole}
+                        type={message.type}
+                      />
+                    </View>
+                  </HorizontalPadding>
+                ))}
+            </View>
+          </Pressable>
         </ScrollView>
 
         <View className="py-4 border-t-[0.5px]">

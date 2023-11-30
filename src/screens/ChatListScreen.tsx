@@ -75,7 +75,7 @@ const ChatListScreen = () => {
                                 chat.messages[chat.messages.length - 1]
                                   .createdAt || 0,
                               )
-                            : 'No timestamp available'}
+                            : ''}
                         </Text>
                       </View>
                     )}

@@ -186,35 +186,25 @@ export class Campaign extends BaseModel {
     userId: string,
   ): Promise<Campaign[]> {
     try {
-      const userRef = User.getDocumentReference(userId);
-
       // Get today's timestamp in milliseconds
       const todayTimestamp = new Date().getTime();
 
-      const campaigns = await this.getCampaignCollections()
-        .where('userId', '==', userRef)
-        .get();
+      const campaigns = await this.getUserCampaigns(userId);
 
-      if (campaigns.empty) {
-        throw Error('No Campaigns!');
-      }
+      const validCampaigns = campaigns.filter(campaign => {
+        if (campaign.timeline) {
+          const registrationStep = campaign.timeline.find(
+            step => step.step === CampaignStep.Registration,
+          );
 
-      const validCampaigns = campaigns.docs
-        .map(doc => this.fromSnapshot(doc))
-        .filter(campaign => {
-          if (campaign.timeline) {
-            const registrationStep = campaign.timeline.find(
-              step => step.step === CampaignStep.Registration,
-            );
-
-            return (
-              registrationStep &&
-              todayTimestamp >= registrationStep.start &&
-              todayTimestamp <= registrationStep.end
-            );
-          }
-          return false;
-        });
+          return (
+            registrationStep &&
+            todayTimestamp >= registrationStep.start &&
+            todayTimestamp <= registrationStep.end
+          );
+        }
+        return false;
+      });
 
       return validCampaigns;
     } catch (error) {

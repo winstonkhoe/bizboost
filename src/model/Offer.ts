@@ -19,7 +19,7 @@ export class Offer extends BaseModel {
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   offeredPrice?: number;
-  importantNotes?: string[];
+  importantNotes?: string;
   status?: OfferStatus;
   createdAt?: number;
 
@@ -51,7 +51,7 @@ export class Offer extends BaseModel {
       Campaign ID: ${this.campaignId}
       Business People ID: ${this.businessPeopleId}
       Offered Price: ${this.offeredPrice}
-      Important Notes: ${this.importantNotes?.join(', ') || 'N/A'}
+      Important Notes: ${this.importantNotes || ''}
       Status: ${this.status}
       Updated At: ${
         this.createdAt ? new Date(this.createdAt).toLocaleString() : 'N/A'
