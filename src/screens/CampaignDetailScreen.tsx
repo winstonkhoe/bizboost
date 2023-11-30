@@ -332,18 +332,15 @@ const CampaignDetailScreen = ({route}: Props) => {
               </View>
             )}
 
-            <View className="">
+            <View className="pb-2">
               <CustomButton
                 customBackgroundColor={COLOR.background.danger}
-                customTextColor={COLOR.text.neutral}
+                customTextColor={COLOR.text.danger}
                 type="secondary"
                 text="Complete Payment"
                 rounded="default"
                 onPress={() =>
-                  navigation.navigate(
-                    AuthenticatedNavigation.CampaignRegistrants,
-                    {campaignId: campaignId},
-                  )
+                  navigation.navigate(AuthenticatedNavigation.PayCampaign)
                 }
               />
             </View>

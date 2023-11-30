@@ -41,6 +41,7 @@ import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
 import TransactionDetailScreen from '../screens/TransactionDetailScreen';
+import PayCampaignScreen from '../screens/payment/PayCampaignScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -78,6 +79,7 @@ export enum AuthenticatedNavigation {
   SpecificExploreModal = 'Specific Explore Modal',
   MakeOffer = 'Make Offer',
   CampaignModal = 'Campaign Modal',
+  PayCampaign = 'Pay Campaign',
 }
 
 export enum GeneralNavigation {
@@ -136,6 +138,7 @@ export type AuthenticatedStack = {
     contentCreatorId: string;
     targetContentId?: string;
   };
+  [AuthenticatedNavigation.PayCampaign]: undefined;
 };
 
 interface LocationModalProps {
@@ -330,6 +333,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.SpecificExploreModal}
                   component={ModalSpecificExploreScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.PayCampaign}
+                  component={PayCampaignScreen}
                 />
               </Stack.Group>
             </Stack.Group>
