@@ -16,6 +16,7 @@ import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
 import {
   Campaign,
   CampaignStep,
+  CampaignTask,
   CampaignTimeline,
   campaignIndexMap,
 } from '../model/Campaign';
@@ -75,7 +76,8 @@ import {InternalLink} from '../components/atoms/Link';
 import FieldArray from '../components/organisms/FieldArray';
 import {FormProvider, useForm} from 'react-hook-form';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
-import {ArrowIcon, ChevronRight} from '../components/atoms/Icon';
+import {ArrowIcon, ChevronRight, PlatformIcon} from '../components/atoms/Icon';
+import {size} from '../styles/Size';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -396,10 +398,22 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   }, [isCampaignOwner, campaignId, uid]);
 
+  const taskToString = (task: CampaignTask) => {
+    return `${task.quantity} x ${task.name}${
+      task.type ? ` (${task.type})` : ''
+    }`;
+  };
+
   const navigateToDetail = (status: TransactionStatus) => {
     navigation.navigate(AuthenticatedNavigation.CampaignRegistrants, {
       campaignId: campaignId,
       initialTransactionStatusFilter: status,
+    });
+  };
+
+  const navigateToTransactionDetail = (transactionId: string) => {
+    navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+      transactionId: transactionId,
     });
   };
 
@@ -432,7 +446,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       flex.flexRow,
                       gap.medium,
                       items.center,
-                      padding.default,
                       (isCampaignOwner ||
                         transaction?.status ===
                           TransactionStatus.notRegistered) &&
@@ -559,12 +572,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     rounded.medium,
                     background(COLOR.black[0]),
                   ]}>
-                  <View
-                    style={[
-                      flex.flexCol,
-                      padding.default,
-                      styles.headerBorder,
-                    ]}>
+                  <View style={[flex.flexCol, styles.headerBorder]}>
                     <StepperLabel
                       timeline={campaignTimelineMap[CampaignStep.Brainstorming]}
                     />
@@ -640,11 +648,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                   <AnimatedPressable
                                     onPress={() => {
                                       if (t.transaction.id) {
-                                        navigation.navigate(
-                                          AuthenticatedNavigation.TransactionDetail,
-                                          {
-                                            transactionId: t.transaction.id,
-                                          },
+                                        navigateToTransactionDetail(
+                                          t.transaction.id,
                                         );
                                       }
                                     }}
@@ -825,50 +830,140 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     rounded.medium,
                     background(COLOR.black[0]),
                   ]}>
-                  <View
-                    style={[
-                      flex.flexCol,
-                      padding.default,
-                      styles.headerBorder,
-                    ]}>
+                  <View style={[flex.flexCol, styles.headerBorder]}>
                     <StepperLabel
                       timeline={
                         campaignTimelineMap[CampaignStep.ContentSubmission]
                       }
                     />
                   </View>
-                  {isCampaignOwner ? <></> : <></>}
-                  <View style={[flex.flexCol, gap.small, padding.default]}>
-                    <View style={[flex.flexRow, justify.between, items.center]}>
-                      <Text className="font-semibold" style={[font.size[30]]}>
-                        Revision needed!
-                      </Text>
-                      <Text style={[font.size[20]]}>
-                        Nov 19, 2023 16:20 WIB
-                      </Text>
+                  {!isCampaignOwner && (
+                    <View
+                      style={[
+                        flex.flexCol,
+                        gap.default,
+                        padding.vertical.default,
+                      ]}>
+                      <View style={[flex.flexCol, gap.xsmall]}>
+                        <View
+                          style={[
+                            flex.flexRow,
+                            justify.between,
+                            padding.horizontal.default,
+                          ]}>
+                          <Text
+                            className="font-semibold"
+                            style={[
+                              font.size[30],
+                              textColor(COLOR.text.neutral.high),
+                            ]}>
+                            Your task
+                          </Text>
+                          {transaction?.status &&
+                            transactionStatusCampaignStepMap[
+                              transaction?.status
+                            ] === CampaignStep.ContentSubmission &&
+                            transaction.contents &&
+                            transaction.contents.length > 0 && (
+                              <InternalLink
+                                text="View Submission"
+                                size={30}
+                                onPress={() => {
+                                  if (transaction.id) {
+                                    navigateToTransactionDetail(transaction.id);
+                                  }
+                                }}
+                              />
+                            )}
+                        </View>
+                        <View style={[flex.flexCol, gap.medium]}>
+                          {transaction?.platformTasks?.map(platform => (
+                            <View style={[flex.flexCol, gap.small]}>
+                              <View
+                                style={[
+                                  flex.flexRow,
+                                  padding.horizontal.default,
+                                  gap.xsmall,
+                                  items.center,
+                                ]}>
+                                <PlatformIcon platform={platform.name} />
+                                <Text
+                                  className="font-semibold"
+                                  style={[
+                                    font.size[20],
+                                    textColor(COLOR.text.neutral.med),
+                                  ]}>
+                                  {platform.name}
+                                </Text>
+                              </View>
+                              <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={[
+                                  flex.flexRow,
+                                  gap.small,
+                                  padding.horizontal.default,
+                                ]}>
+                                {platform.tasks.map(task => (
+                                  <View
+                                    style={[
+                                      flex.flexCol,
+                                      padding.small,
+                                      rounded.default,
+                                      border({
+                                        borderWidth: 0.7,
+                                        color: COLOR.black[30],
+                                      }),
+                                      {
+                                        maxWidth: size.xlarge11,
+                                      },
+                                    ]}>
+                                    <Text
+                                      style={[
+                                        font.size[20],
+                                        textColor(COLOR.text.neutral.high),
+                                      ]}>
+                                      {taskToString(task)}
+                                    </Text>
+                                    {task.description && (
+                                      <Text
+                                        style={[
+                                          font.size[20],
+                                          textColor(COLOR.text.neutral.med),
+                                        ]}>
+                                        {task.description}
+                                      </Text>
+                                    )}
+                                  </View>
+                                ))}
+                              </ScrollView>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                      {transaction?.status !==
+                        TransactionStatus.contentSubmitted &&
+                        transaction?.status !==
+                          TransactionStatus.contentApproved && (
+                          <View style={[padding.horizontal.default]}>
+                            <CustomButton
+                              text="Upload"
+                              onPress={() => {
+                                setIsContentSubmissionModalOpen(true);
+                              }}
+                            />
+                          </View>
+                        )}
                     </View>
-                    <Text>
-                      {`1. The introduction should have a brief explanation about the brand and also please make the transition between shots smoother.\n2. The audio quality is kinda bad, please provide caption for it`}
-                    </Text>
-                    <CustomButton
-                      text="Upload"
-                      onPress={() => {
-                        setIsContentSubmissionModalOpen(true);
-                      }}
-                    />
-                  </View>
+                  )}
+                  {isCampaignOwner ? <></> : <></>}
                 </View>
               )}
               {campaignTimelineMap?.[
                 CampaignStep.EngagementResultSubmission
               ] && (
                 <View style={[flex.flexCol, shadow.medium, rounded.medium]}>
-                  <View
-                    style={[
-                      flex.flexCol,
-                      padding.default,
-                      styles.headerBorder,
-                    ]}>
+                  <View style={[flex.flexCol, styles.headerBorder]}>
                     <StepperLabel
                       timeline={
                         campaignTimelineMap[
@@ -1031,7 +1126,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         overDragResistanceFactor={0}
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
-          title="Content Submission"
+          title={CampaignStep.ContentSubmission}
           type="modal"
           onPress={() => {
             setIsContentSubmissionModalOpen(false);
@@ -1050,7 +1145,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                             key={taskIndex}
                             style={[flex.flexRow, gap.medium, items.center]}>
                             <FieldArray
-                              title={`[${platform.name}] - ${task.quantity} x ${task.name}`}
+                              title={`${platform.name} · ${taskToString(task)}`}
                               description={task.description}
                               placeholder="Add url"
                               maxFieldLength={0}
@@ -1061,7 +1156,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                               rules={{
                                 required: 'URL is required',
                                 pattern: {
-                                  value: /^(http|https):\/\/[^ "]+$/i,
+                                  value: /^(http|https):\/\/[^ "]+$/,
                                   message: 'Invalid URL',
                                 },
                               }}
@@ -1108,7 +1203,7 @@ interface StepperLabelProps {
 
 const StepperLabel = ({timeline, children}: StepperLabelProps) => {
   return (
-    <View style={[flex.flex1, flex.flexCol, gap.medium]}>
+    <View style={[flex.flex1, flex.flexCol, gap.medium, padding.default]}>
       <View style={[flex.flexRow, justify.between]}>
         <Text
           className="font-semibold"
