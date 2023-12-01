@@ -6,7 +6,7 @@ const currencyFormat = (value: number | string) => {
   return '';
 };
 
-const formatToRupiah = (value: string | number) => {
+const formatToRupiah = (value: string | number = 0) => {
   const currency = typeof value === 'string' ? parseInt(value, 10) : value;
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
