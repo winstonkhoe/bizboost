@@ -218,7 +218,7 @@ export interface TransactionContent {
   tasks: ContentTask[];
 }
 
-interface Content {
+export interface Content {
   status: BasicStatus;
   content: TransactionContent[];
   createdAt: number;
