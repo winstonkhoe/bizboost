@@ -350,6 +350,7 @@ const CampaignDetailScreen = ({route}: Props) => {
       <PaymentSheetModal
         isModalOpened={isPaymentModalOpened}
         onModalDismiss={() => setIsPaymentModalOpened(false)}
+        amount={(campaign.fee || 0) * (campaign.slot || 0)}
       />
     </>
   );
