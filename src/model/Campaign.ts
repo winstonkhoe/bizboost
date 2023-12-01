@@ -65,6 +65,7 @@ export class Campaign extends BaseModel {
   timeline?: CampaignTimeline[];
   createdAt?: number;
   importantInformation?: string[];
+  paymentProofImage?: string;
 
   constructor({
     id,
@@ -82,6 +83,7 @@ export class Campaign extends BaseModel {
     timeline,
     createdAt,
     importantInformation,
+    paymentProofImage,
   }: Partial<Campaign>) {
     super();
     this.id = id;
@@ -99,6 +101,7 @@ export class Campaign extends BaseModel {
     this.timeline = timeline;
     this.createdAt = createdAt;
     this.importantInformation = importantInformation;
+    this.paymentProofImage = paymentProofImage;
   }
 
   private static fromSnapshot(
@@ -132,6 +135,7 @@ export class Campaign extends BaseModel {
         timeline: data.timeline,
         createdAt: data.createdAt?.seconds,
         importantInformation: data.importantInformation,
+        paymentProofImage: data.paymentProofImage,
       });
     }
 
@@ -219,21 +223,28 @@ export class Campaign extends BaseModel {
     throw Error('Error!');
   }
 
+  //todo: GATAU namanya yang bagus apa
+  toMapObject() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {id, ...rest} = this;
+    const data = {
+      ...rest,
+      userId: User.getDocumentReference(this.userId ?? ''),
+      locations: this.locations?.map(locId =>
+        Location.getDocumentReference(locId),
+      ),
+      categories: this.categories?.map(categoryId =>
+        Category.getDocumentReference(categoryId),
+      ),
+      createdAt: new Date().getTime(),
+    };
+
+    return data;
+  }
+
   async insert() {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const {id, ...rest} = this;
-      const data = {
-        ...rest,
-        userId: User.getDocumentReference(this.userId ?? ''),
-        locations: this.locations?.map(locId =>
-          Location.getDocumentReference(locId),
-        ),
-        categories: this.categories?.map(categoryId =>
-          Category.getDocumentReference(categoryId),
-        ),
-        createdAt: new Date().getTime(),
-      };
+      const data = this.toMapObject();
 
       await Campaign.getCollectionReference().add(data);
       return true;
@@ -241,6 +252,10 @@ export class Campaign extends BaseModel {
       console.log(error);
     }
     throw Error('Error!');
+  }
+
+  async update() {
+    Campaign.getDocumentReference(this.id || '').update(this.toMapObject());
   }
 
   getActiveTimeline(): CampaignTimeline {

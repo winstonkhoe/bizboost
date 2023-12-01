@@ -64,6 +64,7 @@ const CampaignDetailScreen = ({route}: Props) => {
   }, [campaignId]);
 
   useEffect(() => {
+    // TODO: bikin reactive deh
     Campaign.getById(campaignId).then(c => setCampaign(c));
   }, [campaignId]);
 
@@ -108,6 +109,15 @@ const CampaignDetailScreen = ({route}: Props) => {
       .finally(() => {
         setIsLoading(false);
       });
+  };
+
+  const onProofUploaded = (url: string) => {
+    console.log('url: ' + url);
+    const copy = new Campaign({...campaign});
+    copy.paymentProofImage = url;
+    copy.update().then(() => {
+      console.log('updated proof!');
+    });
   };
 
   if (!campaign) {
@@ -336,10 +346,22 @@ const CampaignDetailScreen = ({route}: Props) => {
 
             <View className="pb-2">
               <CustomButton
-                customBackgroundColor={COLOR.background.danger}
-                customTextColor={COLOR.text.danger}
+                customBackgroundColor={
+                  campaign.paymentProofImage
+                    ? COLOR.background.neutral
+                    : COLOR.background.danger
+                }
+                customTextColor={
+                  campaign.paymentProofImage
+                    ? COLOR.text.neutral
+                    : COLOR.text.danger
+                }
                 type="secondary"
-                text="Complete Payment"
+                text={
+                  campaign.paymentProofImage
+                    ? 'View Payment Proof'
+                    : 'Complete Payment'
+                }
                 rounded="default"
                 onPress={() => setIsPaymentModalOpened(true)}
               />
@@ -351,9 +373,7 @@ const CampaignDetailScreen = ({route}: Props) => {
         isModalOpened={isPaymentModalOpened}
         onModalDismiss={() => setIsPaymentModalOpened(false)}
         amount={(campaign.fee || 0) * (campaign.slot || 0)}
-        onProofUploaded={url => {
-          console.log('url: ' + url);
-        }}
+        onProofUploaded={onProofUploaded}
       />
     </>
   );
