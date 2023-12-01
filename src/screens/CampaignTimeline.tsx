@@ -78,6 +78,7 @@ import {FormProvider, useForm} from 'react-hook-form';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
 import {ArrowIcon, ChevronRight, PlatformIcon} from '../components/atoms/Icon';
 import {size} from '../styles/Size';
+import {campaignTaskToString} from '../utils/campaign';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -216,10 +217,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
       const transactionStatusIndex =
         transactionStatusIndexMap[transaction?.status];
       if (transactionStatusIndex >= 0) {
-        const campaignHaveBrainstorming =
-          campaign.timeline?.find(
-            timeline => CampaignStep.Brainstorming === timeline.step,
-          ) !== undefined;
+        const campaignHaveBrainstorming = campaign.isTimelineAvailable(
+          CampaignStep.Brainstorming,
+        );
         const indexOffset = !campaignHaveBrainstorming
           ? Math.abs(
               campaignIndexMap[CampaignStep.Brainstorming] -
@@ -397,12 +397,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
       return unsubscribe;
     }
   }, [isCampaignOwner, campaignId, uid]);
-
-  const taskToString = (task: CampaignTask) => {
-    return `${task.quantity} x ${task.name}${
-      task.type ? ` (${task.type})` : ''
-    }`;
-  };
 
   const navigateToDetail = (status: TransactionStatus) => {
     navigation.navigate(AuthenticatedNavigation.CampaignRegistrants, {
@@ -878,7 +872,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         </View>
                         <View style={[flex.flexCol, gap.medium]}>
                           {transaction?.platformTasks?.map(platform => (
-                            <View style={[flex.flexCol, gap.small]}>
+                            <View
+                              key={platform.name}
+                              style={[flex.flexCol, gap.small]}>
                               <View
                                 style={[
                                   flex.flexRow,
@@ -904,8 +900,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                   gap.small,
                                   padding.horizontal.default,
                                 ]}>
-                                {platform.tasks.map(task => (
+                                {platform.tasks.map((task, taskIndex) => (
                                   <View
+                                    key={taskIndex}
                                     style={[
                                       flex.flexCol,
                                       padding.small,
@@ -923,7 +920,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                         font.size[20],
                                         textColor(COLOR.text.neutral.high),
                                       ]}>
-                                      {taskToString(task)}
+                                      {campaignTaskToString(task)}
                                     </Text>
                                     {task.description && (
                                       <Text
@@ -1145,7 +1142,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                             key={taskIndex}
                             style={[flex.flexRow, gap.medium, items.center]}>
                             <FieldArray
-                              title={`${platform.name} · ${taskToString(task)}`}
+                              title={`${platform.name} · ${campaignTaskToString(
+                                task,
+                              )}`}
                               description={task.description}
                               placeholder="Add url"
                               maxFieldLength={0}
