@@ -351,6 +351,9 @@ const CampaignDetailScreen = ({route}: Props) => {
         isModalOpened={isPaymentModalOpened}
         onModalDismiss={() => setIsPaymentModalOpened(false)}
         amount={(campaign.fee || 0) * (campaign.slot || 0)}
+        onProofUploaded={url => {
+          console.log('url: ' + url);
+        }}
       />
     </>
   );
