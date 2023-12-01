@@ -32,6 +32,7 @@ import {LoadingScreen} from './LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import {dimension} from '../styles/Dimension';
+import PaymentSheetModal from '../components/molecules/PaymentSheetModal';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -39,6 +40,7 @@ type Props = NativeStackScreenProps<
 
 const CampaignDetailScreen = ({route}: Props) => {
   const {uid} = useUser();
+  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
@@ -255,9 +257,9 @@ const CampaignDetailScreen = ({route}: Props) => {
                   <Text className="font-semibold text-base pb-2">
                     Task Summary
                   </Text>
-                  {campaign.platforms && (
+                  {campaign.platformTasks && (
                     <View className="flex flex-col">
-                      {campaign.platforms.map((p, index) => (
+                      {campaign.platformTasks.map((p, index) => (
                         <CampaignPlatformAccordion platform={p} key={index} />
                       ))}
                     </View>
@@ -339,14 +341,16 @@ const CampaignDetailScreen = ({route}: Props) => {
                 type="secondary"
                 text="Complete Payment"
                 rounded="default"
-                onPress={() =>
-                  navigation.navigate(AuthenticatedNavigation.PayCampaign)
-                }
+                onPress={() => setIsPaymentModalOpened(true)}
               />
             </View>
           </View>
         </View>
       </PageWithBackButton>
+      <PaymentSheetModal
+        isModalOpened={isPaymentModalOpened}
+        onModalDismiss={() => setIsPaymentModalOpened(false)}
+      />
     </>
   );
 };

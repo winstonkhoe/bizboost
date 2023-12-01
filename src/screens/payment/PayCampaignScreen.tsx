@@ -9,6 +9,7 @@ import {Text} from 'react-native';
 import {View} from 'react-native';
 
 const PayCampaignScreen = () => {
+  const onProofUploaded = (url: string) => {};
   return (
     <SafeAreaContainer enable>
       <CloseModal />
