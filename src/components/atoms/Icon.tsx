@@ -11,6 +11,8 @@ import Animated, {
 import {useEffect} from 'react';
 import InstagramMono from '../../assets/vectors/instagram-mono.svg';
 import TiktokMono from '../../assets/vectors/tiktok-mono.svg';
+import Copy from '../../assets/vectors/copy.svg';
+import Open from '../../assets/vectors/open.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path} from 'react-native-svg';
 
@@ -142,7 +144,7 @@ export const ChevronRight = ({
     <Svg
       width={dimension}
       height={dimension}
-      viewBox={`0 0 ${dimension} ${dimension}`}>
+      viewBox={`0 0 ${dimension * 0.7} ${dimension}`}>
       <Path
         d={`M ${dimension * 0.2} ${dimension * 0.2} L ${dimension * 0.5} ${
           dimension * 0.5
@@ -179,4 +181,18 @@ export const ArrowIcon = ({
       />
     </Svg>
   );
+};
+
+export const CopyIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  return <Copy width={size[sizeType]} height={size[sizeType]} color={color} />;
+};
+
+export const OpenIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  return <Open width={size[sizeType]} height={size[sizeType]} color={color} />;
 };
