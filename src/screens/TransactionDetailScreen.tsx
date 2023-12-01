@@ -7,7 +7,7 @@ import {
 } from '../navigation/StackNavigation';
 import {StyleSheet, Text, useWindowDimensions} from 'react-native';
 import {View} from 'react-native';
-import {Campaign} from '../model/Campaign';
+import {Campaign, CampaignStep} from '../model/Campaign';
 import {
   formatDateToDayMonthYearHourMinute,
   formatDateToHourMinute,
@@ -15,8 +15,11 @@ import {
 import {CustomButton} from '../components/atoms/Button';
 import {useUser} from '../hooks/user';
 import {
+  BasicStatus,
+  Content,
   Transaction,
   TransactionStatus,
+  basicStatusTypeMap,
   transactionStatusTypeMap,
 } from '../model/Transaction';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
@@ -41,7 +44,12 @@ import StatusTag, {StatusType} from '../components/atoms/StatusTag';
 import {ScrollView} from 'react-native-gesture-handler';
 import {Label} from '../components/atoms/Label';
 import {PlatformData} from './signup/RegisterSocialPlatform';
-import {ChevronRight, PlatformIcon} from '../components/atoms/Icon';
+import {
+  ChevronRight,
+  CopyIcon,
+  OpenIcon,
+  PlatformIcon,
+} from '../components/atoms/Icon';
 import {formatNumberWithThousandSeparator} from '../utils/number';
 import {CustomModal} from '../components/atoms/CustomModal';
 import {SheetModal} from '../containers/SheetModal';
@@ -49,6 +57,18 @@ import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModa
 import {FormFieldHelper} from '../components/atoms/FormLabel';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {FormlessCustomTextInput} from '../components/atoms/Input';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
+import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
+import {formatToRupiah} from '../utils/currency';
+import {campaignTaskToString} from '../utils/campaign';
+import {ModalWebView} from './modals/ModalWebView';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -75,6 +95,7 @@ const TransactionDetailScreen = ({route}: Props) => {
   const [rejectReason, setRejectReason] = useState<string>('');
   const [campaign, setCampaign] = useState<Campaign>();
   const [transaction, setTransaction] = useState<Transaction>();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [isLoading, setIsLoading] = useState(false);
   const isCampaignOwner = useMemo(() => {
@@ -95,6 +116,9 @@ const TransactionDetailScreen = ({route}: Props) => {
     if (transaction?.contentCreatorId) {
       User.getById(transaction?.contentCreatorId).then(setContentCreator);
     }
+    if (transaction?.businessPeopleId) {
+      User.getById(transaction?.businessPeopleId).then(setBusinessPeople);
+    }
   }, [transaction]);
 
   const handleApprove = () => {
@@ -109,6 +133,16 @@ const TransactionDetailScreen = ({route}: Props) => {
             setIsLoading(false);
           });
       }
+      if (TransactionStatus.contentSubmitted === transaction.status) {
+        setIsConfirmModalOpen(false);
+        setIsLoading(true);
+        transaction
+          .approveContent()
+          .catch(err => console.log(err))
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
     }
   };
 
@@ -118,6 +152,18 @@ const TransactionDetailScreen = ({route}: Props) => {
         setIsLoading(true);
         transaction
           .rejectBrainstorm(rejectReason)
+          .then(() => {
+            setIsRejectSheetModalOpen(false);
+          })
+          .catch(err => console.log(err))
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
+      if (TransactionStatus.contentSubmitted === transaction.status) {
+        setIsLoading(true);
+        transaction
+          .rejectContent(rejectReason)
           .then(() => {
             setIsRejectSheetModalOpen(false);
           })
@@ -161,11 +207,13 @@ const TransactionDetailScreen = ({route}: Props) => {
         }>
         <ScrollView
           bounces={true}
+          showsVerticalScrollIndicator={false}
           alwaysBounceVertical
           style={[flex.flex1]}
           contentContainerStyle={[
             flex.flexCol,
             {paddingTop: safeAreaInsets.top + size.xlarge3},
+            {paddingBottom: Math.max(safeAreaInsets.bottom, size.default)},
             gap.default,
           ]}>
           <View style={[padding.default, flex.flexCol, gap.default]}>
@@ -206,253 +254,61 @@ const TransactionDetailScreen = ({route}: Props) => {
             )}
           </View>
           {!isCampaignOwner && (
-            <>
-              <Seperator />
-              <View style={[flex.flexCol, padding.default, gap.default]}>
-                <Text
-                  className="font-bold"
-                  style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                  Campaign Detail
-                </Text>
-                <View
-                  style={[
-                    flex.flexCol,
-                    padding.default,
-                    rounded.default,
-                    border({
-                      borderWidth: 1,
-                      color: COLOR.black[20],
-                    }),
-                  ]}>
-                  <View style={[flex.flexRow, gap.small]}>
-                    <View
-                      className="overflow-hidden"
-                      style={[dimension.square.xlarge3, rounded.default]}>
-                      <FastImage
-                        source={{uri: campaign.image}}
-                        style={[dimension.full]}
-                      />
-                    </View>
-                    <Text
-                      className="font-medium"
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={2}>
-                      {campaign.title}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </>
+            <CampaignDetailSection
+              businessPeople={businessPeople}
+              campaign={campaign}
+            />
           )}
           {isCampaignOwner && (
-            <>
-              <Seperator />
-              <View style={[flex.flexCol, padding.default, gap.default]}>
-                <View style={[flex.flexRow, gap.xlarge, justify.between]}>
-                  <Text
-                    className="font-bold"
-                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                    Content Creator Detail
-                  </Text>
-                  <View
-                    style={[
-                      flex.flex1,
-                      flex.flexRow,
-                      justify.end,
-                      items.center,
-                      gap.xsmall,
-                    ]}>
-                    <View
-                      className="overflow-hidden"
-                      style={[dimension.square.large, rounded.default]}>
-                      <FastImage
-                        source={{
-                          uri: contentCreator?.contentCreator?.profilePicture,
-                        }}
-                        style={[dimension.full]}
-                      />
-                    </View>
-                    <Text
-                      className="font-medium"
-                      style={[
-                        font.size[20],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      {contentCreator?.contentCreator?.fullname}
-                    </Text>
-                    <ChevronRight size="large" color={COLOR.text.neutral.med} />
-                  </View>
-                </View>
-                <View
-                  style={[
-                    flex.flexCol,
-                    gap.default,
-                    padding.default,
-                    rounded.default,
-                    border({
-                      borderWidth: 1,
-                      color: COLOR.black[20],
-                    }),
-                  ]}>
-                  <View style={[flex.flexCol, gap.default]}>
-                    <View style={[flex.flexCol, gap.xsmall]}>
-                      <Text
-                        className="font-medium"
-                        style={[
-                          font.size[20],
-                          textColor(COLOR.text.neutral.high),
-                        ]}>
-                        Specialized categories
-                      </Text>
-                      <View style={[flex.flexRow, flex.wrap, gap.xsmall]}>
-                        {contentCreator?.contentCreator?.specializedCategoryIds
-                          ?.slice(0, 3)
-                          .map(categoryId => (
-                            <Label
-                              radius="small"
-                              key={categoryId}
-                              text={categoryId}
-                            />
-                          ))}
-                      </View>
-                    </View>
-                    <View style={[flex.flexCol, gap.xsmall]}>
-                      <Text
-                        className="font-medium"
-                        style={[
-                          font.size[20],
-                          textColor(COLOR.text.neutral.high),
-                        ]}>
-                        Usual posting schedules
-                      </Text>
-                      <View style={[flex.flexRow, flex.wrap, gap.xsmall]}>
-                        {contentCreator?.contentCreator?.postingSchedules
-                          ?.slice(0, 3)
-                          .map(postingSchedule => (
-                            <Label
-                              radius="small"
-                              key={postingSchedule}
-                              text={formatDateToHourMinute(
-                                new Date(postingSchedule),
-                              )}
-                            />
-                          ))}
-                      </View>
-                    </View>
-                  </View>
-                  {(contentCreator?.instagram || contentCreator?.tiktok) && (
-                    <>
-                      <View style={[styles.bottomBorder]} />
-                      <View
-                        style={[
-                          flex.flexRow,
-                          flex.wrap,
-                          gap.small,
-                          justify.around,
-                        ]}>
-                        {contentCreator?.instagram && (
-                          <SocialDetail
-                            platformData={{
-                              platform: SocialPlatform.Instagram,
-                              data: contentCreator?.instagram,
-                            }}
-                          />
-                        )}
-                        {contentCreator?.tiktok && (
-                          <SocialDetail
-                            platformData={{
-                              platform: SocialPlatform.Tiktok,
-                              data: contentCreator?.tiktok,
-                            }}
-                          />
-                        )}
-                      </View>
-                    </>
-                  )}
-                </View>
-              </View>
-            </>
+            <ContentCreatorDetailSection contentCreator={contentCreator} />
           )}
-          {transaction.status === TransactionStatus.brainstormSubmitted && (
-            <>
-              <Seperator />
-              <View style={[flex.flexCol, padding.default, gap.medium]}>
-                <View style={[flex.flexRow, gap.default, items.center]}>
-                  <Text
-                    className="font-semibold"
-                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                    Brainstorm
-                  </Text>
-                  <StatusTag
-                    status="Review needed"
-                    statusType={StatusType.warning}
-                  />
-                </View>
-                <View
-                  style={[
-                    flex.flexCol,
-                    gap.default,
-                    border({
-                      borderWidth: 1,
-                      color: COLOR.black[20],
-                    }),
-                    padding.default,
-                    rounded.default,
-                  ]}>
-                  <Text
-                    style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                    {formatDateToDayMonthYearHourMinute(
-                      new Date(transaction?.getLatestBrainstorm()!!.createdAt),
-                    )}
-                  </Text>
-                  <Text
-                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-                    {transaction?.getLatestBrainstorm()?.content}
-                  </Text>
-                </View>
-              </View>
-            </>
+          {campaign.isTimelineAvailable(CampaignStep.Brainstorming) && (
+            <BrainstormDetailSection transaction={transaction} />
           )}
+          <ContentSubmissionDetailSection
+            transaction={transaction}
+            isCampaignOwner={isCampaignOwner}
+          />
         </ScrollView>
-        {isCampaignOwner && (
-          <View
-            style={[
-              flex.flexRow,
-              gap.default,
-              padding.horizontal.medium,
-              padding.top.default,
-              {
-                paddingBottom: Math.max(safeAreaInsets.bottom, size.medium),
-              },
-              styles.topBorder,
-            ]}>
-            <View style={[flex.flex1]}>
-              <CustomButton
-                text="Reject"
-                type="tertiary"
-                customTextColor={{
-                  default: COLOR.text.danger.default,
-                  disabled: COLOR.red[10],
-                }}
-                onPress={() => {
-                  setIsRejectSheetModalOpen(true);
-                }}
-              />
+        {isCampaignOwner &&
+          [
+            TransactionStatus.brainstormSubmitted,
+            TransactionStatus.contentSubmitted,
+          ].find(status => transaction.status === status) && (
+            <View
+              style={[
+                flex.flexRow,
+                gap.default,
+                padding.horizontal.medium,
+                padding.top.default,
+                {
+                  paddingBottom: Math.max(safeAreaInsets.bottom, size.medium),
+                },
+                styles.topBorder,
+              ]}>
+              <View style={[flex.flex1]}>
+                <CustomButton
+                  text="Reject"
+                  type="tertiary"
+                  customTextColor={{
+                    default: COLOR.text.danger.default,
+                    disabled: COLOR.red[10],
+                  }}
+                  onPress={() => {
+                    setIsRejectSheetModalOpen(true);
+                  }}
+                />
+              </View>
+              <View style={[flex.flex1]}>
+                <CustomButton
+                  text="Approve"
+                  onPress={() => {
+                    setIsConfirmModalOpen(true);
+                  }}
+                />
+              </View>
             </View>
-            <View style={[flex.flex1]}>
-              <CustomButton
-                text="Approve"
-                onPress={() => {
-                  setIsConfirmModalOpen(true);
-                }}
-              />
-            </View>
-          </View>
-        )}
+          )}
       </PageWithBackButton>
       <SheetModal
         open={isRejectSheetModalOpen}
@@ -595,9 +451,545 @@ const SocialDetail = ({platformData}: SocialDetailProps) => {
   );
 };
 
-const ContentCreatorPage = () => {};
+interface ContentCreatorDetailSectionProps {
+  contentCreator?: User | null;
+}
 
-const BusinessPeoplePage = () => {};
+const ContentCreatorDetailSection = ({
+  ...props
+}: ContentCreatorDetailSectionProps) => {
+  return (
+    <>
+      <Seperator />
+      <View style={[flex.flexCol, padding.default, gap.default]}>
+        <View style={[flex.flexRow, gap.xlarge, justify.between]}>
+          <Text
+            className="font-bold"
+            style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+            Content Creator Detail
+          </Text>
+          <View
+            style={[
+              flex.flex1,
+              flex.flexRow,
+              justify.end,
+              items.center,
+              gap.xsmall,
+            ]}>
+            <View
+              className="overflow-hidden"
+              style={[dimension.square.large, rounded.default]}>
+              <FastImage
+                source={{
+                  uri: props.contentCreator?.contentCreator?.profilePicture,
+                }}
+                style={[dimension.full]}
+              />
+            </View>
+            <Text
+              className="font-medium"
+              style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+              numberOfLines={1}>
+              {props.contentCreator?.contentCreator?.fullname}
+            </Text>
+            <ChevronRight size="large" color={COLOR.text.neutral.med} />
+          </View>
+        </View>
+        <View
+          style={[
+            flex.flexCol,
+            gap.default,
+            padding.default,
+            rounded.default,
+            border({
+              borderWidth: 1,
+              color: COLOR.black[20],
+            }),
+          ]}>
+          <View style={[flex.flexCol, gap.default]}>
+            <View style={[flex.flexCol, gap.xsmall]}>
+              <Text
+                className="font-medium"
+                style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                Specialized categories
+              </Text>
+              <View style={[flex.flexRow, flex.wrap, gap.xsmall]}>
+                {props.contentCreator?.contentCreator?.specializedCategoryIds
+                  ?.slice(0, 3)
+                  .map(categoryId => (
+                    <Label radius="small" key={categoryId} text={categoryId} />
+                  ))}
+              </View>
+            </View>
+            <View style={[flex.flexCol, gap.xsmall]}>
+              <Text
+                className="font-medium"
+                style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                Usual posting schedules
+              </Text>
+              <View style={[flex.flexRow, flex.wrap, gap.xsmall]}>
+                {props.contentCreator?.contentCreator?.postingSchedules
+                  ?.slice(0, 3)
+                  .map(postingSchedule => (
+                    <Label
+                      radius="small"
+                      key={postingSchedule}
+                      text={formatDateToHourMinute(new Date(postingSchedule))}
+                    />
+                  ))}
+              </View>
+            </View>
+          </View>
+          {(props.contentCreator?.instagram ||
+            props.contentCreator?.tiktok) && (
+            <>
+              <View style={[styles.bottomBorder]} />
+              <View
+                style={[flex.flexRow, flex.wrap, gap.small, justify.around]}>
+                {props.contentCreator?.instagram && (
+                  <SocialDetail
+                    platformData={{
+                      platform: SocialPlatform.Instagram,
+                      data: props.contentCreator?.instagram,
+                    }}
+                  />
+                )}
+                {props.contentCreator?.tiktok && (
+                  <SocialDetail
+                    platformData={{
+                      platform: SocialPlatform.Tiktok,
+                      data: props.contentCreator?.tiktok,
+                    }}
+                  />
+                )}
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+    </>
+  );
+};
+
+interface CampaignDetailSectionProps {
+  businessPeople?: User | null;
+  transaction?: Transaction;
+  campaign: Campaign;
+}
+
+const CampaignDetailSection = ({...props}: CampaignDetailSectionProps) => {
+  const navigation = useNavigation<NavigationStackProps>();
+  // TODO: fee should use transaction fee rather than campaign fee/price
+  // TODO: show transaction important notes for private campaign
+  return (
+    <>
+      <Seperator />
+      <View style={[flex.flexCol, padding.default, gap.default]}>
+        <View style={[flex.flexRow, gap.xlarge, justify.between]}>
+          <View style={[flex.flexCol]}>
+            <Text
+              className="font-bold"
+              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+              Campaign Detail
+            </Text>
+
+            <Text
+              style={[font.size[30], textColor(COLOR.text.neutral.med)]}
+              numberOfLines={1}>
+              {props.campaign.type}
+            </Text>
+          </View>
+          <AnimatedPressable
+            scale={0.9}
+            style={[
+              flex.flex1,
+              flex.flexRow,
+              justify.end,
+              items.center,
+              gap.small,
+            ]}
+            onPress={() => {
+              if (props.businessPeople?.id) {
+                navigation.navigate(
+                  AuthenticatedNavigation.BusinessPeopleDetail,
+                  {
+                    businessPeopleId: props.businessPeople?.id,
+                  },
+                );
+              }
+            }}>
+            <View
+              className="overflow-hidden"
+              style={[dimension.square.large, rounded.default]}>
+              <FastImage
+                source={getSourceOrDefaultAvatar({
+                  uri: props.businessPeople?.businessPeople?.profilePicture,
+                })}
+                style={[dimension.full]}
+              />
+            </View>
+            <Text
+              className="font-medium"
+              style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+              numberOfLines={1}>
+              {props.businessPeople?.businessPeople?.fullname}
+            </Text>
+            <ChevronRight size="large" color={COLOR.text.neutral.med} />
+          </AnimatedPressable>
+        </View>
+        <AnimatedPressable
+          style={[
+            flex.flexCol,
+            padding.default,
+            rounded.default,
+            border({
+              borderWidth: 1,
+              color: COLOR.black[20],
+            }),
+          ]}
+          onPress={() => {
+            if (props.campaign.id) {
+              navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
+                campaignId: props.campaign.id,
+              });
+            }
+          }}>
+          <View style={[flex.flexRow, gap.small]}>
+            <View
+              className="overflow-hidden"
+              style={[dimension.square.xlarge3, rounded.default]}>
+              <FastImage
+                source={{uri: props.campaign.image}}
+                style={[dimension.full]}
+              />
+            </View>
+            <View style={[flex.flexCol]}>
+              <Text
+                className="font-medium"
+                style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+                numberOfLines={2}>
+                {props.campaign.title}
+              </Text>
+              <Text
+                className="font-semibold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}
+                numberOfLines={1}>
+                {formatToRupiah(props.campaign.fee)}
+              </Text>
+            </View>
+          </View>
+        </AnimatedPressable>
+      </View>
+    </>
+  );
+};
+
+interface BrainstormDetailSectionProps {
+  transaction: Transaction;
+}
+
+const BrainstormDetailSection = ({...props}: BrainstormDetailSectionProps) => {
+  return (
+    <>
+      <Seperator />
+      <View style={[flex.flexCol, padding.default, gap.medium]}>
+        <View style={[flex.flexRow, gap.default, items.center]}>
+          <Text
+            className="font-semibold"
+            style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+            {CampaignStep.Brainstorming}
+          </Text>
+          {TransactionStatus.brainstormSubmitted ===
+            props.transaction.status && (
+            <StatusTag status="Review needed" statusType={StatusType.warning} />
+          )}
+        </View>
+        <View
+          style={[
+            flex.flexCol,
+            gap.default,
+            border({
+              borderWidth: 1,
+              color: COLOR.black[20],
+            }),
+            padding.default,
+            rounded.default,
+          ]}>
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+            {formatDateToDayMonthYearHourMinute(
+              new Date(props.transaction?.getLatestBrainstorm()!!.createdAt),
+            )}
+          </Text>
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+            {props.transaction?.getLatestBrainstorm()?.content}
+          </Text>
+        </View>
+      </View>
+    </>
+  );
+};
+
+interface ContentSubmissionDetailSectionProps {
+  transaction: Transaction;
+  isCampaignOwner: boolean;
+}
+
+const ContentSubmissionDetailSection = ({
+  ...props
+}: ContentSubmissionDetailSectionProps) => {
+  const sortedContents = useMemo(
+    () =>
+      props.transaction.contents?.sort((a, b) => b.createdAt - a.createdAt) ||
+      [],
+    [props.transaction],
+  );
+  const [isSeeMore, setIsSeeMore] = useState(false);
+  const seeMoreValue = useSharedValue(0);
+  const chevronStyle = useAnimatedStyle(() => {
+    const rotation = interpolate(seeMoreValue.value, [0, 1], [90, -90]);
+    return {
+      transform: [
+        {
+          rotate: `${rotation}deg`,
+        },
+      ],
+    };
+  });
+  useEffect(() => {
+    seeMoreValue.value = withTiming(isSeeMore ? 1 : 0, {
+      duration: 300,
+    });
+  }, [isSeeMore, seeMoreValue]);
+  return (
+    <>
+      <Seperator />
+      <View style={[flex.flexCol, padding.default, gap.medium]}>
+        <View
+          style={[flex.flexRow, gap.default, items.center, justify.between]}>
+          <View style={[flex.flexCol]}>
+            <Text
+              className="font-semibold"
+              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              {CampaignStep.ContentSubmission}
+            </Text>
+            <Text
+              style={[font.size[20], textColor(COLOR.text.neutral.med)]}>{`${
+              (props.transaction?.contentRevisionLimit || 0) -
+              (props.transaction.contents
+                ? props.transaction.contents.filter(
+                    c => c.status === BasicStatus.rejected,
+                  ).length
+                : 0)
+            } remaining revision`}</Text>
+          </View>
+          {TransactionStatus.contentSubmitted === props.transaction.status && (
+            <StatusTag status="Review needed" statusType={StatusType.warning} />
+          )}
+          {/* TODO: update status based on transaction status  */}
+        </View>
+        <View style={[flex.flexCol, gap.default, rounded.default]}>
+          {sortedContents.slice(0, 1).map((c, cIndex) => (
+            <ContentSubmissionCard
+              key={cIndex}
+              transaction={props.transaction}
+              content={c}
+            />
+          ))}
+        </View>
+        {sortedContents.length > 1 && (
+          <View style={[flex.flexCol, gap.large]}>
+            <View
+              className="overflow-hidden"
+              style={[
+                !isSeeMore && {
+                  maxHeight: 0,
+                },
+              ]}>
+              {sortedContents.slice(1).map((c, cIndex) => (
+                <ContentSubmissionCard
+                  key={cIndex}
+                  transaction={props.transaction}
+                  content={c}
+                />
+              ))}
+            </View>
+            <AnimatedPressable
+              style={[flex.flexRow, items.center, justify.center, gap.small]}
+              onPress={() => {
+                setIsSeeMore(!isSeeMore);
+              }}>
+              <Text
+                className="font-semibold"
+                style={[font.size[30], textColor(COLOR.text.green.default)]}>
+                {!isSeeMore
+                  ? `Show ${sortedContents.length - 1} more`
+                  : 'Show less'}
+              </Text>
+              <Animated.View
+                style={[
+                  flex.flexRow,
+                  justify.center,
+                  items.start,
+                  chevronStyle,
+                ]}>
+                <ChevronRight size="medium" color={COLOR.text.green.default} />
+              </Animated.View>
+            </AnimatedPressable>
+          </View>
+        )}
+      </View>
+    </>
+  );
+};
+
+interface ContentSubmissionCardProps {
+  transaction: Transaction;
+  content: Content;
+}
+
+const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
+  const [activeUri, setActiveUri] = useState<string>('');
+  return (
+    <>
+      <ModalWebView
+        url={activeUri}
+        visible={activeUri !== ''}
+        onClose={() => {
+          setActiveUri('');
+        }}
+      />
+      <View
+        style={[
+          flex.flexCol,
+          padding.default,
+          gap.default,
+          rounded.medium,
+          border({
+            borderWidth: 1,
+            color: COLOR.black[20],
+          }),
+        ]}>
+        <View style={[flex.flexRow, justify.between, items.center]}>
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+            {formatDateToDayMonthYearHourMinute(
+              new Date(props.content.createdAt),
+            )}
+          </Text>
+          <StatusTag
+            status={props.content.status}
+            statusType={basicStatusTypeMap[props.content.status]}
+          />
+        </View>
+        <View style={[flex.flexCol, gap.medium]}>
+          {props.content.content.map((transactionContent, platformIndex) => (
+            <View
+              key={transactionContent.platform}
+              style={[flex.flexCol, gap.xsmall]}>
+              <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                <PlatformIcon platform={transactionContent.platform} />
+                <Text
+                  className="font-semibold"
+                  style={[font.size[30], textColor(COLOR.text.neutral.med)]}>
+                  {transactionContent.platform}
+                </Text>
+              </View>
+              <View style={[flex.flexCol, gap.small]}>
+                {transactionContent.tasks.map((task, taskIndex) => {
+                  const transactionTask =
+                    props.transaction.platformTasks?.[platformIndex].tasks[
+                      taskIndex
+                    ];
+                  return (
+                    <View key={taskIndex} style={[flex.flexCol, gap.small]}>
+                      {transactionTask && (
+                        <Text
+                          className="font-medium"
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>
+                          {campaignTaskToString(transactionTask)}
+                        </Text>
+                      )}
+                      {task.uri.map((taskUri, taskUriIndex) => (
+                        <View
+                          key={taskUriIndex}
+                          style={[flex.flexRow, items.center, gap.default]}>
+                          <View style={[flex.flex1]}>
+                            <AnimatedPressable
+                              scale={0.95}
+                              style={[
+                                flex.flex1,
+                                flex.flexRow,
+                                items.center,
+                                padding.small,
+                                rounded.default,
+                                background(COLOR.black[5]),
+                              ]}
+                              onPress={() => {
+                                setActiveUri(taskUri);
+                              }}>
+                              <Text
+                                className="font-bold"
+                                style={[
+                                  flex.flex1,
+                                  font.size[20],
+                                  textColor(COLOR.black[60]),
+                                ]}
+                                numberOfLines={1}>
+                                {taskUri}
+                              </Text>
+                              <OpenIcon size="medium" />
+                            </AnimatedPressable>
+                          </View>
+                          <AnimatedPressable
+                            scale={0.9}
+                            style={[
+                              padding.small,
+                              rounded.default,
+                              border({
+                                borderWidth: 1,
+                                color: COLOR.black[25],
+                              }),
+                            ]}
+                            onPress={() => {
+                              Clipboard.setString(taskUri);
+                              // TODO: if possible add toast after set is successful
+                            }}>
+                            <CopyIcon size="medium" color={COLOR.black[25]} />
+                          </AnimatedPressable>
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+          {props.content.rejectReason && (
+            <View
+              style={[
+                flex.flexCol,
+                gap.small,
+                padding.default,
+                background(COLOR.red[5]),
+                rounded.small,
+              ]}>
+              <Text
+                className="font-bold"
+                style={[font.size[20], textColor(COLOR.red[60])]}>
+                Reject reason
+              </Text>
+              <Text style={[font.size[20], textColor(COLOR.red[60])]}>
+                {props.content.rejectReason}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </>
+  );
+};
 
 const styles = StyleSheet.create({
   topBorder: {
