@@ -250,6 +250,8 @@ export class Transaction extends BaseModel {
     offeredPrice,
     importantNotes,
     brainstorms,
+    contents,
+    engagements,
     status,
     createdAt,
     updatedAt,
@@ -268,6 +270,8 @@ export class Transaction extends BaseModel {
     this.offeredPrice = offeredPrice;
     this.importantNotes = importantNotes;
     this.brainstorms = brainstorms;
+    this.contents = contents;
+    this.engagements = engagements;
     this.status = status;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
