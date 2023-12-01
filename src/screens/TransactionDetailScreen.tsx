@@ -418,39 +418,41 @@ const TransactionDetailScreen = ({route}: Props) => {
             </>
           )}
         </ScrollView>
-        <View
-          style={[
-            flex.flexRow,
-            gap.default,
-            padding.horizontal.medium,
-            padding.top.default,
-            {
-              paddingBottom: Math.max(safeAreaInsets.bottom, size.medium),
-            },
-            styles.topBorder,
-          ]}>
-          <View style={[flex.flex1]}>
-            <CustomButton
-              text="Reject"
-              type="tertiary"
-              customTextColor={{
-                default: COLOR.text.danger.default,
-                disabled: COLOR.red[10],
-              }}
-              onPress={() => {
-                setIsRejectSheetModalOpen(true);
-              }}
-            />
+        {isCampaignOwner && (
+          <View
+            style={[
+              flex.flexRow,
+              gap.default,
+              padding.horizontal.medium,
+              padding.top.default,
+              {
+                paddingBottom: Math.max(safeAreaInsets.bottom, size.medium),
+              },
+              styles.topBorder,
+            ]}>
+            <View style={[flex.flex1]}>
+              <CustomButton
+                text="Reject"
+                type="tertiary"
+                customTextColor={{
+                  default: COLOR.text.danger.default,
+                  disabled: COLOR.red[10],
+                }}
+                onPress={() => {
+                  setIsRejectSheetModalOpen(true);
+                }}
+              />
+            </View>
+            <View style={[flex.flex1]}>
+              <CustomButton
+                text="Approve"
+                onPress={() => {
+                  setIsConfirmModalOpen(true);
+                }}
+              />
+            </View>
           </View>
-          <View style={[flex.flex1]}>
-            <CustomButton
-              text="Approve"
-              onPress={() => {
-                setIsConfirmModalOpen(true);
-              }}
-            />
-          </View>
-        </View>
+        )}
       </PageWithBackButton>
       <SheetModal
         open={isRejectSheetModalOpen}
