@@ -260,4 +260,10 @@ export class Campaign extends BaseModel {
       timeline => CampaignStep.EngagementResultSubmission === timeline.step,
     )!!;
   }
+
+  isTimelineAvailable(step: CampaignStep): boolean {
+    return (
+      this.timeline?.find(timeline => step === timeline.step) !== undefined
+    );
+  }
 }
