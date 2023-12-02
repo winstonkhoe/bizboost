@@ -11,6 +11,8 @@ import Animated, {
 import {useEffect} from 'react';
 import InstagramMono from '../../assets/vectors/instagram-mono.svg';
 import TiktokMono from '../../assets/vectors/tiktok-mono.svg';
+import Copy from '../../assets/vectors/copy.svg';
+import Open from '../../assets/vectors/open.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path} from 'react-native-svg';
 
@@ -133,7 +135,7 @@ export const PlatformIcon = ({platform, ...props}: PlatformIconProps) => {
   }
 };
 
-const ChevronRight = ({
+export const ChevronRight = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
 }: IconProps) => {
@@ -142,7 +144,7 @@ const ChevronRight = ({
     <Svg
       width={dimension}
       height={dimension}
-      viewBox={`0 0 ${dimension} ${dimension}`}>
+      viewBox={`0 0 ${dimension * 0.7} ${dimension}`}>
       <Path
         d={`M ${dimension * 0.2} ${dimension * 0.2} L ${dimension * 0.5} ${
           dimension * 0.5
@@ -155,4 +157,42 @@ const ChevronRight = ({
   );
 };
 
-export default ChevronRight;
+interface IconArrowProps extends IconProps {
+  type?: 'default' | 'singleSided';
+}
+
+export const ArrowIcon = ({
+  type = 'default',
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconArrowProps) => {
+  const dimension = size[sizeType];
+  return (
+    <Svg
+      height={dimension}
+      width={dimension}
+      viewBox={`0 0 ${dimension * 2} ${dimension * 2}`}>
+      <Path
+        d={`M0 12L22 12M15 5l7 7-${type === 'default' ? 7 : 99999} 7`}
+        stroke={color}
+        fill="transparent"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+};
+
+export const CopyIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  return <Copy width={size[sizeType]} height={size[sizeType]} color={color} />;
+};
+
+export const OpenIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  return <Open width={size[sizeType]} height={size[sizeType]} color={color} />;
+};

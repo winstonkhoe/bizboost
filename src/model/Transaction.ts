@@ -11,6 +11,7 @@ import {
 } from './Campaign';
 import {StatusType} from '../components/atoms/StatusTag';
 import {isEqualDate} from '../utils/date';
+import {StepperState} from '../components/atoms/Stepper';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -53,6 +54,14 @@ export enum TransactionStatus {
 
 type TransactionStatusMap = {
   [key in TransactionStatus]: StatusType;
+};
+
+type TransactionStatusStepperStateMap = {
+  [key in TransactionStatus]: StepperState;
+};
+
+type TransactionStatusCampaignStepMap = {
+  [key in TransactionStatus]?: CampaignStep;
 };
 
 type TransactionStatusIndexMap = {
@@ -138,6 +147,60 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.terminated]: StatusType.terminated,
 };
 
+export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap =
+  {
+    [TransactionStatus.notRegistered]: StepperState.warning,
+    [TransactionStatus.registrationPending]: StepperState.warning,
+    [TransactionStatus.registrationRejected]: StepperState.danger,
+    [TransactionStatus.registrationApproved]: StepperState.success,
+
+    [TransactionStatus.offering]: StepperState.warning,
+    [TransactionStatus.offeringApproved]: StepperState.success,
+    [TransactionStatus.offerRejected]: StepperState.danger,
+
+    [TransactionStatus.brainstormSubmitted]: StepperState.warning,
+    [TransactionStatus.brainstormApproved]: StepperState.success,
+    [TransactionStatus.brainstormRejected]: StepperState.danger,
+
+    [TransactionStatus.contentSubmitted]: StepperState.warning,
+    [TransactionStatus.contentApproved]: StepperState.success,
+    [TransactionStatus.contentRejected]: StepperState.danger,
+
+    [TransactionStatus.engagementSubmitted]: StepperState.warning,
+    [TransactionStatus.engagementRejected]: StepperState.danger,
+
+    [TransactionStatus.completed]: StepperState.success,
+
+    [TransactionStatus.reported]: StepperState.danger,
+    [TransactionStatus.terminated]: StepperState.terminated,
+  };
+
+export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap =
+  {
+    [TransactionStatus.registrationPending]: CampaignStep.Registration,
+    [TransactionStatus.registrationRejected]: CampaignStep.Registration,
+    [TransactionStatus.registrationApproved]: CampaignStep.Registration,
+
+    [TransactionStatus.offering]: CampaignStep.Registration,
+    [TransactionStatus.offeringApproved]: CampaignStep.Registration,
+    [TransactionStatus.offerRejected]: CampaignStep.Registration,
+
+    [TransactionStatus.brainstormSubmitted]: CampaignStep.Brainstorming,
+    [TransactionStatus.brainstormApproved]: CampaignStep.Brainstorming,
+    [TransactionStatus.brainstormRejected]: CampaignStep.Brainstorming,
+
+    [TransactionStatus.contentSubmitted]: CampaignStep.ContentSubmission,
+    [TransactionStatus.contentApproved]: CampaignStep.ContentSubmission,
+    [TransactionStatus.contentRejected]: CampaignStep.ContentSubmission,
+
+    [TransactionStatus.engagementSubmitted]:
+      CampaignStep.EngagementResultSubmission,
+    [TransactionStatus.engagementRejected]:
+      CampaignStep.EngagementResultSubmission,
+
+    [TransactionStatus.completed]: CampaignStep.Completed,
+  };
+
 interface Brainstorm {
   status: BasicStatus;
   content: string;
@@ -155,7 +218,7 @@ export interface TransactionContent {
   tasks: ContentTask[];
 }
 
-interface Content {
+export interface Content {
   status: BasicStatus;
   content: TransactionContent[];
   createdAt: number;
@@ -187,6 +250,8 @@ export class Transaction extends BaseModel {
     transactionAmount,
     importantNotes,
     brainstorms,
+    contents,
+    engagements,
     status,
     createdAt,
     updatedAt,
@@ -205,6 +270,8 @@ export class Transaction extends BaseModel {
     this.transactionAmount = transactionAmount;
     this.importantNotes = importantNotes;
     this.brainstorms = brainstorms;
+    this.contents = contents;
+    this.engagements = engagements;
     this.status = status;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -589,7 +656,7 @@ export class Transaction extends BaseModel {
         await this.updateStatus(TransactionStatus.registrationApproved, {
           contentRevisionLimit:
             contentCreator.contentCreator?.contentRevisionLimit,
-          platformTasks: campaign.platforms,
+          platformTasks: campaign.platformTasks,
         });
         return true;
       }

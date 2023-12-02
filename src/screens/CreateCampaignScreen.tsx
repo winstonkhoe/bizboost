@@ -203,7 +203,7 @@ const CreateCampaignScreen = () => {
         fee: fee,
         slot: d.slot,
         criterias: d.criterias.map(getStringObjectValue),
-        platforms: d.platforms,
+        platformTasks: d.platforms,
         importantInformation: d.importantInformation.map(getStringObjectValue),
         locations: d.locations
           .map(loc => loc.id)
@@ -360,7 +360,6 @@ const CreateCampaignScreen = () => {
               />
             </HorizontalPadding>
             <PagerView
-              initialPage={4}
               ref={pagerViewRef}
               className="flex-1"
               scrollEnabled={false}>

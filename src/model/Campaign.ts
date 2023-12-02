@@ -56,7 +56,7 @@ export class Campaign extends BaseModel {
   type?: CampaignType;
   locations?: string[];
   categories?: string[];
-  platforms?: CampaignPlatform[];
+  platformTasks?: CampaignPlatform[];
   fee?: number;
   criterias?: string[];
   slot?: number;
@@ -73,7 +73,7 @@ export class Campaign extends BaseModel {
     type,
     locations,
     categories,
-    platforms,
+    platformTasks,
     fee,
     criterias,
     slot,
@@ -90,7 +90,7 @@ export class Campaign extends BaseModel {
     this.type = type;
     this.locations = locations;
     this.categories = categories;
-    this.platforms = platforms;
+    this.platformTasks = platformTasks;
     this.fee = fee;
     this.criterias = criterias;
     this.slot = slot;
@@ -123,7 +123,7 @@ export class Campaign extends BaseModel {
             (categoryRef: FirebaseFirestoreTypes.DocumentReference) =>
               categoryRef.id,
           ) || [],
-        platforms: data.platforms,
+        platformTasks: data.platformTasks,
         fee: data.fee,
         criterias: data.criterias,
         slot: data.slot,
@@ -289,5 +289,11 @@ export class Campaign extends BaseModel {
     return this.timeline?.find(
       timeline => CampaignStep.EngagementResultSubmission === timeline.step,
     )!!;
+  }
+
+  isTimelineAvailable(step: CampaignStep): boolean {
+    return (
+      this.timeline?.find(timeline => step === timeline.step) !== undefined
+    );
   }
 }
