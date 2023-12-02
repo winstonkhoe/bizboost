@@ -67,12 +67,12 @@ const StatusTag = ({
       <Text
         style={[
           font.size[fontSize],
-          isWarning && [textColor(COLOR.yellow[70])],
+          isWarning && [textColor(COLOR.yellow[50])],
           isDanger && [textColor(COLOR.red[50])],
           isSuccess && [textColor(COLOR.green[70])],
           isTerminated && [textColor(COLOR.black[50])],
         ]}
-        className="font-semibold">
+        className="font-bold">
         {status}
       </Text>
     </View>
