@@ -52,6 +52,15 @@ export enum TransactionStatus {
   terminated = 'Terminated', //expired or timeline miss
 }
 
+export enum RejectionType {
+  mismatch = 'Mismatch',
+  unreachableLink = 'Unreachable Link',
+}
+
+type RejectionTypeLabelMap = {
+  [key in RejectionType]: string;
+};
+
 type TransactionStatusMap = {
   [key in TransactionStatus]: StatusType;
 };
@@ -70,6 +79,12 @@ type TransactionStatusIndexMap = {
 
 type BasicStatusMap = {
   [key in BasicStatus]: StatusType;
+};
+
+export const rejectionTypeLabelMap: RejectionTypeLabelMap = {
+  [RejectionType.mismatch]: "Content doesn't meet task requirements",
+  [RejectionType.unreachableLink]:
+    'Link cannot be opened (access, invalid link, etc)',
 };
 
 export const basicStatusTypeMap: BasicStatusMap = {
@@ -218,11 +233,16 @@ export interface TransactionContent {
   tasks: ContentTask[];
 }
 
+interface Rejection {
+  reason: string;
+  type: RejectionType;
+}
+
 export interface Content {
   status: BasicStatus;
   content: TransactionContent[];
   createdAt: number;
-  rejectReason?: string;
+  rejection?: Rejection;
   updatedAt?: number; //either approved or rejected
 }
 
@@ -378,9 +398,31 @@ export class Transaction extends BaseModel {
     throw Error('Transaction.updateStatus err!');
   }
 
-  static async getById(id: string) {
-    const doc = await Transaction.getDocumentReference(id).get();
-    return this.fromSnapshot(doc);
+  static getById(
+    id: string,
+    onComplete: (transaction: Transaction | null) => void,
+  ) {
+    try {
+      const unsubscribe = Transaction.getCollectionReference()
+        .doc(id)
+        .onSnapshot(
+          docSnapshot => {
+            if (docSnapshot.exists) {
+              onComplete && onComplete(Transaction.fromSnapshot(docSnapshot));
+              return;
+            }
+            onComplete && onComplete(null);
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
   }
 
   static getAllTransactionsByCampaign(
@@ -746,7 +788,7 @@ export class Transaction extends BaseModel {
     return -1;
   }
 
-  async rejectContent(rejectReason: string): Promise<boolean> {
+  async rejectContent(rejection: Rejection): Promise<boolean> {
     const {id, contents} = this;
     if (id && contents && contents.length > 0) {
       try {
@@ -755,7 +797,7 @@ export class Transaction extends BaseModel {
           latestContent = {
             ...latestContent,
             status: BasicStatus.rejected,
-            rejectReason: rejectReason,
+            rejection: rejection,
             updatedAt: new Date().getTime(),
           };
           const contentIndex = this.getContentIndex(latestContent);
@@ -843,7 +885,7 @@ export class Transaction extends BaseModel {
     return -1;
   }
 
-  async rejectEngagement(rejectReason: string): Promise<boolean> {
+  async rejectEngagement(rejection: Rejection): Promise<boolean> {
     const {id, engagements} = this;
     if (id && engagements && engagements.length > 0) {
       try {
@@ -852,7 +894,7 @@ export class Transaction extends BaseModel {
           latestEngagement = {
             ...latestEngagement,
             status: BasicStatus.rejected,
-            rejectReason: rejectReason,
+            rejection: rejection,
             updatedAt: new Date().getTime(),
           };
           const engagementIndex = this.getEngagementIndex(latestEngagement);
@@ -900,6 +942,16 @@ export class Transaction extends BaseModel {
       }
     }
     throw Error('Missing transaction id or engagements');
+  }
+
+  getRemainingRevisionCount() {
+    const {contentRevisionLimit = 0, contents = []} = this;
+    return Math.max(
+      contentRevisionLimit -
+        contents.filter(c => c.rejection?.type === RejectionType.mismatch)
+          .length,
+      0,
+    );
   }
 
   //   static async getTransactionStatusByContentCreator(

@@ -4,64 +4,65 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
-} from '../navigation/StackNavigation';
-import {StyleSheet, Text, useWindowDimensions} from 'react-native';
+} from '../../navigation/StackNavigation';
+import {Pressable, StyleSheet, Text, useWindowDimensions} from 'react-native';
 import {View} from 'react-native';
-import {Campaign, CampaignStep} from '../model/Campaign';
+import {Campaign, CampaignStep} from '../../model/Campaign';
 import {
   formatDateToDayMonthYearHourMinute,
   formatDateToHourMinute,
-} from '../utils/date';
-import {CustomButton} from '../components/atoms/Button';
-import {useUser} from '../hooks/user';
+} from '../../utils/date';
+import {CustomButton} from '../../components/atoms/Button';
+import {useUser} from '../../hooks/user';
 import {
   BasicStatus,
   Content,
   Transaction,
   TransactionStatus,
   basicStatusTypeMap,
+  transactionStatusCampaignStepMap,
   transactionStatusTypeMap,
-} from '../model/Transaction';
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
+} from '../../model/Transaction';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 
-import {COLOR} from '../styles/Color';
-import {gap} from '../styles/Gap';
-import {useNavigation} from '@react-navigation/native';
-import {SocialPlatform, User} from '../model/User';
-import {flex, items, justify} from '../styles/Flex';
-import {padding} from '../styles/Padding';
-import {rounded} from '../styles/BorderRadius';
-import {border} from '../styles/Border';
-import {textColor} from '../styles/Text';
-import {LoadingScreen} from './LoadingScreen';
+import {COLOR} from '../../styles/Color';
+import {gap} from '../../styles/Gap';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {SocialPlatform, User} from '../../model/User';
+import {flex, items, justify} from '../../styles/Flex';
+import {padding} from '../../styles/Padding';
+import {rounded} from '../../styles/BorderRadius';
+import {border} from '../../styles/Border';
+import {textColor} from '../../styles/Text';
+import {LoadingScreen} from '../LoadingScreen';
 import FastImage from 'react-native-fast-image';
-import {font} from '../styles/Font';
-import {background} from '../styles/BackgroundColor';
-import {dimension} from '../styles/Dimension';
+import {font} from '../../styles/Font';
+import {background} from '../../styles/BackgroundColor';
+import {dimension} from '../../styles/Dimension';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {size} from '../styles/Size';
-import StatusTag, {StatusType} from '../components/atoms/StatusTag';
+import {size} from '../../styles/Size';
+import StatusTag, {StatusType} from '../../components/atoms/StatusTag';
 import {ScrollView} from 'react-native-gesture-handler';
-import {Label} from '../components/atoms/Label';
-import {PlatformData} from './signup/RegisterSocialPlatform';
+import {Label} from '../../components/atoms/Label';
+import {PlatformData} from '../signup/RegisterSocialPlatform';
 import {
   ChevronRight,
   CopyIcon,
   OpenIcon,
   PlatformIcon,
-} from '../components/atoms/Icon';
-import {formatNumberWithThousandSeparator} from '../utils/number';
-import {CustomModal} from '../components/atoms/CustomModal';
-import {SheetModal} from '../containers/SheetModal';
-import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
-import {FormFieldHelper} from '../components/atoms/FormLabel';
+} from '../../components/atoms/Icon';
+import {formatNumberWithThousandSeparator} from '../../utils/number';
+import {CustomModal} from '../../components/atoms/CustomModal';
+import {SheetModal} from '../../containers/SheetModal';
+import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
+import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
-import {FormlessCustomTextInput} from '../components/atoms/Input';
-import {getSourceOrDefaultAvatar} from '../utils/asset';
-import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {formatToRupiah} from '../utils/currency';
-import {campaignTaskToString} from '../utils/campaign';
-import {ModalWebView} from './modals/ModalWebView';
+import {FormlessCustomTextInput} from '../../components/atoms/Input';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
+import {formatToRupiah} from '../../utils/currency';
+import {campaignTaskToString} from '../../utils/campaign';
+import {ModalWebView} from '../modals/ModalWebView';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Animated, {
   interpolate,
@@ -69,6 +70,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import {Seperator} from '../../components/atoms/Separator';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -89,12 +91,14 @@ const TransactionDetailScreen = ({route}: Props) => {
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
   const {transactionId} = route.params;
+  const [isOthersSheetModalOpen, setIsOthersSheetModalOpen] =
+    useState<boolean>(false);
   const [isRejectSheetModalOpen, setIsRejectSheetModalOpen] =
     useState<boolean>(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
   const [rejectReason, setRejectReason] = useState<string>('');
   const [campaign, setCampaign] = useState<Campaign>();
-  const [transaction, setTransaction] = useState<Transaction>();
+  const [transaction, setTransaction] = useState<Transaction | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [isLoading, setIsLoading] = useState(false);
@@ -103,7 +107,8 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [campaign, uid]);
 
   useEffect(() => {
-    Transaction.getById(transactionId).then(setTransaction);
+    const unsubscribe = Transaction.getById(transactionId, setTransaction);
+    return unsubscribe;
   }, [transactionId]);
 
   useEffect(() => {
@@ -160,24 +165,16 @@ const TransactionDetailScreen = ({route}: Props) => {
             setIsLoading(false);
           });
       }
-      if (TransactionStatus.contentSubmitted === transaction.status) {
-        setIsLoading(true);
-        transaction
-          .rejectContent(rejectReason)
-          .then(() => {
-            setIsRejectSheetModalOpen(false);
-          })
-          .catch(err => console.log(err))
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
     }
   };
 
   const closeRejectSheetModal = () => {
     setIsRejectSheetModalOpen(false);
     setRejectReason('');
+  };
+
+  const closeOthersSheetModal = () => {
+    setIsOthersSheetModalOpen(false);
   };
 
   const currentActiveTimeline = useMemo(() => {
@@ -187,9 +184,11 @@ const TransactionDetailScreen = ({route}: Props) => {
     );
   }, [campaign]);
 
-  if (!transaction || !campaign) {
+  if (transaction === undefined || !campaign) {
     return <LoadingScreen />;
   }
+
+  // TODO: handle null transaction, show error and allow user to go back?
 
   return (
     <>
@@ -271,6 +270,7 @@ const TransactionDetailScreen = ({route}: Props) => {
           />
         </ScrollView>
         {isCampaignOwner &&
+          transaction.status &&
           [
             TransactionStatus.brainstormSubmitted,
             TransactionStatus.contentSubmitted,
@@ -286,22 +286,38 @@ const TransactionDetailScreen = ({route}: Props) => {
                 },
                 styles.topBorder,
               ]}>
+              <AnimatedPressable
+                style={[
+                  flex.flexRow,
+                  gap.xsmall,
+                  items.center,
+                  justify.center,
+                  dimension.square.xlarge2,
+                  rounded.default,
+                  border({
+                    borderWidth: 1,
+                    color: COLOR.black[20],
+                  }),
+                ]}
+                onPress={() => {
+                  setIsOthersSheetModalOpen(true);
+                }}>
+                {[...Array(3)].map((_, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      rounded.max,
+                      dimension.square.xsmall,
+                      background(COLOR.black[40]),
+                    ]}
+                  />
+                ))}
+              </AnimatedPressable>
               <View style={[flex.flex1]}>
                 <CustomButton
-                  text="Reject"
-                  type="tertiary"
-                  customTextColor={{
-                    default: COLOR.text.danger.default,
-                    disabled: COLOR.red[10],
-                  }}
-                  onPress={() => {
-                    setIsRejectSheetModalOpen(true);
-                  }}
-                />
-              </View>
-              <View style={[flex.flex1]}>
-                <CustomButton
-                  text="Approve"
+                  text={`Approve ${
+                    transactionStatusCampaignStepMap[transaction.status]
+                  }`}
                   onPress={() => {
                     setIsConfirmModalOpen(true);
                   }}
@@ -310,6 +326,53 @@ const TransactionDetailScreen = ({route}: Props) => {
             </View>
           )}
       </PageWithBackButton>
+      <SheetModal
+        open={isOthersSheetModalOpen}
+        onDismiss={closeOthersSheetModal}
+        disablePanDownToClose={true}
+        enableHandlePanningGesture={false}
+        enableOverDrag={false}
+        overDragResistanceFactor={0}
+        enableDynamicSizing={true}>
+        <BottomSheetModalWithTitle
+          title={'Others'}
+          type="modal"
+          onPress={closeOthersSheetModal}>
+          <View style={[flex.flexCol, gap.xsmall2]}>
+            <AnimatedPressable
+              scale={1}
+              style={[padding.vertical.default]}
+              onPress={() => {}}>
+              <Text
+                className="font-bold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                Report
+              </Text>
+            </AnimatedPressable>
+            <View style={[styles.bottomBorder]} />
+            <AnimatedPressable
+              scale={1}
+              style={[padding.vertical.default]}
+              onPress={() => {
+                if (transaction.id) {
+                  setIsOthersSheetModalOpen(false);
+                  navigation.navigate(
+                    AuthenticatedNavigation.RejectTransaction,
+                    {
+                      transactionId: transaction.id,
+                    },
+                  );
+                }
+              }}>
+              <Text
+                className="font-bold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                Reject
+              </Text>
+            </AnimatedPressable>
+          </View>
+        </BottomSheetModalWithTitle>
+      </SheetModal>
       <SheetModal
         open={isRejectSheetModalOpen}
         onDismiss={closeRejectSheetModal}
@@ -323,6 +386,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         <BottomSheetModalWithTitle
           title={currentActiveTimeline?.step || ''}
           type="modal"
+          fullHeight
           onPress={closeRejectSheetModal}>
           <View style={[flex.grow, flex.flexCol, gap.medium]}>
             <View style={[flex.flex1, flex.flexCol, gap.default]}>
@@ -384,17 +448,6 @@ const TransactionDetailScreen = ({route}: Props) => {
 };
 
 export default TransactionDetailScreen;
-
-const Seperator = () => {
-  return (
-    <View
-      style={[
-        background(COLOR.background.neutral.med),
-        dimension.height.default,
-      ]}
-    />
-  );
-};
 
 interface SocialDetailProps {
   platformData: PlatformData;
@@ -773,14 +826,10 @@ const ContentSubmissionDetailSection = ({
               {CampaignStep.ContentSubmission}
             </Text>
             <Text
-              style={[font.size[20], textColor(COLOR.text.neutral.med)]}>{`${
-              (props.transaction?.contentRevisionLimit || 0) -
-              (props.transaction.contents
-                ? props.transaction.contents.filter(
-                    c => c.status === BasicStatus.rejected,
-                  ).length
-                : 0)
-            } remaining revision`}</Text>
+              style={[
+                font.size[20],
+                textColor(COLOR.text.neutral.med),
+              ]}>{`${props.transaction.getRemainingRevisionCount()} revision left`}</Text>
           </View>
           {TransactionStatus.contentSubmitted === props.transaction.status && (
             <StatusTag status="Review needed" statusType={StatusType.warning} />
@@ -845,9 +894,12 @@ const ContentSubmissionDetailSection = ({
 interface ContentSubmissionCardProps {
   transaction: Transaction;
   content: Content;
+  hideStatus?: boolean;
 }
 
-const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
+export const ContentSubmissionCard = ({
+  ...props
+}: ContentSubmissionCardProps) => {
   const [activeUri, setActiveUri] = useState<string>('');
   return (
     <>
@@ -875,10 +927,12 @@ const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
               new Date(props.content.createdAt),
             )}
           </Text>
-          <StatusTag
-            status={props.content.status}
-            statusType={basicStatusTypeMap[props.content.status]}
-          />
+          {!props.hideStatus && (
+            <StatusTag
+              status={props.content.status}
+              statusType={basicStatusTypeMap[props.content.status]}
+            />
+          )}
         </View>
         <View style={[flex.flexCol, gap.medium]}>
           {props.content.content.map((transactionContent, platformIndex) => (
@@ -916,8 +970,7 @@ const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
                           key={taskUriIndex}
                           style={[flex.flexRow, items.center, gap.default]}>
                           <View style={[flex.flex1]}>
-                            <AnimatedPressable
-                              scale={0.95}
+                            <Pressable
                               style={[
                                 flex.flex1,
                                 flex.flexRow,
@@ -940,7 +993,7 @@ const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
                                 {taskUri}
                               </Text>
                               <OpenIcon size="medium" />
-                            </AnimatedPressable>
+                            </Pressable>
                           </View>
                           <AnimatedPressable
                             scale={0.9}
@@ -966,7 +1019,7 @@ const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
               </View>
             </View>
           ))}
-          {props.content.rejectReason && (
+          {props.content.rejection && (
             <View
               style={[
                 flex.flexCol,
@@ -978,10 +1031,10 @@ const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
               <Text
                 className="font-bold"
                 style={[font.size[20], textColor(COLOR.red[60])]}>
-                Reject reason
+                {props.content.rejection.type}
               </Text>
               <Text style={[font.size[20], textColor(COLOR.red[60])]}>
-                {props.content.rejectReason}
+                {props.content.rejection.reason}
               </Text>
             </View>
           )}

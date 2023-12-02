@@ -114,7 +114,6 @@ interface TransactionView {
 
 const CampaignTimelineScreen = ({route}: Props) => {
   const {uid} = useUser();
-  const keyboardHeight = useKeyboard();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
@@ -144,12 +143,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
     },
   });
 
-  const {reset, control, watch, getValues} = methods;
-
-  const sub = watch('submission');
-  useEffect(() => {
-    console.log('submission', sub);
-  }, [sub]);
+  const {reset, control, getValues} = methods;
 
   const resetOriginalField = useCallback(() => {
     reset({
@@ -230,21 +224,23 @@ const CampaignTimelineScreen = ({route}: Props) => {
                 campaignIndexMap[CampaignStep.ContentSubmission],
             )
           : 0;
+        console.log('indexOffset', indexOffset);
         const calculatedTransactionStatusIndex =
           transactionStatusIndex >=
           transactionStatusIndexMap[TransactionStatus.brainstormApproved]
             ? transactionStatusIndex - indexOffset
             : transactionStatusIndex;
+        const currentTransactionStep =
+          transactionStatusCampaignStepMap[transaction.status];
+        const isContentCreatorSubmittedCurrentActiveTimeline =
+          currentActiveTimeline &&
+          currentTransactionStep !== currentActiveTimeline?.step;
         let steps = [
           ...Array(
             (calculatedTransactionStatusIndex <= 0
               ? 0
               : calculatedTransactionStatusIndex) +
-              (currentActiveTimeline &&
-              calculatedTransactionStatusIndex <=
-                campaignIndexMap[currentActiveTimeline?.step]
-                ? 1
-                : 0),
+              (isContentCreatorSubmittedCurrentActiveTimeline ? 1 : 0),
           ),
         ].map(() => StepperState.success);
         console.log(
@@ -253,15 +249,21 @@ const CampaignTimelineScreen = ({route}: Props) => {
         );
         steps[steps.length - 1] =
           transactionStatusStepperStateMap[transaction.status];
-        const currentTransactionStep =
-          transactionStatusCampaignStepMap[transaction.status];
-        console.log(currentTransactionStep);
-        if (
-          currentActiveTimeline &&
-          currentTransactionStep !== currentActiveTimeline?.step
-        ) {
-          steps[campaignIndexMap[currentActiveTimeline.step] - indexOffset] =
-            StepperState.inProgress;
+
+        console.log(
+          'current transaction step',
+          currentTransactionStep,
+          'steps',
+          steps,
+        );
+        console.log(
+          'current active timeline',
+          currentActiveTimeline,
+          'currentTransactionStep',
+          currentTransactionStep,
+        );
+        if (isContentCreatorSubmittedCurrentActiveTimeline) {
+          steps[steps.length - 1] = StepperState.inProgress;
         }
         return steps;
       }
@@ -415,7 +417,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
     });
   };
 
-  if (!campaign) {
+  if (!campaign || !transaction) {
     return <LoadingScreen />;
   }
 
@@ -1314,7 +1316,6 @@ const TimelineRemaining = ({timeline}: TimelineRemainingProps) => {
   useEffect(() => {
     const updateRemainingTime = () => {
       const now = new Date();
-      console.log('current time', now);
       const start = new Date(
         clamp(now.getTime(), timelineStart.getTime(), timelineEnd.getTime()),
       );

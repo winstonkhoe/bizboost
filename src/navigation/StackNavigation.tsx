@@ -40,7 +40,8 @@ import EditSpecializedCategoryScreen from '../screens/profile/edit/EditSpecializ
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
-import TransactionDetailScreen from '../screens/TransactionDetailScreen';
+import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
+import RejectTransactionScreen from '../screens/transaction/RejectTransactionScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -55,6 +56,7 @@ export enum AuthenticatedNavigation {
   BusinessPeopleDetail = 'Business People Detail',
   CampaignDetail = 'Campaign Detail',
   TransactionDetail = 'Transaction Detail',
+  RejectTransaction = 'Reject Transaction',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
   ChatDetail = 'Chat Screen',
@@ -103,6 +105,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.BusinessPeopleDetail]: {businessPeopleId: string};
   [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
   [AuthenticatedNavigation.TransactionDetail]: {transactionId: string};
+  [AuthenticatedNavigation.RejectTransaction]: {transactionId: string};
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
@@ -233,6 +236,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.TransactionDetail}
                   component={TransactionDetailScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.RejectTransaction}
+                  component={RejectTransactionScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CampaignTimeline}
