@@ -1128,6 +1128,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
           title="Brainstorming"
+          fullHeight
           type="modal"
           onPress={() => {
             setIsBrainstormingModalOpened(false);
@@ -1172,6 +1173,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
           title={CampaignStep.ContentSubmission}
+          fullHeight
           type="modal"
           onPress={() => {
             setIsContentSubmissionModalOpen(false);

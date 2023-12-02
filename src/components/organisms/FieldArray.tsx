@@ -152,7 +152,7 @@ const FieldArray = ({
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <BottomSheetModalWithTitle title={title || ''}>
+        <BottomSheetModalWithTitle fullHeight title={title || ''}>
           <Controller
             control={control}
             {...props}
