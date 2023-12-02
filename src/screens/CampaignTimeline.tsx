@@ -16,7 +16,6 @@ import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
 import {
   Campaign,
   CampaignStep,
-  CampaignTask,
   CampaignTimeline,
   campaignIndexMap,
 } from '../model/Campaign';
@@ -24,7 +23,7 @@ import {
 import {useUser} from '../hooks/user';
 
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {Link, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {ContentStepper, StepperState} from '../components/atoms/Stepper';
@@ -67,8 +66,7 @@ import {CustomModal} from '../components/atoms/CustomModal';
 import FastImage from 'react-native-fast-image';
 import {SocialPlatform, User} from '../model/User';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {formatNumberWithThousandSeparator} from '../utils/number';
-import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
+import {clamp, formatNumberWithThousandSeparator} from '../utils/number';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useKeyboard} from '../hooks/keyboard';
@@ -76,9 +74,15 @@ import {InternalLink} from '../components/atoms/Link';
 import FieldArray from '../components/organisms/FieldArray';
 import {FormProvider, useForm} from 'react-hook-form';
 import {StringObject, getStringObjectValue} from '../utils/stringObject';
-import {ArrowIcon, ChevronRight, PlatformIcon} from '../components/atoms/Icon';
+import {ChevronRight, PlatformIcon} from '../components/atoms/Icon';
 import {size} from '../styles/Size';
 import {campaignTaskToString} from '../utils/campaign';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -887,7 +891,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                   className="font-semibold"
                                   style={[
                                     font.size[20],
-                                    textColor(COLOR.text.neutral.med),
+                                    textColor(COLOR.text.neutral.high),
                                   ]}>
                                   {platform.name}
                                 </Text>
@@ -953,7 +957,51 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         )}
                     </View>
                   )}
-                  {isCampaignOwner ? <></> : <></>}
+                  {isCampaignOwner && (
+                    <AnimatedPressable
+                      scale={1}
+                      onPress={() => {
+                        navigateToDetail(TransactionStatus.contentSubmitted);
+                      }}
+                      style={[flex.flexRow, padding.default, gap.small]}>
+                      <View style={[flex.flex1, flex.flexCol]}>
+                        <Text
+                          className="font-medium"
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.high),
+                          ]}>
+                          {`${
+                            transactions.filter(t => {
+                              const latestSubmission =
+                                t.transaction.getLatestContentSubmission();
+                              return (
+                                latestSubmission &&
+                                latestSubmission.status === BasicStatus.pending
+                              );
+                            }).length
+                          } review needed`}
+                        </Text>
+                        <Text
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>{`${
+                          transactions.filter(t => {
+                            const latestSubmission =
+                              t.transaction.getLatestContentSubmission();
+                            return (
+                              latestSubmission &&
+                              latestSubmission.status === BasicStatus.approved
+                            );
+                          }).length
+                        } completed`}</Text>
+                      </View>
+                      <View style={[flex.flexRow, items.center]}>
+                        <ChevronRight color={COLOR.black[20]} />
+                      </View>
+                    </AnimatedPressable>
+                  )}
                 </View>
               )}
               {campaignTimelineMap?.[
@@ -1227,24 +1275,7 @@ const StepperLabel = ({timeline, children}: StepperLabelProps) => {
           </Text>
         </View>
         <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
-          <View style={[flex.flexRow, justify.center]}>
-            <Text
-              className="text-center font-medium"
-              style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-              {formatTimeDifferenceInDayHourMinute(
-                new Date(timeline.start),
-                new Date(timeline.end),
-              )}
-            </Text>
-          </View>
-          <View
-            style={[
-              {
-                height: 1.5,
-              },
-              background(COLOR.black[30]),
-            ]}
-          />
+          <TimelineRemaining timeline={timeline} />
         </View>
         <View style={[flex.flexCol, items.end]}>
           <Text
@@ -1260,6 +1291,101 @@ const StepperLabel = ({timeline, children}: StepperLabelProps) => {
           </Text>
         </View>
       </View>
+    </View>
+  );
+};
+
+interface TimelineRemainingProps {
+  timeline: CampaignTimeline;
+}
+
+const TimelineRemaining = ({timeline}: TimelineRemainingProps) => {
+  const timelineStart = useMemo(
+    () => new Date(timeline.start),
+    [timeline.start],
+  );
+  const timelineEnd = useMemo(() => new Date(timeline.end), [timeline.end]);
+  const totalDuration = timelineEnd.getTime() - timelineStart.getTime();
+  const width = useSharedValue(1);
+  const [remainingTime, setRemainingTime] = useState('');
+
+  useEffect(() => {
+    const updateRemainingTime = () => {
+      const now = new Date();
+      console.log('current time', now);
+      const start = new Date(
+        clamp(now.getTime(), timelineStart.getTime(), timelineEnd.getTime()),
+      );
+      const remainingDuration = timelineEnd.getTime() - start.getTime();
+      const progress = clamp(remainingDuration / totalDuration, 0, 1);
+      width.value = withTiming(progress);
+      setRemainingTime(formatTimeDifferenceInDayHourMinute(start, timelineEnd));
+    };
+    updateRemainingTime();
+    const startUpdating = () => {
+      updateRemainingTime();
+      const intervalId = setInterval(updateRemainingTime, 60000); // Update every minute
+      return intervalId;
+    };
+
+    const timeoutId = setTimeout(() => {
+      const intervalId = startUpdating();
+      return intervalId;
+    }, (60 - new Date().getSeconds()) * 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [timelineStart, timelineEnd, totalDuration, width]);
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      width: `${width.value * 100}%`,
+    };
+  });
+
+  const remainingTimeTextStyle = useAnimatedStyle(() => {
+    return {
+      color: interpolateColor(
+        width.value,
+        [0, 1],
+        [COLOR.red[50], COLOR.green[60]],
+      ),
+    };
+  });
+
+  return (
+    <View style={[flex.flexCol, gap.xsmall2]}>
+      <Text
+        className="text-center font-medium"
+        style={[font.size[10], self.center, textColor(COLOR.text.neutral.med)]}>
+        {formatTimeDifferenceInDayHourMinute(
+          new Date(timeline.start),
+          new Date(timeline.end),
+        )}
+      </Text>
+      <View
+        style={[
+          {height: 1.5},
+          flex.flexRow,
+          justify.end,
+          background(COLOR.red[50]),
+        ]}>
+        <Animated.View
+          style={[
+            dimension.height.full,
+            background(COLOR.green[60]),
+            animatedStyles,
+          ]}
+        />
+      </View>
+      {remainingTime !== '' && (
+        <Animated.Text
+          className="font-bold"
+          style={[self.center, font.size[10], remainingTimeTextStyle]}>
+          {remainingTime}
+        </Animated.Text>
+      )}
     </View>
   );
 };
