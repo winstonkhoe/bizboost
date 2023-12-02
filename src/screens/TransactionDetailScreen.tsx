@@ -888,8 +888,8 @@ const ContentSubmissionCard = ({...props}: ContentSubmissionCardProps) => {
               <View style={[flex.flexRow, gap.xsmall, items.center]}>
                 <PlatformIcon platform={transactionContent.platform} />
                 <Text
-                  className="font-semibold"
-                  style={[font.size[30], textColor(COLOR.text.neutral.med)]}>
+                  className="font-bold"
+                  style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
                   {transactionContent.platform}
                 </Text>
               </View>
