@@ -73,6 +73,9 @@ export const formatTimeDifferenceInDayHourMinute = (
   date2: Date,
 ) => {
   let diff = Math.abs(date2.getTime() - date1.getTime());
+  if (diff <= 0) {
+    return '0m';
+  }
   let output = '';
 
   const getTimeUnit = (unitInMilliseconds: number, unitName: string) => {
