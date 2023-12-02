@@ -13,6 +13,8 @@ import InstagramMono from '../../assets/vectors/instagram-mono.svg';
 import TiktokMono from '../../assets/vectors/tiktok-mono.svg';
 import Copy from '../../assets/vectors/copy.svg';
 import Open from '../../assets/vectors/open.svg';
+import BrokenLink from '../../assets/vectors/broken-link.svg';
+import PhotoRevision from '../../assets/vectors/photo-revision.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path} from 'react-native-svg';
 
@@ -195,4 +197,26 @@ export const OpenIcon = ({
   color = COLOR.black[100],
 }: IconProps) => {
   return <Open width={size[sizeType]} height={size[sizeType]} color={color} />;
+};
+
+export const BrokenLinkIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+}: IconProps) => {
+  return (
+    <BrokenLink width={size[sizeType]} height={size[sizeType]} color={color} />
+  );
+};
+
+export const PhotoRevisionIcon = ({
+  size: sizeType = 'default',
+  color = 'transparent',
+}: IconProps) => {
+  return (
+    <PhotoRevision
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+    />
+  );
 };
