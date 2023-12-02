@@ -1,7 +1,6 @@
 import {Text, View} from 'react-native';
 import {FontSizeType, font} from '../../styles/Font';
 import {rounded} from '../../styles/BorderRadius';
-import {useMemo} from 'react';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {border} from '../../styles/Border';
@@ -24,7 +23,6 @@ const StatusTag = ({
   fontSize = 10,
   statusType = StatusType.warning,
 }: Props) => {
-  // TODO: fix colors, bedain per status?
   const isWarning = statusType === StatusType.warning;
   const isDanger = statusType === StatusType.danger;
   const isSuccess = statusType === StatusType.success;
