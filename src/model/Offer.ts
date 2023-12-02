@@ -11,6 +11,7 @@ export enum OfferStatus {
   pending = 'Pending',
   approved = 'Approved',
   rejected = 'Rejected',
+  negotiate = 'Negotiate',
 }
 
 export class Offer extends BaseModel {
@@ -19,7 +20,9 @@ export class Offer extends BaseModel {
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   offeredPrice?: number;
+  negotiatedPrice?: number;
   importantNotes?: string;
+  negotiatedNotes?: string;
   status?: OfferStatus;
   createdAt?: number;
 
@@ -137,7 +140,7 @@ export class Offer extends BaseModel {
           '==',
           firestore().collection('users').doc(contentCreatorId),
         )
-        .where('status', '==', OfferStatus.pending)
+        .where('status', 'in', [OfferStatus.pending, OfferStatus.negotiate])
         .onSnapshot(
           querySnapshot => {
             if (querySnapshot.empty) {
@@ -181,6 +184,32 @@ export class Offer extends BaseModel {
           this.businessPeopleId ?? '',
         ),
         status: status,
+      };
+
+      await firestore().collection(OFFER_COLLECTION).doc(id).set(data);
+      return true;
+    } catch (error) {
+      console.log(error);
+    }
+    throw Error('Error!');
+  }
+
+  async negotiate(fee: number, importantNotes: string) {
+    try {
+      this.negotiatedPrice = fee;
+      this.negotiatedNotes = importantNotes;
+
+      const {id, ...rest} = this;
+      const data = {
+        ...rest,
+        contentCreatorId: User.getDocumentReference(
+          this.contentCreatorId ?? '',
+        ),
+        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
+        businessPeopleId: User.getDocumentReference(
+          this.businessPeopleId ?? '',
+        ),
+        status: OfferStatus.negotiate,
       };
 
       await firestore().collection(OFFER_COLLECTION).doc(id).set(data);

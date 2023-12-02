@@ -35,7 +35,7 @@ import {Offer} from '../model/Offer';
 export type MakeOfferFormData = {
   campaign: string;
   fee: number;
-  importantNotes: StringObject[];
+  importantNotes: string;
 };
 
 type Props = NativeStackScreenProps<

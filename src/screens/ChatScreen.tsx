@@ -73,6 +73,7 @@ const ChatScreen = ({route}: Props) => {
     );
   }, [businessPeopleId, contentCreatorId]);
 
+  console.log(offers);
   useEffect(() => {
     if (chatData.messages) {
       setChatMessages(chatData.messages);
@@ -134,6 +135,20 @@ const ChatScreen = ({route}: Props) => {
     });
   };
 
+  const handleNegotiationComplete = () => {
+    // Fetch updated offers and set them in the state
+    Offer.getPendingOffersbyCCBP(
+      businessPeopleId?.ref ?? '',
+      contentCreatorId?.ref ?? '',
+      res => {
+        const sortedTransactions = res
+          .slice()
+          .sort((a, b) => b.createdAt - a.createdAt);
+        setOffers(sortedTransactions);
+      },
+    );
+  };
+
   return (
     <SafeAreaContainer>
       <View
@@ -153,6 +168,7 @@ const ChatScreen = ({route}: Props) => {
           <FloatingOffer
             offers={offers}
             recipientName={chat.recipient?.fullname ?? ''}
+            onNegotiationComplete={handleNegotiationComplete}
           />
         )}
 

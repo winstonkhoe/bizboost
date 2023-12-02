@@ -8,6 +8,7 @@ import {
 } from '../navigation/StackNavigation';
 import {DeviceEventEmitter} from 'react-native';
 import {Campaign} from '../model/Campaign';
+import {Offer} from '../model/Offer';
 
 interface LocationModalProps {
   preferredLocations: Location[];
@@ -64,6 +65,39 @@ export const openCategoryModal = ({
   });
 };
 
+interface NegotiateModalProps {
+  selectedOffer: Offer;
+  campaign: Campaign;
+  navigation: NavigationStackProps;
+  onNegotiationComplete: () => void;
+}
+export const openNegotiateModal = ({
+  selectedOffer,
+  campaign,
+  navigation,
+  onNegotiationComplete,
+}: NegotiateModalProps) => {
+  const eventType = 'callback.negotiate';
+  navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
+    offer: selectedOffer,
+    eventType: eventType,
+    campaign: campaign,
+  });
+
+  const listener = DeviceEventEmitter.addListener(eventType, stat => {
+    console.log(stat);
+    onNegotiationComplete();
+  });
+
+  const closeListener = DeviceEventEmitter.addListener(
+    'close.negotiate',
+    () => {
+      listener.remove();
+      closeListener.remove();
+    },
+  );
+};
+
 interface CampaignModalProps {
   selectedCampaign: Campaign;
   setSelectedCampaign: (campaign: Campaign) => void;
@@ -74,7 +108,7 @@ export const openCampaignModal = ({
   setSelectedCampaign,
   navigation,
 }: CampaignModalProps) => {
-  const eventType = 'callback.category';
+  const eventType = 'callback.campaign';
   navigation.navigate(AuthenticatedNavigation.CampaignModal, {
     initialSelectedCampaign: selectedCampaign,
     eventType: eventType,
@@ -84,7 +118,7 @@ export const openCampaignModal = ({
     setSelectedCampaign(campaign);
   });
 
-  const closeListener = DeviceEventEmitter.addListener('close.category', () => {
+  const closeListener = DeviceEventEmitter.addListener('close.campaign', () => {
     listener.remove();
     closeListener.remove();
   });

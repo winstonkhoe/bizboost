@@ -41,6 +41,8 @@ import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
 import TransactionDetailScreen from '../screens/TransactionDetailScreen';
+import ModalNegotiateScreen from '../screens/modals/ModalNegotiateScreen';
+import {Offer} from '../model/Offer';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -78,6 +80,7 @@ export enum AuthenticatedNavigation {
   SpecificExploreModal = 'Specific Explore Modal',
   MakeOffer = 'Make Offer',
   CampaignModal = 'Campaign Modal',
+  NegotiateModal = 'Negotiate Modal',
 }
 
 export enum GeneralNavigation {
@@ -95,6 +98,12 @@ export type GuestStack = {
 interface CampaignModalProps {
   initialSelectedCampaign: Campaign;
   eventType: string;
+}
+
+interface NegotiateModalProps {
+  offer: Offer;
+  eventType: string;
+  campaign: Campaign;
 }
 
 export type AuthenticatedStack = {
@@ -141,6 +150,7 @@ export type AuthenticatedStack = {
     contentCreatorId: string;
     targetContentId?: string;
   };
+  [AuthenticatedNavigation.NegotiateModal]: NegotiateModalProps;
 };
 
 interface LocationModalProps {
@@ -360,6 +370,10 @@ const StackNavigator = () => {
               <Stack.Screen
                 name={AuthenticatedNavigation.CampaignModal}
                 component={ModalCampaignScreen}
+              />
+              <Stack.Screen
+                name={AuthenticatedNavigation.NegotiateModal}
+                component={ModalNegotiateScreen}
               />
             </Stack.Group>
           </Stack.Group>

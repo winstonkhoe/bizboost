@@ -16,7 +16,7 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
-import {Offer} from '../../model/Offer';
+import {Offer, OfferStatus} from '../../model/Offer';
 import {Campaign} from '../../model/Campaign';
 import {Pressable} from 'react-native';
 import ChevronRight from '../../assets/vectors/chevron-right.svg';
@@ -28,6 +28,8 @@ import {CustomButton} from '../atoms/Button';
 import {font} from '../../styles/Font';
 import {Transaction} from '../../model/Transaction';
 import {ScrollView} from 'react-native-gesture-handler';
+import {openNegotiateModal} from '../../utils/modal';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
 
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -35,8 +37,13 @@ UIManager.setLayoutAnimationEnabledExperimental &&
 interface Props {
   offers: Offer[];
   recipientName: string;
+  onNegotiationComplete: () => void;
 }
-const FloatingOffer = ({offers, recipientName}: Props) => {
+const FloatingOffer = ({
+  offers,
+  recipientName,
+  onNegotiationComplete,
+}: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [campaign, setCampaign] = useState<Campaign>();
   const navigation = useNavigation<NavigationStackProps>();
@@ -84,7 +91,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
 
   return (
     <View className="w-full absolute top-16 z-50">
-      <View className={`${isExpanded ? 'h-2/3' : 'h-16'}`} style={flex.flexCol}>
+      <View className={`${isExpanded ? 'h-5/6' : 'h-16'}`} style={flex.flexCol}>
         <ScrollView style={flex.flexCol} className="w-full p-1 rounded-md z-50">
           <View
             style={flex.flexCol}
@@ -121,6 +128,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                       activeRole={activeRole}
                       handleClickAccept={() => acceptOffer(offers[0])}
                       handleClickReject={() => declineOffer(offers[0])}
+                      onNegotiationComplete={onNegotiationComplete}
                     />
                   )}
                 </View>
@@ -137,6 +145,7 @@ const FloatingOffer = ({offers, recipientName}: Props) => {
                             activeRole={activeRole}
                             handleClickAccept={() => acceptOffer(offer)}
                             handleClickReject={() => declineOffer(offer)}
+                            onNegotiationComplete={onNegotiationComplete}
                           />
                         ),
                     )}
@@ -165,6 +174,7 @@ type OfferCardProps = {
   activeRole: UserRole;
   handleClickAccept: () => void;
   handleClickReject: () => void;
+  onNegotiationComplete: () => void;
 };
 
 const OfferCard = ({
@@ -173,7 +183,13 @@ const OfferCard = ({
   activeRole,
   handleClickAccept,
   handleClickReject,
+  onNegotiationComplete,
 }: OfferCardProps) => {
+  const offeredPrice =
+    offer.status === OfferStatus.pending
+      ? offer?.offeredPrice
+      : offer?.negotiatedPrice;
+
   return (
     <View
       style={flex.flexCol}
@@ -183,7 +199,7 @@ const OfferCard = ({
           <Text className="text-md text-left text-black">
             Offer:{' '}
             <Text className="font-bold">
-              IDR {offer?.offeredPrice?.toLocaleString('en-ID')}
+              IDR {offeredPrice.toLocaleString('en-ID')}
             </Text>
           </Text>
           <Text className="text-xs text-left">by {businessPeople}</Text>
@@ -195,6 +211,7 @@ const OfferCard = ({
         activeRole={activeRole}
         handleClickAccept={handleClickAccept}
         handleClickReject={handleClickReject}
+        onNegotiationComplete={onNegotiationComplete}
       />
     </View>
   );
@@ -206,6 +223,7 @@ type CampaignCardProps = {
   activeRole: UserRole;
   handleClickAccept: () => void;
   handleClickReject: () => void;
+  onNegotiationComplete: () => void;
 };
 
 const CampaignCard = ({
@@ -213,25 +231,28 @@ const CampaignCard = ({
   activeRole,
   handleClickAccept,
   handleClickReject,
+  onNegotiationComplete,
 }: CampaignCardProps) => {
   const [campaign, setCampaign] = useState<Campaign>();
   const navigation = useNavigation<NavigationStackProps>();
-
-  const [showAllNotes, setShowAllNotes] = useState(false);
-
-  const handleSeeMore = () => {
-    setShowAllNotes(true);
-  };
 
   useEffect(() => {
     Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
   }, [offer]);
 
-  const imageSource = campaign?.image
-    ? {
-        uri: campaign?.image,
-      }
-    : require('../../assets/images/bizboost-avatar.png');
+  const openModalNegotiate = () => {
+    openNegotiateModal({
+      selectedOffer: offer,
+      campaign: campaign,
+      navigation: navigation,
+      onNegotiationComplete: onNegotiationComplete,
+    });
+  };
+
+  const importantNotes =
+    offer.status === OfferStatus.pending
+      ? offer?.importantNotes
+      : offer?.negotiatedNotes;
 
   return (
     <View style={flex.flexCol}>
@@ -249,7 +270,7 @@ const CampaignCard = ({
             style={[flex.flexRow, rounded.default]}>
             <FastImage
               className="w-full h-full object-cover"
-              source={imageSource}
+              source={getSourceOrDefaultAvatar({uri: campaign?.image})}
             />
           </View>
           <View className="flex-1" style={flex.flexCol}>
@@ -258,9 +279,9 @@ const CampaignCard = ({
               <Text className="text-xs font-semibold pb-1">
                 Important Notes
               </Text>
-              {offer.importantNotes && offer.importantNotes !== '' ? (
+              {importantNotes && importantNotes !== '' ? (
                 <Text numberOfLines={2} className="text-xs">
-                  {offer.importantNotes}
+                  {importantNotes}
                 </Text>
               ) : (
                 <Text numberOfLines={2} className="text-xs">
@@ -274,32 +295,41 @@ const CampaignCard = ({
           <ChevronRight fill={COLOR.black[20]} />
         </HorizontalPadding>
       </Pressable>
-      {activeRole === UserRole.ContentCreator && (
-        <View className="pt-2 flex flex-row items-center justify-between w-full">
-          <View className="w-1/3">
-            <TouchableOpacity
-              className="bg-secondary py-3 px-2 rounded-l-md"
-              onPress={handleClickReject}>
-              <Text className="text-white text-center text-xs">Reject</Text>
-            </TouchableOpacity>
-          </View>
+      {activeRole === UserRole.ContentCreator &&
+        (offer.status === OfferStatus.pending ? (
+          <View className="pt-2 flex flex-row items-center justify-between w-full">
+            <View className="w-1/3">
+              <TouchableOpacity
+                className="bg-secondary py-3 px-2 rounded-l-md"
+                onPress={handleClickReject}>
+                <Text className="text-white text-center text-xs">Reject</Text>
+              </TouchableOpacity>
+            </View>
 
-          <View className="w-1/3">
-            <TouchableOpacity
-              className="bg-yellow-500 py-3 px-2"
-              onPress={handleClickAccept}>
-              <Text className="text-center text-xs text-white">Negotiate</Text>
+            <View className="w-1/3">
+              <TouchableOpacity
+                className="bg-yellow-500 py-3 px-2"
+                onPress={openModalNegotiate}>
+                <Text className="text-center text-xs text-white">
+                  Negotiate
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View className="w-1/3">
+              <TouchableOpacity
+                className="bg-primary py-3 px-2 rounded-r-md"
+                onPress={handleClickAccept}>
+                <Text className="text-white text-center text-xs">Accept</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <View className="w-full">
+            <TouchableOpacity className="bg-gray-300 py-3 px-2 rounded-r-md">
+              <Text className="text-white text-center text-xs">Negotiated</Text>
             </TouchableOpacity>
           </View>
-          <View className="w-1/3">
-            <TouchableOpacity
-              className="bg-primary py-3 px-2 rounded-r-md"
-              onPress={handleClickAccept}>
-              <Text className="text-white text-center text-xs">Accept</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+        ))}
     </View>
   );
 };
