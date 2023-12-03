@@ -246,6 +246,11 @@ export interface Content {
   updatedAt?: number; //either approved or rejected
 }
 
+export interface Payment {
+  proofImage: string;
+  status: BasicStatus;
+}
+
 export class Transaction extends BaseModel {
   id?: string; // CampaignId + ContentCreatorId
   contentCreatorId?: string;
@@ -262,6 +267,7 @@ export class Transaction extends BaseModel {
   lastCheckedAt?: number;
   contentRevisionLimit?: number;
   platformTasks?: CampaignPlatform[];
+  payment?: Payment;
 
   constructor({
     contentCreatorId,
@@ -278,6 +284,7 @@ export class Transaction extends BaseModel {
     lastCheckedAt,
     contentRevisionLimit,
     platformTasks,
+    payment,
   }: Partial<Transaction>) {
     super();
     // this.id = id;
@@ -298,6 +305,7 @@ export class Transaction extends BaseModel {
     this.lastCheckedAt = lastCheckedAt;
     this.contentRevisionLimit = contentRevisionLimit;
     this.platformTasks = platformTasks;
+    this.payment = payment;
   }
 
   private static fromSnapshot(
@@ -321,6 +329,7 @@ export class Transaction extends BaseModel {
         lastCheckedAt: data.lastCheckedAt,
         contentRevisionLimit: data.contentRevisionLimit,
         platformTasks: data.platformTasks,
+        payment: data.payment,
       });
       transaction.updateTermination();
       return transaction;
