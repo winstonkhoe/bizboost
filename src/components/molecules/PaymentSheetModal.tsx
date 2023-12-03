@@ -60,9 +60,10 @@ const PaymentSheetModal = ({
             targetFolder="payment"
             showUploadProgress
             options={{
-              width: 400,
-              height: 400,
-              cropping: true,
+              //   width: 400,
+              //   height: 400,
+              compressImageQuality: 0.5,
+              //   cropping: true,
             }}
             onUploadSuccess={url => {
               setUploadedImage(url);
