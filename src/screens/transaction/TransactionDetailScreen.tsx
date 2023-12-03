@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {ReactNode, useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -293,6 +293,10 @@ const TransactionDetailScreen = ({route}: Props) => {
             <BrainstormDetailSection transaction={transaction} />
           )}
           <ContentSubmissionDetailSection
+            transaction={transaction}
+            isCampaignOwner={isCampaignOwner}
+          />
+          <EngagementResultSubmissionDetailSection
             transaction={transaction}
             isCampaignOwner={isCampaignOwner}
           />
@@ -824,23 +828,6 @@ const ContentSubmissionDetailSection = ({
       [],
     [props.transaction],
   );
-  const [isSeeMore, setIsSeeMore] = useState(false);
-  const seeMoreValue = useSharedValue(0);
-  const chevronStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(seeMoreValue.value, [0, 1], [90, -90]);
-    return {
-      transform: [
-        {
-          rotate: `${rotation}deg`,
-        },
-      ],
-    };
-  });
-  useEffect(() => {
-    seeMoreValue.value = withTiming(isSeeMore ? 1 : 0, {
-      duration: 300,
-    });
-  }, [isSeeMore, seeMoreValue]);
   return (
     <>
       <Seperator />
@@ -874,47 +861,16 @@ const ContentSubmissionDetailSection = ({
           ))}
         </View>
         {sortedContents.length > 1 && (
-          <View style={[flex.flexCol, gap.large]}>
-            <View
-              className="overflow-hidden"
-              style={[
-                !isSeeMore && {
-                  maxHeight: 0,
-                },
-                flex.flexCol,
-                gap.medium,
-              ]}>
-              {sortedContents.slice(1).map((c, cIndex) => (
-                <ContentSubmissionCard
-                  key={cIndex}
-                  transaction={props.transaction}
-                  content={c}
-                />
-              ))}
-            </View>
-            <AnimatedPressable
-              style={[flex.flexRow, items.center, justify.center, gap.small]}
-              onPress={() => {
-                setIsSeeMore(!isSeeMore);
-              }}>
-              <Text
-                className="font-semibold"
-                style={[font.size[30], textColor(COLOR.text.green.default)]}>
-                {!isSeeMore
-                  ? `Show ${sortedContents.length - 1} more`
-                  : 'Show less'}
-              </Text>
-              <Animated.View
-                style={[
-                  flex.flexRow,
-                  justify.center,
-                  items.start,
-                  chevronStyle,
-                ]}>
-                <ChevronRight size="medium" color={COLOR.text.green.default} />
-              </Animated.View>
-            </AnimatedPressable>
-          </View>
+          <CollapsiblePanel
+            hiddenText={`Show ${sortedContents.length - 1} more`}>
+            {sortedContents.slice(1).map((c, cIndex) => (
+              <ContentSubmissionCard
+                key={cIndex}
+                transaction={props.transaction}
+                content={c}
+              />
+            ))}
+          </CollapsiblePanel>
         )}
       </View>
     </>
@@ -1073,6 +1029,123 @@ export const ContentSubmissionCard = ({
         </View>
       </View>
     </>
+  );
+};
+
+interface EngagementResultSubmissionDetailSectionProps {
+  transaction: Transaction;
+  isCampaignOwner: boolean;
+}
+
+const EngagementResultSubmissionDetailSection = ({
+  ...props
+}: EngagementResultSubmissionDetailSectionProps) => {
+  const sortedEngagements = useMemo(
+    () =>
+      props.transaction.contents?.sort((a, b) => b.createdAt - a.createdAt) ||
+      [],
+    [props.transaction],
+  );
+  return (
+    <>
+      <Seperator />
+      <View style={[flex.flexCol, padding.default, gap.medium]}>
+        <View
+          style={[flex.flexRow, gap.default, items.center, justify.between]}>
+          <View style={[flex.flexCol]}>
+            <Text
+              className="font-semibold"
+              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              {CampaignStep.EngagementResultSubmission}
+            </Text>
+          </View>
+          {TransactionStatus.contentSubmitted === props.transaction.status && (
+            <StatusTag status="Review needed" statusType={StatusType.warning} />
+          )}
+          {/* TODO: update status based on transaction status  */}
+        </View>
+        <View style={[flex.flexCol, gap.default, rounded.default]}>
+          {sortedEngagements.slice(0, 1).map((c, cIndex) => (
+            <ContentSubmissionCard
+              key={cIndex}
+              transaction={props.transaction}
+              content={c}
+            />
+          ))}
+        </View>
+        {sortedEngagements.length > 1 && (
+          <CollapsiblePanel>
+            {sortedEngagements.slice(1).map((c, cIndex) => (
+              <ContentSubmissionCard
+                key={cIndex}
+                transaction={props.transaction}
+                content={c}
+              />
+            ))}
+          </CollapsiblePanel>
+        )}
+      </View>
+    </>
+  );
+};
+
+interface CollapsiblePanelProps {
+  visibleText?: string;
+  hiddenText?: string;
+  children: ReactNode;
+}
+
+const CollapsiblePanel = ({
+  visibleText = 'Show less',
+  hiddenText = 'Show more',
+  ...props
+}: CollapsiblePanelProps) => {
+  const [isSeeMore, setIsSeeMore] = useState(false);
+  const seeMoreValue = useSharedValue(0);
+  const chevronStyle = useAnimatedStyle(() => {
+    const rotation = interpolate(seeMoreValue.value, [0, 1], [90, -90]);
+    return {
+      transform: [
+        {
+          rotate: `${rotation}deg`,
+        },
+      ],
+    };
+  });
+  useEffect(() => {
+    seeMoreValue.value = withTiming(isSeeMore ? 1 : 0, {
+      duration: 300,
+    });
+  }, [isSeeMore, seeMoreValue]);
+  return (
+    <View style={[flex.flexCol, gap.large]}>
+      <View
+        className="overflow-hidden"
+        style={[
+          !isSeeMore && {
+            maxHeight: 0,
+          },
+          flex.flexCol,
+          gap.medium,
+        ]}>
+        {props.children}
+      </View>
+      <AnimatedPressable
+        style={[flex.flexRow, items.center, justify.center, gap.small]}
+        onPress={() => {
+          setIsSeeMore(!isSeeMore);
+        }}>
+        <Text
+          className="font-semibold"
+          style={[font.size[30], textColor(COLOR.text.green.default)]}>
+          {!isSeeMore ? hiddenText : visibleText}
+        </Text>
+        <Animated.View
+          style={[flex.flexRow, justify.center, items.start, chevronStyle]}>
+          <ChevronRight size="medium" color={COLOR.text.green.default} />
+        </Animated.View>
+      </AnimatedPressable>
+    </View>
   );
 };
 
