@@ -11,7 +11,13 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import {
   Campaign,
@@ -83,6 +89,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import ImageView from 'react-native-image-viewing';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -129,6 +136,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const [campaign, setCampaign] = useState<Campaign>();
   const [transactions, setTransactions] = useState<TransactionView[]>([]);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [activeImageClicked, setActiveImageClicked] = useState(-1);
   const [temporaryBrainstorm, setTemporaryBrainstorm] = useState('');
   const [isBrainstormingModalOpened, setIsBrainstormingModalOpened] =
     useState(false);
@@ -432,6 +440,27 @@ const CampaignTimelineScreen = ({route}: Props) => {
   return (
     <>
       {isLoading && <LoadingScreen />}
+      <ImageView
+        images={guidelines.engagements}
+        imageIndex={activeImageClicked}
+        visible={activeImageClicked >= 0}
+        onRequestClose={() => setActiveImageClicked(-1)}
+        swipeToCloseEnabled
+        backgroundColor="white"
+        // TODO: extract footer
+        //   FooterComponent={({imageIndex}) => (
+        //     <View style={[padding.horizontal.large, padding.bottom.xlarge2]}>
+        //       <View
+        //         style={[
+        //           padding.default,
+        //           rounded.default,
+        //           {backgroundColor: 'rgba(255,255,255,0.8)'},
+        //         ]}>
+        //         <Text>Payment Proof</Text>
+        //       </View>
+        //     </View>
+        //   )}
+      />
       <PageWithBackButton enableSafeAreaContainer fullHeight>
         <HorizontalPadding>
           <View style={[flex.flexCol, gap.default, padding.top.xlarge3]}>
@@ -1065,7 +1094,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       contentContainerStyle={[flex.flexRow, gap.default]}
                       horizontal>
                       {guidelines.engagements.map((engagement, index) => (
-                        <View
+                        <Pressable
                           key={index}
                           className="overflow-hidden"
                           style={[
@@ -1078,12 +1107,15 @@ const CampaignTimelineScreen = ({route}: Props) => {
                               borderWidth: 1,
                               color: COLOR.black[20],
                             }),
-                          ]}>
+                          ]}
+                          onPress={() => {
+                            setActiveImageClicked(index);
+                          }}>
                           <FastImage
                             style={[dimension.full]}
                             source={engagement}
                           />
-                        </View>
+                        </Pressable>
                       ))}
                     </ScrollView>
                     <View
