@@ -47,6 +47,8 @@ import {Seperator} from '../../components/atoms/Separator';
 import {ContentSubmissionCard} from './TransactionDetailScreen';
 import {KeyboardAvoidingContainer} from '../../containers/KeyboardAvoidingContainer';
 import {useNavigation} from '@react-navigation/native';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -198,7 +200,7 @@ const RejectTransactionScreen = ({route}: Props) => {
                         key={rejectionTypeChunkIndex}
                         style={[flex.flexRow, gap.medium]}>
                         {rejectionTypeChunk.map(rejectionType => {
-                          const isDisabled =
+                          const revisionIsDisabled =
                             rejectionType.type === RejectionType.mismatch &&
                             transaction.getRemainingRevisionCount() <= 0;
                           return (
@@ -207,11 +209,18 @@ const RejectTransactionScreen = ({route}: Props) => {
                               isSelected={
                                 rejectionType.type === selectedRejectionType
                               }
-                              isDisabled={isDisabled}
+                              isDisabled={revisionIsDisabled}
                               rejectionType={rejectionType.type}
                               onPress={() => {
-                                if (!isDisabled) {
+                                if (!revisionIsDisabled) {
                                   setSelectedRejectionType(rejectionType.type);
+                                }
+                                if (revisionIsDisabled) {
+                                  showToast({
+                                    message:
+                                      'Content creators have reached the revision limit.',
+                                    type: ToastType.danger,
+                                  });
                                 }
                               }}>
                               {rejectionType.icon}

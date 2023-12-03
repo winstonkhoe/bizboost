@@ -71,6 +71,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {Seperator} from '../../components/atoms/Separator';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -1007,7 +1009,9 @@ export const ContentSubmissionCard = ({
                             ]}
                             onPress={() => {
                               Clipboard.setString(taskUri);
-                              // TODO: if possible add toast after set is successful
+                              showToast({
+                                message: 'Link copied to clipboard',
+                              });
                             }}>
                             <CopyIcon size="medium" color={COLOR.black[25]} />
                           </AnimatedPressable>
