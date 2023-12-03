@@ -3,6 +3,7 @@ import {Text} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
+  BasicStatus,
   Transaction,
   TransactionStatus,
   transactionStatusTypeMap,
@@ -30,6 +31,7 @@ import {getTimeAgo} from '../../utils/date';
 import {gap} from '../../styles/Gap';
 import FastImage, {Source} from 'react-native-fast-image';
 import {ImageRequireSource} from 'react-native';
+import PaymentSheetModal from './PaymentSheetModal';
 
 type Props = {
   transaction: Transaction;
@@ -47,50 +49,77 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
     Campaign.getById(transaction.campaignId || '').then(setCampaign);
   }, [transaction]);
 
+  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
+
+  const onProofUploaded = (url: string) => {
+    console.log('url: ' + url);
+    //TODO: hmm method2 update harus disamain deh (campaign sama ini aja beda)
+    transaction
+      .update({
+        payment: {
+          proofImage: url,
+          status: BasicStatus.pending,
+        },
+      })
+      .then(() => {
+        console.log('updated proof!');
+      });
+  };
   return (
-    <BaseCard
-      handleClickHeader={() => {
-        console.log('open campaign detail / BP detail');
-        navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
-          campaignId: campaign?.id || '',
-        });
-      }}
-      icon={
-        campaign?.type === CampaignType.Private ? (
-          <Private width={15} height={15} stroke={COLOR.green[50]} />
-        ) : (
-          <Public width={15} height={15} stroke={COLOR.green[50]} />
-        )
-      }
-      headerTextLeading={campaign?.title || ''}
-      headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
-      handleClickBody={() => {
-        console.log('open transaction ', transaction.id, ' detail');
-        if (transaction.id) {
-          navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
-            transactionId: transaction.id,
+    <>
+      <BaseCard
+        handleClickHeader={() => {
+          console.log('open campaign detail / BP detail');
+          navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
+            campaignId: campaign?.id || '',
           });
+        }}
+        icon={
+          campaign?.type === CampaignType.Private ? (
+            <Private width={15} height={15} stroke={COLOR.green[50]} />
+          ) : (
+            <Public width={15} height={15} stroke={COLOR.green[50]} />
+          )
         }
-      }}
-      imageSource={
-        contentCreator?.contentCreator?.profilePicture
-          ? {
-              uri: contentCreator?.contentCreator?.profilePicture,
-            }
-          : require('../../assets/images/bizboost-avatar.png')
-      }
-      bodyText={contentCreator?.contentCreator?.fullname || ''}
-      statusText={transaction.status}
-      doesNeedApproval={
-        transaction.status === TransactionStatus.registrationPending
-      }
-      handleClickReject={() => {
-        transaction.updateStatus(TransactionStatus.registrationRejected);
-      }}
-      handleClickAccept={() => {
-        transaction.approveRegistration();
-      }}
-    />
+        headerTextLeading={campaign?.title || ''}
+        headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+        handleClickBody={() => {
+          console.log('open transaction ', transaction.id, ' detail');
+          if (transaction.id) {
+            navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+              transactionId: transaction.id,
+            });
+          }
+        }}
+        imageSource={
+          contentCreator?.contentCreator?.profilePicture
+            ? {
+                uri: contentCreator?.contentCreator?.profilePicture,
+              }
+            : require('../../assets/images/bizboost-avatar.png')
+        }
+        bodyText={contentCreator?.contentCreator?.fullname || ''}
+        statusText={transaction.status}
+        doesNeedApproval={
+          transaction.status === TransactionStatus.registrationPending
+        }
+        handleClickReject={() => {
+          transaction.updateStatus(TransactionStatus.registrationRejected);
+        }}
+        handleClickAccept={() => {
+          setIsPaymentModalOpened(true); // TODO: abis klik ini, ganti status? (at least dari pov bp, kalo cc biarin Pending aja trs?)
+          //TODO: move approval to admin (approve payment first)
+          // transaction.approveRegistration();
+        }}
+      />
+      <PaymentSheetModal
+        isModalOpened={isPaymentModalOpened}
+        onModalDismiss={() => setIsPaymentModalOpened(false)}
+        amount={campaign?.fee || -1}
+        onProofUploaded={onProofUploaded}
+        defaultImage={transaction.payment?.proofImage}
+      />
+    </>
   );
 };
 

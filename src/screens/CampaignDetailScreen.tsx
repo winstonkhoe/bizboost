@@ -42,7 +42,6 @@ type Props = NativeStackScreenProps<
 
 const CampaignDetailScreen = ({route}: Props) => {
   const {uid, activeRole} = useUser();
-  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
@@ -127,15 +126,6 @@ const CampaignDetailScreen = ({route}: Props) => {
         });
     }
   };
-
-  // const onProofUploaded = (url: string) => {
-  //   console.log('url: ' + url);
-  //   const copy = new Campaign({...campaign});
-  //   copy.paymentProofImage = url;
-  //   copy.update().then(() => {
-  //     console.log('updated proof!');
-  //   });
-  // };
 
   if (!campaign || businessPeople === undefined) {
     return <LoadingScreen />;
@@ -388,13 +378,6 @@ const CampaignDetailScreen = ({route}: Props) => {
           </View>
         </View>
       </PageWithBackButton>
-      {/* <PaymentSheetModal
-        isModalOpened={isPaymentModalOpened}
-        onModalDismiss={() => setIsPaymentModalOpened(false)}
-        amount={(campaign.fee || 0) * (campaign.slot || 0)}
-        onProofUploaded={onProofUploaded}
-        defaultImage={campaign.paymentProofImage}
-      /> */}
     </>
   );
 };
