@@ -14,6 +14,9 @@ import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import FastImage from 'react-native-fast-image';
 import PhotosIcon from '../../assets/vectors/photos.svg';
+import ImageView from 'react-native-image-viewing';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import SafeAreaContainer from '../../containers/SafeAreaContainer';
 
 type Props = {
   isModalOpened: boolean;
@@ -31,6 +34,7 @@ const PaymentSheetModal = ({
   defaultImage = undefined,
 }: Props) => {
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
+  const [isImageViewOpened, setIsImageViewOpened] = useState(false);
 
   useEffect(() => {
     if (defaultImage) {
@@ -40,68 +44,109 @@ const PaymentSheetModal = ({
 
   // TODO: kalo reupload, apus yang lama
   return (
-    <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
-      <View
-        style={[
-          flex.flexCol,
-          gap.default,
-          padding.top.default,
-          padding.bottom.xlarge,
-          padding.horizontal.default,
-        ]}>
-        <View style={[flex.flexCol, items.center, gap.default]}>
-          <Text
-            className="font-bold"
-            style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-            Upload Payment Proof
-          </Text>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-            You need to pay {formatToRupiah(amount)} to Account Number
-            xxxxxxxxxx by [End Date regis]
-          </Text>
-        </View>
+    <>
+      <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
+        <View
+          style={[
+            flex.flexCol,
+            gap.default,
+            padding.top.default,
+            padding.bottom.xlarge,
+            padding.horizontal.default,
+          ]}>
+          <View style={[flex.flexCol, items.center, gap.default]}>
+            <Text
+              className="font-bold"
+              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+              Upload Payment Proof
+            </Text>
+            <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+              You need to pay {formatToRupiah(amount)} to Account Number
+              xxxxxxxxxx by [End Date regis]
+            </Text>
+          </View>
 
-        <View style={[flex.flexCol]}>
-          <MediaUploader
-            targetFolder="payment"
-            showUploadProgress
-            options={{
-              //   width: 400,
-              //   height: 400,
-              compressImageQuality: 0.5,
-              //   cropping: true,
-            }}
-            onUploadSuccess={url => {
-              setUploadedImage(url);
-              onProofUploaded(url);
-            }}
-            onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-            {uploadedImage ? (
-              <View
-                className="overflow-hidden"
-                style={[dimension.square.xlarge12, rounded.medium]}>
-                <FastImage
-                  style={[dimension.full]}
-                  source={{uri: uploadedImage}}
-                />
-              </View>
-            ) : (
-              <View
-                className="border-dashed border"
-                style={[
-                  dimension.square.xlarge12,
-                  rounded.medium,
-                  flex.flexRow,
-                  justify.center,
-                  items.center,
-                ]}>
-                <PhotosIcon width={30} height={30} />
-              </View>
+          <View style={[flex.flexCol, items.center]}>
+            {uploadedImage && (
+              <TouchableOpacity onPress={() => setIsImageViewOpened(true)}>
+                <View
+                  className="overflow-hidden"
+                  style={[dimension.square.xlarge12, rounded.medium]}>
+                  <FastImage
+                    style={[dimension.full]}
+                    source={{uri: uploadedImage}}
+                  />
+                </View>
+              </TouchableOpacity>
             )}
-          </MediaUploader>
+            <MediaUploader
+              targetFolder="payment"
+              showUploadProgress
+              options={{
+                //   width: 400,
+                //   height: 400,
+                compressImageQuality: 0.5,
+                //   cropping: true,
+              }}
+              onUploadSuccess={url => {
+                setUploadedImage(url);
+                onProofUploaded(url);
+              }}
+              onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
+              {uploadedImage ? (
+                <Text
+                  style={[
+                    padding.top.default,
+                    textColor(COLOR.text.green.default),
+                    font.size[30],
+                  ]}>
+                  Reupload
+                </Text>
+              ) : (
+                <View
+                  className="border-dashed border"
+                  style={[
+                    dimension.square.xlarge12,
+                    rounded.medium,
+                    flex.flexRow,
+                    justify.center,
+                    items.center,
+                  ]}>
+                  <PhotosIcon width={30} height={30} />
+                </View>
+              )}
+            </MediaUploader>
+          </View>
         </View>
-      </View>
-    </SheetModal>
+      </SheetModal>
+      {uploadedImage && (
+        <ImageView
+          images={[
+            {
+              uri: uploadedImage,
+            },
+          ]}
+          imageIndex={0}
+          visible={isImageViewOpened}
+          onRequestClose={() => setIsImageViewOpened(false)}
+          swipeToCloseEnabled
+          backgroundColor="white"
+          // TODO: extract footer
+          //   FooterComponent={({imageIndex}) => (
+          //     <View style={[padding.horizontal.large, padding.bottom.xlarge2]}>
+          //       <View
+          //         style={[
+          //           padding.default,
+          //           rounded.default,
+          //           {backgroundColor: 'rgba(255,255,255,0.8)'},
+          //         ]}>
+          //         <Text>Payment Proof</Text>
+          //       </View>
+          //     </View>
+          //   )}
+        />
+      )}
+    </>
   );
 };
 
