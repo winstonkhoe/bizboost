@@ -108,7 +108,7 @@ const CampaignDetailScreen = ({route}: Props) => {
       });
   };
 
-  if (!campaign) {
+  if (!campaign || businessPeople === undefined) {
     return <LoadingScreen />;
   }
 
