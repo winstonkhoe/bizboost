@@ -214,6 +214,7 @@ export class Campaign extends BaseModel {
     try {
       const snapshot = await this.getDocumentReference(id).get();
       if (!snapshot.exists) {
+        //TODO: throw error ilangin aja deh keknya ribet handlingnya
         throw Error('Campaign not found!');
       }
 
@@ -221,6 +222,27 @@ export class Campaign extends BaseModel {
       return campaign;
     } catch (error) {}
     throw Error('Error!');
+  }
+
+  static getByIdReactive(
+    id: string,
+    onComplete: (campaign: Campaign | undefined) => void,
+  ) {
+    const unsubscribe = this.getDocumentReference(id).onSnapshot(
+      docSnapshot => {
+        if (!docSnapshot.exists) {
+          onComplete(undefined);
+        } else {
+          onComplete(this.fromSnapshot(docSnapshot));
+        }
+      },
+      error => {
+        onComplete(undefined);
+        console.log(error.message);
+      },
+    );
+
+    return unsubscribe;
   }
 
   //todo: GATAU namanya yang bagus apa

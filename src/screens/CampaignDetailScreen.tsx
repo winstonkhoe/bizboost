@@ -65,7 +65,11 @@ const CampaignDetailScreen = ({route}: Props) => {
 
   useEffect(() => {
     // TODO: bikin reactive deh
-    Campaign.getById(campaignId).then(c => setCampaign(c));
+    const unsubscribe = Campaign.getByIdReactive(campaignId, c =>
+      setCampaign(c),
+    );
+
+    return unsubscribe;
   }, [campaignId]);
 
   useEffect(() => {
