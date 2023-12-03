@@ -234,11 +234,27 @@ const TransactionDetailScreen = ({route}: Props) => {
                   style={[font.size[30], textColor(COLOR.text.neutral.med)]}>
                   Status
                 </Text>
-                <StatusTag
-                  fontSize={20}
-                  status={transaction.status}
-                  statusType={transactionStatusTypeMap[transaction.status]}
-                />
+                <Pressable
+                  style={[flex.flexRow, gap.small]}
+                  onPress={() => {
+                    if (transaction.campaignId) {
+                      navigation.navigate(
+                        AuthenticatedNavigation.CampaignTimeline,
+                        {
+                          campaignId: transaction.campaignId,
+                        },
+                      );
+                    }
+                  }}>
+                  <StatusTag
+                    fontSize={20}
+                    status={transaction.status}
+                    statusType={transactionStatusTypeMap[transaction.status]}
+                  />
+                  {transaction.campaignId && (
+                    <ChevronRight size="large" color={COLOR.black[30]} />
+                  )}
+                </Pressable>
               </View>
             )}
             {/* <Text
