@@ -74,6 +74,7 @@ import {Seperator} from '../../components/atoms/Separator';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
+import {BackButtonLabel} from '../../components/atoms/Header';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -209,13 +210,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         fullHeight
         threshold={0}
         withoutScrollView
-        backButtonPlaceholder={
-          <Text
-            className="font-bold"
-            style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
-            Transaction Detail
-          </Text>
-        }>
+        backButtonPlaceholder={<BackButtonLabel text="Transaction Detail" />}>
         <ScrollView
           bounces={true}
           showsVerticalScrollIndicator={false}

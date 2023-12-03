@@ -49,6 +49,7 @@ import {KeyboardAvoidingContainer} from '../../containers/KeyboardAvoidingContai
 import {useNavigation} from '@react-navigation/native';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
+import {BackButtonLabel} from '../../components/atoms/Header';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -150,14 +151,12 @@ const RejectTransactionScreen = ({route}: Props) => {
           activePage > RejectTransactionPage.ChooseRejectType
         }
         backButtonPlaceholder={
-          <Text
-            className="font-bold"
-            style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
-            {`Reject ${
+          <BackButtonLabel
+            text={`Reject ${
               transactionStatusCampaignStepMap[transaction.status!!] ||
               'Transaction'
             }`}
-          </Text>
+          />
         }>
         <PagerView
           style={[flex.flex1, flex.grow]}
