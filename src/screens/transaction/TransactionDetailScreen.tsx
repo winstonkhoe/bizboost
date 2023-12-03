@@ -88,6 +88,7 @@ const rules = {
 };
 
 const TransactionDetailScreen = ({route}: Props) => {
+  // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
   const {uid} = useUser();
   const safeAreaInsets = useSafeAreaInsets();

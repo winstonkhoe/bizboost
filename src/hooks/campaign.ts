@@ -16,6 +16,7 @@ export const useOngoingCampaign = () => {
 
   useEffect(() => {
     if (uid) {
+      // TODO: bikin reactive?
       Campaign.getAll().then(cs => {
         dispatch(
           setNonUserCampaigns(

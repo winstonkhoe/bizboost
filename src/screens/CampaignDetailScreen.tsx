@@ -128,14 +128,14 @@ const CampaignDetailScreen = ({route}: Props) => {
     }
   };
 
-  const onProofUploaded = (url: string) => {
-    console.log('url: ' + url);
-    const copy = new Campaign({...campaign});
-    copy.paymentProofImage = url;
-    copy.update().then(() => {
-      console.log('updated proof!');
-    });
-  };
+  // const onProofUploaded = (url: string) => {
+  //   console.log('url: ' + url);
+  //   const copy = new Campaign({...campaign});
+  //   copy.paymentProofImage = url;
+  //   copy.update().then(() => {
+  //     console.log('updated proof!');
+  //   });
+  // };
 
   if (!campaign || businessPeople === undefined) {
     return <LoadingScreen />;
@@ -361,7 +361,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               </View>
             )}
 
-            {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
+            {/* {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
               <View className="pb-2">
                 <CustomButton
                   customBackgroundColor={
@@ -384,17 +384,17 @@ const CampaignDetailScreen = ({route}: Props) => {
                   onPress={() => setIsPaymentModalOpened(true)}
                 />
               </View>
-            )}
+            )} */}
           </View>
         </View>
       </PageWithBackButton>
-      <PaymentSheetModal
+      {/* <PaymentSheetModal
         isModalOpened={isPaymentModalOpened}
         onModalDismiss={() => setIsPaymentModalOpened(false)}
         amount={(campaign.fee || 0) * (campaign.slot || 0)}
         onProofUploaded={onProofUploaded}
         defaultImage={campaign.paymentProofImage}
-      />
+      /> */}
     </>
   );
 };

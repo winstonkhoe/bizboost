@@ -65,7 +65,6 @@ export class Campaign extends BaseModel {
   timeline?: CampaignTimeline[];
   createdAt?: number;
   importantInformation?: string[];
-  paymentProofImage?: string;
 
   constructor({
     id,
@@ -83,7 +82,6 @@ export class Campaign extends BaseModel {
     timeline,
     createdAt,
     importantInformation,
-    paymentProofImage,
   }: Partial<Campaign>) {
     super();
     this.id = id;
@@ -101,7 +99,6 @@ export class Campaign extends BaseModel {
     this.timeline = timeline;
     this.createdAt = createdAt;
     this.importantInformation = importantInformation;
-    this.paymentProofImage = paymentProofImage;
   }
 
   private static fromSnapshot(
@@ -135,7 +132,6 @@ export class Campaign extends BaseModel {
         timeline: data.timeline,
         createdAt: data.createdAt?.seconds,
         importantInformation: data.importantInformation,
-        paymentProofImage: data.paymentProofImage,
       });
     }
 
