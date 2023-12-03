@@ -107,6 +107,14 @@ const rules = {
   },
 };
 
+const guidelines = {
+  engagements: [
+    require('../assets/images/guidelines/engagement-1.png'),
+    require('../assets/images/guidelines/engagement-2.png'),
+    require('../assets/images/guidelines/engagement-3.png'),
+  ],
+};
+
 interface TransactionView {
   transaction: Transaction;
   contentCreator: User | null;
@@ -1026,15 +1034,58 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       rounded.default,
                       gap.default,
                     ]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        font.size[40],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      Submit your ideas!
-                    </Text>
+                    <View style={[flex.flexRow, justify.between]}>
+                      <Text
+                        className="font-semibold"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.high),
+                        ]}
+                        numberOfLines={1}>
+                        Guideline
+                      </Text>
+                      {transaction?.status &&
+                        transactionStatusCampaignStepMap[
+                          transaction?.status
+                        ] === CampaignStep.EngagementResultSubmission &&
+                        transaction.engagements &&
+                        transaction.engagements.length > 0 && (
+                          <InternalLink
+                            text="View Submission"
+                            size={30}
+                            onPress={() => {
+                              if (transaction.id) {
+                                navigateToTransactionDetail(transaction.id);
+                              }
+                            }}
+                          />
+                        )}
+                    </View>
+                    <ScrollView
+                      contentContainerStyle={[flex.flexRow, gap.default]}
+                      horizontal>
+                      {guidelines.engagements.map((engagement, index) => (
+                        <View
+                          key={index}
+                          className="overflow-hidden"
+                          style={[
+                            dimension.width.xlarge3,
+                            rounded.default,
+                            {
+                              aspectRatio: 1 / 1.3,
+                            },
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.black[20],
+                            }),
+                          ]}>
+                          <FastImage
+                            style={[dimension.full]}
+                            source={engagement}
+                          />
+                        </View>
+                      ))}
+                    </ScrollView>
                     <View
                       style={[
                         flex.flexCol,
@@ -1052,7 +1103,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         Petualang!”
                       </Text>
                     </View>
-                    <CustomButton text="Submit idea" />
+                    <CustomButton text="Upload" />
                   </View>
                 </View>
               )}
