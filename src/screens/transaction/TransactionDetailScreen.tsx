@@ -73,6 +73,7 @@ import Animated, {
 import {Seperator} from '../../components/atoms/Separator';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
+import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -190,7 +191,16 @@ const TransactionDetailScreen = ({route}: Props) => {
     return <LoadingScreen />;
   }
 
-  // TODO: handle null transaction, show error and allow user to go back?
+  if (transaction === null) {
+    return (
+      <PageWithBackButton fullHeight>
+        <EmptyPlaceholder
+          title="We're experiencing disruptions"
+          description="Please try again later"
+        />
+      </PageWithBackButton>
+    );
+  }
 
   return (
     <>
