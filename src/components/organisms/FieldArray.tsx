@@ -28,6 +28,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {rounded} from '../../styles/BorderRadius';
 import {font} from '../../styles/Font';
 import {shadow} from '../../styles/Shadow';
+import {ModalWebView} from '../../screens/modals/ModalWebView';
 
 interface Props extends Partial<ControllerProps> {
   control: Control<any>;
@@ -96,50 +97,15 @@ const FieldArray = ({
 
   return (
     <>
-      <CustomModal
-        transparent
-        visible={isWebviewModalOpen}
-        removeDefaultBackground
-        removeDefaultPadding>
-        <View
-          style={[
-            flex.flexCol,
-            gap.medium,
-            justify.center,
-            dimension.width.full,
-            dimension.height.full,
-            background(COLOR.black[0], 0.4),
-            padding.horizontal.medium,
-            {
-              paddingTop: safeAreaInsets.top,
-              paddingBottom: safeAreaInsets.bottom,
-            },
-          ]}>
-          <View
-            style={[
-              dimension.width.full,
-              {
-                height: '85%',
-              },
-            ]}>
-            <WebView
-              style={[rounded.large]}
-              source={{
-                uri: temporaryText,
-              }}
-            />
-          </View>
-          <CustomButton
-            text="Close Preview"
-            customTextSize={font.size[30]}
-            rounded="large"
-            verticalPadding="medium"
-            onPress={() => {
-              setIsWebviewModalOpen(false);
-            }}
-          />
-        </View>
-      </CustomModal>
+      {new RegExp('^(http|https)://[^ "]+$', 'i').test(temporaryText) && (
+        <ModalWebView
+          url={temporaryText}
+          visible={isWebviewModalOpen}
+          onClose={() => {
+            setIsWebviewModalOpen(false);
+          }}
+        />
+      )}
       <View style={[flex.flexCol, gap.default]}>
         <FormFieldHelper title={title} description={description} type={type} />
         <View style={[flex.flexCol, gap.medium]}>
@@ -186,7 +152,7 @@ const FieldArray = ({
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <BottomSheetModalWithTitle title={title || ''}>
+        <BottomSheetModalWithTitle fullHeight title={title || ''}>
           <Controller
             control={control}
             {...props}

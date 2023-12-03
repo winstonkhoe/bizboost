@@ -1,10 +1,9 @@
-import React from 'react';
+import {useEffect} from 'react';
 import {View, StyleSheet} from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
@@ -27,7 +26,7 @@ export const LoadingSpinner = () => {
     };
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     rotation1.value = withRepeat(
       withTiming(360, {duration: 1000, easing: Easing.linear}),
       -1,
@@ -36,7 +35,7 @@ export const LoadingSpinner = () => {
       withTiming(360 + 180, {duration: 500, easing: Easing.linear}),
       -1,
     );
-  }, [rotation1, rotation2]);
+  }, []);
 
   return (
     <View style={styles.container}>

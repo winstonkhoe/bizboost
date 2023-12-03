@@ -68,6 +68,31 @@ export const formatDate = (date: Date, format: string): string => {
   return formattedDate;
 };
 
+export const formatTimeDifferenceInDayHourMinute = (
+  date1: Date,
+  date2: Date,
+) => {
+  let diff = Math.abs(date2.getTime() - date1.getTime());
+  if (diff <= 0) {
+    return '0m';
+  }
+  let output = '';
+
+  const getTimeUnit = (unitInMilliseconds: number, unitName: string) => {
+    const unitValue = Math.floor(diff / unitInMilliseconds);
+    diff -= unitValue * unitInMilliseconds;
+    if (unitValue > 0) {
+      output += `${unitValue}${unitName} `;
+    }
+  };
+
+  getTimeUnit(1000 * 60 * 60 * 24, 'd');
+  getTimeUnit(1000 * 60 * 60, 'h');
+  getTimeUnit(1000 * 60, 'm');
+
+  return output.trim();
+};
+
 export const formatDateToDayMonthYear = (date: Date): string => {
   const options = {day: 'numeric', month: 'short', year: 'numeric'} as const;
   return date.toLocaleDateString('en-US', options);

@@ -1,5 +1,6 @@
 import {createAction, createSlice} from '@reduxjs/toolkit';
 import {User, UserRole} from '../../model/User';
+import {showToast} from '../../helpers/toast';
 
 interface UserState {
   uid: string | null;
@@ -41,7 +42,9 @@ const userSlice = createSlice({
   },
   extraReducers(builder) {
     builder.addCase(switchRole, (state, action) => {
-      console.log('terpanggil');
+      showToast({
+        message: `Switched to ${action.payload}`,
+      });
       state.activeRole = action.payload;
     });
   },

@@ -65,11 +65,12 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
       headerTextLeading={campaign?.title || ''}
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
-        console.log('open CC detail / campaign detail');
-        navigation.navigate(AuthenticatedNavigation.CampaignRegistrants, {
-          campaignId: campaign?.id || '',
-          initialTransactionStatusFilter: transaction.status,
-        });
+        console.log('open transaction ', transaction.id, ' detail');
+        if (transaction.id) {
+          navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+            transactionId: transaction.id,
+          });
+        }
       }}
       imageSource={
         contentCreator?.contentCreator?.profilePicture
@@ -117,9 +118,11 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
-        navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
-          campaignId: campaign?.id || '',
-        });
+        if (transaction.id) {
+          navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+            transactionId: transaction.id,
+          });
+        }
       }}
       imageSource={
         campaign?.image

@@ -1248,7 +1248,7 @@ const SocialFieldArray = ({
           setIsModalOpened(false);
         }}
         enableDynamicSizing={false}>
-        <BottomSheetModalWithTitle title={title}>
+        <BottomSheetModalWithTitle fullHeight title={title}>
           <Controller
             control={control}
             name={`${parentName}.${updateIndex}${
