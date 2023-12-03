@@ -246,6 +246,24 @@ export interface Content {
   updatedAt?: number; //either approved or rejected
 }
 
+interface EngagementTask {
+  uri: string[];
+  attachments: string[];
+}
+
+export interface TransactionEngagement {
+  platform: SocialPlatform;
+  tasks: EngagementTask[];
+}
+
+export interface Engagement {
+  status: BasicStatus;
+  content: TransactionEngagement[];
+  createdAt: number;
+  rejection?: Rejection;
+  updatedAt?: number; //either approved or rejected
+}
+
 export class Transaction extends BaseModel {
   id?: string; // CampaignId + ContentCreatorId
   contentCreatorId?: string;
@@ -255,7 +273,7 @@ export class Transaction extends BaseModel {
   importantNotes?: string[];
   brainstorms?: Brainstorm[];
   contents?: Content[];
-  engagements?: Content[];
+  engagements?: Engagement[];
   status?: TransactionStatus;
   createdAt?: number;
   updatedAt?: number;
@@ -847,13 +865,19 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id or contents');
   }
 
-  async submitEngagement(content: Content): Promise<boolean> {
+  async submitEngagement(
+    transactionEngagements: TransactionEngagement[],
+  ): Promise<boolean> {
     const {id} = this;
     if (id) {
       try {
         await Transaction.getDocumentReference(id).update({
           status: TransactionStatus.engagementSubmitted,
-          engagements: firestore.FieldValue.arrayUnion(content),
+          engagements: firestore.FieldValue.arrayUnion({
+            status: BasicStatus.pending,
+            content: transactionEngagements,
+            createdAt: new Date().getTime(),
+          }),
         });
         return true;
       } catch (error) {

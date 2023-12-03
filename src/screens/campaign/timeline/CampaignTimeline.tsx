@@ -10,7 +10,7 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
-} from '../navigation/StackNavigation';
+} from '../../../navigation/StackNavigation';
 import {
   Pressable,
   StyleSheet,
@@ -24,31 +24,31 @@ import {
   CampaignStep,
   CampaignTimeline,
   campaignIndexMap,
-} from '../model/Campaign';
+} from '../../../model/Campaign';
 
-import {useUser} from '../hooks/user';
+import {useUser} from '../../../hooks/user';
 
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
+import {PageWithBackButton} from '../../../components/templates/PageWithBackButton';
 import {useNavigation} from '@react-navigation/native';
-import {flex, items, justify, self} from '../styles/Flex';
-import {gap} from '../styles/Gap';
-import {ContentStepper, StepperState} from '../components/atoms/Stepper';
-import {font} from '../styles/Font';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
-import {padding} from '../styles/Padding';
-import {rounded} from '../styles/BorderRadius';
-import {background} from '../styles/BackgroundColor';
-import {COLOR} from '../styles/Color';
-import {CustomButton} from '../components/atoms/Button';
-import {border} from '../styles/Border';
-import {textColor} from '../styles/Text';
+import {flex, items, justify, self} from '../../../styles/Flex';
+import {gap} from '../../../styles/Gap';
+import {ContentStepper, StepperState} from '../../../components/atoms/Stepper';
+import {font} from '../../../styles/Font';
+import {HorizontalPadding} from '../../../components/atoms/ViewPadding';
+import {padding} from '../../../styles/Padding';
+import {rounded} from '../../../styles/BorderRadius';
+import {background} from '../../../styles/BackgroundColor';
+import {COLOR} from '../../../styles/Color';
+import {CustomButton} from '../../../components/atoms/Button';
+import {border} from '../../../styles/Border';
+import {textColor} from '../../../styles/Text';
 import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
   formatDateToHourMinute,
   formatTimeDifferenceInDayHourMinute,
-} from '../utils/date';
-import StatusTag, {StatusType} from '../components/atoms/StatusTag';
+} from '../../../utils/date';
+import StatusTag, {StatusType} from '../../../components/atoms/StatusTag';
 import {
   BasicStatus,
   Transaction,
@@ -59,30 +59,29 @@ import {
   transactionStatusIndexMap,
   transactionStatusStepperStateMap,
   transactionStatusTypeMap,
-} from '../model/Transaction';
-import {LoadingScreen} from './LoadingScreen';
-import {shadow} from '../styles/Shadow';
-import {SheetModal} from '../containers/SheetModal';
-import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
-import {FormlessCustomTextInput} from '../components/atoms/Input';
-import {FormFieldHelper} from '../components/atoms/FormLabel';
+} from '../../../model/Transaction';
+import {LoadingScreen} from '../../LoadingScreen';
+import {shadow} from '../../../styles/Shadow';
+import {SheetModal} from '../../../containers/SheetModal';
+import {BottomSheetModalWithTitle} from '../../../components/templates/BottomSheetModalWithTitle';
+import {FormlessCustomTextInput} from '../../../components/atoms/Input';
+import {FormFieldHelper} from '../../../components/atoms/FormLabel';
 import {ScrollView} from 'react-native-gesture-handler';
-import {dimension} from '../styles/Dimension';
-import {CustomModal} from '../components/atoms/CustomModal';
+import {dimension} from '../../../styles/Dimension';
+import {CustomModal} from '../../../components/atoms/CustomModal';
 import FastImage from 'react-native-fast-image';
-import {SocialPlatform, User} from '../model/User';
-import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {clamp, formatNumberWithThousandSeparator} from '../utils/number';
+import {SocialPlatform, User} from '../../../model/User';
+import {AnimatedPressable} from '../../../components/atoms/AnimatedPressable';
+import {clamp, formatNumberWithThousandSeparator} from '../../../utils/number';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useKeyboard} from '../hooks/keyboard';
-import {InternalLink} from '../components/atoms/Link';
-import FieldArray from '../components/organisms/FieldArray';
+import {InternalLink} from '../../../components/atoms/Link';
+import FieldArray from '../../../components/organisms/FieldArray';
 import {FormProvider, useForm} from 'react-hook-form';
-import {StringObject, getStringObjectValue} from '../utils/stringObject';
-import {ChevronRight, PlatformIcon} from '../components/atoms/Icon';
-import {size} from '../styles/Size';
-import {campaignTaskToString} from '../utils/campaign';
+import {StringObject, getStringObjectValue} from '../../../utils/stringObject';
+import {ChevronRight, PlatformIcon} from '../../../components/atoms/Icon';
+import {size} from '../../../styles/Size';
+import {campaignTaskToString} from '../../../utils/campaign';
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -90,6 +89,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import ImageView from 'react-native-image-viewing';
+import {getSourceOrDefaultAvatar} from '../../../utils/asset';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -116,9 +116,9 @@ const rules = {
 
 const guidelines = {
   engagements: [
-    require('../assets/images/guidelines/engagement-1.png'),
-    require('../assets/images/guidelines/engagement-2.png'),
-    require('../assets/images/guidelines/engagement-3.png'),
+    require('../../../assets/images/guidelines/engagement-1.png'),
+    require('../../../assets/images/guidelines/engagement-2.png'),
+    require('../../../assets/images/guidelines/engagement-3.png'),
   ],
 };
 
@@ -153,16 +153,20 @@ const CampaignTimelineScreen = ({route}: Props) => {
     return campaign?.getActiveTimeline();
   }, [campaign]);
 
-  const methods = useForm<SubmissionFormData>({
+  const contentSubmissionMethods = useForm<SubmissionFormData>({
     defaultValues: {
       submission: [],
     },
   });
 
-  const {reset, control, getValues} = methods;
+  const {
+    reset: contentSubmissionReset,
+    control: contentSubmissionControl,
+    getValues: getContentSubmissionValues,
+  } = contentSubmissionMethods;
 
   const resetOriginalField = useCallback(() => {
-    reset({
+    contentSubmissionReset({
       submission: transaction?.platformTasks?.map(platformTask => {
         return {
           platform: platformTask.name,
@@ -170,7 +174,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         };
       }),
     });
-  }, [reset, transaction]);
+  }, [contentSubmissionReset, transaction]);
 
   const filteredPendingBrainstormApproval = useMemo(() => {
     return transactions
@@ -248,15 +252,14 @@ const CampaignTimelineScreen = ({route}: Props) => {
             : transactionStatusIndex;
         const currentTransactionStep =
           transactionStatusCampaignStepMap[transaction.status];
-        const isContentCreatorSubmittedCurrentActiveTimeline =
+        const isContentCreatorNotSubmitCurrentActiveTimeline =
           currentActiveTimeline &&
-          currentTransactionStep !== currentActiveTimeline?.step;
+          currentTransactionStep !== currentActiveTimeline.step;
         let steps = [
           ...Array(
             (calculatedTransactionStatusIndex <= 0
               ? 0
-              : calculatedTransactionStatusIndex) +
-              (isContentCreatorSubmittedCurrentActiveTimeline ? 1 : 0),
+              : calculatedTransactionStatusIndex) + 1,
           ),
         ].map(() => StepperState.success);
         console.log(
@@ -278,7 +281,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
           'currentTransactionStep',
           currentTransactionStep,
         );
-        if (isContentCreatorSubmittedCurrentActiveTimeline) {
+        if (isContentCreatorNotSubmitCurrentActiveTimeline) {
           steps[steps.length - 1] = StepperState.inProgress;
         }
         return steps;
@@ -336,7 +339,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   };
 
   const submitContentSubmission = () => {
-    const data = methods.getValues();
+    const data = getContentSubmissionValues();
     const transactionContent: TransactionContent[] = data.submission.map(
       submission => {
         return {
@@ -447,19 +450,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
         onRequestClose={() => setActiveImageClicked(-1)}
         swipeToCloseEnabled
         backgroundColor="white"
-        // TODO: extract footer
-        //   FooterComponent={({imageIndex}) => (
-        //     <View style={[padding.horizontal.large, padding.bottom.xlarge2]}>
-        //       <View
-        //         style={[
-        //           padding.default,
-        //           rounded.default,
-        //           {backgroundColor: 'rgba(255,255,255,0.8)'},
-        //         ]}>
-        //         <Text>Payment Proof</Text>
-        //       </View>
-        //     </View>
-        //   )}
       />
       <PageWithBackButton enableSafeAreaContainer fullHeight>
         <HorizontalPadding>
@@ -568,16 +558,10 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                     style={[dimension.full, rounded.max]}>
                                     <FastImage
                                       style={[dimension.full]}
-                                      source={
-                                        t.contentCreator?.contentCreator
-                                          ?.profilePicture
-                                          ? {
-                                              uri: t.contentCreator
-                                                ?.contentCreator
-                                                ?.profilePicture,
-                                            }
-                                          : require('../assets/images/bizboost-avatar.png')
-                                      }
+                                      source={getSourceOrDefaultAvatar({
+                                        uri: t.contentCreator?.contentCreator
+                                          ?.profilePicture,
+                                      })}
                                     />
                                   </View>
                                 </View>
@@ -1126,16 +1110,24 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         rounded.default,
                         background(`${COLOR.green[5]}`),
                       ]}>
-                      <Text>💡 Things to highlight</Text>
+                      <Text>ℹ️ Don't forget</Text>
                       <Text>
-                        Features: Multiple compartments for organized packing
-                        Water-resistant and weather-proof material Lightweight
-                        and easy to carry Available in various sizes and colors
-                        Tagline: “Travel with confidence with Koper Idaman
-                        Petualang!”
+                        {`· Screenshot uploaded content\n· Upload engagement result`}
                       </Text>
                     </View>
-                    <CustomButton text="Upload" />
+                    <CustomButton
+                      text="Upload"
+                      onPress={() => {
+                        if (transaction.id) {
+                          navigation.navigate(
+                            AuthenticatedNavigation.SubmitEngagementResult,
+                            {
+                              transactionId: transaction?.id,
+                            },
+                          );
+                        }
+                      }}
+                    />
                   </View>
                 </View>
               )}
@@ -1263,7 +1255,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
           onPress={() => {
             setIsContentSubmissionModalOpen(false);
           }}>
-          <FormProvider {...methods}>
+          <FormProvider {...contentSubmissionMethods}>
             <View style={[flex.grow, flex.flexCol, gap.medium]}>
               <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
                 <View style={[flex.flex1, flex.flexCol, gap.xlarge2]}>
@@ -1284,7 +1276,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                               placeholder="Add url"
                               maxFieldLength={0}
                               helperText={`Make sure url is publicly accessible.\nEx. https://drive.google.com/file/d/1Go0RYsRgia9ZoMy10O8XBrfnIWMCopHs/view?usp=sharing`}
-                              control={control}
+                              control={contentSubmissionControl}
                               fieldType="textarea"
                               type="required"
                               rules={{
@@ -1312,7 +1304,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     (platform, platformIndex) =>
                       platform.tasks?.filter(
                         (task, taskIndex) =>
-                          getValues(
+                          getContentSubmissionValues(
                             `submission.${platformIndex}.tasks.${taskIndex}`,
                           )?.length < task.quantity,
                       ).length > 0,

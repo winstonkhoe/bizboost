@@ -1,29 +1,29 @@
-import SafeAreaContainer from '../containers/SafeAreaContainer';
+import SafeAreaContainer from '../../containers/SafeAreaContainer';
 import {Text, View} from 'react-native';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
-} from '../navigation/StackNavigation';
+} from '../../navigation/StackNavigation';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useEffect, useMemo, useState} from 'react';
-import {Transaction, TransactionStatus} from '../model/Transaction';
-import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
-import {flex} from '../styles/Flex';
-import {gap} from '../styles/Gap';
-import {UserRole} from '../model/User';
-import {padding} from '../styles/Padding';
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
+import {Transaction, TransactionStatus} from '../../model/Transaction';
+import RegisteredUserListCard from '../../components/molecules/RegisteredUserListCard';
+import {flex} from '../../styles/Flex';
+import {gap} from '../../styles/Gap';
+import {UserRole} from '../../model/User';
+import {padding} from '../../styles/Padding';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {size} from '../styles/Size';
+import {size} from '../../styles/Size';
 import {ScrollView} from 'react-native-gesture-handler';
-import SelectableTag from '../components/atoms/SelectableTag';
-import {COLOR} from '../styles/Color';
-import {background} from '../styles/BackgroundColor';
-import {Campaign, CampaignType} from '../model/Campaign';
-import {LoadingScreen} from './LoadingScreen';
-import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
-import {font} from '../styles/Font';
-import {textColor} from '../styles/Text';
+import SelectableTag from '../../components/atoms/SelectableTag';
+import {COLOR} from '../../styles/Color';
+import {background} from '../../styles/BackgroundColor';
+import {Campaign, CampaignType} from '../../model/Campaign';
+import {LoadingScreen} from '../LoadingScreen';
+import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignRegistrants

@@ -17,6 +17,7 @@ import {useUser} from '../../hooks/user';
 import {
   BasicStatus,
   Content,
+  Engagement,
   Transaction,
   TransactionStatus,
   basicStatusTypeMap,
@@ -75,6 +76,7 @@ import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 import {BackButtonLabel} from '../../components/atoms/Header';
+import ImageView from 'react-native-image-viewing';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -1037,8 +1039,9 @@ const EngagementResultSubmissionDetailSection = ({
 }: EngagementResultSubmissionDetailSectionProps) => {
   const sortedEngagements = useMemo(
     () =>
-      props.transaction.contents?.sort((a, b) => b.createdAt - a.createdAt) ||
-      [],
+      props.transaction.engagements?.sort(
+        (a, b) => b.createdAt - a.createdAt,
+      ) || [],
     [props.transaction],
   );
   return (
@@ -1054,31 +1057,242 @@ const EngagementResultSubmissionDetailSection = ({
               {CampaignStep.EngagementResultSubmission}
             </Text>
           </View>
-          {TransactionStatus.contentSubmitted === props.transaction.status && (
+          {TransactionStatus.engagementSubmitted ===
+            props.transaction.status && (
             <StatusTag status="Review needed" statusType={StatusType.warning} />
           )}
           {/* TODO: update status based on transaction status  */}
         </View>
         <View style={[flex.flexCol, gap.default, rounded.default]}>
-          {sortedEngagements.slice(0, 1).map((c, cIndex) => (
-            <ContentSubmissionCard
-              key={cIndex}
+          {sortedEngagements.slice(0, 1).map((engagement, engagementIndex) => (
+            <EngagementSubmissionCard
+              key={engagementIndex}
               transaction={props.transaction}
-              content={c}
+              engagement={engagement}
             />
           ))}
         </View>
         {sortedEngagements.length > 1 && (
           <CollapsiblePanel>
-            {sortedEngagements.slice(1).map((c, cIndex) => (
-              <ContentSubmissionCard
-                key={cIndex}
+            {sortedEngagements.slice(1).map((engagement, engagementIndex) => (
+              <EngagementSubmissionCard
+                key={engagementIndex}
                 transaction={props.transaction}
-                content={c}
+                engagement={engagement}
               />
             ))}
           </CollapsiblePanel>
         )}
+      </View>
+    </>
+  );
+};
+
+interface EngagementSubmissionCardProps {
+  transaction: Transaction;
+  engagement: Engagement;
+  hideStatus?: boolean;
+}
+
+export const EngagementSubmissionCard = ({
+  ...props
+}: EngagementSubmissionCardProps) => {
+  const [activePreviewIndex, setActivePreviewIndex] = useState({
+    platformIndex: 0,
+    taskIndex: 0,
+    attachmentIndex: -1,
+  });
+  const [activeUri, setActiveUri] = useState<string>('');
+  return (
+    <>
+      <ImageView
+        images={props.engagement.content[
+          activePreviewIndex.platformIndex
+        ].tasks[activePreviewIndex.taskIndex].attachments.map(attachment => {
+          return {uri: attachment};
+        })}
+        imageIndex={activePreviewIndex.attachmentIndex}
+        visible={activePreviewIndex.attachmentIndex >= 0}
+        onRequestClose={() => {
+          setActivePreviewIndex(prev => ({
+            ...prev,
+            attachmentIndex: -1,
+          }));
+        }}
+      />
+      <ModalWebView
+        url={activeUri}
+        visible={activeUri !== ''}
+        onClose={() => {
+          setActiveUri('');
+        }}
+      />
+      <View
+        style={[
+          flex.flexCol,
+          padding.default,
+          gap.default,
+          rounded.medium,
+          border({
+            borderWidth: 1,
+            color: COLOR.black[20],
+          }),
+        ]}>
+        <View style={[flex.flexRow, justify.between, items.center]}>
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+            {formatDateToDayMonthYearHourMinute(
+              new Date(props.engagement.createdAt),
+            )}
+          </Text>
+          {!props.hideStatus && (
+            <StatusTag
+              status={props.engagement.status}
+              statusType={basicStatusTypeMap[props.engagement.status]}
+            />
+          )}
+        </View>
+        <View style={[flex.flexCol, gap.medium]}>
+          {props.engagement.content.map(
+            (transactionEngagement, platformIndex) => (
+              <View
+                key={transactionEngagement.platform}
+                style={[flex.flexCol, gap.xsmall]}>
+                <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                  <PlatformIcon platform={transactionEngagement.platform} />
+                  <Text
+                    className="font-bold"
+                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    {transactionEngagement.platform}
+                  </Text>
+                </View>
+                <View style={[flex.flexCol, gap.default]}>
+                  {transactionEngagement.tasks.map((task, taskIndex) => {
+                    const transactionTask =
+                      props.transaction.platformTasks?.[platformIndex].tasks[
+                        taskIndex
+                      ];
+                    return (
+                      <View key={taskIndex} style={[flex.flexCol, gap.small]}>
+                        {transactionTask && (
+                          <Text
+                            className="font-medium"
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.med),
+                            ]}>
+                            {campaignTaskToString(transactionTask)}
+                          </Text>
+                        )}
+                        {task.uri.map((taskUri, taskUriIndex) => (
+                          <View
+                            key={taskUriIndex}
+                            style={[flex.flexRow, items.center, gap.default]}>
+                            <View style={[flex.flex1]}>
+                              <Pressable
+                                style={[
+                                  flex.flex1,
+                                  flex.flexRow,
+                                  items.center,
+                                  padding.small,
+                                  rounded.default,
+                                  background(COLOR.black[5]),
+                                ]}
+                                onPress={() => {
+                                  setActiveUri(taskUri);
+                                }}>
+                                <Text
+                                  className="font-bold"
+                                  style={[
+                                    flex.flex1,
+                                    font.size[20],
+                                    textColor(COLOR.black[60]),
+                                  ]}
+                                  numberOfLines={1}>
+                                  {taskUri}
+                                </Text>
+                                <OpenIcon size="medium" />
+                              </Pressable>
+                            </View>
+                            <AnimatedPressable
+                              scale={0.9}
+                              style={[
+                                padding.small,
+                                rounded.default,
+                                border({
+                                  borderWidth: 1,
+                                  color: COLOR.black[25],
+                                }),
+                              ]}
+                              onPress={() => {
+                                Clipboard.setString(taskUri);
+                                showToast({
+                                  message: 'Link copied to clipboard',
+                                });
+                              }}>
+                              <CopyIcon size="medium" color={COLOR.black[25]} />
+                            </AnimatedPressable>
+                          </View>
+                        ))}
+                        <ScrollView
+                          horizontal
+                          contentContainerStyle={[flex.flexRow, gap.small]}>
+                          {task.attachments.map(
+                            (attachment, attachmentIndex) => (
+                              <View key={attachmentIndex} className="relative">
+                                <Pressable
+                                  className="overflow-hidden"
+                                  style={[
+                                    dimension.width.xlarge4,
+                                    {
+                                      aspectRatio: 1 / 1.3,
+                                    },
+                                    rounded.default,
+                                  ]}
+                                  onPress={() => {
+                                    setActivePreviewIndex({
+                                      platformIndex,
+                                      taskIndex,
+                                      attachmentIndex,
+                                    });
+                                  }}>
+                                  <FastImage
+                                    style={[dimension.full]}
+                                    source={{
+                                      uri: attachment,
+                                    }}
+                                  />
+                                </Pressable>
+                              </View>
+                            ),
+                          )}
+                        </ScrollView>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            ),
+          )}
+          {props.engagement.rejection && (
+            <View
+              style={[
+                flex.flexCol,
+                gap.small,
+                padding.default,
+                background(COLOR.red[5]),
+                rounded.default,
+              ]}>
+              <Text
+                className="font-bold"
+                style={[font.size[20], textColor(COLOR.red[60])]}>
+                {props.engagement.rejection.type}
+              </Text>
+              <Text style={[font.size[20], textColor(COLOR.red[60])]}>
+                {props.engagement.rejection.reason}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
     </>
   );

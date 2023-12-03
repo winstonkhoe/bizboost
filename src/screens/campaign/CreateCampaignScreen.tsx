@@ -1,19 +1,19 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Pressable, Text} from 'react-native';
-import {CustomButton} from '../components/atoms/Button';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
+import {CustomButton} from '../../components/atoms/Button';
+import {HorizontalPadding} from '../../components/atoms/ViewPadding';
 import {View} from 'react-native';
-import PhotosIcon from '../assets/vectors/photos.svg';
-import {flex, items, justify} from '../styles/Flex';
-import {gap} from '../styles/Gap';
-import {COLOR} from '../styles/Color';
+import PhotosIcon from '../../assets/vectors/photos.svg';
+import {flex, items, justify} from '../../styles/Flex';
+import {gap} from '../../styles/Gap';
+import {COLOR} from '../../styles/Color';
 import {
   CustomNumberInput,
   CustomTextInput,
   FormlessCustomNumberInput,
   FormlessCustomTextInput,
   MediaUploader,
-} from '../components/atoms/Input';
+} from '../../components/atoms/Input';
 import {
   Control,
   Controller,
@@ -22,53 +22,53 @@ import {
   useForm,
   useFormContext,
 } from 'react-hook-form';
-import SelectableTag from '../components/atoms/SelectableTag';
+import SelectableTag from '../../components/atoms/SelectableTag';
 import {
   Campaign,
   CampaignPlatform,
   CampaignStep,
   CampaignTimeline,
   CampaignType,
-} from '../model/Campaign';
-import FieldArray from '../components/organisms/FieldArray';
-import {useUser} from '../hooks/user';
-import {StringObject, getStringObjectValue} from '../utils/stringObject';
+} from '../../model/Campaign';
+import FieldArray from '../../components/organisms/FieldArray';
+import {useUser} from '../../hooks/user';
+import {StringObject, getStringObjectValue} from '../../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
 
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {Location} from '../model/Location';
-import {dimension} from '../styles/Dimension';
-import {rounded} from '../styles/BorderRadius';
-import {background} from '../styles/BackgroundColor';
-import {border} from '../styles/Border';
-import {FormFieldHelper} from '../components/atoms/FormLabel';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import {Location} from '../../model/Location';
+import {dimension} from '../../styles/Dimension';
+import {rounded} from '../../styles/BorderRadius';
+import {background} from '../../styles/BackgroundColor';
+import {border} from '../../styles/Border';
+import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import PagerView from 'react-native-pager-view';
-import {Stepper} from '../components/atoms/Stepper';
-import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
-import {padding} from '../styles/Padding';
+import {Stepper} from '../../components/atoms/Stepper';
+import {KeyboardAvoidingContainer} from '../../containers/KeyboardAvoidingContainer';
+import {padding} from '../../styles/Padding';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {size} from '../styles/Size';
-import {isValidField} from '../utils/form';
-import {font} from '../styles/Font';
-import {textColor} from '../styles/Text';
-import {formatNumberWithThousandSeparator} from '../utils/number';
-import {InternalLink} from '../components/atoms/Link';
-import {openCategoryModal, openLocationModal} from '../utils/modal';
-import {RemovableChip} from '../components/atoms/Chip';
-import {NavigationStackProps} from '../navigation/StackNavigation';
+import {size} from '../../styles/Size';
+import {isValidField} from '../../utils/form';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
+import {formatNumberWithThousandSeparator} from '../../utils/number';
+import {InternalLink} from '../../components/atoms/Link';
+import {openCategoryModal, openLocationModal} from '../../utils/modal';
+import {RemovableChip} from '../../components/atoms/Chip';
+import {NavigationStackProps} from '../../navigation/StackNavigation';
 import DatePicker, {
   DefaultDatePickerPlaceholder,
-} from '../components/atoms/DatePicker';
-import {AddIcon} from '../components/atoms/Icon';
-import {formatDateToDayMonthYear} from '../utils/date';
-import {Category} from '../model/Category';
+} from '../../components/atoms/DatePicker';
+import {AddIcon} from '../../components/atoms/Icon';
+import {formatDateToDayMonthYear} from '../../utils/date';
+import {Category} from '../../model/Category';
 import FastImage from 'react-native-fast-image';
-import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {SocialPlatform} from '../model/User';
-import {FieldArrayLabel} from '../components/molecules/FieldArrayLabel';
-import {SheetModal} from '../containers/SheetModal';
-import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
-import {LoadingScreen} from './LoadingScreen';
+import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
+import {SocialPlatform} from '../../model/User';
+import {FieldArrayLabel} from '../../components/molecules/FieldArrayLabel';
+import {SheetModal} from '../../containers/SheetModal';
+import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
+import {LoadingScreen} from '../LoadingScreen';
 import {useWindowDimensions} from 'react-native';
 
 export type CampaignFormData = {

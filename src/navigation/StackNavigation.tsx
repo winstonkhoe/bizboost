@@ -1,14 +1,14 @@
 import {TransitionPresets, createStackNavigator} from '@react-navigation/stack';
 
 import {TabNavigator} from './TabNavigation';
-import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import CampaignDetailScreen from '../screens/campaign/CampaignDetailScreen';
 import ChatListScreen from '../screens/ChatListScreen';
 import {CreateAdditionalAccountScreen} from '../screens/CreateAdditionalAccountScreen';
 import {NavigationProp} from '@react-navigation/native';
-import CreateCampaignScreen from '../screens/CreateCampaignScreen';
+import CreateCampaignScreen from '../screens/campaign/CreateCampaignScreen';
 import ChatScreen from '../screens/ChatScreen';
 import {ChatView} from '../model/Chat';
-import CampaignRegistrantsScreen from '../screens/CampaignRegistrantsScreen';
+import CampaignRegistrantsScreen from '../screens/campaign/CampaignRegistrantsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
@@ -20,7 +20,7 @@ import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
 import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
-import CampaignTimelineScreen from '../screens/CampaignTimeline';
+import CampaignTimelineScreen from '../screens/campaign/timeline/CampaignTimeline';
 import MakeOfferScreen from '../screens/MakeOfferScreen';
 import {useEffect, useState} from 'react';
 import SplashScreen from '../screens/SplashScreen';
@@ -41,6 +41,7 @@ import {TransactionStatus} from '../model/Transaction';
 import PayCampaignScreen from '../screens/payment/PayCampaignScreen';
 import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
 import RejectTransactionScreen from '../screens/transaction/RejectTransactionScreen';
+import ModalSubmitEngagementResult from '../screens/campaign/timeline/ModalSubmitEngagementResult';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -62,6 +63,7 @@ export enum AuthenticatedNavigation {
   ChatList = 'Chat List',
   CampaignRegistrants = 'Campaign Registrants',
   CampaignTimeline = 'Campaign Timeline',
+  SubmitEngagementResult = 'Submit Engagement Result',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'My Transactions',
@@ -114,6 +116,7 @@ export type AuthenticatedStack = {
     initialTransactionStatusFilter?: TransactionStatus;
   };
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
+  [AuthenticatedNavigation.SubmitEngagementResult]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MyTransactions]: undefined;
@@ -281,6 +284,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.CampaignRegistrants}
                   component={CampaignRegistrantsScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.SubmitEngagementResult}
+                  component={ModalSubmitEngagementResult}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.MyTransactions}
