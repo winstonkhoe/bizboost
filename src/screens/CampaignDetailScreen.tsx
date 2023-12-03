@@ -378,6 +378,7 @@ const CampaignDetailScreen = ({route}: Props) => {
         onModalDismiss={() => setIsPaymentModalOpened(false)}
         amount={(campaign.fee || 0) * (campaign.slot || 0)}
         onProofUploaded={onProofUploaded}
+        defaultImage={campaign.paymentProofImage}
       />
     </>
   );

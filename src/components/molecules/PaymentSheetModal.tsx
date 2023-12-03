@@ -9,7 +9,7 @@ import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
 import {formatToRupiah} from '../../utils/currency';
 import {MediaUploader} from '../atoms/Input';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import FastImage from 'react-native-fast-image';
@@ -30,9 +30,15 @@ const PaymentSheetModal = ({
   onProofUploaded,
   defaultImage = undefined,
 }: Props) => {
-  const [uploadedImage, setUploadedImage] = useState<string | undefined>(
-    defaultImage,
-  );
+  const [uploadedImage, setUploadedImage] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (defaultImage) {
+      setUploadedImage(defaultImage);
+    }
+  }, [defaultImage]);
+
+  // TODO: kalo reupload, apus yang lama
   return (
     <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
       <View
