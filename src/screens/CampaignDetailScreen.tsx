@@ -21,7 +21,7 @@ import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
-import {User} from '../model/User';
+import {User, UserRole} from '../model/User';
 import {flex} from '../styles/Flex';
 import {horizontalPadding, verticalPadding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
@@ -41,7 +41,7 @@ type Props = NativeStackScreenProps<
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {uid} = useUser();
+  const {uid, activeRole} = useUser();
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
@@ -361,28 +361,30 @@ const CampaignDetailScreen = ({route}: Props) => {
               </View>
             )}
 
-            <View className="pb-2">
-              <CustomButton
-                customBackgroundColor={
-                  campaign.paymentProofImage
-                    ? COLOR.background.neutral
-                    : COLOR.background.danger
-                }
-                customTextColor={
-                  campaign.paymentProofImage
-                    ? COLOR.text.neutral
-                    : COLOR.text.danger
-                }
-                type="secondary"
-                text={
-                  campaign.paymentProofImage
-                    ? 'View Payment Proof'
-                    : 'Complete Payment'
-                }
-                rounded="default"
-                onPress={() => setIsPaymentModalOpened(true)}
-              />
-            </View>
+            {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
+              <View className="pb-2">
+                <CustomButton
+                  customBackgroundColor={
+                    campaign.paymentProofImage
+                      ? COLOR.background.neutral
+                      : COLOR.background.danger
+                  }
+                  customTextColor={
+                    campaign.paymentProofImage
+                      ? COLOR.text.neutral
+                      : COLOR.text.danger
+                  }
+                  type="secondary"
+                  text={
+                    campaign.paymentProofImage
+                      ? 'View Payment Proof'
+                      : 'Complete Payment'
+                  }
+                  rounded="default"
+                  onPress={() => setIsPaymentModalOpened(true)}
+                />
+              </View>
+            )}
           </View>
         </View>
       </PageWithBackButton>

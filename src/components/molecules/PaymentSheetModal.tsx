@@ -16,7 +16,6 @@ import FastImage from 'react-native-fast-image';
 import PhotosIcon from '../../assets/vectors/photos.svg';
 import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import SafeAreaContainer from '../../containers/SafeAreaContainer';
 
 type Props = {
   isModalOpened: boolean;
