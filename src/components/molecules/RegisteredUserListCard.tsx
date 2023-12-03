@@ -118,9 +118,11 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
-        navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
-          campaignId: campaign?.id || '',
-        });
+        if (transaction.id) {
+          navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+            transactionId: transaction.id,
+          });
+        }
       }}
       imageSource={
         campaign?.image
