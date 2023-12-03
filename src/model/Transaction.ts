@@ -440,9 +440,9 @@ export class Transaction extends BaseModel {
           querySnapshot => {
             if (querySnapshot.empty) {
               onComplete([]);
+            } else {
+              onComplete(querySnapshot.docs.map(this.fromSnapshot));
             }
-
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
             console.log(error);

@@ -87,6 +87,7 @@ export const COLOR = {
     },
     danger: {
       default: `${red[60]}`,
+      disabled: `${red[30]}`,
     },
   },
   background: {

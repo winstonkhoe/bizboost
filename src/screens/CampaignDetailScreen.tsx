@@ -21,7 +21,7 @@ import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
-import {User} from '../model/User';
+import {User, UserRole} from '../model/User';
 import {flex} from '../styles/Flex';
 import {horizontalPadding, verticalPadding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
@@ -32,6 +32,7 @@ import {LoadingScreen} from './LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import {dimension} from '../styles/Dimension';
+import PaymentSheetModal from '../components/molecules/PaymentSheetModal';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 type Props = NativeStackScreenProps<
@@ -40,7 +41,8 @@ type Props = NativeStackScreenProps<
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {uid} = useUser();
+  const {uid, activeRole} = useUser();
+  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
@@ -64,7 +66,11 @@ const CampaignDetailScreen = ({route}: Props) => {
   }, [campaignId]);
 
   useEffect(() => {
-    Campaign.getById(campaignId).then(c => setCampaign(c));
+    const unsubscribe = Campaign.getByIdReactive(campaignId, c =>
+      setCampaign(c),
+    );
+
+    return unsubscribe;
   }, [campaignId]);
 
   useEffect(() => {
@@ -81,7 +87,11 @@ const CampaignDetailScreen = ({route}: Props) => {
   }, [campaignId, uid]);
 
   useEffect(() => {
-    User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
+    User.getById(campaign?.userId || '').then(u => {
+      if (u) {
+        setBusinessPeople(u);
+      }
+    });
   }, [campaign]);
 
   const isCampaignOwner = useMemo(() => {
@@ -116,6 +126,15 @@ const CampaignDetailScreen = ({route}: Props) => {
           setIsLoading(false);
         });
     }
+  };
+
+  const onProofUploaded = (url: string) => {
+    console.log('url: ' + url);
+    const copy = new Campaign({...campaign});
+    copy.paymentProofImage = url;
+    copy.update().then(() => {
+      console.log('updated proof!');
+    });
   };
 
   if (!campaign || businessPeople === undefined) {
@@ -288,7 +307,6 @@ const CampaignDetailScreen = ({route}: Props) => {
             )}
             <View>
               <CustomButton
-                verticalPadding="small"
                 type="secondary"
                 text={
                   isMoreInfoVisible
@@ -324,7 +342,7 @@ const CampaignDetailScreen = ({route}: Props) => {
             />
             {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
             {isCampaignOwner && (
-              <View className="py-2">
+              <View className="">
                 <CustomButton
                   customBackgroundColor={COLOR.background.neutral}
                   customTextColor={COLOR.text.neutral}
@@ -342,9 +360,41 @@ const CampaignDetailScreen = ({route}: Props) => {
                 ))} */}
               </View>
             )}
+
+            {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
+              <View className="pb-2">
+                <CustomButton
+                  customBackgroundColor={
+                    campaign.paymentProofImage
+                      ? COLOR.background.neutral
+                      : COLOR.background.danger
+                  }
+                  customTextColor={
+                    campaign.paymentProofImage
+                      ? COLOR.text.neutral
+                      : COLOR.text.danger
+                  }
+                  type="secondary"
+                  text={
+                    campaign.paymentProofImage
+                      ? 'View Payment Proof'
+                      : 'Complete Payment'
+                  }
+                  rounded="default"
+                  onPress={() => setIsPaymentModalOpened(true)}
+                />
+              </View>
+            )}
           </View>
         </View>
       </PageWithBackButton>
+      <PaymentSheetModal
+        isModalOpened={isPaymentModalOpened}
+        onModalDismiss={() => setIsPaymentModalOpened(false)}
+        amount={(campaign.fee || 0) * (campaign.slot || 0)}
+        onProofUploaded={onProofUploaded}
+        defaultImage={campaign.paymentProofImage}
+      />
     </>
   );
 };
