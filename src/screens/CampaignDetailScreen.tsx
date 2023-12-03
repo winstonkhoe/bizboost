@@ -255,9 +255,9 @@ const CampaignDetailScreen = ({route}: Props) => {
                   <Text className="font-semibold text-base pb-2">
                     Task Summary
                   </Text>
-                  {campaign.platforms && (
+                  {campaign.platformTasks && (
                     <View className="flex flex-col">
-                      {campaign.platforms.map((p, index) => (
+                      {campaign.platformTasks.map((p, index) => (
                         <CampaignPlatformAccordion platform={p} key={index} />
                       ))}
                     </View>
