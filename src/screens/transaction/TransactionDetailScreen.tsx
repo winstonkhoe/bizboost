@@ -881,6 +881,8 @@ const ContentSubmissionDetailSection = ({
                 !isSeeMore && {
                   maxHeight: 0,
                 },
+                flex.flexCol,
+                gap.medium,
               ]}>
               {sortedContents.slice(1).map((c, cIndex) => (
                 <ContentSubmissionCard
@@ -1056,7 +1058,7 @@ export const ContentSubmissionCard = ({
                 gap.small,
                 padding.default,
                 background(COLOR.red[5]),
-                rounded.small,
+                rounded.default,
               ]}>
               <Text
                 className="font-bold"
