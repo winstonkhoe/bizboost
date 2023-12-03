@@ -32,6 +32,8 @@ import {LoadingScreen} from './LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import {dimension} from '../styles/Dimension';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -86,26 +88,34 @@ const CampaignDetailScreen = ({route}: Props) => {
     return campaign?.userId === uid;
   }, [campaign, uid]);
 
-  // TODO: validate join only for CC
   const handleJoinCampaign = () => {
-    const data = new Transaction({
-      contentCreatorId: uid || '',
-      campaignId: campaignId,
-      businessPeopleId: campaign?.userId,
-    });
-
-    setIsLoading(true);
-    data
-      .register()
-      .then(isSuccess => {
-        if (isSuccess) {
-          console.log('Joined!');
-        }
-      })
-      .catch(err => console.log(err))
-      .finally(() => {
-        setIsLoading(false);
+    if (uid !== campaign?.userId) {
+      const data = new Transaction({
+        contentCreatorId: uid || '',
+        campaignId: campaignId,
+        businessPeopleId: campaign?.userId,
       });
+
+      setIsLoading(true);
+      data
+        .register()
+        .then(() => {
+          showToast({
+            message: 'Registration success',
+            type: ToastType.success,
+          });
+        })
+        .catch(err => {
+          showToast({
+            message: 'Registration failed',
+            type: ToastType.danger,
+          });
+          console.log(err);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
   };
 
   if (!campaign || businessPeople === undefined) {
