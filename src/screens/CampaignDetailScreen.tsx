@@ -21,7 +21,7 @@ import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
-import {User, UserRole} from '../model/User';
+import {User} from '../model/User';
 import {flex} from '../styles/Flex';
 import {horizontalPadding, verticalPadding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
@@ -32,7 +32,6 @@ import {LoadingScreen} from './LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import {dimension} from '../styles/Dimension';
-import PaymentSheetModal from '../components/molecules/PaymentSheetModal';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 type Props = NativeStackScreenProps<
@@ -41,7 +40,7 @@ type Props = NativeStackScreenProps<
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {uid, activeRole} = useUser();
+  const {uid} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();

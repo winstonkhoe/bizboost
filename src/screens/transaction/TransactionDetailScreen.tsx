@@ -182,6 +182,39 @@ const TransactionDetailScreen = ({route}: Props) => {
     setIsOthersSheetModalOpen(false);
   };
 
+  const onProofAccepted = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: BasicStatus.approved,
+        },
+      })
+      .then(() => {
+        transaction?.approveRegistration();
+        showToast({
+          message: 'Payment Approved! Registration Status has changed.',
+          type: ToastType.success,
+        });
+      });
+  };
+
+  const onProofRejected = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: BasicStatus.rejected,
+        },
+      })
+      .then(() => {
+        showToast({
+          message: 'Payment Rejected!',
+          type: ToastType.danger,
+        });
+      });
+  };
+
   const currentActiveTimeline = useMemo(() => {
     const now = new Date().getTime();
     return campaign?.timeline?.find(
@@ -527,6 +560,9 @@ const TransactionDetailScreen = ({route}: Props) => {
         amount={campaign?.fee || -1}
         onProofUploaded={onProofUploaded}
         defaultImage={transaction.payment?.proofImage}
+        onProofAccepted={onProofAccepted}
+        onProofRejected={onProofRejected}
+        paymentStatus={transaction.payment?.status}
       />
     </>
   );

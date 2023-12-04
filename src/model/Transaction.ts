@@ -247,7 +247,7 @@ export interface Content {
 }
 
 export interface Payment {
-  proofImage: string;
+  proofImage?: string;
   status: BasicStatus;
 }
 

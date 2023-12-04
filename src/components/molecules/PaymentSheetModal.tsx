@@ -18,6 +18,8 @@ import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useUser} from '../../hooks/user';
 import {UserRole} from '../../model/User';
+import {BasicStatus, basicStatusTypeMap} from '../../model/Transaction';
+import StatusTag, {StatusType} from '../atoms/StatusTag';
 
 type Props = {
   isModalOpened: boolean;
@@ -25,6 +27,9 @@ type Props = {
   amount: number;
   onProofUploaded: (url: string) => void;
   defaultImage?: string;
+  onProofAccepted?: () => void;
+  onProofRejected?: () => void;
+  paymentStatus?: BasicStatus;
 };
 
 const PaymentSheetModal = ({
@@ -33,6 +38,9 @@ const PaymentSheetModal = ({
   amount,
   onProofUploaded,
   defaultImage = undefined,
+  onProofAccepted = undefined,
+  onProofRejected = undefined,
+  paymentStatus,
 }: Props) => {
   const {activeRole} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
@@ -44,10 +52,6 @@ const PaymentSheetModal = ({
     }
   }, [defaultImage]);
 
-  const handleClickReject = () => {};
-
-  const handleClickAccept = () => {};
-
   // TODO: kalo reupload, apus yang lama
   return (
     <>
@@ -58,16 +62,29 @@ const PaymentSheetModal = ({
             gap.default,
             padding.top.default,
             padding.bottom.xlarge,
-            padding.horizontal.default,
+            padding.horizontal.medium,
           ]}>
           <View style={[flex.flexCol, items.center, gap.default]}>
-            <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-              Payment Proof
-            </Text>
+            <View
+              style={[flex.flexRow, items.center, justify.between]}
+              className="w-full">
+              <Text
+                className="font-bold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                Payment Proof
+              </Text>
+              <StatusTag
+                status={paymentStatus || 'Not Uploaded'}
+                statusType={
+                  paymentStatus
+                    ? basicStatusTypeMap[paymentStatus]
+                    : StatusType.terminated
+                }
+              />
+            </View>
             {activeRole === UserRole.BusinessPeople && (
               <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                {/* TODO: fix copywriting */}
                 {`You need to pay ${formatToRupiah(
                   amount,
                 )} to }Account Number xxxxxxxxxx by [End Date regis]. Upload your payment proof here.`}
@@ -80,7 +97,7 @@ const PaymentSheetModal = ({
               <TouchableOpacity onPress={() => setIsImageViewOpened(true)}>
                 <View
                   className="overflow-hidden"
-                  style={[dimension.square.xlarge12, rounded.medium]}>
+                  style={[dimension.square.xlarge15, rounded.medium]}>
                   <FastImage
                     style={[dimension.full]}
                     source={{uri: uploadedImage}}
@@ -128,23 +145,27 @@ const PaymentSheetModal = ({
               </MediaUploader>
             ) : (
               <View style={[flex.flexRow, gap.default, padding.top.default]}>
-                <View style={[flex.flex1]}>
-                  <CustomButton
-                    text="Reject"
-                    scale={1}
-                    onPress={handleClickReject}
-                    customTextSize={font.size[20]}
-                    type="alternate"
-                  />
-                </View>
-                <View style={[flex.flex1]}>
-                  <CustomButton
-                    text="Accept"
-                    scale={1}
-                    onPress={handleClickAccept}
-                    customTextSize={font.size[20]}
-                  />
-                </View>
+                {paymentStatus === BasicStatus.pending && (
+                  <>
+                    <View style={[flex.flex1]}>
+                      <CustomButton
+                        text="Reject"
+                        scale={1}
+                        onPress={onProofRejected}
+                        customTextSize={font.size[20]}
+                        type="alternate"
+                      />
+                    </View>
+                    <View style={[flex.flex1]}>
+                      <CustomButton
+                        text="Accept"
+                        scale={1}
+                        onPress={onProofAccepted}
+                        customTextSize={font.size[20]}
+                      />
+                    </View>
+                  </>
+                )}
               </View>
             )}
           </View>

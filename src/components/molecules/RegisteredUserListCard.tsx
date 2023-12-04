@@ -133,6 +133,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         amount={campaign?.fee || -1}
         onProofUploaded={onProofUploaded}
         defaultImage={transaction.payment?.proofImage}
+        paymentStatus={transaction.payment?.status}
       />
     </>
   );
