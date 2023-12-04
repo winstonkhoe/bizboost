@@ -28,7 +28,7 @@ import {PageWithBackButton} from '../../components/templates/PageWithBackButton'
 
 import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {SocialPlatform, User} from '../../model/User';
 import {flex, items, justify} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
@@ -140,7 +140,19 @@ const TransactionDetailScreen = ({route}: Props) => {
         setIsLoading(true);
         transaction
           .approveBrainstorm()
-          .catch(err => console.log(err))
+          .then(() => {
+            showToast({
+              type: ToastType.success,
+              message: 'Brainstorm approved',
+            });
+          })
+          .catch(err => {
+            showToast({
+              type: ToastType.danger,
+              message: 'Failed to approve brainstorm',
+            });
+            console.log('approve brainstorm err:', err);
+          })
           .finally(() => {
             setIsLoading(false);
           });
@@ -150,7 +162,41 @@ const TransactionDetailScreen = ({route}: Props) => {
         setIsLoading(true);
         transaction
           .approveContent()
-          .catch(err => console.log(err))
+          .then(() => {
+            showToast({
+              type: ToastType.success,
+              message: 'Content approved',
+            });
+          })
+          .catch(err => {
+            showToast({
+              type: ToastType.danger,
+              message: 'Failed to approve content',
+            });
+            console.log('approve content err:', err);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
+      if (TransactionStatus.engagementSubmitted === transaction.status) {
+        setIsConfirmModalOpen(false);
+        setIsLoading(true);
+        transaction
+          .approveEngagement()
+          .then(() => {
+            showToast({
+              type: ToastType.success,
+              message: 'Engagement approved',
+            });
+          })
+          .catch(err => {
+            showToast({
+              type: ToastType.danger,
+              message: 'Failed to approve engagement',
+            });
+            console.log('approve engagement err:', err);
+          })
           .finally(() => {
             setIsLoading(false);
           });
@@ -1066,7 +1112,8 @@ const EngagementResultSubmissionDetailSection = ({
           ))}
         </View>
         {sortedEngagements.length > 1 && (
-          <CollapsiblePanel>
+          <CollapsiblePanel
+            hiddenText={`Show ${sortedEngagements.length - 1} more`}>
             {sortedEngagements.slice(1).map((engagement, engagementIndex) => (
               <EngagementSubmissionCard
                 key={engagementIndex}

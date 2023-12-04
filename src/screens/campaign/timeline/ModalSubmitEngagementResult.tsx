@@ -2,9 +2,8 @@ import {Pressable, View} from 'react-native';
 import {BackButtonLabel} from '../../../components/atoms/Header';
 import {PageWithBackButton} from '../../../components/templates/PageWithBackButton';
 import {CampaignStep, CampaignTask} from '../../../model/Campaign';
-import {flex, items, justify, self} from '../../../styles/Flex';
+import {flex, items, justify} from '../../../styles/Flex';
 import {
-  Controller,
   FormProvider,
   useFieldArray,
   useForm,
@@ -36,14 +35,12 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../../styles/Size';
 import {
   AddIcon,
-  PhotoRevisionIcon,
   PlatformIcon,
   UploadIcon,
 } from '../../../components/atoms/Icon';
 import {textColor} from '../../../styles/Text';
 import {Seperator} from '../../../components/atoms/Separator';
 import {MediaUploader} from '../../../components/atoms/Input';
-import {border} from '../../../styles/Border';
 import {dimension} from '../../../styles/Dimension';
 import {rounded} from '../../../styles/BorderRadius';
 import FastImage from 'react-native-fast-image';
@@ -68,14 +65,6 @@ type SubmissionFormData = {
   }[];
 };
 
-const guidelines = {
-  engagements: [
-    require('../../../assets/images/guidelines/engagement-1.png'),
-    require('../../../assets/images/guidelines/engagement-2.png'),
-    require('../../../assets/images/guidelines/engagement-3.png'),
-  ],
-};
-
 const ModalSubmitEngagementResult = ({route}: Props) => {
   const {transactionId} = route.params;
   const safeAreaInsets = useSafeAreaInsets();
@@ -88,7 +77,7 @@ const ModalSubmitEngagementResult = ({route}: Props) => {
       submission: [],
     },
   });
-  const {reset, control, getValues, watch} = methods;
+  const {reset, getValues, watch} = methods;
 
   const resetOriginalField = useCallback(() => {
     reset({
@@ -135,6 +124,7 @@ const ModalSubmitEngagementResult = ({route}: Props) => {
           message: 'Engagement result submitted',
           type: ToastType.success,
         });
+        setIsLoading(false);
         navigation.goBack();
       })
       .catch(err => {
@@ -142,10 +132,8 @@ const ModalSubmitEngagementResult = ({route}: Props) => {
           message: "There's an error. Please try again.",
           type: ToastType.danger,
         });
-        console.log('submitEngagement err: ', err);
-      })
-      .finally(() => {
         setIsLoading(false);
+        console.log('submitEngagement err: ', err);
       });
   };
 

@@ -800,24 +800,29 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                         numberOfLines={3}>
                                         {brainstorm.content}
                                       </Text>
-                                      {brainstorm.rejectReason && (
+                                      {brainstorm.rejection && (
                                         <View
                                           style={[
-                                            padding.small,
-                                            rounded.small,
-                                            background(COLOR.red[10], 0.3),
-                                            dimension.width.full,
+                                            flex.flexCol,
+                                            gap.small,
+                                            padding.default,
+                                            background(COLOR.red[5]),
+                                            rounded.default,
                                           ]}>
                                           <Text
-                                            className="font-medium"
+                                            className="font-bold"
                                             style={[
                                               font.size[20],
-                                              textColor(
-                                                COLOR.text.danger.default,
-                                              ),
-                                            ]}
-                                            numberOfLines={3}>
-                                            {brainstorm.rejectReason}
+                                              textColor(COLOR.red[60]),
+                                            ]}>
+                                            {brainstorm.rejection.type}
+                                          </Text>
+                                          <Text
+                                            style={[
+                                              font.size[20],
+                                              textColor(COLOR.red[60]),
+                                            ]}>
+                                            {brainstorm.rejection.reason}
                                           </Text>
                                         </View>
                                       )}
@@ -965,19 +970,18 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           ))}
                         </View>
                       </View>
-                      {transaction?.status !==
-                        TransactionStatus.contentSubmitted &&
-                        transaction?.status !==
-                          TransactionStatus.contentApproved && (
-                          <View style={[padding.horizontal.default]}>
-                            <CustomButton
-                              text="Upload"
-                              onPress={() => {
-                                setIsContentSubmissionModalOpen(true);
-                              }}
-                            />
-                          </View>
-                        )}
+                      {(!transaction?.getLatestContentSubmission() ||
+                        transaction?.getLatestContentSubmission()?.status ===
+                          BasicStatus.rejected) && (
+                        <View style={[padding.horizontal.default]}>
+                          <CustomButton
+                            text="Upload"
+                            onPress={() => {
+                              setIsContentSubmissionModalOpen(true);
+                            }}
+                          />
+                        </View>
+                      )}
                     </View>
                   )}
                   {isCampaignOwner && (
@@ -1111,19 +1115,23 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         {`· Screenshot uploaded content\n· Upload engagement result`}
                       </Text>
                     </View>
-                    <CustomButton
-                      text="Upload"
-                      onPress={() => {
-                        if (transaction.id) {
-                          navigation.navigate(
-                            AuthenticatedNavigation.SubmitEngagementResult,
-                            {
-                              transactionId: transaction?.id,
-                            },
-                          );
-                        }
-                      }}
-                    />
+                    {(!transaction?.getLatestEngagementSubmission() ||
+                      transaction?.getLatestEngagementSubmission()?.status ===
+                        BasicStatus.rejected) && (
+                      <CustomButton
+                        text="Upload"
+                        onPress={() => {
+                          if (transaction.id) {
+                            navigation.navigate(
+                              AuthenticatedNavigation.SubmitEngagementResult,
+                              {
+                                transactionId: transaction?.id,
+                              },
+                            );
+                          }
+                        }}
+                      />
+                    )}
                   </View>
                 </View>
               )}

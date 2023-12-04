@@ -46,7 +46,7 @@ export enum TransactionStatus {
   engagementSubmitted = 'Engagement Submitted',
   engagementRejected = 'Engagement Rejected',
 
-  completed = 'completed',
+  completed = 'Completed',
 
   reported = 'Reported', //reported by bp
   terminated = 'Terminated', //expired or timeline miss
@@ -217,11 +217,16 @@ export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap 
     [TransactionStatus.completed]: CampaignStep.Completed,
   };
 
+interface Rejection {
+  reason: string;
+  type: RejectionType;
+}
+
 interface Brainstorm {
   status: BasicStatus;
   content: string;
   createdAt: number;
-  rejectReason?: string;
+  rejection?: Rejection;
   updatedAt?: number; //either approved or rejected
 }
 
@@ -232,11 +237,6 @@ interface ContentTask {
 export interface TransactionContent {
   platform: SocialPlatform;
   tasks: ContentTask[];
-}
-
-interface Rejection {
-  reason: string;
-  type: RejectionType;
 }
 
 export interface Content {
@@ -571,9 +571,11 @@ export class Transaction extends BaseModel {
     const {campaignId, lastCheckedAt, status} = this;
     if (
       !campaignId ||
-      [TransactionStatus.terminated, TransactionStatus.reported].find(
-        s => s === status,
-      )
+      [
+        TransactionStatus.completed,
+        TransactionStatus.terminated,
+        TransactionStatus.reported,
+      ].find(s => s === status)
     ) {
       return false;
     }
@@ -707,7 +709,7 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id');
   }
 
-  async rejectBrainstorm(rejectReason: string): Promise<boolean> {
+  async rejectBrainstorm(rejection: Rejection): Promise<boolean> {
     const {id, brainstorms} = this;
     if (id && brainstorms && brainstorms.length > 0) {
       try {
@@ -716,7 +718,7 @@ export class Transaction extends BaseModel {
           latestBrainstorm = {
             ...latestBrainstorm,
             status: BasicStatus.rejected,
-            rejectReason: rejectReason,
+            rejection: rejection,
             updatedAt: new Date().getTime(),
           };
           const brainstormIndex = this.getBrainstormIndex(latestBrainstorm);
