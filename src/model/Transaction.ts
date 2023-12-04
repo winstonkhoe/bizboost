@@ -485,9 +485,35 @@ export class Transaction extends BaseModel {
           querySnapshot => {
             if (querySnapshot.empty) {
               onComplete([]);
+            } else {
+              onComplete(querySnapshot.docs.map(this.fromSnapshot));
             }
+          },
+          error => {
+            console.log(error);
+          },
+        );
 
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAllTransactionsWithPayment(
+    onComplete: (transactions: Transaction[]) => void,
+  ) {
+    try {
+      const unsubscribe = Transaction.getCollectionReference()
+        .orderBy('payment')
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete([]);
+            } else {
+              onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            }
           },
           error => {
             console.log(error);

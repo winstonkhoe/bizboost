@@ -74,6 +74,7 @@ import {Seperator} from '../../components/atoms/Separator';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
+import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -188,6 +189,28 @@ const TransactionDetailScreen = ({route}: Props) => {
     );
   }, [campaign]);
 
+  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
+
+  // TODO: duplicate with RegisteredUserListCard
+  const onProofUploaded = (url: string) => {
+    if (!transaction) return;
+    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
+    transaction
+      .update({
+        payment: {
+          proofImage: url,
+          status: BasicStatus.pending,
+        },
+      })
+      .then(() => {
+        console.log('updated proof!');
+        showToast({
+          message:
+            'Registration Approved! Your payment is being reviewed by our Admin',
+          type: ToastType.success,
+        });
+      });
+  };
   if (transaction === undefined || !campaign) {
     return <LoadingScreen />;
   }
@@ -258,6 +281,28 @@ const TransactionDetailScreen = ({route}: Props) => {
                 </Pressable>
               </View>
             )}
+
+            {transaction.payment && (
+              <>
+                <View style={[styles.bottomBorder]} />
+
+                <Pressable
+                  onPress={() => setIsPaymentModalOpened(true)}
+                  style={[flex.flexRow, justify.between, items.center]}>
+                  <Text
+                    style={[font.size[30], textColor(COLOR.text.neutral.med)]}>
+                    Payment
+                  </Text>
+                  <Text
+                    style={[
+                      font.size[30],
+                      textColor(COLOR.text.green.default),
+                    ]}>
+                    View Proof
+                  </Text>
+                </Pressable>
+              </>
+            )}
             {/* <Text
               className="font-bold"
               style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
@@ -280,6 +325,8 @@ const TransactionDetailScreen = ({route}: Props) => {
                 </View>
               </>
             )}
+
+            {/* <View style={[styles.bottomBorder]} /> */}
           </View>
           {!isCampaignOwner && (
             <CampaignDetailSection
@@ -472,6 +519,14 @@ const TransactionDetailScreen = ({route}: Props) => {
           </View>
         </View>
       </CustomModal>
+
+      <PaymentSheetModal
+        isModalOpened={isPaymentModalOpened}
+        onModalDismiss={() => setIsPaymentModalOpened(false)}
+        amount={campaign?.fee || -1}
+        onProofUploaded={onProofUploaded}
+        defaultImage={transaction.payment?.proofImage}
+      />
     </>
   );
 };

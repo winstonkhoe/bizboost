@@ -75,13 +75,20 @@ const HomeScreen = () => {
 
   useEffect(() => {
     console.log('homeScreen:getAllTransactionsByRole');
-    const unsubscribe = Transaction.getAllTransactionsByRole(
-      uid || '',
-      activeRole!!,
-      setTransactions,
-    );
+    if (activeRole !== UserRole.Admin) {
+      const unsubscribe = Transaction.getAllTransactionsByRole(
+        uid || '',
+        activeRole!!,
+        setTransactions,
+      );
 
-    return unsubscribe;
+      return unsubscribe;
+    } else {
+      const unsubscribe =
+        Transaction.getAllTransactionsWithPayment(setTransactions);
+
+      return unsubscribe;
+    }
   }, [uid, activeRole]);
 
   return (
@@ -230,7 +237,11 @@ const HomeScreen = () => {
             <View style={[flex.flexCol, gap.default]}>
               <HorizontalPadding>
                 <HomeSectionHeader
-                  header="Ongoing Transactions"
+                  header={
+                    activeRole === UserRole.Admin
+                      ? 'Payments'
+                      : 'Ongoing Transactions'
+                  }
                   link={'See All'}
                   // onPressLink={() =>
                   // setOngoingCampaignsLimit(
