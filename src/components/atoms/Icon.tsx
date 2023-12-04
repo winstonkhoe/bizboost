@@ -16,8 +16,12 @@ import Open from '../../assets/vectors/open.svg';
 import BrokenLink from '../../assets/vectors/broken-link.svg';
 import PhotoRevision from '../../assets/vectors/photo-revision.svg';
 import Upload from '../../assets/vectors/upload.svg';
+import MissingDocument from '../../assets/vectors/document-missing.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path} from 'react-native-svg';
+import {gap} from '../../styles/Gap';
+import {background} from '../../styles/BackgroundColor';
+import {rounded} from '../../styles/BorderRadius';
 
 interface IconProps {
   size?: SizeType;
@@ -262,6 +266,58 @@ export const UploadIcon = ({
       height={size[sizeType]}
       color={color}
       {...props}
+    />
+  );
+};
+
+export const CircleIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[40],
+}: IconProps) => {
+  return (
+    <View
+      style={[dimension.square[sizeType], rounded.max, background(color)]}
+    />
+  );
+};
+
+export const MeatballMenuIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[40],
+}: IconProps) => {
+  return (
+    <View style={[flex.flexRow, gap[sizeType]]}>
+      {[...Array(3)].map((_, i) => (
+        <CircleIcon key={i} color={color} size={sizeType} />
+      ))}
+    </View>
+  );
+};
+
+export const KebabMenuIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[40],
+}: IconProps) => {
+  return (
+    <View style={[flex.flexCol, gap[sizeType]]}>
+      {[...Array(3)].map((_, i) => (
+        <CircleIcon key={i} color={color} size={sizeType} />
+      ))}
+    </View>
+  );
+};
+
+export const MissingDocumentIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  strokeWidth = 2,
+}: IconProps) => {
+  return (
+    <MissingDocument
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      strokeWidth={strokeWidth}
     />
   );
 };
