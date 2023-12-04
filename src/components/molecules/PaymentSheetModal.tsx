@@ -16,6 +16,8 @@ import FastImage from 'react-native-fast-image';
 import PhotosIcon from '../../assets/vectors/photos.svg';
 import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import {useUser} from '../../hooks/user';
+import {UserRole} from '../../model/User';
 
 type Props = {
   isModalOpened: boolean;
@@ -32,6 +34,7 @@ const PaymentSheetModal = ({
   onProofUploaded,
   defaultImage = undefined,
 }: Props) => {
+  const {activeRole} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
 
@@ -40,6 +43,10 @@ const PaymentSheetModal = ({
       setUploadedImage(defaultImage);
     }
   }, [defaultImage]);
+
+  const handleClickReject = () => {};
+
+  const handleClickAccept = () => {};
 
   // TODO: kalo reupload, apus yang lama
   return (
@@ -57,12 +64,15 @@ const PaymentSheetModal = ({
             <Text
               className="font-bold"
               style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-              Upload Payment Proof
+              Payment Proof
             </Text>
-            <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-              You need to pay {formatToRupiah(amount)} to Account Number
-              xxxxxxxxxx by [End Date regis]
-            </Text>
+            {activeRole === UserRole.BusinessPeople && (
+              <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                {`You need to pay ${formatToRupiah(
+                  amount,
+                )} to }Account Number xxxxxxxxxx by [End Date regis]. Upload your payment proof here.`}
+              </Text>
+            )}
           </View>
 
           <View style={[flex.flexCol, items.center]}>
@@ -78,43 +88,65 @@ const PaymentSheetModal = ({
                 </View>
               </TouchableOpacity>
             )}
-            <MediaUploader
-              targetFolder="payment"
-              showUploadProgress
-              options={{
-                //   width: 400,
-                //   height: 400,
-                compressImageQuality: 0.5,
-                //   cropping: true,
-              }}
-              onUploadSuccess={url => {
-                setUploadedImage(url);
-                onProofUploaded(url);
-              }}
-              onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-              {uploadedImage ? (
-                <Text
-                  style={[
-                    padding.top.default,
-                    textColor(COLOR.text.green.default),
-                    font.size[30],
-                  ]}>
-                  Reupload
-                </Text>
-              ) : (
-                <View
-                  className="border-dashed border"
-                  style={[
-                    dimension.square.xlarge12,
-                    rounded.medium,
-                    flex.flexRow,
-                    justify.center,
-                    items.center,
-                  ]}>
-                  <PhotosIcon width={30} height={30} />
+            {activeRole === UserRole.BusinessPeople ? (
+              <MediaUploader
+                targetFolder="payment"
+                showUploadProgress
+                options={{
+                  //   width: 400,
+                  //   height: 400,
+                  compressImageQuality: 0.5,
+                  //   cropping: true,
+                }}
+                onUploadSuccess={url => {
+                  setUploadedImage(url);
+                  onProofUploaded(url);
+                }}
+                onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
+                {uploadedImage ? (
+                  <Text
+                    style={[
+                      padding.top.default,
+                      textColor(COLOR.text.green.default),
+                      font.size[30],
+                    ]}>
+                    Reupload
+                  </Text>
+                ) : (
+                  <View
+                    className="border-dashed border"
+                    style={[
+                      dimension.square.xlarge12,
+                      rounded.medium,
+                      flex.flexRow,
+                      justify.center,
+                      items.center,
+                    ]}>
+                    <PhotosIcon width={30} height={30} />
+                  </View>
+                )}
+              </MediaUploader>
+            ) : (
+              <View style={[flex.flexRow, gap.default, padding.top.default]}>
+                <View style={[flex.flex1]}>
+                  <CustomButton
+                    text="Reject"
+                    scale={1}
+                    onPress={handleClickReject}
+                    customTextSize={font.size[20]}
+                    type="alternate"
+                  />
                 </View>
-              )}
-            </MediaUploader>
+                <View style={[flex.flex1]}>
+                  <CustomButton
+                    text="Accept"
+                    scale={1}
+                    onPress={handleClickAccept}
+                    customTextSize={font.size[20]}
+                  />
+                </View>
+              </View>
+            )}
           </View>
         </View>
       </SheetModal>

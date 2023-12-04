@@ -28,7 +28,7 @@ import {PageWithBackButton} from '../../components/templates/PageWithBackButton'
 import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import {SocialPlatform, User} from '../../model/User';
+import {SocialPlatform, User, UserRole} from '../../model/User';
 import {flex, items, justify} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
@@ -91,7 +91,7 @@ const rules = {
 const TransactionDetailScreen = ({route}: Props) => {
   // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
-  const {uid} = useUser();
+  const {uid, activeRole} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
@@ -282,7 +282,8 @@ const TransactionDetailScreen = ({route}: Props) => {
               </View>
             )}
 
-            {transaction.payment && (
+            {/* TODO: kalo cc liat payment pas bisa diwithdraw aja? */}
+            {transaction.payment && activeRole !== UserRole.ContentCreator && (
               <>
                 <View style={[styles.bottomBorder]} />
 
