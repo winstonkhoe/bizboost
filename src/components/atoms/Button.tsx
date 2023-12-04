@@ -52,13 +52,13 @@ export const CustomButton = ({
           horizontalPadding.large,
           verticalPadding[verticalPaddingSize],
           rounded[roundSize],
-          // type === 'secondary' && // Semua type ada border supaya sizingnya balance antara secondary ama primary
-          border({
-            borderWidth: 2,
-            color: props.disabled
-              ? customBackgroundColor.disabled
-              : customBackgroundColor.high,
-          }),
+          type === 'secondary' && // Semua type ada border supaya sizingnya balance antara secondary ama primary
+            border({
+              borderWidth: 2,
+              color: props.disabled
+                ? customBackgroundColor.disabled
+                : customBackgroundColor.high,
+            }),
           (type === 'secondary' || type === 'tertiary') &&
             background(COLOR.black[0]),
           type === 'alternate' && background(COLOR.black[5]),

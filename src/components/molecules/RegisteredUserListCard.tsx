@@ -101,7 +101,8 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         bodyText={contentCreator?.contentCreator?.fullname || ''}
         statusText={transaction.status}
         doesNeedApproval={
-          transaction.status === TransactionStatus.registrationPending
+          transaction.status === TransactionStatus.registrationPending &&
+          transaction.payment === undefined
         }
         handleClickReject={() => {
           transaction.updateStatus(TransactionStatus.registrationRejected);
