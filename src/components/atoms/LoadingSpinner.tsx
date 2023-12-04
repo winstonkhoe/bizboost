@@ -2,6 +2,7 @@ import {useEffect} from 'react';
 import {View, StyleSheet} from 'react-native';
 import Animated, {
   Easing,
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -35,6 +36,10 @@ export const LoadingSpinner = () => {
       withTiming(360 + 180, {duration: 500, easing: Easing.linear}),
       -1,
     );
+    return () => {
+      cancelAnimation(rotation1);
+      cancelAnimation(rotation2);
+    };
   }, []);
 
   return (
