@@ -340,8 +340,10 @@ const CampaignDetailScreen = ({route}: Props) => {
             {isCampaignOwner && (
               <View className="">
                 <CustomButton
-                  customBackgroundColor={COLOR.background.neutral}
-                  customTextColor={COLOR.text.neutral}
+                  customBackgroundColor={{
+                    default: COLOR.background.neutral.high,
+                    disabled: COLOR.background.neutral.disabled,
+                  }}
                   text="View Registrants"
                   rounded="default"
                   onPress={() =>
@@ -362,13 +364,25 @@ const CampaignDetailScreen = ({route}: Props) => {
                 <CustomButton
                   customBackgroundColor={
                     campaign.paymentProofImage
-                      ? COLOR.background.neutral
-                      : COLOR.background.danger
+                      ? {
+                          default: COLOR.background.neutral.high,
+                          disabled: COLOR.background.neutral.disabled,
+                        }
+                      : {
+                          default: COLOR.background.danger.high,
+                          disabled: COLOR.background.danger.disabled,
+                        }
                   }
                   customTextColor={
                     campaign.paymentProofImage
-                      ? COLOR.text.neutral
-                      : COLOR.text.danger
+                      ? {
+                          default: COLOR.text.neutral.high,
+                          disabled: COLOR.text.neutral.disabled,
+                        }
+                      : {
+                          default: COLOR.black[1],
+                          disabled: COLOR.text.danger.disabled,
+                        }
                   }
                   type="secondary"
                   text={

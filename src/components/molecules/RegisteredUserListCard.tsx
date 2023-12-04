@@ -201,12 +201,14 @@ const BaseCard = ({
             <Text className="font-semibold text-base " numberOfLines={1}>
               {bodyText}
             </Text>
-            <View>
-              <StatusTag
-                status={`${statusText}`}
-                statusType={transactionStatusTypeMap[statusText]}
-              />
-            </View>
+            {statusText && (
+              <View>
+                <StatusTag
+                  status={`${statusText}`}
+                  statusType={transactionStatusTypeMap[statusText]}
+                />
+              </View>
+            )}
           </View>
         </View>
         <ChevronRight fill={COLOR.black[20]} />
@@ -219,8 +221,15 @@ const BaseCard = ({
               scale={1}
               onPress={handleClickReject}
               rounded="none"
-              customTextSize={font.size[20]}
-              type="alternate"
+              customTextSize={20}
+              customBackgroundColor={{
+                default: COLOR.black[5],
+                disabled: COLOR.black[5],
+              }}
+              customTextColor={{
+                default: COLOR.black[90],
+                disabled: COLOR.black[25],
+              }}
             />
           </View>
           <View style={[flex.flex1]}>
@@ -229,7 +238,7 @@ const BaseCard = ({
               scale={1}
               onPress={handleClickAccept}
               rounded="none"
-              customTextSize={font.size[20]}
+              customTextSize={20}
             />
           </View>
         </View>

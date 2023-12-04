@@ -1,7 +1,7 @@
-import {Text, TextStyle} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import {RadiusSizeType, rounded} from '../../styles/BorderRadius';
 import {View} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
@@ -11,10 +11,14 @@ import {ReactNode} from 'react';
 import {SizeType} from '../../styles/Size';
 import Animated from 'react-native-reanimated';
 import {AnimatedPressable, AnimatedPressableProps} from './AnimatedPressable';
-import {font} from '../../styles/Font';
+import {FontSizeType, font} from '../../styles/Font';
 
-// TODO: ini alternate buat yg button reject transaction sih, belom tau lebih rapi nya gmn @win
-type Prominence = 'primary' | 'secondary' | 'tertiary' | 'alternate';
+type Prominence = 'primary' | 'secondary' | 'tertiary';
+
+interface ColorProps {
+  default: string;
+  disabled: string;
+}
 
 export interface CustomButtonProps
   extends Partial<AnimatedPressableProps>,
@@ -23,72 +27,109 @@ export interface CustomButtonProps
   rounded?: RadiusSizeType;
   type?: Prominence;
   verticalPadding?: SizeType;
-  customBackgroundColor?: typeof COLOR.background.green;
-  customTextColor?: typeof COLOR.text.green;
-  customTextSize?: TextStyle;
+  customBackgroundColor?: ColorProps;
+  customTextColor?: ColorProps;
+  customTextSize?: FontSizeType;
   minimumWidth?: boolean;
   logo?: ReactNode;
 }
+
+const borderWidth = 2;
 
 export const CustomButton = ({
   text,
   rounded: roundSize = 'default',
   verticalPadding: verticalPaddingSize = 'default',
   type = 'primary',
-  customBackgroundColor = COLOR.background.green,
-  customTextColor = COLOR.text.green,
-  customTextSize = font.size[30],
+  customBackgroundColor,
+  customTextColor,
+  customTextSize = 30,
   minimumWidth = false,
   logo,
   ...props
 }: CustomButtonProps) => {
+  const isPrimary = type === 'primary';
+  const isSecondary = type === 'secondary';
+  const isTertiary = type === 'tertiary';
+  const defaultBackgroundColor = {
+    default: COLOR.background.green.high,
+    disabled: COLOR.background.green.disabled,
+  };
+  const defaultTextColor = {
+    default: COLOR.black[1],
+    disabled: COLOR.black[1],
+  };
+
+  const getActiveBackgroundColor = (defaultColor: ColorProps) => {
+    return props.disabled ? defaultColor.disabled : defaultColor.default;
+  };
+  const getBackgroundColorOrDefault = (defaultColor: ColorProps) => {
+    if (customBackgroundColor) {
+      return getActiveBackgroundColor(customBackgroundColor);
+    }
+    return getActiveBackgroundColor(defaultColor);
+  };
+
+  const getActiveTextColor = (defaultColor: ColorProps) => {
+    return props.disabled ? defaultColor.disabled : defaultColor.default;
+  };
+  const getTextColorOrDefault = (defaultColor: ColorProps) => {
+    if (customTextColor) {
+      return getActiveTextColor(customTextColor);
+    }
+    return getActiveTextColor(defaultColor);
+  };
   return (
     <AnimatedPressable {...props}>
       <Animated.View
-        className="justify-center items-center text-center relative"
+        className="relative"
         style={[
           flex.flexRow,
-          minimumWidth && {alignSelf: 'center'},
+          justify.center,
+          items.center,
+          minimumWidth && self.center,
           horizontalPadding.large,
           verticalPadding[verticalPaddingSize],
           rounded[roundSize],
-          // type === 'secondary' && // Semua type ada border supaya sizingnya balance antara secondary ama primary
-          border({
-            borderWidth: 2,
-            color: props.disabled
-              ? customBackgroundColor.disabled
-              : customBackgroundColor.high,
-          }),
-          (type === 'secondary' || type === 'tertiary') &&
-            background(COLOR.black[0]),
-          type === 'alternate' && background(COLOR.black[5]),
-          type === 'primary' &&
+          isPrimary && [
+            styles.invisibleBorder,
+            background(getBackgroundColorOrDefault(defaultBackgroundColor)),
+          ],
+          isSecondary && [
+            border({
+              borderWidth: borderWidth,
+              color: getBackgroundColorOrDefault(defaultBackgroundColor),
+            }),
             background(
-              props.disabled
-                ? customBackgroundColor.disabled
-                : customBackgroundColor.high,
+              getBackgroundColorOrDefault({
+                default: COLOR.black[0],
+                disabled: COLOR.black[0],
+              }),
             ),
+          ],
+          isTertiary && [
+            background(
+              getBackgroundColorOrDefault({
+                default: COLOR.black[0],
+                disabled: COLOR.black[0],
+              }),
+            ),
+          ],
         ]}>
         {logo && (
           <View
-            className="absolute left-4 w-8 justify-center items-center"
-            style={[flex.flexRow]}>
+            className="absolute left-4 w-8"
+            style={[flex.flexRow, justify.center, items.center]}>
             {logo}
           </View>
         )}
         <Text
-          className={`font-bold`}
+          className="font-bold"
           style={[
-            type === 'primary'
-              ? textColor(COLOR.black[1])
-              : type === 'alternate'
-              ? textColor(COLOR.black[90])
-              : textColor(
-                  props.disabled
-                    ? customTextColor.disabled
-                    : customTextColor.default,
-                ),
-            customTextSize,
+            isPrimary && [textColor(getTextColorOrDefault(defaultTextColor))],
+            isSecondary && [textColor(getTextColorOrDefault(COLOR.text.green))],
+            isTertiary && [textColor(getTextColorOrDefault(COLOR.text.green))],
+            font.size[customTextSize],
           ]}>
           {text}
         </Text>
@@ -96,3 +137,10 @@ export const CustomButton = ({
     </AnimatedPressable>
   );
 };
+
+const styles = StyleSheet.create({
+  invisibleBorder: {
+    borderWidth: borderWidth,
+    borderColor: 'transparent',
+  },
+});

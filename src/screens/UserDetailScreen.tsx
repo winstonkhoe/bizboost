@@ -136,7 +136,10 @@ const UserDetailScreen = ({route}: Props) => {
                 onPress={onSuspendButtonClick}
                 customBackgroundColor={
                   user.status === UserStatus.Active
-                    ? COLOR.background.danger
+                    ? {
+                        default: COLOR.background.danger.high,
+                        disabled: COLOR.background.danger.disabled,
+                      }
                     : undefined
                 }
                 rounded="default"

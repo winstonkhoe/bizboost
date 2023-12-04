@@ -326,7 +326,10 @@ const TaskFields = ({task, platformIndex, taskIndex}: TaskFieldsProps) => {
               },
             ]}>
             <CustomButton
-              customBackgroundColor={COLOR.background.danger}
+              customBackgroundColor={{
+                default: COLOR.background.danger.high,
+                disabled: COLOR.background.danger.disabled,
+              }}
               text="Remove"
               onPress={() => {
                 removeAttachment(imageIndex);
