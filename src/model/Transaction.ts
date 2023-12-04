@@ -53,8 +53,9 @@ export enum TransactionStatus {
 }
 
 export enum RejectionType {
-  mismatch = 'Mismatch',
+  contentMismatch = 'Content Mismatch',
   unreachableLink = 'Unreachable Link',
+  incompleteSubmission = 'Incomplete Submission',
 }
 
 type RejectionTypeLabelMap = {
@@ -82,9 +83,11 @@ type BasicStatusMap = {
 };
 
 export const rejectionTypeLabelMap: RejectionTypeLabelMap = {
-  [RejectionType.mismatch]: "Content doesn't meet task requirements",
+  [RejectionType.contentMismatch]: "Content doesn't meet task requirements",
   [RejectionType.unreachableLink]:
     'Link cannot be opened (access, invalid link, etc)',
+  [RejectionType.incompleteSubmission]:
+    'Submission is missing required elements',
 };
 
 export const basicStatusTypeMap: BasicStatusMap = {
@@ -114,19 +117,19 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
   [TransactionStatus.brainstormRejected]:
     campaignIndexMap[CampaignStep.Brainstorming],
   [TransactionStatus.brainstormApproved]:
-    campaignIndexMap[CampaignStep.ContentSubmission],
+    campaignIndexMap[CampaignStep.ContentCreation],
 
   [TransactionStatus.contentSubmitted]:
-    campaignIndexMap[CampaignStep.ContentSubmission],
+    campaignIndexMap[CampaignStep.ContentCreation],
   [TransactionStatus.contentRejected]:
-    campaignIndexMap[CampaignStep.ContentSubmission],
+    campaignIndexMap[CampaignStep.ContentCreation],
   [TransactionStatus.contentApproved]:
-    campaignIndexMap[CampaignStep.EngagementResultSubmission],
+    campaignIndexMap[CampaignStep.ResultSubmission],
 
   [TransactionStatus.engagementSubmitted]:
-    campaignIndexMap[CampaignStep.EngagementResultSubmission],
+    campaignIndexMap[CampaignStep.ResultSubmission],
   [TransactionStatus.engagementRejected]:
-    campaignIndexMap[CampaignStep.EngagementResultSubmission],
+    campaignIndexMap[CampaignStep.ResultSubmission],
 
   [TransactionStatus.completed]: campaignIndexMap[CampaignStep.Completed],
 
@@ -204,14 +207,12 @@ export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap 
     [TransactionStatus.brainstormApproved]: CampaignStep.Brainstorming,
     [TransactionStatus.brainstormRejected]: CampaignStep.Brainstorming,
 
-    [TransactionStatus.contentSubmitted]: CampaignStep.ContentSubmission,
-    [TransactionStatus.contentApproved]: CampaignStep.ContentSubmission,
-    [TransactionStatus.contentRejected]: CampaignStep.ContentSubmission,
+    [TransactionStatus.contentSubmitted]: CampaignStep.ContentCreation,
+    [TransactionStatus.contentApproved]: CampaignStep.ContentCreation,
+    [TransactionStatus.contentRejected]: CampaignStep.ContentCreation,
 
-    [TransactionStatus.engagementSubmitted]:
-      CampaignStep.EngagementResultSubmission,
-    [TransactionStatus.engagementRejected]:
-      CampaignStep.EngagementResultSubmission,
+    [TransactionStatus.engagementSubmitted]: CampaignStep.ResultSubmission,
+    [TransactionStatus.engagementRejected]: CampaignStep.ResultSubmission,
 
     [TransactionStatus.completed]: CampaignStep.Completed,
   };
@@ -593,7 +594,7 @@ export class Transaction extends BaseModel {
       const indexOffset = !campaignHaveBrainstorming
         ? Math.abs(
             campaignIndexMap[CampaignStep.Brainstorming] -
-              campaignIndexMap[CampaignStep.ContentSubmission],
+              campaignIndexMap[CampaignStep.ContentCreation],
           )
         : 0;
       const isTerminated =
@@ -972,8 +973,9 @@ export class Transaction extends BaseModel {
     const {contentRevisionLimit = 0, contents = []} = this;
     return Math.max(
       contentRevisionLimit -
-        contents.filter(c => c.rejection?.type === RejectionType.mismatch)
-          .length,
+        contents.filter(
+          c => c.rejection?.type === RejectionType.contentMismatch,
+        ).length,
       0,
     );
   }

@@ -37,7 +37,11 @@ import {shadow} from '../../styles/Shadow';
 import {rounded} from '../../styles/BorderRadius';
 import {dimension} from '../../styles/Dimension';
 import {FormFieldHelper} from '../../components/atoms/FormLabel';
-import {BrokenLinkIcon, PhotoRevisionIcon} from '../../components/atoms/Icon';
+import {
+  BrokenLinkIcon,
+  MissingDocumentIcon,
+  PhotoRevisionIcon,
+} from '../../components/atoms/Icon';
 import {border} from '../../styles/Border';
 import {background} from '../../styles/BackgroundColor';
 import {chunkArray} from '../../utils/array';
@@ -50,6 +54,7 @@ import {useNavigation} from '@react-navigation/native';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {BackButtonLabel} from '../../components/atoms/Header';
+import {CampaignStep} from '../../model/Campaign';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -68,6 +73,70 @@ const rules = {
   },
 };
 
+interface rejectionType {
+  type: RejectionType;
+  icon: ReactNode;
+}
+
+type rejectionTypesMap = {
+  [key in CampaignStep]?: rejectionType[];
+};
+
+const rejectionTypes: rejectionTypesMap = {
+  [CampaignStep.Brainstorming]: [
+    {
+      type: RejectionType.contentMismatch,
+      icon: <BrokenLinkIcon size="xlarge2" color={COLOR.green[60]} />,
+    },
+    {
+      type: RejectionType.incompleteSubmission,
+      icon: (
+        <MissingDocumentIcon
+          size="xlarge"
+          strokeWidth={1.3}
+          color={COLOR.red[70]}
+        />
+      ),
+    },
+  ],
+  [CampaignStep.ContentCreation]: [
+    {
+      type: RejectionType.unreachableLink,
+      icon: <BrokenLinkIcon size="xlarge2" color={COLOR.green[60]} />,
+    },
+    {
+      type: RejectionType.contentMismatch,
+      icon: <PhotoRevisionIcon size="xlarge2" color={COLOR.green[60]} />,
+    },
+    {
+      type: RejectionType.incompleteSubmission,
+      icon: (
+        <MissingDocumentIcon
+          size="xlarge"
+          strokeWidth={1.3}
+          color={COLOR.red[70]}
+        />
+      ),
+    },
+  ],
+  [CampaignStep.ResultSubmission]: [
+    {
+      type: RejectionType.unreachableLink,
+      icon: <BrokenLinkIcon size="xlarge2" color={COLOR.green[60]} />,
+    },
+    {
+      type: RejectionType.incompleteSubmission,
+      icon: (
+        <MissingDocumentIcon
+          size="xlarge"
+          strokeWidth={1.3}
+          color={COLOR.red[70]}
+        />
+      ),
+    },
+  ],
+};
+
 const RejectTransactionScreen = ({route}: Props) => {
   const {transactionId} = route.params;
   const safeAreaInsets = useSafeAreaInsets();
@@ -82,16 +151,6 @@ const RejectTransactionScreen = ({route}: Props) => {
   const [activePage, setActivePage] = useState<RejectTransactionPage>(
     RejectTransactionPage.ChooseRejectType,
   );
-  const rejectionsTypes = [
-    {
-      type: RejectionType.mismatch,
-      icon: <PhotoRevisionIcon size="xlarge3" />,
-    },
-    {
-      type: RejectionType.unreachableLink,
-      icon: <BrokenLinkIcon size="xlarge3" color={COLOR.green[80]} />,
-    },
-  ];
 
   useEffect(() => {
     const unsubscribe = Transaction.getById(transactionId, setTransaction);
@@ -193,42 +252,46 @@ const RejectTransactionScreen = ({route}: Props) => {
               <View style={[flex.flexRow, justify.center]}>
                 <View
                   style={[flex.flexCol, flex.wrap, justify.center, gap.medium]}>
-                  {chunkArray(rejectionsTypes, 2).map(
-                    (rejectionTypeChunk, rejectionTypeChunkIndex) => (
-                      <View
-                        key={rejectionTypeChunkIndex}
-                        style={[flex.flexRow, gap.medium]}>
-                        {rejectionTypeChunk.map(rejectionType => {
-                          const revisionIsDisabled =
-                            rejectionType.type === RejectionType.mismatch &&
-                            transaction.getRemainingRevisionCount() <= 0;
-                          return (
-                            <RejectTypeCard
-                              key={rejectionType.type}
-                              isSelected={
-                                rejectionType.type === selectedRejectionType
+                  {chunkArray(
+                    rejectionTypes[
+                      transactionStatusCampaignStepMap[transaction.status!!]!!
+                    ] || [],
+                    2,
+                  ).map((rejectionTypeChunk, rejectionTypeChunkIndex) => (
+                    <View
+                      key={rejectionTypeChunkIndex}
+                      style={[flex.flexRow, gap.medium]}>
+                      {rejectionTypeChunk.map(rejectionType => {
+                        const revisionIsDisabled =
+                          rejectionType.type ===
+                            RejectionType.contentMismatch &&
+                          transaction.getRemainingRevisionCount() <= 0;
+                        return (
+                          <RejectTypeCard
+                            key={rejectionType.type}
+                            isSelected={
+                              rejectionType.type === selectedRejectionType
+                            }
+                            isDisabled={revisionIsDisabled}
+                            rejectionType={rejectionType.type}
+                            onPress={() => {
+                              if (!revisionIsDisabled) {
+                                setSelectedRejectionType(rejectionType.type);
                               }
-                              isDisabled={revisionIsDisabled}
-                              rejectionType={rejectionType.type}
-                              onPress={() => {
-                                if (!revisionIsDisabled) {
-                                  setSelectedRejectionType(rejectionType.type);
-                                }
-                                if (revisionIsDisabled) {
-                                  showToast({
-                                    message:
-                                      'Content creators have reached the revision limit.',
-                                    type: ToastType.danger,
-                                  });
-                                }
-                              }}>
-                              {rejectionType.icon}
-                            </RejectTypeCard>
-                          );
-                        })}
-                      </View>
-                    ),
-                  )}
+                              if (revisionIsDisabled) {
+                                showToast({
+                                  message:
+                                    'Content creators have reached the revision limit.',
+                                  type: ToastType.danger,
+                                });
+                              }
+                            }}>
+                            {rejectionType.icon}
+                          </RejectTypeCard>
+                        );
+                      })}
+                    </View>
+                  ))}
                 </View>
               </View>
             </ScrollView>
@@ -246,7 +309,8 @@ const RejectTransactionScreen = ({route}: Props) => {
               <View style={[flex.flex1]}>
                 <CustomButton
                   text="Choose"
-                  disabled={selectedRejectionType === null}
+                  disabled={true}
+                  // disabled={selectedRejectionType === null}
                   onPress={() => {
                     setActivePage(RejectTransactionPage.RejectReason);
                   }}
@@ -358,6 +422,12 @@ const RejectTypeCard = ({
         rounded.default,
         shadow.default,
         dimension.width.xlarge9,
+        !isSelected && [
+          {
+            borderWidth: 1,
+            borderColor: 'transparent',
+          },
+        ],
         isSelected && [
           border({
             borderWidth: 1,
@@ -371,6 +441,8 @@ const RejectTypeCard = ({
         style={[
           flex.flexRow,
           justify.center,
+          items.center,
+          dimension.height.xlarge2,
           isDisabled && {
             opacity: 0.3,
           },

@@ -100,13 +100,13 @@ const campaignTimeline = [
       'In this step, the content creator can share their ideas and suggestions for the task with you. You can then provide feedback and guidance to help the content creator refine their work.',
   },
   {
-    step: CampaignStep.ContentSubmission,
+    step: CampaignStep.ContentCreation,
     optional: false,
     description:
       'Content creator can submit their final work for the task. You can then review the work and either accept it or ask for revisions.',
   },
   {
-    step: CampaignStep.EngagementResultSubmission,
+    step: CampaignStep.ResultSubmission,
     optional: false,
     description:
       'Content creators can submit their engagement results for evaluation, including verifying the originality of the proof of task completion. Once reviewed, campaign earnings will be deposited into their accounts.',

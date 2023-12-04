@@ -19,8 +19,8 @@ export enum CampaignStep {
   // PendingPayment = 'Pending Payment'
   Registration = 'Registration',
   Brainstorming = 'Brainstorming',
-  ContentSubmission = 'Content Submission',
-  EngagementResultSubmission = 'Engagement Result Submission',
+  ContentCreation = 'Content Creation',
+  ResultSubmission = 'Result Submission',
   Completed = 'Completed',
 }
 
@@ -31,8 +31,8 @@ type CampainStepIndexMap = {
 export const campaignIndexMap: CampainStepIndexMap = {
   [CampaignStep.Registration]: 0,
   [CampaignStep.Brainstorming]: 1,
-  [CampaignStep.ContentSubmission]: 2,
-  [CampaignStep.EngagementResultSubmission]: 3,
+  [CampaignStep.ContentCreation]: 2,
+  [CampaignStep.ResultSubmission]: 3,
   [CampaignStep.Completed]: 4,
 };
 
@@ -295,7 +295,7 @@ export class Campaign extends BaseModel {
 
   getTimelineEnd(): CampaignTimeline {
     return this.timeline?.find(
-      timeline => CampaignStep.EngagementResultSubmission === timeline.step,
+      timeline => CampaignStep.ResultSubmission === timeline.step,
     )!!;
   }
 

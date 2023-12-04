@@ -241,7 +241,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         const indexOffset = !campaignHaveBrainstorming
           ? Math.abs(
               campaignIndexMap[CampaignStep.Brainstorming] -
-                campaignIndexMap[CampaignStep.ContentSubmission],
+                campaignIndexMap[CampaignStep.ContentCreation],
             )
           : 0;
         console.log('indexOffset', indexOffset);
@@ -843,7 +843,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   </View>
                 </View>
               )}
-              {campaignTimelineMap?.[CampaignStep.ContentSubmission] && (
+              {campaignTimelineMap?.[CampaignStep.ContentCreation] && (
                 <View
                   style={[
                     flex.flexCol,
@@ -854,7 +854,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   <View style={[flex.flexCol, styles.headerBorder]}>
                     <StepperLabel
                       timeline={
-                        campaignTimelineMap[CampaignStep.ContentSubmission]
+                        campaignTimelineMap[CampaignStep.ContentCreation]
                       }
                     />
                   </View>
@@ -883,7 +883,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           {transaction?.status &&
                             transactionStatusCampaignStepMap[
                               transaction?.status
-                            ] === CampaignStep.ContentSubmission &&
+                            ] === CampaignStep.ContentCreation &&
                             transaction.contents &&
                             transaction.contents.length > 0 && (
                               <InternalLink
@@ -1027,16 +1027,12 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   )}
                 </View>
               )}
-              {campaignTimelineMap?.[
-                CampaignStep.EngagementResultSubmission
-              ] && (
+              {campaignTimelineMap?.[CampaignStep.ResultSubmission] && (
                 <View style={[flex.flexCol, shadow.medium, rounded.medium]}>
                   <View style={[flex.flexCol, styles.headerBorder]}>
                     <StepperLabel
                       timeline={
-                        campaignTimelineMap[
-                          CampaignStep.EngagementResultSubmission
-                        ]
+                        campaignTimelineMap[CampaignStep.ResultSubmission]
                       }
                     />
                   </View>
@@ -1060,7 +1056,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       {transaction?.status &&
                         transactionStatusCampaignStepMap[
                           transaction?.status
-                        ] === CampaignStep.EngagementResultSubmission &&
+                        ] === CampaignStep.ResultSubmission &&
                         transaction.engagements &&
                         transaction.engagements.length > 0 && (
                           <InternalLink
@@ -1249,7 +1245,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         overDragResistanceFactor={0}
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
-          title={CampaignStep.ContentSubmission}
+          title={CampaignStep.ContentCreation}
           fullHeight
           type="modal"
           onPress={() => {

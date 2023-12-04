@@ -49,6 +49,7 @@ import {PlatformData} from '../signup/RegisterSocialPlatform';
 import {
   ChevronRight,
   CopyIcon,
+  MeatballMenuIcon,
   OpenIcon,
   PlatformIcon,
 } from '../../components/atoms/Icon';
@@ -303,6 +304,7 @@ const TransactionDetailScreen = ({route}: Props) => {
           [
             TransactionStatus.brainstormSubmitted,
             TransactionStatus.contentSubmitted,
+            TransactionStatus.engagementSubmitted,
           ].find(status => transaction.status === status) && (
             <View
               style={[
@@ -317,11 +319,11 @@ const TransactionDetailScreen = ({route}: Props) => {
               ]}>
               <AnimatedPressable
                 style={[
+                  flex.flex1,
                   flex.flexRow,
-                  gap.xsmall,
                   items.center,
                   justify.center,
-                  dimension.square.xlarge2,
+                  dimension.width.xlarge2,
                   rounded.default,
                   border({
                     borderWidth: 1,
@@ -331,16 +333,7 @@ const TransactionDetailScreen = ({route}: Props) => {
                 onPress={() => {
                   setIsOthersSheetModalOpen(true);
                 }}>
-                {[...Array(3)].map((_, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      rounded.max,
-                      dimension.square.xsmall,
-                      background(COLOR.black[40]),
-                    ]}
-                  />
-                ))}
+                <MeatballMenuIcon size="xsmall" />
               </AnimatedPressable>
               <View style={[flex.flex1]}>
                 <CustomButton
@@ -835,7 +828,7 @@ const ContentSubmissionDetailSection = ({
             <Text
               className="font-semibold"
               style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-              {CampaignStep.ContentSubmission}
+              {CampaignStep.ContentCreation}
             </Text>
             <Text
               style={[
@@ -1054,7 +1047,7 @@ const EngagementResultSubmissionDetailSection = ({
             <Text
               className="font-semibold"
               style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-              {CampaignStep.EngagementResultSubmission}
+              {CampaignStep.ResultSubmission}
             </Text>
           </View>
           {TransactionStatus.engagementSubmitted ===

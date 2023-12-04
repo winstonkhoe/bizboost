@@ -163,7 +163,7 @@ const ModalSubmitEngagementResult = ({route}: Props) => {
         enableSafeAreaContainer
         threshold={0}
         backButtonPlaceholder={
-          <BackButtonLabel text={CampaignStep.EngagementResultSubmission} />
+          <BackButtonLabel text={CampaignStep.ResultSubmission} />
         }>
         <View
           style={[
