@@ -383,8 +383,8 @@ export class Transaction extends BaseModel {
       });
     } catch (error) {
       console.log(error);
+      throw Error('Transaction.update err!');
     }
-    throw Error('Transaction.update err!');
   }
 
   async updateStatus(

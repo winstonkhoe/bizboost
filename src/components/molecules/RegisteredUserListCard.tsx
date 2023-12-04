@@ -32,6 +32,8 @@ import {gap} from '../../styles/Gap';
 import FastImage, {Source} from 'react-native-fast-image';
 import {ImageRequireSource} from 'react-native';
 import PaymentSheetModal from './PaymentSheetModal';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 type Props = {
   transaction: Transaction;
@@ -53,7 +55,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
 
   const onProofUploaded = (url: string) => {
     console.log('url: ' + url);
-    //TODO: hmm method2 update harus disamain deh (campaign sama ini aja beda)
+    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
     transaction
       .update({
         payment: {
@@ -63,6 +65,11 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
       })
       .then(() => {
         console.log('updated proof!');
+        showToast({
+          message:
+            'Registration Approved! Your payment is being reviewed by our Admin',
+          type: ToastType.success,
+        });
       });
   };
   return (
@@ -105,7 +112,14 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           transaction.payment === undefined
         }
         handleClickReject={() => {
-          transaction.updateStatus(TransactionStatus.registrationRejected);
+          transaction
+            .updateStatus(TransactionStatus.registrationRejected)
+            .then(() => {
+              showToast({
+                message: 'Registration Rejected!',
+                type: ToastType.danger,
+              });
+            });
         }}
         handleClickAccept={() => {
           setIsPaymentModalOpened(true); // TODO: abis klik ini, ganti status? (at least dari pov bp, kalo cc biarin Pending aja trs?)
