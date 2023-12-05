@@ -51,6 +51,10 @@ import {
   OpenIcon,
   PlatformIcon,
 } from '../../components/atoms/Icon';
+import WarningIcon from '../../assets/vectors/warning-circle.svg';
+import CheckmarkIcon from '../../assets/vectors/checkmark-circle.svg';
+import CrossIcon from '../../assets/vectors/cross-circle.svg';
+
 import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {CustomModal} from '../../components/atoms/CustomModal';
 import {SheetModal} from '../../containers/SheetModal';
@@ -323,10 +327,30 @@ const TransactionDetailScreen = ({route}: Props) => {
                 <Pressable
                   onPress={() => setIsPaymentModalOpened(true)}
                   style={[flex.flexRow, justify.between, items.center]}>
-                  <Text
-                    style={[font.size[30], textColor(COLOR.text.neutral.med)]}>
-                    Payment
-                  </Text>
+                  <View style={[flex.flexRow, items.center, gap.default]}>
+                    <Text
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.med),
+                      ]}>
+                      Payment
+                    </Text>
+                    {transaction.payment.status === BasicStatus.rejected ? (
+                      <CrossIcon width={14} height={14} fill={COLOR.red[50]} />
+                    ) : transaction.payment.status === BasicStatus.approved ? (
+                      <CheckmarkIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.green[40]}
+                      />
+                    ) : (
+                      <WarningIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.yellow[20]}
+                      />
+                    )}
+                  </View>
                   <Text
                     style={[
                       font.size[30],
