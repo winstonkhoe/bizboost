@@ -361,11 +361,39 @@ const TransactionDetailScreen = ({route}: Props) => {
                 </Pressable>
               </>
             )}
-            {/* <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-              {transaction.status}
-            </Text> */}
+            {transaction.payment && activeRole === UserRole.ContentCreator && (
+              <>
+                <View style={[styles.bottomBorder]} />
+
+                <Pressable
+                  onPress={() => {
+                    console.log('masuk');
+                  }}
+                  disabled={transaction.status !== TransactionStatus.completed}
+                  style={[flex.flexRow, justify.between, items.center]}>
+                  <View style={[flex.flexRow, items.center, gap.default]}>
+                    <Text
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.med),
+                      ]}>
+                      Payment
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      font.size[30],
+                      textColor(
+                        transaction.status !== TransactionStatus.completed
+                          ? COLOR.text.neutral.disabled
+                          : COLOR.text.green.default,
+                      ),
+                    ]}>
+                    Withdraw
+                  </Text>
+                </Pressable>
+              </>
+            )}
             {transaction.createdAt && (
               <>
                 <View style={[styles.bottomBorder]} />
