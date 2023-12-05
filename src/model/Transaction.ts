@@ -12,6 +12,8 @@ import {
 import {StatusType} from '../components/atoms/StatusTag';
 import {isEqualDate} from '../utils/date';
 import {StepperState} from '../components/atoms/Stepper';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -378,8 +380,8 @@ export class Transaction extends BaseModel {
       await Transaction.getDocumentReference(id).set(data);
     } catch (error) {
       console.log(error);
+      throw Error('Transaction.insert err!');
     }
-    throw Error('Transaction.insert err!');
   }
 
   async update(fields?: Partial<Transaction>) {
@@ -393,8 +395,8 @@ export class Transaction extends BaseModel {
       });
     } catch (error) {
       console.log(error);
+      throw Error('Transaction.update err!');
     }
-    throw Error('Transaction.update err!');
   }
 
   async updateStatus(
@@ -413,8 +415,8 @@ export class Transaction extends BaseModel {
       });
     } catch (error) {
       console.log('updateStatus err', error);
+      throw Error('Transaction.updateStatus err!');
     }
-    throw Error('Transaction.updateStatus err!');
   }
 
   static getById(
@@ -616,9 +618,11 @@ export class Transaction extends BaseModel {
       );
       if (isTerminated) {
         console.log('updateTermination | ', this.id, ' got terminated');
-        await this.updateStatus(TransactionStatus.terminated, {
-          lastCheckedAt: new Date().getTime(),
-        });
+        try {
+          await this.terminate();
+        } catch (error) {
+          console.log(error);
+        }
         return true;
       }
       console.log('updateTermination | ', this.id, ' update lastCheckedAt');
@@ -633,7 +637,128 @@ export class Transaction extends BaseModel {
   }
 
   async register() {
-    return await this.insert(TransactionStatus.registrationPending);
+    return this.insert(TransactionStatus.registrationPending);
+  }
+
+  async approve() {
+    const {status} = this;
+    if (!status) {
+      throw Error('Missing status');
+    }
+    if (TransactionStatus.brainstormSubmitted === status) {
+      return this.approveBrainstorm()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Brainstorm approved',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to approve brainstorm',
+          });
+          console.log('approve brainstorm err:', err);
+        });
+    }
+    if (TransactionStatus.contentSubmitted === status) {
+      return this.approveContent()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Content approved',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to approve content',
+          });
+          console.log('approve content err:', err);
+        });
+    }
+    if (TransactionStatus.engagementSubmitted === status) {
+      return this.approveEngagement()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Engagement approved',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to approve engagement',
+          });
+          console.log('approve engagement err:', err);
+        });
+    }
+  }
+
+  async reject(rejection: Rejection) {
+    const {status} = this;
+    if (!status) {
+      throw Error('Missing status');
+    }
+    if (TransactionStatus.brainstormSubmitted === status) {
+      return this.rejectBrainstorm(rejection)
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Brainstorm rejected',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to reject brainstorm',
+          });
+          console.log('reject brainstorm err:', err);
+        });
+    }
+    if (TransactionStatus.contentSubmitted === status) {
+      return this.rejectContent(rejection)
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Content rejected',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to reject content',
+          });
+          console.log('reject content err:', err);
+        });
+    }
+    if (TransactionStatus.engagementSubmitted === status) {
+      return this.rejectEngagement(rejection)
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Engagement rejected',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to reject engagement',
+          });
+          console.log('reject engagement err:', err);
+        });
+    }
+  }
+
+  async terminate() {
+    try {
+      await this.updateStatus(TransactionStatus.terminated, {
+        lastCheckedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log('terminate err', error);
+      throw Error('Transaction.terminate err');
+    }
   }
 
   async approveRegistration(): Promise<boolean> {

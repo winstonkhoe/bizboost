@@ -135,72 +135,15 @@ const TransactionDetailScreen = ({route}: Props) => {
 
   const handleApprove = () => {
     if (transaction) {
-      if (TransactionStatus.brainstormSubmitted === transaction.status) {
-        setIsConfirmModalOpen(false);
-        setIsLoading(true);
-        transaction
-          .approveBrainstorm()
-          .then(() => {
-            showToast({
-              type: ToastType.success,
-              message: 'Brainstorm approved',
-            });
-          })
-          .catch(err => {
-            showToast({
-              type: ToastType.danger,
-              message: 'Failed to approve brainstorm',
-            });
-            console.log('approve brainstorm err:', err);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-      if (TransactionStatus.contentSubmitted === transaction.status) {
-        setIsConfirmModalOpen(false);
-        setIsLoading(true);
-        transaction
-          .approveContent()
-          .then(() => {
-            showToast({
-              type: ToastType.success,
-              message: 'Content approved',
-            });
-          })
-          .catch(err => {
-            showToast({
-              type: ToastType.danger,
-              message: 'Failed to approve content',
-            });
-            console.log('approve content err:', err);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-      if (TransactionStatus.engagementSubmitted === transaction.status) {
-        setIsConfirmModalOpen(false);
-        setIsLoading(true);
-        transaction
-          .approveEngagement()
-          .then(() => {
-            showToast({
-              type: ToastType.success,
-              message: 'Engagement approved',
-            });
-          })
-          .catch(err => {
-            showToast({
-              type: ToastType.danger,
-              message: 'Failed to approve engagement',
-            });
-            console.log('approve engagement err:', err);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
+      setIsLoading(true);
+      transaction
+        .approve()
+        .then(() => {
+          setIsConfirmModalOpen(false);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
   };
 
@@ -825,26 +768,28 @@ const BrainstormDetailSection = ({...props}: BrainstormDetailSectionProps) => {
             <StatusTag status="Review needed" statusType={StatusType.warning} />
           )}
         </View>
-        <View
-          style={[
-            flex.flexCol,
-            gap.default,
-            border({
-              borderWidth: 1,
-              color: COLOR.black[20],
-            }),
-            padding.default,
-            rounded.default,
-          ]}>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-            {formatDateToDayMonthYearHourMinute(
-              new Date(props.transaction?.getLatestBrainstorm()!!.createdAt),
-            )}
-          </Text>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-            {props.transaction?.getLatestBrainstorm()?.content}
-          </Text>
-        </View>
+        {props.transaction?.getLatestBrainstorm() !== null && (
+          <View
+            style={[
+              flex.flexCol,
+              gap.default,
+              border({
+                borderWidth: 1,
+                color: COLOR.black[20],
+              }),
+              padding.default,
+              rounded.default,
+            ]}>
+            <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+              {formatDateToDayMonthYearHourMinute(
+                new Date(props.transaction?.getLatestBrainstorm()!!.createdAt),
+              )}
+            </Text>
+            <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+              {props.transaction?.getLatestBrainstorm()?.content}
+            </Text>
+          </View>
+        )}
       </View>
     </>
   );

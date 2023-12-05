@@ -165,63 +165,19 @@ const RejectTransactionScreen = ({route}: Props) => {
 
   const handleReject = () => {
     if (transaction && rejectReason.length > 0) {
-      if (TransactionStatus.brainstormSubmitted === transaction.status) {
-        setIsLoading(true);
-        transaction
-          .rejectBrainstorm({
-            reason: rejectReason,
-            type: selectedRejectionType!!,
-          })
-          .then(() => {
-            if (transaction.id) {
-              navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
-                transactionId: transaction.id,
-              });
-            }
-          })
-          .catch(err => console.log(err))
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-      if (TransactionStatus.contentSubmitted === transaction.status) {
-        setIsLoading(true);
-        transaction
-          .rejectContent({
-            reason: rejectReason,
-            type: selectedRejectionType!!,
-          })
-          .then(() => {
-            if (transaction.id) {
-              navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
-                transactionId: transaction.id,
-              });
-            }
-          })
-          .catch(err => console.log(err))
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-      if (TransactionStatus.engagementSubmitted === transaction.status) {
-        setIsLoading(true);
-        transaction
-          .rejectEngagement({
-            reason: rejectReason,
-            type: selectedRejectionType!!,
-          })
-          .then(() => {
-            if (transaction.id) {
-              navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
-                transactionId: transaction.id,
-              });
-            }
-          })
-          .catch(err => console.log(err))
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
+      setIsLoading(true);
+      transaction
+        .reject({
+          type: selectedRejectionType!!,
+          reason: rejectReason,
+        })
+        .then(() => {
+          setIsLoading(false);
+          navigation.canGoBack() && navigation.goBack();
+        })
+        .catch(() => {
+          setIsLoading(false);
+        });
     }
   };
 

@@ -194,6 +194,14 @@ const CampaignTimelineScreen = ({route}: Props) => {
     return uid === campaign?.userId;
   }, [uid, campaign]);
 
+  const pendingRegistrants = useMemo(
+    () =>
+      transactions.filter(
+        t => t.transaction.status === TransactionStatus.registrationPending,
+      ),
+    [transactions],
+  );
+
   const currentActiveIndex = useMemo(
     () =>
       currentActiveTimeline
@@ -259,12 +267,19 @@ const CampaignTimelineScreen = ({route}: Props) => {
           ...Array(
             (calculatedTransactionStatusIndex <= 0
               ? 0
-              : calculatedTransactionStatusIndex) + 1,
+              : calculatedTransactionStatusIndex) +
+              (isContentCreatorNotSubmitCurrentActiveTimeline ? 1 : 0),
           ),
         ].map(() => StepperState.success);
         console.log(
           'calculatedtransactionstatusindex',
           calculatedTransactionStatusIndex,
+        );
+        console.log(
+          'before update current transaction step',
+          currentTransactionStep,
+          'before update steps',
+          steps,
         );
         steps[steps.length - 1] =
           transactionStatusStepperStateMap[transaction.status];
@@ -524,50 +539,97 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       }}
                       style={[flex.flexRow, padding.default, gap.small]}>
                       <View style={[flex.flex1, flex.flexCol, gap.small]}>
-                        <Text
-                          className="font-medium"
-                          style={[
-                            font.size[20],
-                            textColor(COLOR.text.neutral.high),
-                          ]}>
-                          Pending Registrants
-                        </Text>
-                        <View style={[flex.flexRow]}>
-                          {transactions
-                            .filter(
+                        <View style={[flex.flexCol]}>
+                          <Text
+                            className="font-medium"
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.high),
+                            ]}>
+                            {`${pendingRegistrants.length} Pending Registrants`}
+                          </Text>
+                          <Text
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.med),
+                            ]}>{`${
+                            transactions.filter(
                               t =>
-                                t.transaction.status ===
-                                TransactionStatus.registrationPending,
-                            )
-                            .map((t, i) => {
-                              return (
+                                t.transaction.status &&
+                                transactionStatusIndexMap[
+                                  t.transaction.status
+                                ] > campaignIndexMap[CampaignStep.Registration],
+                            ).length
+                          } registered`}</Text>
+                        </View>
+                        {pendingRegistrants &&
+                          pendingRegistrants.length > 0 && (
+                            <View style={[flex.flexRow]}>
+                              {pendingRegistrants.slice(0, 5).map((t, i) => {
+                                return (
+                                  <View
+                                    key={i}
+                                    style={[
+                                      dimension.square.xlarge2,
+                                      rounded.max,
+                                      padding.xsmall,
+                                      background(COLOR.black[0]),
+                                      {
+                                        marginLeft: i > 0 ? -10 : 0,
+                                        zIndex: 6 - i,
+                                      },
+                                    ]}>
+                                    <View
+                                      className="overflow-hidden"
+                                      style={[dimension.full, rounded.max]}>
+                                      <FastImage
+                                        style={[dimension.full]}
+                                        source={getSourceOrDefaultAvatar({
+                                          uri: t.contentCreator?.contentCreator
+                                            ?.profilePicture,
+                                        })}
+                                      />
+                                    </View>
+                                  </View>
+                                );
+                              })}
+                              {pendingRegistrants.length > 5 && (
                                 <View
-                                  key={i}
                                   style={[
                                     dimension.square.xlarge2,
                                     rounded.max,
                                     padding.xsmall,
-                                    background(COLOR.black[0]),
+                                    background(COLOR.black[70]),
                                     {
-                                      marginLeft: i > 0 ? -10 : 0,
-                                      zIndex: 5 - i,
+                                      zIndex: 6,
                                     },
                                   ]}>
                                   <View
                                     className="overflow-hidden"
-                                    style={[dimension.full, rounded.max]}>
-                                    <FastImage
-                                      style={[dimension.full]}
-                                      source={getSourceOrDefaultAvatar({
-                                        uri: t.contentCreator?.contentCreator
-                                          ?.profilePicture,
-                                      })}
-                                    />
+                                    style={[
+                                      dimension.full,
+                                      flex.flexRow,
+                                      justify.center,
+                                      items.center,
+                                      rounded.max,
+                                    ]}>
+                                    <Text
+                                      className="font-black"
+                                      style={[
+                                        font.size[20],
+                                        textColor(COLOR.black[0]),
+                                      ]}>
+                                      {`${
+                                        pendingRegistrants.length - 5 > 1
+                                          ? `${pendingRegistrants.length - 6}+`
+                                          : pendingRegistrants.length
+                                      }`}
+                                    </Text>
                                   </View>
                                 </View>
-                              );
-                            })}
-                        </View>
+                              )}
+                            </View>
+                          )}
                       </View>
                       <View style={[flex.flexRow, items.center]}>
                         <ChevronRight color={COLOR.black[20]} />
@@ -630,16 +692,31 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         />
                         <View style={[flex.flexCol, gap.default]}>
                           <View style={[flex.flexRow, justify.between]}>
-                            <Text
-                              className="font-medium"
-                              style={[
-                                font.size[30],
-                                textColor(COLOR.text.neutral.med),
-                              ]}>
-                              {filteredPendingBrainstormApproval.length > 0
-                                ? 'Pending Approval'
-                                : 'No Pending Approval'}
-                            </Text>
+                            <View style={[flex.flexCol]}>
+                              <Text
+                                className="font-medium"
+                                style={[
+                                  font.size[20],
+                                  textColor(COLOR.text.neutral.med),
+                                ]}>
+                                {`${filteredPendingBrainstormApproval.length} review needed`}
+                              </Text>
+                              <Text
+                                style={[
+                                  font.size[20],
+                                  textColor(COLOR.text.neutral.med),
+                                ]}>{`${
+                                transactions.filter(t => {
+                                  const latestSubmission =
+                                    t.transaction.getLatestBrainstorm();
+                                  return (
+                                    latestSubmission &&
+                                    latestSubmission.status ===
+                                      BasicStatus.approved
+                                  );
+                                }).length
+                              } completed`}</Text>
+                            </View>
                             {filteredPendingBrainstormApproval.length > 0 && (
                               <InternalLink
                                 size={30}
