@@ -253,6 +253,7 @@ const ProfileScreen = () => {
                         title="About Me"
                         subtitle={'Edit Information people see on your profile'}
                       />
+                      {/* TODO: ini kayaknya ga perlu lagi */}
                       {activeRole === UserRole.BusinessPeople && (
                         <ProfileMenuCard
                           handleOnClick={() => {

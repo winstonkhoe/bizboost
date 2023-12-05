@@ -46,7 +46,7 @@ export enum TransactionStatus {
   engagementSubmitted = 'Engagement Submitted',
   engagementRejected = 'Engagement Rejected',
 
-  completed = 'completed',
+  completed = 'Completed',
 
   reported = 'Reported', //reported by bp
   terminated = 'Terminated', //expired or timeline miss
