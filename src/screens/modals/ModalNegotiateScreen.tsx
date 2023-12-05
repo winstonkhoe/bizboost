@@ -28,6 +28,7 @@ import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import {COLOR} from '../../styles/Color';
 import {ChevronRight} from '../../components/atoms/Icon';
+import {useUser} from '../../hooks/user';
 
 export type NegotiateFormData = {
   fee: number;
@@ -44,11 +45,13 @@ const ModalNegotiateScreen = ({route}: Props) => {
   const {offer, eventType, campaign} = route.params;
   const methods = useForm<NegotiateFormData>();
 
+  const {activeRole} = useUser();
+
   const onSubmit = (data: NegotiateFormData) => {
     console.log('onsubmit:', data);
 
-    offer.negotiate(data.fee, data.importantNotes).then(stat => {
-      DeviceEventEmitter.emit(eventType, stat);
+    offer.negotiate(data.fee, data.importantNotes, activeRole).then(() => {
+      DeviceEventEmitter.emit(eventType, data.fee.toString());
       closeModal({
         navigation: navigation,
         triggerEventOnClose: 'close.negotiate',

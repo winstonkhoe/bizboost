@@ -1,11 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  LayoutAnimation,
-  UIManager,
-} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {flex} from '../../styles/Flex';
 import ChevronDown from '../../assets/vectors/chevron-down.svg';
 import ChevronUp from '../../assets/vectors/chevron-up.svg';
@@ -24,20 +18,16 @@ import {UserRole} from '../../model/User';
 import FastImage from 'react-native-fast-image';
 import {rounded} from '../../styles/BorderRadius';
 import {HorizontalPadding} from '../atoms/ViewPadding';
-import {CustomButton} from '../atoms/Button';
-import {font} from '../../styles/Font';
 import {Transaction} from '../../model/Transaction';
 import {ScrollView} from 'react-native-gesture-handler';
 import {openNegotiateModal} from '../../utils/modal';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
-
-UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+import {Animated} from 'react-native';
 
 interface Props {
   offers: Offer[];
   recipientName: string;
-  onNegotiationComplete: () => void;
+  onNegotiationComplete: (fee: string) => void;
 }
 const FloatingOffer = ({
   offers,
@@ -45,21 +35,27 @@ const FloatingOffer = ({
   onNegotiationComplete,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [campaign, setCampaign] = useState<Campaign>();
-  const navigation = useNavigation<NavigationStackProps>();
-
-  useEffect(() => {
-    Campaign.getById(offers[0].campaignId || '').then(c => setCampaign(c));
-  }, [offers]);
 
   const {activeRole, user} = useUser();
   const businessPeople =
     activeRole === UserRole.BusinessPeople
       ? user?.businessPeople?.fullname
       : recipientName;
+  const contentCreator =
+    activeRole === UserRole.ContentCreator
+      ? user?.contentCreator?.fullname
+      : recipientName;
+
+  const animatedHeight = new Animated.Value(isExpanded ? 200 : 60); // Set your desired expanded and collapsed heights
 
   const toggleExpansion = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    const targetHeight = isExpanded ? 60 : 200; // Set your desired expanded and collapsed heights
+    Animated.timing(animatedHeight, {
+      toValue: targetHeight,
+      duration: 300, // Set your desired animation duration
+      useNativeDriver: false,
+    }).start();
+
     setIsExpanded(!isExpanded);
   };
 
@@ -91,75 +87,100 @@ const FloatingOffer = ({
 
   return (
     <View className="w-full absolute top-16 z-50">
-      <View className={`${isExpanded ? 'h-5/6' : 'h-16'}`} style={flex.flexCol}>
-        <ScrollView style={flex.flexCol} className="w-full p-1 rounded-md z-50">
+      <View>
+        <ScrollView
+          scrollEnabled={isExpanded}
+          className={`${!isExpanded ?? 'h-16'}`}
+          style={(flex.flexCol, isExpanded ?? styles.scroll)}>
           <View
             style={flex.flexCol}
-            className="w-full bg-gray-100 py-3 z-30 rounded-md">
+            className="w-full px-1 pt-1 rounded-t-md z-50">
             <View
-              style={flex.flexRow}
-              className="justify-between items-center px-3 bg-gray-100">
-              <View>
-                <Text className="text-md text-left text-black">
-                  Last Offer:{' '}
-                  <Text className="font-bold">
-                    {offers[0]?.offeredPrice?.toLocaleString('en-ID')}
+              style={flex.flexCol}
+              className="w-full bg-gray-100 py-3 z-30 rounded-md">
+              <View
+                style={flex.flexRow}
+                className="justify-between items-center px-3 bg-gray-100">
+                <View>
+                  <Text className="text-md text-left text-black">
+                    {offers[0].status === OfferStatus.negotiate
+                      ? 'Last Negotiation: '
+                      : 'Last Offer: '}
+                    <Text className="font-bold">
+                      {offers[0].status === OfferStatus.pending
+                        ? offers[0]?.offeredPrice?.toLocaleString('en-ID')
+                        : offers[0]?.negotiatedPrice?.toLocaleString('en-ID')}
+                    </Text>
                   </Text>
-                </Text>
-                <Text className="text-xs text-left">by {businessPeople}</Text>
-              </View>
-              {!isExpanded && (
-                <TouchableOpacity onPress={toggleExpansion}>
-                  <ChevronDown
-                    width={20}
-                    height={10}
-                    color={COLOR.black[100]}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-            {isExpanded && (
-              <React.Fragment>
-                <View className="py-3 px-3">
-                  {activeRole && (
-                    <CampaignCard
-                      offer={offers[0]}
-                      businessPeople={businessPeople || ''}
-                      activeRole={activeRole}
-                      handleClickAccept={() => acceptOffer(offers[0])}
-                      handleClickReject={() => declineOffer(offers[0])}
-                      onNegotiationComplete={onNegotiationComplete}
-                    />
+                  {offers[0].status === OfferStatus.negotiate ? (
+                    <Text className="text-xs text-left">
+                      by{' '}
+                      {offers[0].negotiatedBy === UserRole.BusinessPeople
+                        ? businessPeople
+                        : contentCreator}
+                    </Text>
+                  ) : (
+                    <Text className="text-xs text-left">
+                      by {businessPeople}
+                    </Text>
                   )}
                 </View>
-                {offers.length > 1 &&
-                  offers
-                    .slice(1)
-                    .map(
-                      offer =>
-                        activeRole && (
-                          <OfferCard
-                            key={offer.id}
-                            offer={offer}
-                            businessPeople={businessPeople || ''}
-                            activeRole={activeRole}
-                            handleClickAccept={() => acceptOffer(offer)}
-                            handleClickReject={() => declineOffer(offer)}
-                            onNegotiationComplete={onNegotiationComplete}
-                          />
-                        ),
+                {!isExpanded && (
+                  <TouchableOpacity onPress={toggleExpansion}>
+                    <ChevronDown
+                      width={20}
+                      height={10}
+                      color={COLOR.black[100]}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+              {isExpanded && (
+                <React.Fragment>
+                  <View className="py-2 px-3">
+                    {activeRole && (
+                      <CampaignCard
+                        offer={offers[0]}
+                        businessPeople={businessPeople || ''}
+                        activeRole={activeRole}
+                        handleClickAccept={() => acceptOffer(offers[0])}
+                        handleClickReject={() => declineOffer(offers[0])}
+                        onNegotiationComplete={onNegotiationComplete}
+                      />
                     )}
-              </React.Fragment>
-            )}
+                  </View>
+                  {offers.length > 1 &&
+                    offers
+                      .slice(1)
+                      .map(
+                        offer =>
+                          activeRole && (
+                            <OfferCard
+                              key={offer.id}
+                              offer={offer}
+                              businessPeople={businessPeople || ''}
+                              contentCreator={contentCreator || ''}
+                              activeRole={activeRole}
+                              handleClickAccept={() => acceptOffer(offer)}
+                              handleClickReject={() => declineOffer(offer)}
+                              onNegotiationComplete={onNegotiationComplete}
+                            />
+                          ),
+                      )}
+                </React.Fragment>
+              )}
+            </View>
           </View>
         </ScrollView>
         {isExpanded && (
-          <TouchableOpacity
-            style={flex.flexRow}
-            className="bg-gray-100 border-t border-t-zinc-300 justify-end items-center px-3 py-3"
-            onPress={toggleExpansion}>
-            <ChevronUp width={20} height={10} color={COLOR.black[100]} />
-          </TouchableOpacity>
+          <View className="px-1 rounded-b-md">
+            <TouchableOpacity
+              style={flex.flexRow}
+              className="bg-gray-100 border-t border-t-zinc-300 justify-end items-center px-3 py-3"
+              onPress={toggleExpansion}>
+              <ChevronUp width={20} height={10} color={COLOR.black[100]} />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -168,18 +189,26 @@ const FloatingOffer = ({
 
 export default FloatingOffer;
 
+const styles = StyleSheet.create({
+  scroll: {
+    height: 60,
+  },
+});
+
 type OfferCardProps = {
   offer: Offer;
   businessPeople: string;
+  contentCreator: string;
   activeRole: UserRole;
   handleClickAccept: () => void;
   handleClickReject: () => void;
-  onNegotiationComplete: () => void;
+  onNegotiationComplete: (fee: string) => void;
 };
 
 const OfferCard = ({
   offer,
   businessPeople,
+  contentCreator,
   activeRole,
   handleClickAccept,
   handleClickReject,
@@ -189,6 +218,7 @@ const OfferCard = ({
     offer.status === OfferStatus.pending
       ? offer?.offeredPrice
       : offer?.negotiatedPrice;
+  console.log(offer.id + ':' + offer.status);
 
   return (
     <View
@@ -197,12 +227,23 @@ const OfferCard = ({
       <View style={flex.flexRow} className="justify-between items-center pb-2">
         <View>
           <Text className="text-md text-left text-black">
-            Offer:{' '}
+            {offer.status === OfferStatus.negotiate
+              ? 'Negotiation: '
+              : 'Offer: '}
             <Text className="font-bold">
               IDR {offeredPrice.toLocaleString('en-ID')}
             </Text>
           </Text>
-          <Text className="text-xs text-left">by {businessPeople}</Text>
+          {offer.status === OfferStatus.negotiate ? (
+            <Text className="text-xs text-left">
+              by{' '}
+              {offer.negotiatedBy === UserRole.BusinessPeople
+                ? businessPeople
+                : contentCreator}
+            </Text>
+          ) : (
+            <Text className="text-xs text-left">by {businessPeople}</Text>
+          )}
         </View>
       </View>
       <CampaignCard
@@ -223,7 +264,7 @@ type CampaignCardProps = {
   activeRole: UserRole;
   handleClickAccept: () => void;
   handleClickReject: () => void;
-  onNegotiationComplete: () => void;
+  onNegotiationComplete: (fee: string) => void;
 };
 
 const CampaignCard = ({
@@ -290,10 +331,10 @@ const CampaignCard = ({
               )}
             </View>
           </View>
+          <HorizontalPadding paddingSize="small">
+            <ChevronRight fill={COLOR.black[20]} />
+          </HorizontalPadding>
         </View>
-        <HorizontalPadding paddingSize="small">
-          <ChevronRight fill={COLOR.black[20]} />
-        </HorizontalPadding>
       </Pressable>
       {activeRole === UserRole.ContentCreator &&
         (offer.status === OfferStatus.pending ? (
@@ -325,11 +366,31 @@ const CampaignCard = ({
           </View>
         ) : (
           <View className="w-full">
-            <TouchableOpacity className="bg-gray-300 py-3 px-2 rounded-r-md">
+            <TouchableOpacity className="bg-gray-300 py-3 px-2 rounded-md">
               <Text className="text-white text-center text-xs">Negotiated</Text>
             </TouchableOpacity>
           </View>
         ))}
+
+      {activeRole === UserRole.BusinessPeople &&
+        offer.status === OfferStatus.negotiate && (
+          <View className="pt-2 flex flex-row items-center justify-between w-full">
+            <View className="w-1/2">
+              <TouchableOpacity
+                className="bg-secondary py-3 px-2 rounded-l-md"
+                onPress={handleClickReject}>
+                <Text className="text-white text-center text-xs">Reject</Text>
+              </TouchableOpacity>
+            </View>
+            <View className="w-1/2">
+              <TouchableOpacity
+                className="bg-primary py-3 px-2 rounded-r-md"
+                onPress={handleClickAccept}>
+                <Text className="text-white text-center text-xs">Accept</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
     </View>
   );
 };

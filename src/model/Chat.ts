@@ -251,4 +251,19 @@ export class ChatService {
       console.error('Error inserting message:', error);
     }
   }
+
+  static async insertOfferMessage(
+    chatId: string,
+    message: string,
+    activeRole: UserRole,
+  ) {
+    const newMessage: Message = {
+      message: message,
+      role: activeRole!!,
+      type: MessageType.Offer,
+      createdAt: new Date().getTime(),
+    };
+
+    this.insertMessage(chatId, newMessage);
+  }
 }

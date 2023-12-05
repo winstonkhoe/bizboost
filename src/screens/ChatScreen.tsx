@@ -12,7 +12,7 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
-import {Chat, Message, MessageType} from '../model/Chat';
+import {Chat, ChatService, Message, MessageType} from '../model/Chat';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
@@ -61,16 +61,24 @@ const ChatScreen = ({route}: Props) => {
   );
 
   useEffect(() => {
-    Offer.getPendingOffersbyCCBP(
+    const unsubscribe = Offer.getPendingOffersbyCCBP(
       businessPeopleId?.ref ?? '',
       contentCreatorId?.ref ?? '',
       res => {
-        const sortedTransactions = res
-          .slice()
-          .sort((a, b) => b.createdAt - a.createdAt);
+        console.log('fetch', res);
+
+        const sortedTransactions = res.sort(
+          (a, b) => b.createdAt - a.createdAt,
+        );
         setOffers(sortedTransactions);
       },
     );
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [businessPeopleId, contentCreatorId]);
 
   console.log(offers);
@@ -135,18 +143,8 @@ const ChatScreen = ({route}: Props) => {
     });
   };
 
-  const handleNegotiationComplete = () => {
-    // Fetch updated offers and set them in the state
-    Offer.getPendingOffersbyCCBP(
-      businessPeopleId?.ref ?? '',
-      contentCreatorId?.ref ?? '',
-      res => {
-        const sortedTransactions = res
-          .slice()
-          .sort((a, b) => b.createdAt - a.createdAt);
-        setOffers(sortedTransactions);
-      },
-    );
+  const handleNegotiationComplete = (fee: string) => {
+    ChatService.insertOfferMessage(chat.chat.id ?? '', fee, activeRole!!);
   };
 
   return (
@@ -163,7 +161,6 @@ const ChatScreen = ({route}: Props) => {
         </View>
 
         {/* Floating Tab */}
-        {/* if there is offer then add margin top for the chats */}
         {offers && offers.length > 0 && (
           <FloatingOffer
             offers={offers}

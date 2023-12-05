@@ -99,16 +99,10 @@ const MakeOfferScreen = ({route}: Props) => {
 
           if (matchingChatView !== undefined) {
             console.log('ada chat');
-            const newMessage: Message = {
-              message: data.fee.toString(),
-              role: activeRole!!,
-              type: MessageType.Offer,
-              createdAt: new Date().getTime(),
-            };
-
-            ChatService.insertMessage(
+            ChatService.insertOfferMessage(
               matchingChatView.chat?.id,
-              newMessage,
+              data.fee.toString(),
+              activeRole!!,
             ).then(() => {
               console.log('send!');
               navigation.navigate(AuthenticatedNavigation.ChatDetail, {
@@ -116,7 +110,6 @@ const MakeOfferScreen = ({route}: Props) => {
               });
             });
           } else {
-            console.log('ga ada chat');
             const chat = new Chat({
               participants: participants,
             });

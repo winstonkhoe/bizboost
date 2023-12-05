@@ -2,7 +2,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
-import {User} from './User';
+import {User, UserRole} from './User';
 import {Campaign} from './Campaign';
 
 export const OFFER_COLLECTION = 'offers';
@@ -18,11 +18,12 @@ export class Offer extends BaseModel {
   id?: string;
   contentCreatorId?: string;
   campaignId?: string;
-  businessPeopleId?: string; // buat mempermudah fetch all transaction BP
+  businessPeopleId?: string;
   offeredPrice?: number;
   negotiatedPrice?: number;
   importantNotes?: string;
   negotiatedNotes?: string;
+  negotiatedBy?: string;
   status?: OfferStatus;
   createdAt?: number;
 
@@ -32,7 +33,10 @@ export class Offer extends BaseModel {
     campaignId,
     businessPeopleId,
     offeredPrice,
+    negotiatedPrice,
     importantNotes,
+    negotiatedNotes,
+    negotiatedBy,
     status = OfferStatus.pending,
     createdAt,
   }: Partial<Offer>) {
@@ -42,7 +46,10 @@ export class Offer extends BaseModel {
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
     this.offeredPrice = offeredPrice;
+    this.negotiatedPrice = negotiatedPrice;
     this.importantNotes = importantNotes;
+    this.negotiatedNotes = negotiatedNotes;
+    this.negotiatedBy = negotiatedBy;
     this.status = status;
     this.createdAt = createdAt;
   }
@@ -55,6 +62,10 @@ export class Offer extends BaseModel {
       Business People ID: ${this.businessPeopleId}
       Offered Price: ${this.offeredPrice}
       Important Notes: ${this.importantNotes || ''}
+
+      Negotiated Price: ${this.negotiatedPrice}
+      Negotiated Notes: ${this.negotiatedNotes || ''}
+      Negotiated By: ${this.negotiatedBy || ''}
       Status: ${this.status}
       Updated At: ${
         this.createdAt ? new Date(this.createdAt).toLocaleString() : 'N/A'
@@ -75,7 +86,11 @@ export class Offer extends BaseModel {
         businessPeopleId: data.businessPeopleId?.id,
         campaignId: data.campaignId.id,
         offeredPrice: data.offeredPrice,
+        negotiatedPrice: data.negotiatedPrice,
         importantNotes: data.importantNotes,
+        negotiatedNotes: data.negotiatedNotes,
+        negotiatedBy: data.negotiatedBy,
+        status: data.status,
         createdAt: data.createdAt,
       });
     }
@@ -194,10 +209,11 @@ export class Offer extends BaseModel {
     throw Error('Error!');
   }
 
-  async negotiate(fee: number, importantNotes: string) {
+  async negotiate(fee: number, importantNotes: string, negotiatedBy: UserRole) {
     try {
       this.negotiatedPrice = fee;
       this.negotiatedNotes = importantNotes;
+      this.negotiatedBy = negotiatedBy;
 
       const {id, ...rest} = this;
       const data = {

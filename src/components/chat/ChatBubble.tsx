@@ -2,9 +2,8 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
-import {Message} from '../../screens/ChatScreen';
 import {flex, items} from '../../styles/Flex';
-import {MessageType} from '../../model/Chat';
+import {Message, MessageType} from '../../model/Chat';
 import FastImage from 'react-native-fast-image';
 
 const ChatBubble = ({message, isSender, type}: Message) => {
@@ -24,6 +23,14 @@ const ChatBubble = ({message, isSender, type}: Message) => {
       {type === MessageType.Offer && (
         <View style={styles.chat(isSender)}>
           <Text style={[textColor(COLOR.black[100])]}>MADE AN OFFER</Text>
+          <Text style={[textColor(COLOR.black[100])]} className="font-bold">
+            Rp. {message}
+          </Text>
+        </View>
+      )}
+      {type === MessageType.Negotiation && (
+        <View style={styles.chat(isSender)}>
+          <Text style={[textColor(COLOR.black[100])]}>MADE A NEGOTIATION</Text>
           <Text style={[textColor(COLOR.black[100])]} className="font-bold">
             Rp. {message}
           </Text>

@@ -69,7 +69,7 @@ interface NegotiateModalProps {
   selectedOffer: Offer;
   campaign: Campaign;
   navigation: NavigationStackProps;
-  onNegotiationComplete: () => void;
+  onNegotiationComplete: (fee: string) => void;
 }
 export const openNegotiateModal = ({
   selectedOffer,
@@ -84,9 +84,8 @@ export const openNegotiateModal = ({
     campaign: campaign,
   });
 
-  const listener = DeviceEventEmitter.addListener(eventType, stat => {
-    console.log(stat);
-    onNegotiationComplete();
+  const listener = DeviceEventEmitter.addListener(eventType, fee => {
+    onNegotiationComplete(fee);
   });
 
   const closeListener = DeviceEventEmitter.addListener(
