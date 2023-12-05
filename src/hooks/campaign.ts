@@ -6,6 +6,17 @@ import {
   setUserCampaigns,
 } from '../redux/slices/campaignSlice';
 
+export const fetchNonUserCampaigns = async (currentUserId: string) => {
+  const now = new Date();
+  const campaigns = await Campaign.getAll();
+  return campaigns
+    .filter(c => c.userId !== currentUserId)
+    .filter(c => c.type === CampaignType.Public)
+    .filter(c => c.getTimelineStart().end >= now.getTime())
+    .sort((a, b) => a.getTimelineStart().end - b.getTimelineStart().end)
+    .map(c => c.toJSON());
+};
+
 export const useOngoingCampaign = () => {
   const {uid} = useAppSelector(state => state.user);
   const now = useMemo(() => new Date(), []);
@@ -16,20 +27,7 @@ export const useOngoingCampaign = () => {
 
   useEffect(() => {
     if (uid) {
-      Campaign.getAll().then(cs => {
-        dispatch(
-          setNonUserCampaigns(
-            cs
-              .filter(c => c.userId !== uid)
-              .filter(c => c.type === CampaignType.Public)
-              .filter(c => c.getTimelineStart().end >= now.getTime())
-              .sort(
-                (a, b) => a.getTimelineStart().end - b.getTimelineStart().end,
-              )
-              .map(c => c.toJSON()),
-          ),
-        );
-      });
+      fetchNonUserCampaigns(uid).then(cs => dispatch(setNonUserCampaigns(cs)));
     }
   }, [now, uid, dispatch]);
 
