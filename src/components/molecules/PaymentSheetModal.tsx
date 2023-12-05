@@ -105,7 +105,8 @@ const PaymentSheetModal = ({
                 </View>
               </TouchableOpacity>
             )}
-            {activeRole === UserRole.BusinessPeople ? (
+            {activeRole === UserRole.BusinessPeople &&
+            paymentStatus !== BasicStatus.approved ? (
               <MediaUploader
                 targetFolder="payment"
                 showUploadProgress
