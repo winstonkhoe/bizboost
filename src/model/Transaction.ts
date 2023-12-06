@@ -90,10 +90,22 @@ type BasicStatusMap = {
   [key in BasicStatus]: StatusType;
 };
 
+type PaymentStatusMap = {
+  [key in PaymentStatus]: StatusType;
+};
+
 export const rejectionTypeLabelMap: RejectionTypeLabelMap = {
   [RejectionType.mismatch]: "Content doesn't meet task requirements",
   [RejectionType.unreachableLink]:
     'Link cannot be opened (access, invalid link, etc)',
+};
+
+export const paymentStatusTypeMap: PaymentStatusMap = {
+  [PaymentStatus.proofWaitingForVerification]: StatusType.warning,
+  [PaymentStatus.proofApproved]: StatusType.success,
+  [PaymentStatus.proofRejected]: StatusType.danger,
+  [PaymentStatus.withdrawalRequested]: StatusType.warning,
+  [PaymentStatus.withdrawn]: StatusType.success,
 };
 
 export const basicStatusTypeMap: BasicStatusMap = {
@@ -257,7 +269,7 @@ export interface Content {
 
 export interface Payment {
   proofImage?: string;
-  status: BasicStatus;
+  status: PaymentStatus;
 }
 
 export class Transaction extends BaseModel {

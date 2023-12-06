@@ -18,7 +18,7 @@ import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useUser} from '../../hooks/user';
 import {UserRole} from '../../model/User';
-import {BasicStatus, basicStatusTypeMap} from '../../model/Transaction';
+import {PaymentStatus, paymentStatusTypeMap} from '../../model/Transaction';
 import StatusTag, {StatusType} from '../atoms/StatusTag';
 
 type Props = {
@@ -29,7 +29,7 @@ type Props = {
   defaultImage?: string;
   onProofAccepted?: () => void;
   onProofRejected?: () => void;
-  paymentStatus?: BasicStatus;
+  paymentStatus?: PaymentStatus;
 };
 
 const PaymentSheetModal = ({
@@ -77,7 +77,7 @@ const PaymentSheetModal = ({
                 status={paymentStatus || 'Not Uploaded'}
                 statusType={
                   paymentStatus
-                    ? basicStatusTypeMap[paymentStatus]
+                    ? paymentStatusTypeMap[paymentStatus]
                     : StatusType.terminated
                 }
               />
@@ -106,7 +106,7 @@ const PaymentSheetModal = ({
               </TouchableOpacity>
             )}
             {activeRole === UserRole.BusinessPeople &&
-            paymentStatus !== BasicStatus.approved ? (
+            paymentStatus !== PaymentStatus.proofApproved ? (
               <MediaUploader
                 targetFolder="payment"
                 showUploadProgress
@@ -146,7 +146,8 @@ const PaymentSheetModal = ({
               </MediaUploader>
             ) : (
               <View style={[flex.flexRow, gap.default, padding.top.default]}>
-                {paymentStatus === BasicStatus.pending && (
+                {paymentStatus ===
+                  PaymentStatus.proofWaitingForVerification && (
                   <>
                     <View style={[flex.flex1]}>
                       <CustomButton

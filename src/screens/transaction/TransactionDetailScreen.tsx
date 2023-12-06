@@ -17,6 +17,7 @@ import {useUser} from '../../hooks/user';
 import {
   BasicStatus,
   Content,
+  PaymentStatus,
   Transaction,
   TransactionStatus,
   basicStatusTypeMap,
@@ -191,7 +192,7 @@ const TransactionDetailScreen = ({route}: Props) => {
       ?.update({
         payment: {
           ...transaction.payment,
-          status: BasicStatus.approved,
+          status: PaymentStatus.proofApproved,
         },
       })
       .then(() => {
@@ -208,7 +209,7 @@ const TransactionDetailScreen = ({route}: Props) => {
       ?.update({
         payment: {
           ...transaction.payment,
-          status: BasicStatus.rejected,
+          status: PaymentStatus.proofRejected,
         },
       })
       .then(() => {
@@ -236,7 +237,7 @@ const TransactionDetailScreen = ({route}: Props) => {
       .update({
         payment: {
           proofImage: url,
-          status: BasicStatus.pending,
+          status: PaymentStatus.proofWaitingForVerification,
         },
       })
       .then(() => {
@@ -335,19 +336,21 @@ const TransactionDetailScreen = ({route}: Props) => {
                       ]}>
                       Payment
                     </Text>
-                    {transaction.payment.status === BasicStatus.rejected ? (
+                    {transaction.payment.status ===
+                    PaymentStatus.proofRejected ? (
                       <CrossIcon width={14} height={14} fill={COLOR.red[50]} />
-                    ) : transaction.payment.status === BasicStatus.approved ? (
-                      <CheckmarkIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.green[40]}
-                      />
-                    ) : (
+                    ) : transaction.payment.status ===
+                      PaymentStatus.proofWaitingForVerification ? (
                       <WarningIcon
                         width={14}
                         height={14}
                         fill={COLOR.yellow[20]}
+                      />
+                    ) : (
+                      <CheckmarkIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.green[40]}
                       />
                     )}
                   </View>
@@ -370,7 +373,10 @@ const TransactionDetailScreen = ({route}: Props) => {
                     // TODO: masukin no rek? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
                     console.log('masuk');
                   }}
-                  disabled={transaction.status !== TransactionStatus.completed}
+                  disabled={
+                    transaction.status !== TransactionStatus.completed ||
+                    transaction.payment.status !== PaymentStatus.proofApproved
+                  }
                   style={[flex.flexRow, justify.between, items.center]}>
                   <View style={[flex.flexRow, items.center, gap.default]}>
                     <Text
@@ -385,12 +391,19 @@ const TransactionDetailScreen = ({route}: Props) => {
                     style={[
                       font.size[30],
                       textColor(
-                        transaction.status !== TransactionStatus.completed
+                        transaction.status !== TransactionStatus.completed ||
+                          transaction.payment.status !==
+                            PaymentStatus.proofApproved
                           ? COLOR.text.neutral.disabled
                           : COLOR.text.green.default,
                       ),
                     ]}>
-                    Withdraw
+                    {/* TODO: gatau in ibagusnya nampilim chip juga apa message panjang */}
+                    {transaction.payment.status ===
+                      PaymentStatus.withdrawalRequested ||
+                    transaction.payment.status === PaymentStatus.withdrawn
+                      ? transaction.payment.status
+                      : 'Withdraw'}
                   </Text>
                 </Pressable>
               </>
