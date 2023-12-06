@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg version="1.1" id="_x34_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	 viewBox="0 0 512 512"  xml:space="preserve">
+<g>
+	<rect fill="currentColor" width="512" height="334.584"/>
+	<g>
+		<rect x="33.469" y="31.12" style="fill:#B9DECB;" width="445.06" height="272.368"/>
+		<ellipse style="opacity:0.8;fill:#F9F8C8;" cx="215.561" cy="102.041" rx="35.299" ry="36.371"/>
+		<g style="opacity:0.5;">
+			<path style="fill:#43B46E;" d="M289.087,303.488H33.869l90.729-110.593c20.262-24.723,53.499-24.723,73.761,0l34.436,42.032
+				L289.087,303.488z"/>
+		</g>
+		<g style="opacity:0.5;">
+			<path style="fill:#43B46E;" d="M478.53,253.946v49.542H180.261l56.499-68.561l75.154-91.099
+				c20.816-25.389,55.058-25.389,75.873,0L478.53,253.946z"/>
+		</g>
+	</g>
+	<rect x="256" style="opacity:0.1;fill:#040000;" width="256" height="334.584"/>
+</g>
+</svg>

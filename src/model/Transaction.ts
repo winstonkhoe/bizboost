@@ -12,6 +12,8 @@ import {
 import {StatusType} from '../components/atoms/StatusTag';
 import {isEqualDate} from '../utils/date';
 import {StepperState} from '../components/atoms/Stepper';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -46,11 +48,21 @@ export enum TransactionStatus {
   engagementSubmitted = 'Engagement Submitted',
   engagementRejected = 'Engagement Rejected',
 
-  completed = 'completed',
+  completed = 'Completed',
 
   reported = 'Reported', //reported by bp
   terminated = 'Terminated', //expired or timeline miss
 }
+
+export enum RejectionType {
+  contentMismatch = 'Content Mismatch',
+  unreachableLink = 'Unreachable Link',
+  incompleteSubmission = 'Incomplete Submission',
+}
+
+type RejectionTypeLabelMap = {
+  [key in RejectionType]: string;
+};
 
 type TransactionStatusMap = {
   [key in TransactionStatus]: StatusType;
@@ -70,6 +82,14 @@ type TransactionStatusIndexMap = {
 
 type BasicStatusMap = {
   [key in BasicStatus]: StatusType;
+};
+
+export const rejectionTypeLabelMap: RejectionTypeLabelMap = {
+  [RejectionType.contentMismatch]: "Content doesn't meet task requirements",
+  [RejectionType.unreachableLink]:
+    'Link cannot be opened (access, invalid link, etc)',
+  [RejectionType.incompleteSubmission]:
+    'Submission is missing required elements',
 };
 
 export const basicStatusTypeMap: BasicStatusMap = {
@@ -99,19 +119,19 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
   [TransactionStatus.brainstormRejected]:
     campaignIndexMap[CampaignStep.Brainstorming],
   [TransactionStatus.brainstormApproved]:
-    campaignIndexMap[CampaignStep.ContentSubmission],
+    campaignIndexMap[CampaignStep.ContentCreation],
 
   [TransactionStatus.contentSubmitted]:
-    campaignIndexMap[CampaignStep.ContentSubmission],
+    campaignIndexMap[CampaignStep.ContentCreation],
   [TransactionStatus.contentRejected]:
-    campaignIndexMap[CampaignStep.ContentSubmission],
+    campaignIndexMap[CampaignStep.ContentCreation],
   [TransactionStatus.contentApproved]:
-    campaignIndexMap[CampaignStep.EngagementResultSubmission],
+    campaignIndexMap[CampaignStep.ResultSubmission],
 
   [TransactionStatus.engagementSubmitted]:
-    campaignIndexMap[CampaignStep.EngagementResultSubmission],
+    campaignIndexMap[CampaignStep.ResultSubmission],
   [TransactionStatus.engagementRejected]:
-    campaignIndexMap[CampaignStep.EngagementResultSubmission],
+    campaignIndexMap[CampaignStep.ResultSubmission],
 
   [TransactionStatus.completed]: campaignIndexMap[CampaignStep.Completed],
 
@@ -189,23 +209,26 @@ export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap 
     [TransactionStatus.brainstormApproved]: CampaignStep.Brainstorming,
     [TransactionStatus.brainstormRejected]: CampaignStep.Brainstorming,
 
-    [TransactionStatus.contentSubmitted]: CampaignStep.ContentSubmission,
-    [TransactionStatus.contentApproved]: CampaignStep.ContentSubmission,
-    [TransactionStatus.contentRejected]: CampaignStep.ContentSubmission,
+    [TransactionStatus.contentSubmitted]: CampaignStep.ContentCreation,
+    [TransactionStatus.contentApproved]: CampaignStep.ContentCreation,
+    [TransactionStatus.contentRejected]: CampaignStep.ContentCreation,
 
-    [TransactionStatus.engagementSubmitted]:
-      CampaignStep.EngagementResultSubmission,
-    [TransactionStatus.engagementRejected]:
-      CampaignStep.EngagementResultSubmission,
+    [TransactionStatus.engagementSubmitted]: CampaignStep.ResultSubmission,
+    [TransactionStatus.engagementRejected]: CampaignStep.ResultSubmission,
 
     [TransactionStatus.completed]: CampaignStep.Completed,
   };
+
+interface Rejection {
+  reason: string;
+  type: RejectionType;
+}
 
 interface Brainstorm {
   status: BasicStatus;
   content: string;
   createdAt: number;
-  rejectReason?: string;
+  rejection?: Rejection;
   updatedAt?: number; //either approved or rejected
 }
 
@@ -222,7 +245,25 @@ export interface Content {
   status: BasicStatus;
   content: TransactionContent[];
   createdAt: number;
-  rejectReason?: string;
+  rejection?: Rejection;
+  updatedAt?: number; //either approved or rejected
+}
+
+interface EngagementTask {
+  uri: string[];
+  attachments: string[];
+}
+
+export interface TransactionEngagement {
+  platform: SocialPlatform;
+  tasks: EngagementTask[];
+}
+
+export interface Engagement {
+  status: BasicStatus;
+  content: TransactionEngagement[];
+  createdAt: number;
+  rejection?: Rejection;
   updatedAt?: number; //either approved or rejected
 }
 
@@ -235,7 +276,7 @@ export class Transaction extends BaseModel {
   importantNotes?: string[];
   brainstorms?: Brainstorm[];
   contents?: Content[];
-  engagements?: Content[];
+  engagements?: Engagement[];
   status?: TransactionStatus;
   createdAt?: number;
   updatedAt?: number;
@@ -384,8 +425,8 @@ export class Transaction extends BaseModel {
       });
     } catch (error) {
       console.log(error);
+      throw Error('Transaction.update err!');
     }
-    throw Error('Transaction.update err!');
   }
 
   async updateStatus(
@@ -404,8 +445,8 @@ export class Transaction extends BaseModel {
       });
     } catch (error) {
       console.log('updateStatus err', error);
+      throw Error('Transaction.updateStatus err!');
     }
-    throw Error('Transaction.updateStatus err!');
   }
 
   static getAllTransactionsByCampaign(
@@ -423,9 +464,9 @@ export class Transaction extends BaseModel {
           querySnapshot => {
             if (querySnapshot.empty) {
               onComplete([]);
+            } else {
+              onComplete(querySnapshot.docs.map(this.fromSnapshot));
             }
-
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -578,9 +619,11 @@ export class Transaction extends BaseModel {
     const {campaignId, lastCheckedAt, status} = this;
     if (
       !campaignId ||
-      [TransactionStatus.terminated, TransactionStatus.reported].find(
-        s => s === status,
-      )
+      [
+        TransactionStatus.completed,
+        TransactionStatus.terminated,
+        TransactionStatus.reported,
+      ].find(s => s === status)
     ) {
       return false;
     }
@@ -601,7 +644,7 @@ export class Transaction extends BaseModel {
       const indexOffset = !campaignHaveBrainstorming
         ? Math.abs(
             campaignIndexMap[CampaignStep.Brainstorming] -
-              campaignIndexMap[CampaignStep.ContentSubmission],
+              campaignIndexMap[CampaignStep.ContentCreation],
           )
         : 0;
       const isTerminated =
@@ -621,9 +664,11 @@ export class Transaction extends BaseModel {
       );
       if (isTerminated) {
         console.log('updateTermination | ', this.id, ' got terminated');
-        await this.updateStatus(TransactionStatus.terminated, {
-          lastCheckedAt: new Date().getTime(),
-        });
+        try {
+          await this.terminate();
+        } catch (error) {
+          console.log(error);
+        }
         return true;
       }
       console.log('updateTermination | ', this.id, ' update lastCheckedAt');
@@ -638,7 +683,128 @@ export class Transaction extends BaseModel {
   }
 
   async register() {
-    return await this.insert(TransactionStatus.registrationPending);
+    return this.insert(TransactionStatus.registrationPending);
+  }
+
+  async approve() {
+    const {status} = this;
+    if (!status) {
+      throw Error('Missing status');
+    }
+    if (TransactionStatus.brainstormSubmitted === status) {
+      return this.approveBrainstorm()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Brainstorm approved',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to approve brainstorm',
+          });
+          console.log('approve brainstorm err:', err);
+        });
+    }
+    if (TransactionStatus.contentSubmitted === status) {
+      return this.approveContent()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Content approved',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to approve content',
+          });
+          console.log('approve content err:', err);
+        });
+    }
+    if (TransactionStatus.engagementSubmitted === status) {
+      return this.approveEngagement()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Engagement approved',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to approve engagement',
+          });
+          console.log('approve engagement err:', err);
+        });
+    }
+  }
+
+  async reject(rejection: Rejection) {
+    const {status} = this;
+    if (!status) {
+      throw Error('Missing status');
+    }
+    if (TransactionStatus.brainstormSubmitted === status) {
+      return this.rejectBrainstorm(rejection)
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Brainstorm rejected',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to reject brainstorm',
+          });
+          console.log('reject brainstorm err:', err);
+        });
+    }
+    if (TransactionStatus.contentSubmitted === status) {
+      return this.rejectContent(rejection)
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Content rejected',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to reject content',
+          });
+          console.log('reject content err:', err);
+        });
+    }
+    if (TransactionStatus.engagementSubmitted === status) {
+      return this.rejectEngagement(rejection)
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Engagement rejected',
+          });
+        })
+        .catch(err => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to reject engagement',
+          });
+          console.log('reject engagement err:', err);
+        });
+    }
+  }
+
+  async terminate() {
+    try {
+      await this.updateStatus(TransactionStatus.terminated, {
+        lastCheckedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log('terminate err', error);
+      throw Error('Transaction.terminate err');
+    }
   }
 
   async approveRegistration(): Promise<boolean> {
@@ -714,7 +880,7 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id');
   }
 
-  async rejectBrainstorm(rejectReason: string): Promise<boolean> {
+  async rejectBrainstorm(rejection: Rejection): Promise<boolean> {
     const {id, brainstorms} = this;
     if (id && brainstorms && brainstorms.length > 0) {
       try {
@@ -723,7 +889,7 @@ export class Transaction extends BaseModel {
           latestBrainstorm = {
             ...latestBrainstorm,
             status: BasicStatus.rejected,
-            rejectReason: rejectReason,
+            rejection: rejection,
             updatedAt: new Date().getTime(),
           };
           const brainstormIndex = this.getBrainstormIndex(latestBrainstorm);
@@ -814,7 +980,7 @@ export class Transaction extends BaseModel {
     return -1;
   }
 
-  async rejectContent(rejectReason: string): Promise<boolean> {
+  async rejectContent(rejection: Rejection): Promise<boolean> {
     const {id, contents} = this;
     if (id && contents && contents.length > 0) {
       try {
@@ -823,7 +989,7 @@ export class Transaction extends BaseModel {
           latestContent = {
             ...latestContent,
             status: BasicStatus.rejected,
-            rejectReason: rejectReason,
+            rejection: rejection,
             updatedAt: new Date().getTime(),
           };
           const contentIndex = this.getContentIndex(latestContent);
@@ -873,13 +1039,19 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id or contents');
   }
 
-  async submitEngagement(content: Content): Promise<boolean> {
+  async submitEngagement(
+    transactionEngagements: TransactionEngagement[],
+  ): Promise<boolean> {
     const {id} = this;
     if (id) {
       try {
         await Transaction.getDocumentReference(id).update({
           status: TransactionStatus.engagementSubmitted,
-          engagements: firestore.FieldValue.arrayUnion(content),
+          engagements: firestore.FieldValue.arrayUnion({
+            status: BasicStatus.pending,
+            content: transactionEngagements,
+            createdAt: new Date().getTime(),
+          }),
         });
         return true;
       } catch (error) {
@@ -911,7 +1083,7 @@ export class Transaction extends BaseModel {
     return -1;
   }
 
-  async rejectEngagement(rejectReason: string): Promise<boolean> {
+  async rejectEngagement(rejection: Rejection): Promise<boolean> {
     const {id, engagements} = this;
     if (id && engagements && engagements.length > 0) {
       try {
@@ -920,7 +1092,7 @@ export class Transaction extends BaseModel {
           latestEngagement = {
             ...latestEngagement,
             status: BasicStatus.rejected,
-            rejectReason: rejectReason,
+            rejection: rejection,
             updatedAt: new Date().getTime(),
           };
           const engagementIndex = this.getEngagementIndex(latestEngagement);
@@ -968,6 +1140,17 @@ export class Transaction extends BaseModel {
       }
     }
     throw Error('Missing transaction id or engagements');
+  }
+
+  getRemainingRevisionCount() {
+    const {contentRevisionLimit = 0, contents = []} = this;
+    return Math.max(
+      contentRevisionLimit -
+        contents.filter(
+          c => c.rejection?.type === RejectionType.contentMismatch,
+        ).length,
+      0,
+    );
   }
 
   //   static async getTransactionStatusByContentCreator(

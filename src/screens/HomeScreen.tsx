@@ -101,7 +101,17 @@ const HomeScreen = () => {
                   {thisWeekCampaign
                     .slice(0, 5)
                     .map((campaign: Campaign, index: number) => (
-                      <View
+                      <AnimatedPressable
+                        onPress={() => {
+                          if (campaign.id) {
+                            navigation.navigate(
+                              AuthenticatedNavigation.CampaignDetail,
+                              {
+                                campaignId: campaign.id,
+                              },
+                            );
+                          }
+                        }}
                         key={index}
                         style={[flex.flexCol, dimension.square.xlarge9]}>
                         <View
@@ -172,7 +182,7 @@ const HomeScreen = () => {
                             )}`}
                           />
                         </View>
-                      </View>
+                      </AnimatedPressable>
                     ))}
                 </HorizontalScrollView>
               </View>

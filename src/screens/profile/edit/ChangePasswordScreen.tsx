@@ -11,6 +11,8 @@ import {CustomButton} from '../../../components/atoms/Button';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationStackProps} from '../../../navigation/StackNavigation';
 import {User} from '../../../model/User';
+import {showToast} from '../../../helpers/toast';
+import {ToastType} from '../../../providers/ToastProvider';
 
 type FormData = {
   oldPassword: string;
@@ -35,11 +37,17 @@ const ChangePasswordScreen = () => {
     temp
       .updatePassword(data.oldPassword, data.newPassword)
       .then(() => {
-        console.log('Update password success!');
+        showToast({
+          message: 'Update password success',
+          type: ToastType.success,
+        });
         navigation.goBack();
       })
       .catch(error => {
-        // TODO: show alert / toast if error
+        showToast({
+          message: 'Update password failed',
+          type: ToastType.danger,
+        });
         console.log(error.message);
       });
   };

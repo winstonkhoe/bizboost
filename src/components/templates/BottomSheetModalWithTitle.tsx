@@ -15,17 +15,20 @@ interface BottomSheetModalWithTitleProps
   title: string;
   children?: ReactNode;
   type?: 'default' | 'modal';
+  fullHeight?: boolean;
 }
 
 export const BottomSheetModalWithTitle = ({
   title,
   children,
   type = 'default',
+  fullHeight = false,
   ...props
 }: BottomSheetModalWithTitleProps) => {
   return (
-    <View style={[flex.flex1, padding.large, padding.top.default]}>
-      <View style={[flex.flex1, flex.flexCol, gap.large]}>
+    <View
+      style={[fullHeight && flex.flex1, padding.large, padding.top.default]}>
+      <View style={[fullHeight && flex.flex1, flex.flexCol, gap.large]}>
         <View
           style={[
             flex.flexRow,

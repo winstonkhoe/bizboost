@@ -4,41 +4,46 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
-} from '../navigation/StackNavigation';
+} from '../../navigation/StackNavigation';
 import {Pressable, StyleSheet, Text} from 'react-native';
 import {View} from 'react-native';
-import TagCard from '../components/atoms/TagCard';
-import {Campaign} from '../model/Campaign';
-import {formatDateToDayMonthYear} from '../utils/date';
-import {CustomButton} from '../components/atoms/Button';
-import {useUser} from '../hooks/user';
-import {Transaction, TransactionStatus} from '../model/Transaction';
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
+import TagCard from '../../components/atoms/TagCard';
+import {Campaign} from '../../model/Campaign';
+import {formatDateToDayMonthYear} from '../../utils/date';
+import {CustomButton} from '../../components/atoms/Button';
+import {useUser} from '../../hooks/user';
+import {Transaction, TransactionStatus} from '../../model/Transaction';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 
-import People from '../assets/vectors/people.svg';
-import ChevronRight from '../assets/vectors/chevron-right.svg';
-import {COLOR} from '../styles/Color';
-import {gap} from '../styles/Gap';
+import People from '../../assets/vectors/people.svg';
+import {COLOR} from '../../styles/Color';
+import {gap} from '../../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
-import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
-import {User} from '../model/User';
-import {flex} from '../styles/Flex';
-import {horizontalPadding, verticalPadding} from '../styles/Padding';
-import {rounded} from '../styles/BorderRadius';
-import {border} from '../styles/Border';
-import {textColor} from '../styles/Text';
-import {formatToRupiah} from '../utils/currency';
-import {LoadingScreen} from './LoadingScreen';
+import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
+import {User, UserRole} from '../../model/User';
+import {flex} from '../../styles/Flex';
+import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {rounded} from '../../styles/BorderRadius';
+import {border} from '../../styles/Border';
+import {textColor} from '../../styles/Text';
+import {formatToRupiah} from '../../utils/currency';
+import {LoadingScreen} from '../LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
-import {dimension} from '../styles/Dimension';
+import {dimension} from '../../styles/Dimension';
+import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
+import {ChevronRight} from '../../components/atoms/Icon';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {uid} = useUser();
+  const {uid, activeRole} = useUser();
+  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
@@ -62,7 +67,11 @@ const CampaignDetailScreen = ({route}: Props) => {
   }, [campaignId]);
 
   useEffect(() => {
-    Campaign.getById(campaignId).then(c => setCampaign(c));
+    const unsubscribe = Campaign.getByIdReactive(campaignId, c =>
+      setCampaign(c),
+    );
+
+    return unsubscribe;
   }, [campaignId]);
 
   useEffect(() => {
@@ -79,36 +88,57 @@ const CampaignDetailScreen = ({route}: Props) => {
   }, [campaignId, uid]);
 
   useEffect(() => {
-    User.getById(campaign?.userId || '').then(u => setBusinessPeople(u));
+    User.getById(campaign?.userId || '').then(u => {
+      if (u) {
+        setBusinessPeople(u);
+      }
+    });
   }, [campaign]);
 
   const isCampaignOwner = useMemo(() => {
     return campaign?.userId === uid;
   }, [campaign, uid]);
 
-  // TODO: validate join only for CC
   const handleJoinCampaign = () => {
-    const data = new Transaction({
-      contentCreatorId: uid || '',
-      campaignId: campaignId,
-      businessPeopleId: campaign?.userId,
-    });
-
-    setIsLoading(true);
-    data
-      .register()
-      .then(isSuccess => {
-        if (isSuccess) {
-          console.log('Joined!');
-        }
-      })
-      .catch(err => console.log(err))
-      .finally(() => {
-        setIsLoading(false);
+    if (uid !== campaign?.userId) {
+      const data = new Transaction({
+        contentCreatorId: uid || '',
+        campaignId: campaignId,
+        businessPeopleId: campaign?.userId,
       });
+
+      setIsLoading(true);
+      data
+        .register()
+        .then(() => {
+          showToast({
+            message: 'Registration success',
+            type: ToastType.success,
+          });
+        })
+        .catch(err => {
+          showToast({
+            message: 'Registration failed',
+            type: ToastType.danger,
+          });
+          console.log(err);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
   };
 
-  if (!campaign) {
+  const onProofUploaded = (url: string) => {
+    console.log('url: ' + url);
+    const copy = new Campaign({...campaign});
+    copy.paymentProofImage = url;
+    copy.update().then(() => {
+      console.log('updated proof!');
+    });
+  };
+
+  if (!campaign || businessPeople === undefined) {
     return <LoadingScreen />;
   }
 
@@ -204,14 +234,9 @@ const CampaignDetailScreen = ({route}: Props) => {
                     style={[flex.flexRow, rounded.max]}>
                     <FastImage
                       className="w-full h-full object-cover"
-                      source={
-                        businessPeople.businessPeople?.profilePicture
-                          ? {
-                              uri: businessPeople.businessPeople
-                                ?.profilePicture,
-                            }
-                          : require('../assets/images/bizboost-avatar.png')
-                      }
+                      source={getSourceOrDefaultAvatar({
+                        uri: businessPeople.businessPeople?.profilePicture,
+                      })}
                     />
                   </View>
                   <View className="flex flex-col">
@@ -226,7 +251,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                   </View>
                 </View>
 
-                <ChevronRight fill={COLOR.black[20]} />
+                <ChevronRight color={COLOR.black[20]} />
               </Pressable>
             )}
 
@@ -255,9 +280,9 @@ const CampaignDetailScreen = ({route}: Props) => {
                   <Text className="font-semibold text-base pb-2">
                     Task Summary
                   </Text>
-                  {campaign.platforms && (
+                  {campaign.platformTasks && (
                     <View className="flex flex-col">
-                      {campaign.platforms.map((p, index) => (
+                      {campaign.platformTasks.map((p, index) => (
                         <CampaignPlatformAccordion platform={p} key={index} />
                       ))}
                     </View>
@@ -278,7 +303,6 @@ const CampaignDetailScreen = ({route}: Props) => {
             )}
             <View>
               <CustomButton
-                verticalPadding="small"
                 type="secondary"
                 text={
                   isMoreInfoVisible
@@ -314,10 +338,12 @@ const CampaignDetailScreen = ({route}: Props) => {
             />
             {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
             {isCampaignOwner && (
-              <View className="py-2">
+              <View className="">
                 <CustomButton
-                  customBackgroundColor={COLOR.background.neutral}
-                  customTextColor={COLOR.text.neutral}
+                  customBackgroundColor={{
+                    default: COLOR.background.neutral.high,
+                    disabled: COLOR.background.neutral.disabled,
+                  }}
                   text="View Registrants"
                   rounded="default"
                   onPress={() =>
@@ -332,9 +358,53 @@ const CampaignDetailScreen = ({route}: Props) => {
                 ))} */}
               </View>
             )}
+
+            {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
+              <View className="pb-2">
+                <CustomButton
+                  customBackgroundColor={
+                    campaign.paymentProofImage
+                      ? {
+                          default: COLOR.background.neutral.high,
+                          disabled: COLOR.background.neutral.disabled,
+                        }
+                      : {
+                          default: COLOR.background.danger.high,
+                          disabled: COLOR.background.danger.disabled,
+                        }
+                  }
+                  customTextColor={
+                    campaign.paymentProofImage
+                      ? {
+                          default: COLOR.text.neutral.high,
+                          disabled: COLOR.text.neutral.disabled,
+                        }
+                      : {
+                          default: COLOR.black[1],
+                          disabled: COLOR.text.danger.disabled,
+                        }
+                  }
+                  type="secondary"
+                  text={
+                    campaign.paymentProofImage
+                      ? 'View Payment Proof'
+                      : 'Complete Payment'
+                  }
+                  rounded="default"
+                  onPress={() => setIsPaymentModalOpened(true)}
+                />
+              </View>
+            )}
           </View>
         </View>
       </PageWithBackButton>
+      <PaymentSheetModal
+        isModalOpened={isPaymentModalOpened}
+        onModalDismiss={() => setIsPaymentModalOpened(false)}
+        amount={(campaign.fee || 0) * (campaign.slot || 0)}
+        onProofUploaded={onProofUploaded}
+        defaultImage={campaign.paymentProofImage}
+      />
     </>
   );
 };

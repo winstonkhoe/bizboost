@@ -1,19 +1,19 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Pressable, Text} from 'react-native';
-import {CustomButton} from '../components/atoms/Button';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
+import {CustomButton} from '../../components/atoms/Button';
+import {HorizontalPadding} from '../../components/atoms/ViewPadding';
 import {View} from 'react-native';
-import PhotosIcon from '../assets/vectors/photos.svg';
-import {flex, items, justify} from '../styles/Flex';
-import {gap} from '../styles/Gap';
-import {COLOR} from '../styles/Color';
+import PhotosIcon from '../../assets/vectors/photos.svg';
+import {flex, items, justify} from '../../styles/Flex';
+import {gap} from '../../styles/Gap';
+import {COLOR} from '../../styles/Color';
 import {
   CustomNumberInput,
   CustomTextInput,
   FormlessCustomNumberInput,
   FormlessCustomTextInput,
   MediaUploader,
-} from '../components/atoms/Input';
+} from '../../components/atoms/Input';
 import {
   Control,
   Controller,
@@ -22,54 +22,56 @@ import {
   useForm,
   useFormContext,
 } from 'react-hook-form';
-import SelectableTag from '../components/atoms/SelectableTag';
+import SelectableTag from '../../components/atoms/SelectableTag';
 import {
   Campaign,
   CampaignPlatform,
   CampaignStep,
   CampaignTimeline,
   CampaignType,
-} from '../model/Campaign';
-import FieldArray from '../components/organisms/FieldArray';
-import {useUser} from '../hooks/user';
-import {StringObject, getStringObjectValue} from '../utils/stringObject';
+} from '../../model/Campaign';
+import FieldArray from '../../components/organisms/FieldArray';
+import {useUser} from '../../hooks/user';
+import {StringObject, getStringObjectValue} from '../../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
 
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {Location} from '../model/Location';
-import {dimension} from '../styles/Dimension';
-import {rounded} from '../styles/BorderRadius';
-import {background} from '../styles/BackgroundColor';
-import {border} from '../styles/Border';
-import {FormFieldHelper} from '../components/atoms/FormLabel';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import {Location} from '../../model/Location';
+import {dimension} from '../../styles/Dimension';
+import {rounded} from '../../styles/BorderRadius';
+import {background} from '../../styles/BackgroundColor';
+import {border} from '../../styles/Border';
+import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import PagerView from 'react-native-pager-view';
-import {Stepper} from '../components/atoms/Stepper';
-import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
-import {padding} from '../styles/Padding';
+import {Stepper} from '../../components/atoms/Stepper';
+import {KeyboardAvoidingContainer} from '../../containers/KeyboardAvoidingContainer';
+import {padding} from '../../styles/Padding';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {size} from '../styles/Size';
-import {isValidField} from '../utils/form';
-import {font} from '../styles/Font';
-import {textColor} from '../styles/Text';
-import {formatNumberWithThousandSeparator} from '../utils/number';
-import {InternalLink} from '../components/atoms/Link';
-import {openCategoryModal, openLocationModal} from '../utils/modal';
-import {RemovableChip} from '../components/atoms/Chip';
-import {NavigationStackProps} from '../navigation/StackNavigation';
+import {size} from '../../styles/Size';
+import {isValidField} from '../../utils/form';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
+import {formatNumberWithThousandSeparator} from '../../utils/number';
+import {InternalLink} from '../../components/atoms/Link';
+import {openCategoryModal, openLocationModal} from '../../utils/modal';
+import {RemovableChip} from '../../components/atoms/Chip';
+import {NavigationStackProps} from '../../navigation/StackNavigation';
 import DatePicker, {
   DefaultDatePickerPlaceholder,
-} from '../components/atoms/DatePicker';
-import {AddIcon} from '../components/atoms/Icon';
-import {formatDateToDayMonthYear} from '../utils/date';
-import {Category} from '../model/Category';
+} from '../../components/atoms/DatePicker';
+import {AddIcon} from '../../components/atoms/Icon';
+import {formatDateToDayMonthYear} from '../../utils/date';
+import {Category} from '../../model/Category';
 import FastImage from 'react-native-fast-image';
-import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {SocialPlatform} from '../model/User';
-import {FieldArrayLabel} from '../components/molecules/FieldArrayLabel';
-import {SheetModal} from '../containers/SheetModal';
-import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
-import {LoadingScreen} from './LoadingScreen';
+import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
+import {SocialPlatform} from '../../model/User';
+import {FieldArrayLabel} from '../../components/molecules/FieldArrayLabel';
+import {SheetModal} from '../../containers/SheetModal';
+import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
+import {LoadingScreen} from '../LoadingScreen';
 import {useWindowDimensions} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import {BackButtonLabel} from '../../components/atoms/Header';
 
 export type CampaignFormData = {
   title: string;
@@ -77,9 +79,9 @@ export type CampaignFormData = {
   type: CampaignType;
   fee: number;
   slot: number;
-  criterias: StringObject[]; // workaround soalnnya fieldarray harus array of object
+  criterias?: StringObject[]; // workaround soalnnya fieldarray harus array of object
   platforms: CampaignPlatform[]; // tasks: {value: string}[] itu workaround jg, harusnya ini bisa CampaignPlatform[] lgsg
-  importantInformation: StringObject[];
+  importantInformation?: StringObject[];
   locations: Location[];
   categories: Category[];
   image: string;
@@ -100,13 +102,13 @@ const campaignTimeline = [
       'In this step, the content creator can share their ideas and suggestions for the task with you. You can then provide feedback and guidance to help the content creator refine their work.',
   },
   {
-    step: CampaignStep.ContentSubmission,
+    step: CampaignStep.ContentCreation,
     optional: false,
     description:
       'Content creator can submit their final work for the task. You can then review the work and either accept it or ask for revisions.',
   },
   {
-    step: CampaignStep.EngagementResultSubmission,
+    step: CampaignStep.ResultSubmission,
     optional: false,
     description:
       'Content creators can submit their engagement results for evaluation, including verifying the originality of the proof of task completion. Once reviewed, campaign earnings will be deposited into their accounts.',
@@ -187,7 +189,8 @@ const CreateCampaignScreen = () => {
     trigger,
   } = methods;
 
-  const onSubmitButtonClicked = (d: CampaignFormData) => {
+  const onSubmitButtonClicked = () => {
+    const d = getValues();
     setIsUploading(true);
 
     try {
@@ -202,9 +205,10 @@ const CreateCampaignScreen = () => {
         type: d.type,
         fee: fee,
         slot: d.slot,
-        criterias: d.criterias.map(getStringObjectValue),
+        criterias: d.criterias?.map(getStringObjectValue) || [],
         platformTasks: d.platforms,
-        importantInformation: d.importantInformation.map(getStringObjectValue),
+        importantInformation:
+          d.importantInformation?.map(getStringObjectValue) || [],
         locations: d.locations
           .map(loc => loc.id)
           .filter((loc): loc is string => loc !== undefined),
@@ -340,142 +344,150 @@ const CreateCampaignScreen = () => {
         <PageWithBackButton
           fullHeight
           onPress={previousPage}
-          disableDefaultOnPress={activePosition > 0}>
-          <View
-            className="flex-1"
-            style={[
-              flex.flexCol,
-              gap.default,
-              {
-                paddingTop: Math.max(
-                  safeAreaInsets.top,
-                  safeAreaInsets.top < 10 ? size.large : size.xlarge4,
-                ),
-              },
-            ]}>
-            <HorizontalPadding paddingSize="large">
+          withoutScrollView
+          threshold={0}
+          disableDefaultOnPress={activePosition > 0}
+          backButtonPlaceholder={<BackButtonLabel text="Create campaign" />}
+          underBackButtonPlaceholder={
+            <View
+              style={[
+                flex.flex1,
+                padding.horizontal.large,
+                padding.bottom.default,
+                background(COLOR.background.neutral.default),
+              ]}>
               <Stepper
                 currentPosition={activePosition + 1}
                 maxPosition={maxPage}
               />
-            </HorizontalPadding>
+            </View>
+          }>
+          <ScrollView
+            style={[flex.flex1]}
+            contentContainerStyle={[
+              flex.flex1,
+              flex.flexCol,
+              gap.default,
+              {
+                paddingTop:
+                  Math.max(safeAreaInsets.top, size.large) + size.xlarge4,
+              },
+            ]}>
             <PagerView
+              style={[flex.flex1, flex.grow]}
               ref={pagerViewRef}
-              className="flex-1"
               scrollEnabled={false}>
-              <View key={0}>
+              <ScrollView style={[flex.flex1]} key={0}>
                 <KeyboardAvoidingContainer>
-                  <HorizontalPadding paddingSize="large">
-                    <View
-                      style={[
-                        flex.flexCol,
-                        gap.xlarge,
-                        padding.top.medium,
-                        padding.bottom.xlarge2,
-                      ]}>
-                      <Controller
-                        control={control}
-                        name="image"
-                        rules={{required: 'Image is required!'}}
-                        render={({field: {value}, fieldState: {error}}) => (
-                          <View style={[flex.flexCol, gap.default]}>
-                            <FormFieldHelper title="Campaign Image" />
-                            <View style={[flex.flexRow, justify.start]}>
-                              <MediaUploader
-                                targetFolder="campaigns"
-                                options={{
-                                  width: 400,
-                                  height: 400,
-                                  cropping: true,
-                                  includeBase64: true,
-                                }}
-                                showUploadProgress
-                                onUploadSuccess={imageSelected}>
-                                <View
-                                  className="overflow-hidden"
-                                  style={[
-                                    dimension.square.xlarge5,
-                                    rounded.default,
-                                  ]}>
-                                  {value ? (
-                                    <FastImage
-                                      className=""
-                                      style={[dimension.full]}
-                                      source={{
-                                        uri: value,
-                                      }}
-                                    />
-                                  ) : (
-                                    <View
-                                      style={[
-                                        dimension.full,
-                                        flex.flexRow,
-                                        justify.center,
-                                        items.center,
-                                        background(
-                                          COLOR.background.neutral.med,
-                                        ),
-                                        error &&
-                                          border({
-                                            borderWidth: 1,
-                                            color:
-                                              COLOR.background.danger.default,
-                                          }),
-                                      ]}>
-                                      <PhotosIcon width={30} height={30} />
-                                    </View>
-                                  )}
-                                </View>
-                              </MediaUploader>
-                            </View>
-                            {error && (
-                              <Text className="text-xs mt-2 font-medium text-red-500">
-                                {`${error?.message}`}
-                              </Text>
-                            )}
+                  <View
+                    style={[
+                      flex.flex1,
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.horizontal.large,
+                      padding.bottom.xlarge2,
+                    ]}>
+                    <Controller
+                      control={control}
+                      name="image"
+                      rules={{required: 'Image is required!'}}
+                      render={({field: {value}, fieldState: {error}}) => (
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper title="Campaign Image" />
+                          <View style={[flex.flexRow, justify.start]}>
+                            <MediaUploader
+                              targetFolder="campaigns"
+                              options={{
+                                width: 400,
+                                height: 400,
+                                cropping: true,
+                                includeBase64: true,
+                              }}
+                              showUploadProgress
+                              onUploadSuccess={imageSelected}>
+                              <View
+                                className="overflow-hidden"
+                                style={[
+                                  dimension.square.xlarge5,
+                                  rounded.default,
+                                ]}>
+                                {value ? (
+                                  <FastImage
+                                    className=""
+                                    style={[dimension.full]}
+                                    source={{
+                                      uri: value,
+                                    }}
+                                  />
+                                ) : (
+                                  <View
+                                    style={[
+                                      dimension.full,
+                                      flex.flexRow,
+                                      justify.center,
+                                      items.center,
+                                      background(COLOR.background.neutral.med),
+                                      error &&
+                                        border({
+                                          borderWidth: 1,
+                                          color:
+                                            COLOR.background.danger.default,
+                                        }),
+                                    ]}>
+                                    <PhotosIcon width={30} height={30} />
+                                  </View>
+                                )}
+                              </View>
+                            </MediaUploader>
                           </View>
-                        )}
-                      />
-                      <View style={[flex.flexCol, gap.default]}>
-                        <FormFieldHelper title="Your campaign title" />
-                        <CustomTextInput
-                          label="Campaign Title"
-                          name="title"
-                          rules={{
-                            required: 'Title is required',
-                          }}
-                          max={50}
-                          counter
-                        />
-                      </View>
-                      <View style={[flex.flexCol, gap.default]}>
-                        <FormFieldHelper title="Your campaign description" />
-                        <CustomTextInput
-                          placeholder="Campaign description"
-                          name="description"
-                          type="textarea"
-                          rules={{
-                            required: 'Description is required',
-                          }}
-                        />
-                      </View>
-                      <CustomButton
-                        text="Next"
-                        rounded="max"
-                        minimumWidth
-                        disabled={
-                          !isValidField(getFieldState('title', formState)) ||
-                          !isValidField(
-                            getFieldState('description', formState),
-                          ) ||
-                          !watch('image')
-                        }
-                        onPress={nextPage}
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {`${error?.message}`}
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
+                    <View style={[flex.flexCol, gap.default]}>
+                      <FormFieldHelper title="Your campaign title" />
+                      <CustomTextInput
+                        label="Campaign Title"
+                        name="title"
+                        rules={{
+                          required: 'Title is required',
+                        }}
+                        max={50}
+                        counter
                       />
                     </View>
-                  </HorizontalPadding>
+                    <View style={[flex.flexCol, gap.default]}>
+                      <FormFieldHelper title="Your campaign description" />
+                      <CustomTextInput
+                        placeholder="Campaign description"
+                        name="description"
+                        type="textarea"
+                        rules={{
+                          required: 'Description is required',
+                        }}
+                      />
+                    </View>
+                    <CustomButton
+                      text="Next"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('title', formState)) ||
+                        !isValidField(
+                          getFieldState('description', formState),
+                        ) ||
+                        !watch('image')
+                      }
+                      onPress={nextPage}
+                    />
+                  </View>
                 </KeyboardAvoidingContainer>
-              </View>
+              </ScrollView>
               <View key={1}>
                 <KeyboardAvoidingContainer>
                   <HorizontalPadding paddingSize="large">
@@ -677,7 +689,8 @@ const CreateCampaignScreen = () => {
                             platform={fp.name}
                             control={control}
                             title={`${fp.name}'s Task`}
-                            maxFieldLength={30}
+                            fieldType="textarea"
+                            maxFieldLength={150}
                             parentName={`platforms.${index}.tasks`}
                             helperText='Ex. "minimum 30s / story"'
                             placeholder="Add task"
@@ -717,33 +730,28 @@ const CreateCampaignScreen = () => {
                     <Controller
                       control={control}
                       name="criterias"
-                      rules={{required: 'Criterias is required!'}}
-                      render={({fieldState: {error}}) => (
+                      render={() => (
                         <View>
                           <FieldArray
                             control={control}
+                            type="optional"
                             title="Campaign Criterias"
                             parentName="criterias"
                             childName="value"
-                            placeholder="Add criteria"
+                            placeholder="Add criteria for content creator"
                             helperText='Ex. "Minimal 100k followers"'
                           />
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              Criteria is required (at least 1)!
-                            </Text>
-                          )}
                         </View>
                       )}
                     />
                     <Controller
                       control={control}
                       name="importantInformation"
-                      rules={{required: 'Information is required!'}}
-                      render={({fieldState: {error}}) => (
+                      render={() => (
                         <View>
                           <FieldArray
                             control={control}
+                            type="optional"
                             fieldType="textarea"
                             maxFieldLength={70}
                             title="Important Informations"
@@ -751,14 +759,9 @@ const CreateCampaignScreen = () => {
                             childName="value"
                             placeholder="Add dos and/or don'ts"
                             helperText={
-                              'Ex. "Don\'t use profanity", "Be natural"'
+                              'Ex.\n"·Don\'t use profanity"\n"·Be natural"'
                             }
                           />
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              Information is required (at least 1)!
-                            </Text>
-                          )}
                         </View>
                       )}
                     />
@@ -775,8 +778,8 @@ const CreateCampaignScreen = () => {
                           <View style={[flex.flexRow, items.center]}>
                             <View style={[flex.flex1]}>
                               <FormFieldHelper
-                                title="Location"
-                                description="Campaign's target impacted locations"
+                                title="Content Territory"
+                                description="Preferred content creators' territory"
                               />
                             </View>
                             <InternalLink
@@ -826,7 +829,7 @@ const CreateCampaignScreen = () => {
                             <View style={[flex.flex1]}>
                               <FormFieldHelper
                                 title="Category"
-                                description="Choose maximum 2 related category to your campaign"
+                                description="Maximum 2, order of selection does matter"
                               />
                             </View>
                             <InternalLink
@@ -917,14 +920,8 @@ const CreateCampaignScreen = () => {
                       rounded="max"
                       minimumWidth
                       disabled={
-                        !isValidField(getFieldState('criterias', formState)) ||
-                        !isValidField(
-                          getFieldState('importantInformation', formState),
-                        ) ||
                         !isValidField(getFieldState('locations', formState)) ||
                         !isValidField(getFieldState('categories', formState)) ||
-                        getValues('criterias').length === 0 ||
-                        getValues('importantInformation').length === 0 ||
                         getValues('locations').length === 0 ||
                         getValues('categories').length === 0
                       }
@@ -1085,14 +1082,18 @@ const CreateCampaignScreen = () => {
                               !timeline.optional,
                           ).length > 0
                         }
-                        onPress={handleSubmit(onSubmitButtonClicked)}
+                        onPress={() => {
+                          console.log('submit clicked');
+                          onSubmitButtonClicked();
+                          // handleSubmit(onSubmitButtonClicked)();
+                        }}
                       />
                     </View>
                   </HorizontalPadding>
                 </KeyboardAvoidingContainer>
               </View>
             </PagerView>
-          </View>
+          </ScrollView>
         </PageWithBackButton>
       </FormProvider>
     </>
@@ -1248,7 +1249,7 @@ const SocialFieldArray = ({
           setIsModalOpened(false);
         }}
         enableDynamicSizing={false}>
-        <BottomSheetModalWithTitle title={title}>
+        <BottomSheetModalWithTitle fullHeight title={title}>
           <Controller
             control={control}
             name={`${parentName}.${updateIndex}${

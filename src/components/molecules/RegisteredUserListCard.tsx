@@ -118,9 +118,11 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
       headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
-        navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
-          campaignId: campaign?.id || '',
-        });
+        if (transaction.id) {
+          navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+            transactionId: transaction.id,
+          });
+        }
       }}
       imageSource={
         campaign?.image
@@ -163,77 +165,84 @@ const BaseCard = ({
   handleClickAccept,
 }: BaseCardProps) => {
   return (
-    <View style={[shadow.default, rounded.medium]}>
-      <View
-        className="bg-white flex flex-col pt-3 overflow-hidden"
-        style={[rounded.medium]}>
-        <Pressable
-          onPress={handleClickHeader}
-          className="flex flex-row justify-between items-center border-b pb-2 px-3 "
-          style={[border({color: COLOR.black[20]})]}>
-          <View className="flex flex-row items-center" style={[gap.xsmall]}>
-            {icon}
-            {/* {isPrivate && (
+    <View
+      className="bg-white flex flex-col pt-3 overflow-hidden border border-gray-200"
+      style={[rounded.medium]}>
+      <Pressable
+        onPress={handleClickHeader}
+        className="flex flex-row justify-between items-center border-b pb-2 px-3 "
+        style={[border({color: COLOR.black[20]})]}>
+        <View className="flex flex-row items-center" style={[gap.xsmall]}>
+          {icon}
+          {/* {isPrivate && (
               <Private width={15} height={15} stroke={COLOR.black[40]} />
             )} */}
-            <Text
-              style={[textColor(COLOR.green[50]), font.size[20]]}
-              numberOfLines={1}
-              className="w-2/3">
-              {headerTextLeading}
-            </Text>
+          <Text
+            style={[textColor(COLOR.green[50]), font.size[20]]}
+            numberOfLines={1}
+            className="w-2/3">
+            {headerTextLeading}
+          </Text>
+        </View>
+      </Pressable>
+      <Pressable
+        onPress={handleClickBody}
+        className="flex flex-row items-center px-3 py-4 justify-between">
+        <View className="flex flex-row items-center">
+          <View
+            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
+            style={[flex.flexRow, rounded.default]}>
+            <FastImage
+              className="w-full h-full object-cover"
+              source={imageSource}
+            />
           </View>
-        </Pressable>
-        <Pressable
-          onPress={handleClickBody}
-          className="flex flex-row items-center px-3 py-4 justify-between">
-          <View className="flex flex-row items-center">
-            <View
-              className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-              style={[flex.flexRow, rounded.default]}>
-              <FastImage
-                className="w-full h-full object-cover"
-                source={imageSource}
-              />
-            </View>
-            <View className="flex flex-col items-start w-3/4">
-              <Text className="font-semibold text-base " numberOfLines={1}>
-                {bodyText}
-              </Text>
+          <View className="flex flex-col items-start w-3/4">
+            <Text className="font-semibold text-base " numberOfLines={1}>
+              {bodyText}
+            </Text>
+            {statusText && (
               <View>
                 <StatusTag
                   status={`${statusText}`}
                   statusType={transactionStatusTypeMap[statusText]}
                 />
               </View>
-            </View>
+            )}
           </View>
-          <ChevronRight fill={COLOR.black[20]} />
-        </Pressable>
-        {doesNeedApproval && (
-          <View style={[flex.flexRow]}>
-            <View style={[flex.flex1]}>
-              <CustomButton
-                text="Reject"
-                scale={1}
-                onPress={handleClickReject}
-                rounded="none"
-                customTextSize={font.size[20]}
-                type="alternate"
-              />
-            </View>
-            <View style={[flex.flex1]}>
-              <CustomButton
-                text="Accept"
-                scale={1}
-                onPress={handleClickAccept}
-                rounded="none"
-                customTextSize={font.size[20]}
-              />
-            </View>
+        </View>
+        <ChevronRight fill={COLOR.black[20]} />
+      </Pressable>
+      {doesNeedApproval && (
+        <View style={[flex.flexRow]}>
+          <View style={[flex.flex1]}>
+            <CustomButton
+              text="Reject"
+              scale={1}
+              onPress={handleClickReject}
+              rounded="none"
+              customTextSize={20}
+              customBackgroundColor={{
+                default: COLOR.black[5],
+                disabled: COLOR.black[5],
+              }}
+              customTextColor={{
+                default: COLOR.black[90],
+                disabled: COLOR.black[25],
+              }}
+            />
           </View>
-        )}
-      </View>
+          <View style={[flex.flex1]}>
+            <CustomButton
+              text="Accept"
+              scale={1}
+              onPress={handleClickAccept}
+              rounded="none"
+              customTextSize={20}
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 };

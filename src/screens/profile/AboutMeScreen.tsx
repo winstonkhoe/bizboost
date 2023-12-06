@@ -129,207 +129,244 @@ const AboutMeScreen = () => {
               </Text>
             </Pressable>
 
-            <View className="border-t border-gray-400 pt-4">
-              <Text
-                className="font-bold"
-                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
-                Content Creator Information
-              </Text>
-            </View>
-
-            <Pressable
-              className="flex flex-row items-center justify-between"
-              onPress={() => {
-                navigation.navigate(
-                  AuthenticatedNavigation.EditMaxContentRevision,
-                );
-              }}>
-              <Text
-                className="font-medium"
-                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
-                Max Content Revisions
-              </Text>
-              <View
-                className="flex flex-row items-center"
-                style={[gap.default]}>
-                <Text
-                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                  {user?.contentCreator?.contentRevisionLimit || 0} times
-                </Text>
-                <ChevronRight fill={COLOR.black[20]} />
-              </View>
-            </Pressable>
-
-            <Pressable
-              className="flex flex-row items-center justify-between"
-              onPress={() => {
-                navigation.navigate(
-                  AuthenticatedNavigation.EditPostingSchedule,
-                );
-              }}>
-              <Text
-                className="font-medium"
-                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
-                Posting Schedules
-              </Text>
-              <View
-                className="flex flex-row items-center"
-                style={[gap.default]}>
-                <Text
-                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                  {user?.contentCreator?.postingSchedules.at(0)
-                    ? formatDateToTime12Hrs(
-                        new Date(user?.contentCreator?.postingSchedules.at(0)!),
-                      )
-                    : 'None'}
-                  {(user?.contentCreator?.postingSchedules.length || -1) > 1 &&
-                    `, and ${
-                      user?.contentCreator?.postingSchedules.length! - 1
-                    } more`}
-                </Text>
-                <ChevronRight fill={COLOR.black[20]} />
-              </View>
-            </Pressable>
-
-            <Pressable
-              className="flex flex-row items-center justify-between"
-              onPress={() => {
-                navigation.navigate(AuthenticatedNavigation.EditPreferences);
-              }}>
-              <Text
-                className="font-medium"
-                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
-                Preferences
-              </Text>
-              <View
-                className="flex flex-row items-center justify-end"
-                style={[gap.default]}>
-                <View className="w-1/2 flex flex-row items-center justify-end">
+            {activeRole === UserRole.ContentCreator && (
+              <>
+                <View className="border-t border-gray-400 pt-4">
                   <Text
-                    className="overflow-hidden text-right"
-                    numberOfLines={1}
-                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {user?.contentCreator?.preferences.at(0)
-                      ? user?.contentCreator?.preferences.at(0)
-                      : 'None'}
-                  </Text>
-                  <Text
-                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {(user?.contentCreator?.preferences.length || -1) > 1 &&
-                      `, and ${
-                        user?.contentCreator?.preferences.length! - 1
-                      } more`}
+                    className="font-bold"
+                    style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                    Content Creator Information
                   </Text>
                 </View>
-                <ChevronRight fill={COLOR.black[20]} />
-              </View>
-            </Pressable>
 
-            <Pressable
-              className="flex flex-row items-center justify-between"
-              onPress={() => {
-                // TODO: baru liat ada uda RegisterLocation sama RegisterFocusCategory, jadi kyknya nanti yang lainnya akan disamain hehe
-                // navigation.navigate(
-                //   AuthenticatedNavigation.EditSpecializedCategory,
-                // );
-
-                openLocationModal({
-                  preferredLocations:
-                    user?.contentCreator?.preferredLocationIds.map(
-                      pl => new Location({id: pl}),
-                    ) || [],
-                  setPreferredLocations: locations => {
-                    // TODO: extract method?
-                    const temp = new User({...user});
-                    temp.contentCreator = {
-                      ...temp.contentCreator!,
-                      preferredLocationIds: locations.map(l => l.id || ''),
-                    };
-
-                    temp.updateUserData();
-                  },
-                  navigation: navigation,
-                });
-              }}>
-              <Text
-                className="font-medium"
-                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
-                Preferred Locations
-              </Text>
-              <View
-                className="flex flex-row items-center justify-end"
-                style={[gap.default]}>
-                <View className="w-1/2 flex flex-row items-center justify-end">
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(
+                      AuthenticatedNavigation.EditMaxContentRevision,
+                    );
+                  }}>
                   <Text
-                    className="overflow-hidden text-right"
-                    numberOfLines={1}
-                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {user?.contentCreator?.preferredLocationIds.at(0)
-                      ? user?.contentCreator?.preferredLocationIds.at(0)
-                      : 'None'}
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Max Content Revisions
                   </Text>
-                  <Text
-                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {(user?.contentCreator?.preferredLocationIds.length || -1) >
-                      1 &&
-                      `, and ${
-                        user?.contentCreator?.preferredLocationIds.length! - 1
-                      } more`}
-                  </Text>
-                </View>
-                <ChevronRight fill={COLOR.black[20]} />
-              </View>
-            </Pressable>
+                  <View
+                    className="flex flex-row items-center"
+                    style={[gap.default]}>
+                    <Text
+                      style={[
+                        textColor(COLOR.text.neutral.low),
+                        font.size[20],
+                      ]}>
+                      {user?.contentCreator?.contentRevisionLimit || 0} times
+                    </Text>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
 
-            <Pressable
-              className="flex flex-row items-center justify-between"
-              onPress={() => {
-                openCategoryModal({
-                  favoriteCategories:
-                    user?.contentCreator?.specializedCategoryIds.map(
-                      sc => new Category({id: sc}),
-                    ) || [],
-                  setFavoriteCategories: categories => {
-                    const temp = new User({...user});
-                    temp.contentCreator = {
-                      ...temp.contentCreator!,
-                      specializedCategoryIds: categories.map(c => c.id || ''),
-                    };
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(
+                      AuthenticatedNavigation.EditPostingSchedule,
+                    );
+                  }}>
+                  <Text
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Posting Schedules
+                  </Text>
+                  <View
+                    className="flex flex-row items-center"
+                    style={[gap.default]}>
+                    <Text
+                      style={[
+                        textColor(COLOR.text.neutral.low),
+                        font.size[20],
+                      ]}>
+                      {user?.contentCreator?.postingSchedules.at(0)
+                        ? formatDateToTime12Hrs(
+                            new Date(
+                              user?.contentCreator?.postingSchedules.at(0)!,
+                            ),
+                          )
+                        : 'None'}
+                      {(user?.contentCreator?.postingSchedules.length || -1) >
+                        1 &&
+                        `, and ${
+                          user?.contentCreator?.postingSchedules.length! - 1
+                        } more`}
+                    </Text>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
 
-                    temp.updateUserData();
-                  },
-                  navigation: navigation,
-                });
-              }}>
-              <Text
-                className="font-medium"
-                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
-                Specialized Categories
-              </Text>
-              <View
-                className="flex flex-row items-center justify-end"
-                style={[gap.default]}>
-                <View className="w-1/2 flex flex-row items-center justify-end">
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(
+                      AuthenticatedNavigation.EditPreferences,
+                    );
+                  }}>
                   <Text
-                    className="overflow-hidden text-right"
-                    numberOfLines={1}
-                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {user?.contentCreator?.specializedCategoryIds.at(0)
-                      ? user?.contentCreator?.specializedCategoryIds.at(0)
-                      : 'None'}
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Preferences
                   </Text>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View className="w-1/2 flex flex-row items-center justify-end">
+                      <Text
+                        className="overflow-hidden text-right"
+                        numberOfLines={1}
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {user?.contentCreator?.preferences.at(0)
+                          ? user?.contentCreator?.preferences.at(0)
+                          : 'None'}
+                      </Text>
+                      <Text
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {(user?.contentCreator?.preferences.length || -1) > 1 &&
+                          `, and ${
+                            user?.contentCreator?.preferences.length! - 1
+                          } more`}
+                      </Text>
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    // TODO: baru liat ada uda RegisterLocation sama RegisterFocusCategory, jadi kyknya nanti yang lainnya akan disamain hehe
+                    // navigation.navigate(
+                    //   AuthenticatedNavigation.EditSpecializedCategory,
+                    // );
+
+                    openLocationModal({
+                      preferredLocations:
+                        user?.contentCreator?.preferredLocationIds.map(
+                          pl => new Location({id: pl}),
+                        ) || [],
+                      setPreferredLocations: locations => {
+                        // TODO: extract method?
+                        const temp = new User({...user});
+                        temp.contentCreator = {
+                          ...temp.contentCreator!,
+                          preferredLocationIds: locations.map(l => l.id || ''),
+                        };
+
+                        temp.updateUserData();
+                      },
+                      navigation: navigation,
+                    });
+                  }}>
                   <Text
-                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                    {(user?.contentCreator?.specializedCategoryIds.length ||
-                      -1) > 1 &&
-                      `, and ${
-                        user?.contentCreator?.specializedCategoryIds.length! - 1
-                      } more`}
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Preferred Locations
                   </Text>
-                </View>
-                <ChevronRight fill={COLOR.black[20]} />
-              </View>
-            </Pressable>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View className="w-1/2 flex flex-row items-center justify-end">
+                      <Text
+                        className="overflow-hidden text-right"
+                        numberOfLines={1}
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {user?.contentCreator?.preferredLocationIds.at(0)
+                          ? user?.contentCreator?.preferredLocationIds.at(0)
+                          : 'None'}
+                      </Text>
+                      <Text
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {(user?.contentCreator?.preferredLocationIds.length ||
+                          -1) > 1 &&
+                          `, and ${
+                            user?.contentCreator?.preferredLocationIds.length! -
+                            1
+                          } more`}
+                      </Text>
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    openCategoryModal({
+                      favoriteCategories:
+                        user?.contentCreator?.specializedCategoryIds.map(
+                          sc => new Category({id: sc}),
+                        ) || [],
+                      setFavoriteCategories: categories => {
+                        const temp = new User({...user});
+                        temp.contentCreator = {
+                          ...temp.contentCreator!,
+                          specializedCategoryIds: categories.map(
+                            c => c.id || '',
+                          ),
+                        };
+
+                        temp.updateUserData();
+                      },
+                      navigation: navigation,
+                    });
+                  }}>
+                  <Text
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Specialized Categories
+                  </Text>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View className="w-1/2 flex flex-row items-center justify-end">
+                      <Text
+                        className="overflow-hidden text-right"
+                        numberOfLines={1}
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {user?.contentCreator?.specializedCategoryIds.at(0)
+                          ? user?.contentCreator?.specializedCategoryIds.at(0)
+                          : 'None'}
+                      </Text>
+                      <Text
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {(user?.contentCreator?.specializedCategoryIds.length ||
+                          -1) > 1 &&
+                          `, and ${
+                            user?.contentCreator?.specializedCategoryIds
+                              .length! - 1
+                          } more`}
+                      </Text>
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
+              </>
+            )}
           </View>
 
           <View className="mt-8">

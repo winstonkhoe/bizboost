@@ -26,7 +26,7 @@ import {COLOR} from '../../styles/Color';
 import SafeAreaContainer from '../../containers/SafeAreaContainer';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {rounded} from '../../styles/BorderRadius';
-import {font} from '../../styles/Font';
+import {FontSizeType, font} from '../../styles/Font';
 import {shadow} from '../../styles/Shadow';
 import {ModalWebView} from '../../screens/modals/ModalWebView';
 
@@ -42,6 +42,8 @@ interface Props extends Partial<ControllerProps> {
   maxFieldLength?: number;
   helperText?: string;
   forceLowerCase?: boolean;
+  titleSize?: FontSizeType;
+  descriptionSize?: FontSizeType;
 }
 const FieldArray = ({
   control,
@@ -55,6 +57,8 @@ const FieldArray = ({
   maxFieldLength = 40,
   helperText,
   forceLowerCase = false,
+  titleSize = 50,
+  descriptionSize = 30,
   ...props
 }: Props) => {
   const keyboardHeight = useKeyboard();
@@ -107,7 +111,13 @@ const FieldArray = ({
         />
       )}
       <View style={[flex.flexCol, gap.default]}>
-        <FormFieldHelper title={title} description={description} type={type} />
+        <FormFieldHelper
+          title={title}
+          description={description}
+          type={type}
+          titleSize={titleSize}
+          descriptionSize={descriptionSize}
+        />
         <View style={[flex.flexCol, gap.medium]}>
           {fields.length > 0 && (
             <View style={[flex.flexCol, gap.small]}>
@@ -152,7 +162,7 @@ const FieldArray = ({
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <BottomSheetModalWithTitle title={title || ''}>
+        <BottomSheetModalWithTitle fullHeight title={title || ''}>
           <Controller
             control={control}
             {...props}

@@ -10,40 +10,45 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
-} from '../navigation/StackNavigation';
-import {StyleSheet, Text, View, useWindowDimensions} from 'react-native';
+} from '../../../navigation/StackNavigation';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import {
   Campaign,
   CampaignStep,
-  CampaignTask,
   CampaignTimeline,
   campaignIndexMap,
-} from '../model/Campaign';
+} from '../../../model/Campaign';
 
-import {useUser} from '../hooks/user';
+import {useUser} from '../../../hooks/user';
 
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {Link, useNavigation} from '@react-navigation/native';
-import {flex, items, justify, self} from '../styles/Flex';
-import {gap} from '../styles/Gap';
-import {ContentStepper, StepperState} from '../components/atoms/Stepper';
-import {font} from '../styles/Font';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
-import {padding} from '../styles/Padding';
-import {rounded} from '../styles/BorderRadius';
-import {background} from '../styles/BackgroundColor';
-import {COLOR} from '../styles/Color';
-import {CustomButton} from '../components/atoms/Button';
-import {border} from '../styles/Border';
-import {textColor} from '../styles/Text';
+import {PageWithBackButton} from '../../../components/templates/PageWithBackButton';
+import {useNavigation} from '@react-navigation/native';
+import {flex, items, justify, self} from '../../../styles/Flex';
+import {gap} from '../../../styles/Gap';
+import {ContentStepper, StepperState} from '../../../components/atoms/Stepper';
+import {font} from '../../../styles/Font';
+import {HorizontalPadding} from '../../../components/atoms/ViewPadding';
+import {padding} from '../../../styles/Padding';
+import {rounded} from '../../../styles/BorderRadius';
+import {background} from '../../../styles/BackgroundColor';
+import {COLOR} from '../../../styles/Color';
+import {CustomButton} from '../../../components/atoms/Button';
+import {border} from '../../../styles/Border';
+import {textColor} from '../../../styles/Text';
 import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
   formatDateToHourMinute,
   formatTimeDifferenceInDayHourMinute,
-} from '../utils/date';
-import StatusTag, {StatusType} from '../components/atoms/StatusTag';
+} from '../../../utils/date';
+import StatusTag, {StatusType} from '../../../components/atoms/StatusTag';
 import {
   BasicStatus,
   Transaction,
@@ -54,31 +59,37 @@ import {
   transactionStatusIndexMap,
   transactionStatusStepperStateMap,
   transactionStatusTypeMap,
-} from '../model/Transaction';
-import {LoadingScreen} from './LoadingScreen';
-import {shadow} from '../styles/Shadow';
-import {SheetModal} from '../containers/SheetModal';
-import {BottomSheetModalWithTitle} from '../components/templates/BottomSheetModalWithTitle';
-import {FormlessCustomTextInput} from '../components/atoms/Input';
-import {FormFieldHelper} from '../components/atoms/FormLabel';
+} from '../../../model/Transaction';
+import {LoadingScreen} from '../../LoadingScreen';
+import {shadow} from '../../../styles/Shadow';
+import {SheetModal} from '../../../containers/SheetModal';
+import {BottomSheetModalWithTitle} from '../../../components/templates/BottomSheetModalWithTitle';
+import {FormlessCustomTextInput} from '../../../components/atoms/Input';
+import {FormFieldHelper} from '../../../components/atoms/FormLabel';
 import {ScrollView} from 'react-native-gesture-handler';
-import {dimension} from '../styles/Dimension';
-import {CustomModal} from '../components/atoms/CustomModal';
+import {dimension} from '../../../styles/Dimension';
+import {CustomModal} from '../../../components/atoms/CustomModal';
 import FastImage from 'react-native-fast-image';
-import {SocialPlatform, User} from '../model/User';
-import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
-import {formatNumberWithThousandSeparator} from '../utils/number';
-import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
+import {SocialPlatform, User} from '../../../model/User';
+import {AnimatedPressable} from '../../../components/atoms/AnimatedPressable';
+import {clamp, formatNumberWithThousandSeparator} from '../../../utils/number';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useKeyboard} from '../hooks/keyboard';
-import {InternalLink} from '../components/atoms/Link';
-import FieldArray from '../components/organisms/FieldArray';
+import {InternalLink} from '../../../components/atoms/Link';
+import FieldArray from '../../../components/organisms/FieldArray';
 import {FormProvider, useForm} from 'react-hook-form';
-import {StringObject, getStringObjectValue} from '../utils/stringObject';
-import {ArrowIcon, ChevronRight, PlatformIcon} from '../components/atoms/Icon';
-import {size} from '../styles/Size';
-import {campaignTaskToString} from '../utils/campaign';
+import {StringObject, getStringObjectValue} from '../../../utils/stringObject';
+import {ChevronRight, PlatformIcon} from '../../../components/atoms/Icon';
+import {size} from '../../../styles/Size';
+import {campaignTaskToString} from '../../../utils/campaign';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import ImageView from 'react-native-image-viewing';
+import {getSourceOrDefaultAvatar} from '../../../utils/asset';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -103,6 +114,14 @@ const rules = {
   },
 };
 
+const guidelines = {
+  engagements: [
+    require('../../../assets/images/guidelines/engagement-1.png'),
+    require('../../../assets/images/guidelines/engagement-2.png'),
+    require('../../../assets/images/guidelines/engagement-3.png'),
+  ],
+};
+
 interface TransactionView {
   transaction: Transaction;
   contentCreator: User | null;
@@ -110,7 +129,6 @@ interface TransactionView {
 
 const CampaignTimelineScreen = ({route}: Props) => {
   const {uid} = useUser();
-  const keyboardHeight = useKeyboard();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
@@ -118,6 +136,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const [campaign, setCampaign] = useState<Campaign>();
   const [transactions, setTransactions] = useState<TransactionView[]>([]);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [activeImageClicked, setActiveImageClicked] = useState(-1);
   const [temporaryBrainstorm, setTemporaryBrainstorm] = useState('');
   const [isBrainstormingModalOpened, setIsBrainstormingModalOpened] =
     useState(false);
@@ -134,21 +153,20 @@ const CampaignTimelineScreen = ({route}: Props) => {
     return campaign?.getActiveTimeline();
   }, [campaign]);
 
-  const methods = useForm<SubmissionFormData>({
+  const contentSubmissionMethods = useForm<SubmissionFormData>({
     defaultValues: {
       submission: [],
     },
   });
 
-  const {reset, control, watch, getValues} = methods;
-
-  const sub = watch('submission');
-  useEffect(() => {
-    console.log('submission', sub);
-  }, [sub]);
+  const {
+    reset: contentSubmissionReset,
+    control: contentSubmissionControl,
+    getValues: getContentSubmissionValues,
+  } = contentSubmissionMethods;
 
   const resetOriginalField = useCallback(() => {
-    reset({
+    contentSubmissionReset({
       submission: transaction?.platformTasks?.map(platformTask => {
         return {
           platform: platformTask.name,
@@ -156,7 +174,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         };
       }),
     });
-  }, [reset, transaction]);
+  }, [contentSubmissionReset, transaction]);
 
   const filteredPendingBrainstormApproval = useMemo(() => {
     return transactions
@@ -175,6 +193,14 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const isCampaignOwner = useMemo(() => {
     return uid === campaign?.userId;
   }, [uid, campaign]);
+
+  const pendingRegistrants = useMemo(
+    () =>
+      transactions.filter(
+        t => t.transaction.status === TransactionStatus.registrationPending,
+      ),
+    [transactions],
+  );
 
   const currentActiveIndex = useMemo(
     () =>
@@ -223,41 +249,55 @@ const CampaignTimelineScreen = ({route}: Props) => {
         const indexOffset = !campaignHaveBrainstorming
           ? Math.abs(
               campaignIndexMap[CampaignStep.Brainstorming] -
-                campaignIndexMap[CampaignStep.ContentSubmission],
+                campaignIndexMap[CampaignStep.ContentCreation],
             )
           : 0;
+        console.log('indexOffset', indexOffset);
         const calculatedTransactionStatusIndex =
           transactionStatusIndex >=
           transactionStatusIndexMap[TransactionStatus.brainstormApproved]
             ? transactionStatusIndex - indexOffset
             : transactionStatusIndex;
+        const currentTransactionStep =
+          transactionStatusCampaignStepMap[transaction.status];
+        const isContentCreatorNotSubmitCurrentActiveTimeline =
+          currentActiveTimeline &&
+          currentTransactionStep !== currentActiveTimeline.step;
         let steps = [
           ...Array(
             (calculatedTransactionStatusIndex <= 0
               ? 0
               : calculatedTransactionStatusIndex) +
-              (currentActiveTimeline &&
-              calculatedTransactionStatusIndex <=
-                campaignIndexMap[currentActiveTimeline?.step]
-                ? 1
-                : 0),
+              (isContentCreatorNotSubmitCurrentActiveTimeline ? 1 : 0),
           ),
         ].map(() => StepperState.success);
         console.log(
           'calculatedtransactionstatusindex',
           calculatedTransactionStatusIndex,
         );
+        console.log(
+          'before update current transaction step',
+          currentTransactionStep,
+          'before update steps',
+          steps,
+        );
         steps[steps.length - 1] =
           transactionStatusStepperStateMap[transaction.status];
-        const currentTransactionStep =
-          transactionStatusCampaignStepMap[transaction.status];
-        console.log(currentTransactionStep);
-        if (
-          currentActiveTimeline &&
-          currentTransactionStep !== currentActiveTimeline?.step
-        ) {
-          steps[campaignIndexMap[currentActiveTimeline.step] - indexOffset] =
-            StepperState.inProgress;
+
+        console.log(
+          'current transaction step',
+          currentTransactionStep,
+          'steps',
+          steps,
+        );
+        console.log(
+          'current active timeline',
+          currentActiveTimeline,
+          'currentTransactionStep',
+          currentTransactionStep,
+        );
+        if (isContentCreatorNotSubmitCurrentActiveTimeline) {
+          steps[steps.length - 1] = StepperState.inProgress;
         }
         return steps;
       }
@@ -314,7 +354,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   };
 
   const submitContentSubmission = () => {
-    const data = methods.getValues();
+    const data = getContentSubmissionValues();
     const transactionContent: TransactionContent[] = data.submission.map(
       submission => {
         return {
@@ -411,13 +451,21 @@ const CampaignTimelineScreen = ({route}: Props) => {
     });
   };
 
-  if (!campaign) {
+  if (!campaign || !transaction) {
     return <LoadingScreen />;
   }
 
   return (
     <>
       {isLoading && <LoadingScreen />}
+      <ImageView
+        images={guidelines.engagements}
+        imageIndex={activeImageClicked}
+        visible={activeImageClicked >= 0}
+        onRequestClose={() => setActiveImageClicked(-1)}
+        swipeToCloseEnabled
+        backgroundColor="white"
+      />
       <PageWithBackButton enableSafeAreaContainer fullHeight>
         <HorizontalPadding>
           <View style={[flex.flexCol, gap.default, padding.top.xlarge3]}>
@@ -491,56 +539,97 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       }}
                       style={[flex.flexRow, padding.default, gap.small]}>
                       <View style={[flex.flex1, flex.flexCol, gap.small]}>
-                        <Text
-                          className="font-medium"
-                          style={[
-                            font.size[20],
-                            textColor(COLOR.text.neutral.high),
-                          ]}>
-                          Pending Registrants
-                        </Text>
-                        <View style={[flex.flexRow]}>
-                          {transactions
-                            .filter(
+                        <View style={[flex.flexCol]}>
+                          <Text
+                            className="font-medium"
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.high),
+                            ]}>
+                            {`${pendingRegistrants.length} Pending Registrants`}
+                          </Text>
+                          <Text
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.med),
+                            ]}>{`${
+                            transactions.filter(
                               t =>
-                                t.transaction.status ===
-                                TransactionStatus.registrationPending,
-                            )
-                            .map((t, i) => {
-                              return (
+                                t.transaction.status &&
+                                transactionStatusIndexMap[
+                                  t.transaction.status
+                                ] > campaignIndexMap[CampaignStep.Registration],
+                            ).length
+                          } registered`}</Text>
+                        </View>
+                        {pendingRegistrants &&
+                          pendingRegistrants.length > 0 && (
+                            <View style={[flex.flexRow]}>
+                              {pendingRegistrants.slice(0, 5).map((t, i) => {
+                                return (
+                                  <View
+                                    key={i}
+                                    style={[
+                                      dimension.square.xlarge2,
+                                      rounded.max,
+                                      padding.xsmall,
+                                      background(COLOR.black[0]),
+                                      {
+                                        marginLeft: i > 0 ? -10 : 0,
+                                        zIndex: 6 - i,
+                                      },
+                                    ]}>
+                                    <View
+                                      className="overflow-hidden"
+                                      style={[dimension.full, rounded.max]}>
+                                      <FastImage
+                                        style={[dimension.full]}
+                                        source={getSourceOrDefaultAvatar({
+                                          uri: t.contentCreator?.contentCreator
+                                            ?.profilePicture,
+                                        })}
+                                      />
+                                    </View>
+                                  </View>
+                                );
+                              })}
+                              {pendingRegistrants.length > 5 && (
                                 <View
-                                  key={i}
                                   style={[
                                     dimension.square.xlarge2,
                                     rounded.max,
                                     padding.xsmall,
-                                    background(COLOR.black[0]),
+                                    background(COLOR.black[70]),
                                     {
-                                      marginLeft: i > 0 ? -10 : 0,
-                                      zIndex: 5 - i,
+                                      zIndex: 6,
                                     },
                                   ]}>
                                   <View
                                     className="overflow-hidden"
-                                    style={[dimension.full, rounded.max]}>
-                                    <FastImage
-                                      style={[dimension.full]}
-                                      source={
-                                        t.contentCreator?.contentCreator
-                                          ?.profilePicture
-                                          ? {
-                                              uri: t.contentCreator
-                                                ?.contentCreator
-                                                ?.profilePicture,
-                                            }
-                                          : require('../assets/images/bizboost-avatar.png')
-                                      }
-                                    />
+                                    style={[
+                                      dimension.full,
+                                      flex.flexRow,
+                                      justify.center,
+                                      items.center,
+                                      rounded.max,
+                                    ]}>
+                                    <Text
+                                      className="font-black"
+                                      style={[
+                                        font.size[20],
+                                        textColor(COLOR.black[0]),
+                                      ]}>
+                                      {`${
+                                        pendingRegistrants.length - 5 > 1
+                                          ? `${pendingRegistrants.length - 6}+`
+                                          : pendingRegistrants.length
+                                      }`}
+                                    </Text>
                                   </View>
                                 </View>
-                              );
-                            })}
-                        </View>
+                              )}
+                            </View>
+                          )}
                       </View>
                       <View style={[flex.flexRow, items.center]}>
                         <ChevronRight color={COLOR.black[20]} />
@@ -603,16 +692,31 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         />
                         <View style={[flex.flexCol, gap.default]}>
                           <View style={[flex.flexRow, justify.between]}>
-                            <Text
-                              className="font-medium"
-                              style={[
-                                font.size[30],
-                                textColor(COLOR.text.neutral.med),
-                              ]}>
-                              {filteredPendingBrainstormApproval.length > 0
-                                ? 'Pending Approval'
-                                : 'No Pending Approval'}
-                            </Text>
+                            <View style={[flex.flexCol]}>
+                              <Text
+                                className="font-medium"
+                                style={[
+                                  font.size[20],
+                                  textColor(COLOR.text.neutral.med),
+                                ]}>
+                                {`${filteredPendingBrainstormApproval.length} review needed`}
+                              </Text>
+                              <Text
+                                style={[
+                                  font.size[20],
+                                  textColor(COLOR.text.neutral.med),
+                                ]}>{`${
+                                transactions.filter(t => {
+                                  const latestSubmission =
+                                    t.transaction.getLatestBrainstorm();
+                                  return (
+                                    latestSubmission &&
+                                    latestSubmission.status ===
+                                      BasicStatus.approved
+                                  );
+                                }).length
+                              } completed`}</Text>
+                            </View>
                             {filteredPendingBrainstormApproval.length > 0 && (
                               <InternalLink
                                 size={30}
@@ -773,24 +877,29 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                         numberOfLines={3}>
                                         {brainstorm.content}
                                       </Text>
-                                      {brainstorm.rejectReason && (
+                                      {brainstorm.rejection && (
                                         <View
                                           style={[
-                                            padding.small,
-                                            rounded.small,
-                                            background(COLOR.red[10], 0.3),
-                                            dimension.width.full,
+                                            flex.flexCol,
+                                            gap.small,
+                                            padding.default,
+                                            background(COLOR.red[5]),
+                                            rounded.default,
                                           ]}>
                                           <Text
-                                            className="font-medium"
+                                            className="font-bold"
                                             style={[
                                               font.size[20],
-                                              textColor(
-                                                COLOR.text.danger.default,
-                                              ),
-                                            ]}
-                                            numberOfLines={3}>
-                                            {brainstorm.rejectReason}
+                                              textColor(COLOR.red[60]),
+                                            ]}>
+                                            {brainstorm.rejection.type}
+                                          </Text>
+                                          <Text
+                                            style={[
+                                              font.size[20],
+                                              textColor(COLOR.red[60]),
+                                            ]}>
+                                            {brainstorm.rejection.reason}
                                           </Text>
                                         </View>
                                       )}
@@ -816,7 +925,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   </View>
                 </View>
               )}
-              {campaignTimelineMap?.[CampaignStep.ContentSubmission] && (
+              {campaignTimelineMap?.[CampaignStep.ContentCreation] && (
                 <View
                   style={[
                     flex.flexCol,
@@ -827,7 +936,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   <View style={[flex.flexCol, styles.headerBorder]}>
                     <StepperLabel
                       timeline={
-                        campaignTimelineMap[CampaignStep.ContentSubmission]
+                        campaignTimelineMap[CampaignStep.ContentCreation]
                       }
                     />
                   </View>
@@ -856,7 +965,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           {transaction?.status &&
                             transactionStatusCampaignStepMap[
                               transaction?.status
-                            ] === CampaignStep.ContentSubmission &&
+                            ] === CampaignStep.ContentCreation &&
                             transaction.contents &&
                             transaction.contents.length > 0 && (
                               <InternalLink
@@ -887,7 +996,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                   className="font-semibold"
                                   style={[
                                     font.size[20],
-                                    textColor(COLOR.text.neutral.med),
+                                    textColor(COLOR.text.neutral.high),
                                   ]}>
                                   {platform.name}
                                 </Text>
@@ -938,34 +1047,73 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           ))}
                         </View>
                       </View>
-                      {transaction?.status !==
-                        TransactionStatus.contentSubmitted &&
-                        transaction?.status !==
-                          TransactionStatus.contentApproved && (
-                          <View style={[padding.horizontal.default]}>
-                            <CustomButton
-                              text="Upload"
-                              onPress={() => {
-                                setIsContentSubmissionModalOpen(true);
-                              }}
-                            />
-                          </View>
-                        )}
+                      {(!transaction?.getLatestContentSubmission() ||
+                        transaction?.getLatestContentSubmission()?.status ===
+                          BasicStatus.rejected) && (
+                        <View style={[padding.horizontal.default]}>
+                          <CustomButton
+                            text="Upload"
+                            onPress={() => {
+                              setIsContentSubmissionModalOpen(true);
+                            }}
+                          />
+                        </View>
+                      )}
                     </View>
                   )}
-                  {isCampaignOwner ? <></> : <></>}
+                  {isCampaignOwner && (
+                    <AnimatedPressable
+                      scale={1}
+                      onPress={() => {
+                        navigateToDetail(TransactionStatus.contentSubmitted);
+                      }}
+                      style={[flex.flexRow, padding.default, gap.small]}>
+                      <View style={[flex.flex1, flex.flexCol]}>
+                        <Text
+                          className="font-medium"
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.high),
+                          ]}>
+                          {`${
+                            transactions.filter(t => {
+                              const latestSubmission =
+                                t.transaction.getLatestContentSubmission();
+                              return (
+                                latestSubmission &&
+                                latestSubmission.status === BasicStatus.pending
+                              );
+                            }).length
+                          } review needed`}
+                        </Text>
+                        <Text
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>{`${
+                          transactions.filter(t => {
+                            const latestSubmission =
+                              t.transaction.getLatestContentSubmission();
+                            return (
+                              latestSubmission &&
+                              latestSubmission.status === BasicStatus.approved
+                            );
+                          }).length
+                        } completed`}</Text>
+                      </View>
+                      <View style={[flex.flexRow, items.center]}>
+                        <ChevronRight color={COLOR.black[20]} />
+                      </View>
+                    </AnimatedPressable>
+                  )}
                 </View>
               )}
-              {campaignTimelineMap?.[
-                CampaignStep.EngagementResultSubmission
-              ] && (
+              {campaignTimelineMap?.[CampaignStep.ResultSubmission] && (
                 <View style={[flex.flexCol, shadow.medium, rounded.medium]}>
                   <View style={[flex.flexCol, styles.headerBorder]}>
                     <StepperLabel
                       timeline={
-                        campaignTimelineMap[
-                          CampaignStep.EngagementResultSubmission
-                        ]
+                        campaignTimelineMap[CampaignStep.ResultSubmission]
                       }
                     />
                   </View>
@@ -976,15 +1124,61 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       rounded.default,
                       gap.default,
                     ]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        font.size[40],
-                        textColor(COLOR.text.neutral.high),
-                      ]}
-                      numberOfLines={1}>
-                      Submit your ideas!
-                    </Text>
+                    <View style={[flex.flexRow, justify.between]}>
+                      <Text
+                        className="font-semibold"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.high),
+                        ]}
+                        numberOfLines={1}>
+                        Guideline
+                      </Text>
+                      {transaction?.status &&
+                        transactionStatusCampaignStepMap[
+                          transaction?.status
+                        ] === CampaignStep.ResultSubmission &&
+                        transaction.engagements &&
+                        transaction.engagements.length > 0 && (
+                          <InternalLink
+                            text="View Submission"
+                            size={30}
+                            onPress={() => {
+                              if (transaction.id) {
+                                navigateToTransactionDetail(transaction.id);
+                              }
+                            }}
+                          />
+                        )}
+                    </View>
+                    <ScrollView
+                      contentContainerStyle={[flex.flexRow, gap.default]}
+                      horizontal>
+                      {guidelines.engagements.map((engagement, index) => (
+                        <Pressable
+                          key={index}
+                          className="overflow-hidden"
+                          style={[
+                            dimension.width.xlarge3,
+                            rounded.default,
+                            {
+                              aspectRatio: 1 / 1.3,
+                            },
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.black[20],
+                            }),
+                          ]}
+                          onPress={() => {
+                            setActiveImageClicked(index);
+                          }}>
+                          <FastImage
+                            style={[dimension.full]}
+                            source={engagement}
+                          />
+                        </Pressable>
+                      ))}
+                    </ScrollView>
                     <View
                       style={[
                         flex.flexCol,
@@ -993,16 +1187,28 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         rounded.default,
                         background(`${COLOR.green[5]}`),
                       ]}>
-                      <Text>💡 Things to highlight</Text>
+                      <Text>ℹ️ Don't forget</Text>
                       <Text>
-                        Features: Multiple compartments for organized packing
-                        Water-resistant and weather-proof material Lightweight
-                        and easy to carry Available in various sizes and colors
-                        Tagline: “Travel with confidence with Koper Idaman
-                        Petualang!”
+                        {`· Screenshot uploaded content\n· Upload engagement result`}
                       </Text>
                     </View>
-                    <CustomButton text="Submit idea" />
+                    {(!transaction?.getLatestEngagementSubmission() ||
+                      transaction?.getLatestEngagementSubmission()?.status ===
+                        BasicStatus.rejected) && (
+                      <CustomButton
+                        text="Upload"
+                        onPress={() => {
+                          if (transaction.id) {
+                            navigation.navigate(
+                              AuthenticatedNavigation.SubmitEngagementResult,
+                              {
+                                transactionId: transaction?.id,
+                              },
+                            );
+                          }
+                        }}
+                      />
+                    )}
                   </View>
                 </View>
               )}
@@ -1080,6 +1286,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
           title="Brainstorming"
+          fullHeight
           type="modal"
           onPress={() => {
             setIsBrainstormingModalOpened(false);
@@ -1123,12 +1330,13 @@ const CampaignTimelineScreen = ({route}: Props) => {
         overDragResistanceFactor={0}
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
-          title={CampaignStep.ContentSubmission}
+          title={CampaignStep.ContentCreation}
+          fullHeight
           type="modal"
           onPress={() => {
             setIsContentSubmissionModalOpen(false);
           }}>
-          <FormProvider {...methods}>
+          <FormProvider {...contentSubmissionMethods}>
             <View style={[flex.grow, flex.flexCol, gap.medium]}>
               <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
                 <View style={[flex.flex1, flex.flexCol, gap.xlarge2]}>
@@ -1149,7 +1357,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                               placeholder="Add url"
                               maxFieldLength={0}
                               helperText={`Make sure url is publicly accessible.\nEx. https://drive.google.com/file/d/1Go0RYsRgia9ZoMy10O8XBrfnIWMCopHs/view?usp=sharing`}
-                              control={control}
+                              control={contentSubmissionControl}
                               fieldType="textarea"
                               type="required"
                               rules={{
@@ -1177,7 +1385,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     (platform, platformIndex) =>
                       platform.tasks?.filter(
                         (task, taskIndex) =>
-                          getValues(
+                          getContentSubmissionValues(
                             `submission.${platformIndex}.tasks.${taskIndex}`,
                           )?.length < task.quantity,
                       ).length > 0,
@@ -1227,24 +1435,7 @@ const StepperLabel = ({timeline, children}: StepperLabelProps) => {
           </Text>
         </View>
         <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
-          <View style={[flex.flexRow, justify.center]}>
-            <Text
-              className="text-center font-medium"
-              style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-              {formatTimeDifferenceInDayHourMinute(
-                new Date(timeline.start),
-                new Date(timeline.end),
-              )}
-            </Text>
-          </View>
-          <View
-            style={[
-              {
-                height: 1.5,
-              },
-              background(COLOR.black[30]),
-            ]}
-          />
+          <TimelineRemaining timeline={timeline} />
         </View>
         <View style={[flex.flexCol, items.end]}>
           <Text
@@ -1260,6 +1451,100 @@ const StepperLabel = ({timeline, children}: StepperLabelProps) => {
           </Text>
         </View>
       </View>
+    </View>
+  );
+};
+
+interface TimelineRemainingProps {
+  timeline: CampaignTimeline;
+}
+
+const TimelineRemaining = ({timeline}: TimelineRemainingProps) => {
+  const timelineStart = useMemo(
+    () => new Date(timeline.start),
+    [timeline.start],
+  );
+  const timelineEnd = useMemo(() => new Date(timeline.end), [timeline.end]);
+  const totalDuration = timelineEnd.getTime() - timelineStart.getTime();
+  const width = useSharedValue(1);
+  const [remainingTime, setRemainingTime] = useState('');
+
+  useEffect(() => {
+    const updateRemainingTime = () => {
+      const now = new Date();
+      const start = new Date(
+        clamp(now.getTime(), timelineStart.getTime(), timelineEnd.getTime()),
+      );
+      const remainingDuration = timelineEnd.getTime() - start.getTime();
+      const progress = clamp(remainingDuration / totalDuration, 0, 1);
+      width.value = withTiming(progress);
+      setRemainingTime(formatTimeDifferenceInDayHourMinute(start, timelineEnd));
+    };
+    updateRemainingTime();
+    const startUpdating = () => {
+      updateRemainingTime();
+      const intervalId = setInterval(updateRemainingTime, 60000); // Update every minute
+      return intervalId;
+    };
+
+    const timeoutId = setTimeout(() => {
+      const intervalId = startUpdating();
+      return intervalId;
+    }, (60 - new Date().getSeconds()) * 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [timelineStart, timelineEnd, totalDuration, width]);
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      width: `${width.value * 100}%`,
+    };
+  });
+
+  const remainingTimeTextStyle = useAnimatedStyle(() => {
+    return {
+      color: interpolateColor(
+        width.value,
+        [0, 1],
+        [COLOR.red[50], COLOR.green[60]],
+      ),
+    };
+  });
+
+  return (
+    <View style={[flex.flexCol, gap.xsmall2]}>
+      <Text
+        className="text-center font-medium"
+        style={[font.size[10], self.center, textColor(COLOR.text.neutral.med)]}>
+        {formatTimeDifferenceInDayHourMinute(
+          new Date(timeline.start),
+          new Date(timeline.end),
+        )}
+      </Text>
+      <View
+        style={[
+          {height: 1.5},
+          flex.flexRow,
+          justify.end,
+          background(COLOR.red[50]),
+        ]}>
+        <Animated.View
+          style={[
+            dimension.height.full,
+            background(COLOR.green[60]),
+            animatedStyles,
+          ]}
+        />
+      </View>
+      {remainingTime !== '' && (
+        <Animated.Text
+          className="font-bold"
+          style={[self.center, font.size[10], remainingTimeTextStyle]}>
+          {remainingTime}
+        </Animated.Text>
+      )}
     </View>
   );
 };

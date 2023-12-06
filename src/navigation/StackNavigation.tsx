@@ -1,14 +1,14 @@
 import {TransitionPresets, createStackNavigator} from '@react-navigation/stack';
 
 import {TabNavigator} from './TabNavigation';
-import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import CampaignDetailScreen from '../screens/campaign/CampaignDetailScreen';
 import ChatListScreen from '../screens/ChatListScreen';
 import {CreateAdditionalAccountScreen} from '../screens/CreateAdditionalAccountScreen';
 import {NavigationProp} from '@react-navigation/native';
-import CreateCampaignScreen from '../screens/CreateCampaignScreen';
+import CreateCampaignScreen from '../screens/campaign/CreateCampaignScreen';
 import ChatScreen from '../screens/ChatScreen';
 import {ChatView} from '../model/Chat';
-import CampaignRegistrantsScreen from '../screens/CampaignRegistrantsScreen';
+import CampaignRegistrantsScreen from '../screens/campaign/CampaignRegistrantsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
@@ -20,7 +20,7 @@ import ModalCategoryScreen from '../screens/modals/ModalCategoryScreen';
 import BusinessPeopleDetailScreen from '../screens/BusinessPeopleDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import ContentCreatorDetailScreen from '../screens/ContentCreatorDetailScreen';
-import CampaignTimelineScreen from '../screens/CampaignTimeline';
+import CampaignTimelineScreen from '../screens/campaign/timeline/CampaignTimeline';
 import MakeOfferScreen from '../screens/MakeOfferScreen';
 import {useEffect, useState} from 'react';
 import SplashScreen from '../screens/SplashScreen';
@@ -35,14 +35,15 @@ import ChangePasswordScreen from '../screens/profile/edit/ChangePasswordScreen';
 import EditMaxContentRevisionScreen from '../screens/profile/edit/EditMaxContentRevisionScreen';
 import EditPostingScheduleScreen from '../screens/profile/edit/EditPostingScheduleScreen';
 import EditPreferencesScreen from '../screens/profile/edit/EditPreferencesScreen';
-import EditPreferredLocationScreen from '../screens/profile/edit/EditPreferredLocationScreen';
-import EditSpecializedCategoryScreen from '../screens/profile/edit/EditSpecializedCategoryScreen';
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
-import TransactionDetailScreen from '../screens/TransactionDetailScreen';
 import ModalNegotiateScreen from '../screens/modals/ModalNegotiateScreen';
 import {Offer} from '../model/Offer';
+import PayCampaignScreen from '../screens/payment/PayCampaignScreen';
+import RejectTransactionScreen from '../screens/transaction/RejectTransactionScreen';
+import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
+import ModalSubmitEngagementResult from '../screens/campaign/timeline/ModalSubmitEngagementResult';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -57,12 +58,14 @@ export enum AuthenticatedNavigation {
   BusinessPeopleDetail = 'Business People Detail',
   CampaignDetail = 'Campaign Detail',
   TransactionDetail = 'Transaction Detail',
+  RejectTransaction = 'Reject Transaction',
   CreateAdditionalAccount = 'CreateAdditionalAccount',
   CreateCampaign = 'Create Campaign',
   ChatDetail = 'Chat Screen',
   ChatList = 'Chat List',
   CampaignRegistrants = 'Campaign Registrants',
   CampaignTimeline = 'Campaign Timeline',
+  SubmitEngagementResult = 'Submit Engagement Result',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'My Transactions',
@@ -72,8 +75,6 @@ export enum AuthenticatedNavigation {
   EditMaxContentRevision = 'Edit Max Content Revision',
   EditPostingSchedule = 'Edit Posting Schedule',
   EditPreferences = 'Edit Preferences',
-  EditPreferredLocation = 'Edit Preferred Location',
-  EditSpecializedCategory = 'Edit Specialized Category',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -81,6 +82,7 @@ export enum AuthenticatedNavigation {
   MakeOffer = 'Make Offer',
   CampaignModal = 'Campaign Modal',
   NegotiateModal = 'Negotiate Modal',
+  PayCampaign = 'Pay Campaign',
 }
 
 export enum GeneralNavigation {
@@ -112,6 +114,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.BusinessPeopleDetail]: {businessPeopleId: string};
   [AuthenticatedNavigation.CampaignDetail]: {campaignId: string};
   [AuthenticatedNavigation.TransactionDetail]: {transactionId: string};
+  [AuthenticatedNavigation.RejectTransaction]: {transactionId: string};
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
@@ -122,6 +125,7 @@ export type AuthenticatedStack = {
     initialTransactionStatusFilter?: TransactionStatus;
   };
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
+  [AuthenticatedNavigation.SubmitEngagementResult]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MakeOffer]: {
@@ -136,8 +140,6 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
   [AuthenticatedNavigation.EditPostingSchedule]: undefined;
   [AuthenticatedNavigation.EditPreferences]: undefined;
-  [AuthenticatedNavigation.EditPreferredLocation]: undefined;
-  [AuthenticatedNavigation.EditSpecializedCategory]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
@@ -151,6 +153,7 @@ export type AuthenticatedStack = {
     targetContentId?: string;
   };
   [AuthenticatedNavigation.NegotiateModal]: NegotiateModalProps;
+  [AuthenticatedNavigation.PayCampaign]: undefined;
 };
 
 interface LocationModalProps {
@@ -250,6 +253,10 @@ const StackNavigator = () => {
                   component={TransactionDetailScreen}
                 />
                 <Stack.Screen
+                  name={AuthenticatedNavigation.RejectTransaction}
+                  component={RejectTransactionScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.CampaignTimeline}
                   component={CampaignTimelineScreen}
                 />
@@ -294,6 +301,10 @@ const StackNavigator = () => {
                   component={CampaignRegistrantsScreen}
                 />
                 <Stack.Screen
+                  name={AuthenticatedNavigation.SubmitEngagementResult}
+                  component={ModalSubmitEngagementResult}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.MyTransactions}
                   component={MyTransactionsScreen}
                 />
@@ -331,20 +342,16 @@ const StackNavigator = () => {
                   component={EditPreferencesScreen}
                 />
                 <Stack.Screen
-                  name={AuthenticatedNavigation.EditPreferredLocation}
-                  component={EditPreferredLocationScreen}
-                />
-                <Stack.Screen
-                  name={AuthenticatedNavigation.EditSpecializedCategory}
-                  component={EditSpecializedCategoryScreen}
-                />
-                <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}
                   component={CreateAdditionalAccountScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.SpecificExploreModal}
                   component={ModalSpecificExploreScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.PayCampaign}
+                  component={PayCampaignScreen}
                 />
               </Stack.Group>
             </Stack.Group>
