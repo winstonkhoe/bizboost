@@ -166,11 +166,13 @@ const CampaignDetailScreen = ({route}: Props) => {
               <Text className="font-bold text-2xl mb-2">{campaign.title}</Text>
               <View className="flex flex-row justify-between">
                 <Text className="font-bold text-xs">
-                  {`${formatDateToDayMonthYear(
-                    new Date(new Campaign(campaign).getTimelineStart().start),
-                  )} - ${formatDateToDayMonthYear(
-                    new Date(new Campaign(campaign).getTimelineEnd().end),
-                  )}`}
+                  {campaign.getTimelineStart() &&
+                    campaign.getTimelineEnd() &&
+                    `${formatDateToDayMonthYear(
+                      new Date(campaign.getTimelineStart().start),
+                    )} - ${formatDateToDayMonthYear(
+                      new Date(campaign.getTimelineEnd().end),
+                    )}`}
                 </Text>
                 <View className="flex flex-row items-center">
                   <People width={20} height={20} />

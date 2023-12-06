@@ -41,7 +41,9 @@ export class Offer extends BaseModel {
     createdAt,
   }: Partial<Offer>) {
     super();
-    this.id = id;
+    if (campaignId && contentCreatorId) {
+      this.id = campaignId + contentCreatorId;
+    }
     this.contentCreatorId = contentCreatorId;
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
@@ -116,6 +118,9 @@ export class Offer extends BaseModel {
   async insert() {
     try {
       const {id, ...rest} = this;
+      if (!id) {
+        throw Error('Missing id');
+      }
       const data = {
         ...rest,
         contentCreatorId: User.getDocumentReference(
@@ -128,8 +133,7 @@ export class Offer extends BaseModel {
         createdAt: new Date().getTime(),
       };
 
-      const docRef = await firestore().collection(OFFER_COLLECTION).add(data);
-      this.id = docRef.id;
+      await firestore().collection(OFFER_COLLECTION).add(data);
       return true;
     } catch (error) {
       console.log(error);
@@ -236,7 +240,44 @@ export class Offer extends BaseModel {
     throw Error('Error!');
   }
 
+  async acceptNegotiation() {
+    this.offeredPrice = this.negotiatedPrice;
+    this.importantNotes = this.negotiatedNotes;
+
+    await this.updateStatus(OfferStatus.approved);
+  }
+
+  async rejectNegotiation() {
+    await this.updateStatus(OfferStatus.rejected);
+  }
+
   static filterByCampaignId(offers: Offer[], campaignId: string): Offer[] {
     return offers.filter(offer => offer.campaignId === campaignId);
+  }
+
+  static async hasOfferForContentCreatorAndCampaign(
+    contentCreatorId: string,
+    campaignId: string,
+  ): Promise<boolean> {
+    try {
+      const querySnapshot = await firestore()
+        .collection(OFFER_COLLECTION)
+        .where(
+          'contentCreatorId',
+          '==',
+          firestore().collection('users').doc(contentCreatorId),
+        )
+        .where(
+          'campaignId',
+          '==',
+          firestore().collection('campaigns').doc(campaignId),
+        )
+        .get();
+
+      return !querySnapshot.empty;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Error checking for offers');
+    }
   }
 }

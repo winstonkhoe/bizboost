@@ -33,6 +33,7 @@ import {SimpleImageCard} from '../../components/molecules/ImageCard';
 import {ImageCounterChip} from '../../components/atoms/Chip';
 import FastImage from 'react-native-fast-image';
 import {useUser} from '../../hooks/user';
+import {Offer} from '../../model/Offer';
 
 type Props = StackScreenProps<
   AuthenticatedStack,
@@ -41,7 +42,8 @@ type Props = StackScreenProps<
 
 const ModalCampaignScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const {initialSelectedCampaign, eventType} = route.params;
+  const {initialSelectedCampaign, eventType, contentCreatorToOfferId} =
+    route.params;
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>(
     initialSelectedCampaign,
   );
@@ -74,6 +76,19 @@ const ModalCampaignScreen = ({route}: Props) => {
             ? index
             : -1
           : -1;
+
+        let isOffered = false;
+        if (contentCreatorToOfferId) {
+          Offer.hasOfferForContentCreatorAndCampaign(
+            contentCreatorToOfferId,
+            campaign.id,
+          ).then(offer => {
+            isOffered = offer;
+          });
+        }
+
+        console.log(isOffered);
+
         return (
           <CampaignItem
             key={index}
@@ -81,6 +96,7 @@ const ModalCampaignScreen = ({route}: Props) => {
             isReachLimit={selectedCampaign === null}
             isSelected={selectedIndex !== -1}
             selectedIndex={selectedIndex}
+            isOffered={isOffered}
             onPress={() => {
               toggleCampaignSelection(campaign);
             }}
@@ -145,6 +161,7 @@ interface CampaignItemProps extends PressableProps {
   campaign: Campaign;
   isSelected: boolean;
   isReachLimit: boolean;
+  isOffered: boolean;
   selectedIndex: number;
 }
 
@@ -152,7 +169,7 @@ const CampaignItem = ({
   campaign,
   isSelected,
   isReachLimit,
-  selectedIndex,
+  isOffered,
   ...props
 }: CampaignItemProps) => {
   return (
@@ -168,8 +185,16 @@ const CampaignItem = ({
               opacity: 0.5,
             },
         ]}>
-        <View className="absolute z-20 top-2 right-2">
-          <ImageCounterChip selected={isSelected} size="large" />
+        {isOffered && (
+          <View className="absolute z-20 top-2 right-2">
+            <ImageCounterChip selected={isSelected} size="large" />
+          </View>
+        )}
+        <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0 bg-black opacity-50">
+          <Text className="z-50 text-white opacity-100">Offered</Text>
+        </View>
+        <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0">
+          <Text className="z-50 text-white opacity-100 font-bold">Offered</Text>
         </View>
         <SimpleImageCard
           width="full"

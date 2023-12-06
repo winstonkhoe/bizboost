@@ -101,16 +101,19 @@ interface CampaignModalProps {
   selectedCampaign: Campaign;
   setSelectedCampaign: (campaign: Campaign) => void;
   navigation: NavigationStackProps;
+  contentCreatorToOfferId?: string;
 }
 export const openCampaignModal = ({
   selectedCampaign,
   setSelectedCampaign,
   navigation,
+  contentCreatorToOfferId,
 }: CampaignModalProps) => {
   const eventType = 'callback.campaign';
   navigation.navigate(AuthenticatedNavigation.CampaignModal, {
     initialSelectedCampaign: selectedCampaign,
     eventType: eventType,
+    contentCreatorToOfferId: contentCreatorToOfferId,
   });
 
   const listener = DeviceEventEmitter.addListener(eventType, campaign => {

@@ -207,7 +207,7 @@ const ChatScreen = ({route}: Props) => {
 
           {/* Chat Widget */}
           {isWidgetVisible ? (
-            <View className="w-full">
+            <View className="w-full" style={{height: 100}}>
               <ChatWidget
                 options={{
                   width: 400,

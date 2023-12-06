@@ -16,27 +16,25 @@ interface Props {
   handleMakeOffer: () => void;
 }
 
-const ChatWidget = ({
-  options,
-  handleImageUpload,
-  handleMakeOffer,
-}: Props) => {
+const ChatWidget = ({options, handleImageUpload, handleMakeOffer}: Props) => {
   const {activeRole} = useUser();
 
   return (
     <View
-      className="bg-white py-5 px-5 w-full flex flex-row justify-start items-center"
+      className="px-5 pt-2 w-full flex flex-row justify-start items-center"
       style={gap.default}>
       {/* Send Photo Button */}
       <MediaUploader
         targetFolder="chats"
         options={options}
         onUploadSuccess={handleImageUpload}>
-        <View style={[flex.flexCol]} className="justify-center items-center">
+        <View
+          style={(flex.flexCol, {height: 100})}
+          className="w-20 justify-center items-center">
           <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
             <PhotosIcon width={30} height={30} />
           </View>
-          <Text>Photos</Text>
+          <Text className="text-black">Photos</Text>
         </View>
       </MediaUploader>
 
@@ -44,11 +42,12 @@ const ChatWidget = ({
       {activeRole === UserRole.BusinessPeople && (
         <Pressable
           onPress={handleMakeOffer}
-          className="flex flex-col justify-center items-center">
+          style={(flex.flexCol, {height: 100})}
+          className="w-20 justify-center items-center">
           <View className="w-16 h-16 bg-[#E7F3F8] rounded-full flex justify-center items-center">
             <MakeOfferIcon width={30} height={30} />
           </View>
-          <Text>Make Offer</Text>
+          <Text className="text-black">Make Offer</Text>
         </Pressable>
       )}
     </View>
