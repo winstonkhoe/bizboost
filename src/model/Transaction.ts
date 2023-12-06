@@ -21,6 +21,15 @@ export enum BasicStatus {
   rejected = 'Rejected',
 }
 
+// TODO: status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
+export enum PaymentStatus {
+  proofWaitingForVerification = 'Waiting For Verification',
+  proofApproved = 'Proof Approved',
+  proofRejected = 'Proof Rejected',
+  withdrawalRequested = 'Withdrawal Requested',
+  withdrawn = 'Withdrawn',
+}
+
 export enum TransactionStatus {
   // public
   notRegistered = 'Not Registered',

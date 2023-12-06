@@ -367,6 +367,7 @@ const TransactionDetailScreen = ({route}: Props) => {
 
                 <Pressable
                   onPress={() => {
+                    // TODO: masukin no rek? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
                     console.log('masuk');
                   }}
                   disabled={transaction.status !== TransactionStatus.completed}
