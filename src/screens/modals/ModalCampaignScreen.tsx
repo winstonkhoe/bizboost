@@ -172,7 +172,7 @@ const CampaignItem = ({
   isOffered,
   ...props
 }: CampaignItemProps) => {
-  return (
+  return isOffered ? (
     <Pressable {...props}>
       <Animated.View
         className="relative overflow-hidden"
@@ -185,14 +185,6 @@ const CampaignItem = ({
               opacity: 0.5,
             },
         ]}>
-        {isOffered && (
-          <View className="absolute z-20 top-2 right-2">
-            <ImageCounterChip selected={isSelected} size="large" />
-          </View>
-        )}
-        <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0 bg-black opacity-50">
-          <Text className="z-50 text-white opacity-100">Offered</Text>
-        </View>
         <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0">
           <Text className="z-50 text-white opacity-100 font-bold">Offered</Text>
         </View>
@@ -205,6 +197,24 @@ const CampaignItem = ({
         />
       </Animated.View>
     </Pressable>
+  ) : (
+    <Animated.View
+      className="relative overflow-hidden"
+      style={[flex.flexCol, gap.small, rounded.default]}>
+      <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0 bg-black opacity-50">
+        <Text className="z-50 text-white opacity-100">Offered</Text>
+      </View>
+      <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0">
+        <Text className="z-50 text-white opacity-100 font-bold">Offered</Text>
+      </View>
+      <SimpleImageCard
+        width="full"
+        height="xlarge6"
+        image={campaign.image || ''}
+        text={campaign.title || ''}
+        dim={isSelected ? 66 : 0}
+      />
+    </Animated.View>
   );
 };
 

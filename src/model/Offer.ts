@@ -12,6 +12,7 @@ export enum OfferStatus {
   approved = 'Approved',
   rejected = 'Rejected',
   negotiate = 'Negotiate',
+  negotiateRejected = 'Negotiate Rejected',
 }
 
 export class Offer extends BaseModel {
@@ -159,7 +160,11 @@ export class Offer extends BaseModel {
           '==',
           firestore().collection('users').doc(contentCreatorId),
         )
-        .where('status', 'in', [OfferStatus.pending, OfferStatus.negotiate])
+        .where('status', 'in', [
+          OfferStatus.pending,
+          OfferStatus.negotiate,
+          OfferStatus.negotiateRejected,
+        ])
         .onSnapshot(
           querySnapshot => {
             if (querySnapshot.empty) {
@@ -248,7 +253,7 @@ export class Offer extends BaseModel {
   }
 
   async rejectNegotiation() {
-    await this.updateStatus(OfferStatus.rejected);
+    await this.updateStatus(OfferStatus.negotiateRejected);
   }
 
   static filterByCampaignId(offers: Offer[], campaignId: string): Offer[] {

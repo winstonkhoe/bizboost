@@ -266,4 +266,19 @@ export class ChatService {
 
     this.insertMessage(chatId, newMessage);
   }
+
+  static async insertNegotiateMessage(
+    chatId: string,
+    message: string,
+    activeRole: UserRole,
+  ) {
+    const newMessage: Message = {
+      message: message,
+      role: activeRole!!,
+      type: MessageType.Negotiation,
+      createdAt: new Date().getTime(),
+    };
+
+    this.insertMessage(chatId, newMessage);
+  }
 }

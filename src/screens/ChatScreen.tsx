@@ -144,7 +144,7 @@ const ChatScreen = ({route}: Props) => {
   };
 
   const handleNegotiationComplete = (fee: string) => {
-    ChatService.insertOfferMessage(chat.chat.id ?? '', fee, activeRole!!);
+    ChatService.insertNegotiateMessage(chat.chat.id ?? '', fee, activeRole!!);
   };
 
   return (
@@ -165,6 +165,8 @@ const ChatScreen = ({route}: Props) => {
           <FloatingOffer
             offers={offers}
             recipientName={chat.recipient?.fullname ?? ''}
+            businessPeopleId={businessPeopleId?.ref}
+            contentCreatorId={contentCreatorId?.ref}
             onNegotiationComplete={handleNegotiationComplete}
           />
         )}

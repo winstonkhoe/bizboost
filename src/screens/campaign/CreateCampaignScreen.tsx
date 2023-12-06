@@ -195,7 +195,7 @@ const CreateCampaignScreen = () => {
 
     try {
       const fee = parseInt(`${d.fee}`, 10);
-      if (isNaN(fee)) {
+      if (d.type === CampaignType.Public && isNaN(fee)) {
         throw Error('invalid fee');
       }
       const campaign = new Campaign({
