@@ -44,7 +44,6 @@ import {border} from '../../../styles/Border';
 import {textColor} from '../../../styles/Text';
 import {
   formatDateToDayMonthYear,
-  formatDateToDayMonthYearHourMinute,
   formatDateToHourMinute,
   formatTimeDifferenceInDayHourMinute,
 } from '../../../utils/date';
@@ -54,7 +53,6 @@ import {
   Transaction,
   TransactionContent,
   TransactionStatus,
-  basicStatusTypeMap,
   transactionStatusCampaignStepMap,
   transactionStatusIndexMap,
   transactionStatusStepperStateMap,
@@ -64,8 +62,6 @@ import {LoadingScreen} from '../../LoadingScreen';
 import {shadow} from '../../../styles/Shadow';
 import {SheetModal} from '../../../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../../../components/templates/BottomSheetModalWithTitle';
-import {FormlessCustomTextInput} from '../../../components/atoms/Input';
-import {FormFieldHelper} from '../../../components/atoms/FormLabel';
 import {ScrollView} from 'react-native-gesture-handler';
 import {dimension} from '../../../styles/Dimension';
 import {CustomModal} from '../../../components/atoms/CustomModal';
@@ -107,13 +103,6 @@ type SubmissionFormData = {
   }[];
 };
 
-const rules = {
-  brainstorm: {
-    min: 100,
-    max: 1000,
-  },
-};
-
 const guidelines = {
   engagements: [
     require('../../../assets/images/guidelines/engagement-1.png'),
@@ -137,12 +126,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const [transactions, setTransactions] = useState<TransactionView[]>([]);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [activeImageClicked, setActiveImageClicked] = useState(-1);
-  const [temporaryBrainstorm, setTemporaryBrainstorm] = useState('');
-  const [isBrainstormingModalOpened, setIsBrainstormingModalOpened] =
-    useState(false);
   const [isContentSubmissionModalOpen, setIsContentSubmissionModalOpen] =
-    useState(false);
-  const [isConfirmBrainstormModalOpened, setIsConfirmBrainstormModalOpened] =
     useState(false);
   const [
     isConfirmContentSubmissionModalOpen,
@@ -265,10 +249,12 @@ const CampaignTimelineScreen = ({route}: Props) => {
           currentTransactionStep !== currentActiveTimeline.step;
         let steps = [
           ...Array(
-            (calculatedTransactionStatusIndex <= 0
-              ? 0
-              : calculatedTransactionStatusIndex) +
-              (isContentCreatorNotSubmitCurrentActiveTimeline ? 1 : 0),
+            Math.max(
+              calculatedTransactionStatusIndex,
+              campaignIndexMap[
+                currentActiveTimeline?.step || CampaignStep.Registration
+              ],
+            ) + 1,
           ),
         ].map(() => StepperState.success);
         console.log(
@@ -325,30 +311,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
         })
         .finally(() => {
           setIsLoading(false);
-        });
-    }
-  };
-
-  const submitBrainstorm = () => {
-    if (temporaryBrainstorm.length >= rules.brainstorm.min && transaction) {
-      setIsLoading(true);
-      transaction
-        ?.submitBrainstorm(temporaryBrainstorm)
-        .then(isSuccess => {
-          if (isSuccess) {
-            console.log('submit brainstorm success!');
-            setIsBrainstormingModalOpened(false);
-            return;
-          }
-          setIsBrainstormingModalOpened(true);
-        })
-        .catch(err => {
-          console.log(err);
-          setIsBrainstormingModalOpened(true);
-        })
-        .finally(() => {
-          setIsLoading(false);
-          setIsConfirmBrainstormModalOpened(false);
         });
     }
   };
@@ -662,14 +624,32 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   </View>
                   <View style={[flex.flexCol, padding.default, gap.medium]}>
                     <View style={[flex.flexCol, gap.default]}>
-                      <Text
-                        className="font-medium"
-                        style={[
-                          font.size[30],
-                          textColor(COLOR.text.neutral.med),
-                        ]}>
-                        💡 Things to highlight
-                      </Text>
+                      <View style={[flex.flexRow, justify.between]}>
+                        <Text
+                          className="font-medium"
+                          style={[
+                            font.size[30],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>
+                          💡 Things to highlight
+                        </Text>
+                        {transaction?.status &&
+                          transactionStatusCampaignStepMap[
+                            transaction?.status
+                          ] === CampaignStep.Brainstorming &&
+                          transaction.brainstorms &&
+                          transaction.brainstorms.length > 0 && (
+                            <InternalLink
+                              text="View Submission"
+                              size={30}
+                              onPress={() => {
+                                if (transaction.id) {
+                                  navigateToTransactionDetail(transaction.id);
+                                }
+                              }}
+                            />
+                          )}
+                      </View>
                       <View style={[flex.flexCol, gap.xsmall]}>
                         <Text style={[font.size[30]]}>
                           {campaign?.description}
@@ -685,7 +665,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           })}
                       </View>
                     </View>
-                    {isCampaignOwner ? (
+                    {isCampaignOwner && (
                       <>
                         <View
                           style={[dimension.width.full, styles.headerBorder]}
@@ -730,186 +710,10 @@ const CampaignTimelineScreen = ({route}: Props) => {
                             )}
                           </View>
                           {filteredPendingBrainstormApproval.length > 0 && (
-                            <ScrollView
-                              horizontal
-                              contentContainerStyle={[
-                                flex.flexRow,
-                                gap.default,
-                              ]}>
-                              {filteredPendingBrainstormApproval.map(t => {
-                                const brainstorm =
-                                  t.transaction.getLatestBrainstorm();
-                                if (!brainstorm) {
-                                  return null;
-                                }
-                                return (
-                                  <AnimatedPressable
-                                    onPress={() => {
-                                      if (t.transaction.id) {
-                                        navigateToTransactionDetail(
-                                          t.transaction.id,
-                                        );
-                                      }
-                                    }}
-                                    scale={0.95}
-                                    key={t.transaction.id}
-                                    style={[
-                                      flex.flex1,
-                                      flex.flexCol,
-                                      justify.around,
-                                      gap.default,
-                                      styles.pendingCardBorder,
-                                      padding.default,
-                                      rounded.default,
-                                      dimension.width.xlarge14,
-                                    ]}>
-                                    <View style={[flex.flexCol]}>
-                                      <Text
-                                        style={[
-                                          font.size[20],
-                                          textColor(COLOR.text.neutral.med),
-                                        ]}>
-                                        {
-                                          t.contentCreator?.contentCreator
-                                            ?.fullname
-                                        }
-                                      </Text>
-                                      <Text
-                                        style={[
-                                          font.size[10],
-                                          textColor(COLOR.text.neutral.med),
-                                        ]}>
-                                        {formatDateToDayMonthYearHourMinute(
-                                          new Date(brainstorm.createdAt),
-                                        )}
-                                      </Text>
-                                    </View>
-                                    <Text
-                                      style={[
-                                        font.size[20],
-                                        textColor(COLOR.text.neutral.high),
-                                      ]}
-                                      numberOfLines={3}>
-                                      {brainstorm.content}
-                                    </Text>
-                                  </AnimatedPressable>
-                                );
-                              })}
-                            </ScrollView>
+                            <></>
                           )}
                         </View>
                       </>
-                    ) : (
-                      transaction?.brainstorms &&
-                      transaction?.brainstorms.length > 0 && (
-                        <>
-                          <View
-                            style={[dimension.width.full, styles.headerBorder]}
-                          />
-                          <View style={[flex.flexCol, gap.small]}>
-                            <Text
-                              className="font-medium"
-                              style={[
-                                font.size[30],
-                                textColor(COLOR.text.neutral.med),
-                              ]}>
-                              Your previous submission
-                            </Text>
-                            <ScrollView
-                              horizontal
-                              contentContainerStyle={[
-                                flex.flexRow,
-                                gap.default,
-                              ]}>
-                              {transaction.brainstorms
-                                .sort((a, b) => a.createdAt - b.createdAt)
-                                .reverse()
-                                .map(brainstorm => {
-                                  return (
-                                    <View
-                                      key={brainstorm.createdAt}
-                                      style={[
-                                        flex.flex1,
-                                        flex.flexCol,
-                                        gap.default,
-                                        BasicStatus.rejected ===
-                                          brainstorm.status &&
-                                          styles.rejectedCardBorder,
-                                        BasicStatus.pending ===
-                                          brainstorm.status &&
-                                          styles.pendingCardBorder,
-                                        BasicStatus.approved ===
-                                          brainstorm.status &&
-                                          styles.approvedCardBorder,
-                                        padding.default,
-                                        rounded.default,
-                                        dimension.width.xlarge14,
-                                      ]}>
-                                      <View
-                                        style={[
-                                          flex.flexRow,
-                                          gap.medium,
-                                          justify.between,
-                                        ]}>
-                                        <Text
-                                          style={[
-                                            font.size[20],
-                                            textColor(COLOR.text.neutral.med),
-                                          ]}>
-                                          {formatDateToDayMonthYearHourMinute(
-                                            new Date(brainstorm.createdAt),
-                                          )}
-                                        </Text>
-                                        <StatusTag
-                                          status={brainstorm.status}
-                                          statusType={
-                                            basicStatusTypeMap[
-                                              brainstorm.status
-                                            ]
-                                          }
-                                        />
-                                      </View>
-                                      <Text
-                                        style={[
-                                          font.size[20],
-                                          textColor(COLOR.text.neutral.high),
-                                        ]}
-                                        numberOfLines={3}>
-                                        {brainstorm.content}
-                                      </Text>
-                                      {brainstorm.rejection && (
-                                        <View
-                                          style={[
-                                            flex.flexCol,
-                                            gap.small,
-                                            padding.default,
-                                            background(COLOR.red[5]),
-                                            rounded.default,
-                                          ]}>
-                                          <Text
-                                            className="font-bold"
-                                            style={[
-                                              font.size[20],
-                                              textColor(COLOR.red[60]),
-                                            ]}>
-                                            {brainstorm.rejection.type}
-                                          </Text>
-                                          <Text
-                                            style={[
-                                              font.size[20],
-                                              textColor(COLOR.red[60]),
-                                            ]}>
-                                            {brainstorm.rejection.reason}
-                                          </Text>
-                                        </View>
-                                      )}
-                                    </View>
-                                  );
-                                })}
-                            </ScrollView>
-                          </View>
-                        </>
-                      )
                     )}
                     {!isCampaignOwner &&
                       (!transaction?.getLatestBrainstorm() ||
@@ -918,7 +722,15 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         <CustomButton
                           text="Submit idea"
                           onPress={() => {
-                            setIsBrainstormingModalOpened(true);
+                            // setIsBrainstormingModalOpened(true);
+                            if (transaction.id) {
+                              navigation.navigate(
+                                AuthenticatedNavigation.SubmitBrainstorm,
+                                {
+                                  transactionId: transaction.id,
+                                },
+                              );
+                            }
                           }}
                         />
                       )}
@@ -1200,7 +1012,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                         onPress={() => {
                           if (transaction.id) {
                             navigation.navigate(
-                              AuthenticatedNavigation.SubmitEngagementResult,
+                              AuthenticatedNavigation.SubmitResult,
                               {
                                 transactionId: transaction?.id,
                               },
@@ -1216,33 +1028,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
           </View>
         </HorizontalPadding>
       </PageWithBackButton>
-      <CustomModal transparent={true} visible={isConfirmBrainstormModalOpened}>
-        <View style={[flex.flexCol, padding.default, gap.large]}>
-          <View style={[flex.flexRow, justify.center, padding.medium]}>
-            <Text className="text-center font-medium" style={[font.size[30]]}>
-              Please review your submission carefully. Once you submit your
-              idea,{' '}
-              <Text className="font-bold">
-                you will not be able to edit it.
-              </Text>
-            </Text>
-          </View>
-          <View style={[flex.flexRow, gap.large, justify.center]}>
-            <CustomButton
-              text="Edit"
-              type="tertiary"
-              customTextColor={{
-                default: COLOR.text.danger.default,
-                disabled: COLOR.red[10],
-              }}
-              onPress={() => {
-                setIsConfirmBrainstormModalOpened(false);
-              }}
-            />
-            <CustomButton text="Submit" onPress={submitBrainstorm} />
-          </View>
-        </View>
-      </CustomModal>
       <CustomModal
         transparent={true}
         visible={isConfirmContentSubmissionModalOpen}>
@@ -1272,51 +1057,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
           </View>
         </View>
       </CustomModal>
-      <SheetModal
-        open={isBrainstormingModalOpened}
-        onDismiss={() => {
-          setIsBrainstormingModalOpened(false);
-        }}
-        snapPoints={[windowDimension.height - safeAreaInsets.top]}
-        disablePanDownToClose
-        fullHeight
-        enableHandlePanningGesture={false}
-        enableOverDrag={false}
-        overDragResistanceFactor={0}
-        enableDynamicSizing={false}>
-        <BottomSheetModalWithTitle
-          title="Brainstorming"
-          fullHeight
-          type="modal"
-          onPress={() => {
-            setIsBrainstormingModalOpened(false);
-          }}>
-          <View style={[flex.grow, flex.flexCol, gap.medium]}>
-            <View style={[flex.flex1, flex.flexCol, gap.default]}>
-              <FormFieldHelper
-                title="Idea draft"
-                description="Showcase your creativity in this idea to stand out and be chosen by the business owner."
-              />
-              <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
-                <FormlessCustomTextInput
-                  type="textarea"
-                  description={`Submit your idea in ${rules.brainstorm.min} - ${rules.brainstorm.max} characters.\nBe concise yet comprehensive.`}
-                  max={rules.brainstorm.max}
-                  counter
-                  onChange={setTemporaryBrainstorm}
-                />
-              </BottomSheetScrollView>
-            </View>
-            <CustomButton
-              text="Submit"
-              disabled={temporaryBrainstorm.length < rules.brainstorm.min}
-              onPress={() => {
-                setIsConfirmBrainstormModalOpened(true);
-              }}
-            />
-          </View>
-        </BottomSheetModalWithTitle>
-      </SheetModal>
       <SheetModal
         open={isContentSubmissionModalOpen}
         onDismiss={() => {

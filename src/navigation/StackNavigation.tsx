@@ -41,7 +41,8 @@ import {TransactionStatus} from '../model/Transaction';
 import PayCampaignScreen from '../screens/payment/PayCampaignScreen';
 import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
 import RejectTransactionScreen from '../screens/transaction/RejectTransactionScreen';
-import ModalSubmitEngagementResult from '../screens/campaign/timeline/ModalSubmitEngagementResult';
+import ModalSubmitResult from '../screens/campaign/timeline/ModalSubmitResult';
+import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrainstorm';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -63,7 +64,8 @@ export enum AuthenticatedNavigation {
   ChatList = 'Chat List',
   CampaignRegistrants = 'Campaign Registrants',
   CampaignTimeline = 'Campaign Timeline',
-  SubmitEngagementResult = 'Submit Engagement Result',
+  SubmitResult = 'Submit Result',
+  SubmitBrainstorm = 'Submit Brainstorm',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'My Transactions',
@@ -116,7 +118,8 @@ export type AuthenticatedStack = {
     initialTransactionStatusFilter?: TransactionStatus;
   };
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
-  [AuthenticatedNavigation.SubmitEngagementResult]: {transactionId: string};
+  [AuthenticatedNavigation.SubmitResult]: {transactionId: string};
+  [AuthenticatedNavigation.SubmitBrainstorm]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MyTransactions]: undefined;
@@ -286,8 +289,12 @@ const StackNavigator = () => {
                   component={CampaignRegistrantsScreen}
                 />
                 <Stack.Screen
-                  name={AuthenticatedNavigation.SubmitEngagementResult}
-                  component={ModalSubmitEngagementResult}
+                  name={AuthenticatedNavigation.SubmitBrainstorm}
+                  component={ModalSubmitBrainstorm}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.SubmitResult}
+                  component={ModalSubmitResult}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.MyTransactions}

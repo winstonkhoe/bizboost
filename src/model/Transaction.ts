@@ -224,9 +224,14 @@ interface Rejection {
   type: RejectionType;
 }
 
-interface Brainstorm {
+export interface BrainstormContent {
+  platform: SocialPlatform;
+  tasks: string[];
+}
+
+export interface Brainstorm {
   status: BasicStatus;
-  content: string;
+  content: BrainstormContent[];
   createdAt: number;
   rejection?: Rejection;
   updatedAt?: number; //either approved or rejected
@@ -812,7 +817,7 @@ export class Transaction extends BaseModel {
     return -1;
   }
 
-  async submitBrainstorm(content: string): Promise<boolean> {
+  async submitBrainstorm(content: BrainstormContent[]): Promise<boolean> {
     const {id} = this;
     if (id) {
       const brainstorm: Brainstorm = {
