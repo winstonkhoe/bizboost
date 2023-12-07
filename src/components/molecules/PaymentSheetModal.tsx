@@ -122,9 +122,10 @@ const PaymentSheetModal = ({
                 </View>
               </TouchableOpacity>
             )}
-            {(activeRole === UserRole.BusinessPeople &&
-              paymentStatus === PaymentStatus.proofWaitingForVerification) ||
-            paymentStatus === PaymentStatus.proofRejected ? (
+            {activeRole === UserRole.BusinessPeople &&
+            (paymentStatus === PaymentStatus.proofWaitingForVerification ||
+              paymentStatus === PaymentStatus.proofRejected ||
+              paymentStatus === undefined) ? (
               <MediaUploader
                 targetFolder="payment"
                 showUploadProgress

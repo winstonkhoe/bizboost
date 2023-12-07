@@ -4,6 +4,7 @@ import {flex} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
   BasicStatus,
+  PaymentStatus,
   Transaction,
   TransactionStatus,
   transactionStatusTypeMap,
@@ -60,7 +61,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
       .update({
         payment: {
           proofImage: url,
-          status: BasicStatus.pending,
+          status: PaymentStatus.proofWaitingForVerification,
         },
       })
       .then(() => {
@@ -122,19 +123,23 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
             });
         }}
         handleClickAccept={() => {
+          console.log(transaction.payment?.proofImage);
           setIsPaymentModalOpened(true); // TODO: abis klik ini, ganti status? (at least dari pov bp, kalo cc biarin Pending aja trs?)
           //TODO: move approval to admin (approve payment first)
           // transaction.approveRegistration();
         }}
       />
-      <PaymentSheetModal
-        isModalOpened={isPaymentModalOpened}
-        onModalDismiss={() => setIsPaymentModalOpened(false)}
-        amount={campaign?.fee || -1}
-        onProofUploaded={onProofUploaded}
-        defaultImage={transaction.payment?.proofImage}
-        paymentStatus={transaction.payment?.status}
-      />
+      {/* TODO: kalo gaada kondisi isPaymentModalOpened di awal, gatau kenapa ngebug fotonya pake yang lama trs  */}
+      {isPaymentModalOpened && (
+        <PaymentSheetModal
+          isModalOpened={isPaymentModalOpened}
+          onModalDismiss={() => setIsPaymentModalOpened(false)}
+          amount={campaign?.fee || -1}
+          onProofUploaded={onProofUploaded}
+          defaultImage={transaction.payment?.proofImage}
+          paymentStatus={transaction.payment?.status}
+        />
+      )}
     </>
   );
 };

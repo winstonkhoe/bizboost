@@ -388,6 +388,7 @@ const TransactionDetailScreen = ({route}: Props) => {
                       />
                     ) : transaction.payment.status ===
                         PaymentStatus.proofApproved ||
+                      transaction.payment.status === PaymentStatus.withdrawn ||
                       activeRole === UserRole.BusinessPeople ? (
                       <CheckmarkIcon
                         width={14}
@@ -447,6 +448,22 @@ const TransactionDetailScreen = ({route}: Props) => {
                       ]}>
                       Payment
                     </Text>
+                    {transaction.payment.status === PaymentStatus.withdrawn ? (
+                      <CheckmarkIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.green[40]}
+                      />
+                    ) : transaction.payment.status ===
+                      PaymentStatus.withdrawalRequested ? (
+                      <WarningIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.yellow[20]}
+                      />
+                    ) : (
+                      <></>
+                    )}
                   </View>
                   <Text
                     style={[
@@ -681,17 +698,19 @@ const TransactionDetailScreen = ({route}: Props) => {
         </View>
       </CustomModal>
 
-      <PaymentSheetModal
-        isModalOpened={isPaymentModalOpened}
-        onModalDismiss={() => setIsPaymentModalOpened(false)}
-        amount={campaign?.fee || -1}
-        onProofUploaded={onProofUploaded}
-        defaultImage={transaction.payment?.proofImage}
-        onProofAccepted={onProofAccepted}
-        onProofRejected={onProofRejected}
-        paymentStatus={transaction.payment?.status}
-        onWithdrawalAccepted={onWithdrawalAccepted}
-      />
+      {isPaymentModalOpened && (
+        <PaymentSheetModal
+          isModalOpened={isPaymentModalOpened}
+          onModalDismiss={() => setIsPaymentModalOpened(false)}
+          amount={campaign?.fee || -1}
+          onProofUploaded={onProofUploaded}
+          defaultImage={transaction.payment?.proofImage}
+          onProofAccepted={onProofAccepted}
+          onProofRejected={onProofRejected}
+          paymentStatus={transaction.payment?.status}
+          onWithdrawalAccepted={onWithdrawalAccepted}
+        />
+      )}
     </>
   );
 };
