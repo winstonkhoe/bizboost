@@ -39,7 +39,7 @@ import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {SocialPlatform, User, UserRole} from '../../model/User';
-import {flex, items, justify} from '../../styles/Flex';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
 import {border} from '../../styles/Border';
@@ -92,6 +92,7 @@ import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import ImageView from 'react-native-image-viewing';
+import {CustomAlert} from '../../components/molecules/CustomAlert';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -115,9 +116,6 @@ const TransactionDetailScreen = ({route}: Props) => {
   const {transactionId} = route.params;
   const [isOthersSheetModalOpen, setIsOthersSheetModalOpen] =
     useState<boolean>(false);
-  const [isRejectSheetModalOpen, setIsRejectSheetModalOpen] =
-    useState<boolean>(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
   const [rejectReason, setRejectReason] = useState<string>('');
   const [campaign, setCampaign] = useState<Campaign>();
   const [transaction, setTransaction] = useState<Transaction | null>();
@@ -154,34 +152,22 @@ const TransactionDetailScreen = ({route}: Props) => {
       transaction
         .approve()
         .then(() => {
-          setIsConfirmModalOpen(false);
+          showToast({
+            message: 'Transaction Approved!',
+            type: ToastType.success,
+          });
+        })
+        .catch(err => {
+          showToast({
+            message: 'Failed to approve transaction',
+            type: ToastType.danger,
+          });
+          console.log(err);
         })
         .finally(() => {
           setIsLoading(false);
         });
     }
-  };
-
-  const handleReject = () => {
-    if (transaction && rejectReason.length > 0) {
-      if (TransactionStatus.brainstormSubmitted === transaction.status) {
-        setIsLoading(true);
-        transaction
-          .rejectBrainstorm(rejectReason)
-          .then(() => {
-            setIsRejectSheetModalOpen(false);
-          })
-          .catch(err => console.log(err))
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-    }
-  };
-
-  const closeRejectSheetModal = () => {
-    setIsRejectSheetModalOpen(false);
-    setRejectReason('');
   };
 
   const closeOthersSheetModal = () => {
@@ -560,13 +546,29 @@ const TransactionDetailScreen = ({route}: Props) => {
                 <MeatballMenuIcon size="xsmall" />
               </AnimatedPressable>
               <View style={[flex.flex1]}>
-                <CustomButton
+                <CustomAlert
                   text={`Approve ${
                     transactionStatusCampaignStepMap[transaction.status]
                   }`}
-                  onPress={() => {
-                    setIsConfirmModalOpen(true);
-                  }}
+                  rejectButtonText="Cancel"
+                  approveButtonText="Approve"
+                  confirmationText={
+                    <Text
+                      className="text-center"
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.med),
+                      ]}>
+                      Are you sure you want to approve{' '}
+                      <Text
+                        className="font-bold"
+                        style={[textColor(COLOR.text.neutral.high)]}>
+                        {contentCreator?.contentCreator?.fullname}
+                      </Text>{' '}
+                      {`${currentActiveTimeline?.step.toLocaleLowerCase()} ?`}
+                    </Text>
+                  }
+                  onApprove={handleApprove}
                 />
               </View>
             </View>
@@ -619,76 +621,6 @@ const TransactionDetailScreen = ({route}: Props) => {
           </View>
         </BottomSheetModalWithTitle>
       </SheetModal>
-      <SheetModal
-        open={isRejectSheetModalOpen}
-        onDismiss={closeRejectSheetModal}
-        snapPoints={[windowDimension.height - safeAreaInsets.top]}
-        disablePanDownToClose
-        fullHeight
-        enableHandlePanningGesture={false}
-        enableOverDrag={false}
-        overDragResistanceFactor={0}
-        enableDynamicSizing={false}>
-        <BottomSheetModalWithTitle
-          title={currentActiveTimeline?.step || ''}
-          type="modal"
-          fullHeight
-          onPress={closeRejectSheetModal}>
-          <View style={[flex.grow, flex.flexCol, gap.medium]}>
-            <View style={[flex.flex1, flex.flexCol, gap.default]}>
-              <FormFieldHelper
-                title="Reject reason"
-                description="Provide rationale reason of why you are rejecting it"
-              />
-              <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
-                <FormlessCustomTextInput
-                  type="textarea"
-                  description={`Min. ${rules.rejectReason.min}, Max. ${rules.rejectReason.max} characters. `}
-                  max={rules.rejectReason.max}
-                  counter
-                  onChange={setRejectReason}
-                />
-              </BottomSheetScrollView>
-            </View>
-            <CustomButton
-              text="Submit"
-              disabled={rejectReason.length < rules.rejectReason.min}
-              onPress={handleReject}
-            />
-          </View>
-        </BottomSheetModalWithTitle>
-      </SheetModal>
-      <CustomModal transparent={true} visible={isConfirmModalOpen}>
-        <View style={[flex.flexCol, padding.default, gap.large]}>
-          <View style={[flex.flexRow, justify.center, padding.medium]}>
-            <Text
-              className="text-center"
-              style={[font.size[30], textColor(COLOR.text.neutral.med)]}>
-              Are you sure you want to approve{' '}
-              <Text
-                className="font-bold"
-                style={[textColor(COLOR.text.neutral.high)]}>
-                {contentCreator?.contentCreator?.fullname}
-              </Text>{' '}
-              {`${currentActiveTimeline?.step.toLocaleLowerCase()} ?`}
-            </Text>
-          </View>
-          <View style={[flex.flexRow, gap.large, justify.center]}>
-            <CustomButton
-              text="Cancel"
-              type="tertiary"
-              customTextColor={{
-                default: COLOR.text.danger.default,
-                disabled: COLOR.red[10],
-              }}
-              onPress={() => {
-                setIsConfirmModalOpen(false);
-              }}
-            />
-            <CustomButton text="Approve" onPress={handleApprove} />
-          </View>
-        </View>
-      </CustomModal>
 
       {isPaymentModalOpened && (
         <PaymentSheetModal
@@ -1025,15 +957,21 @@ const BrainstormDetailSection = ({...props}: BrainstormDetailSectionProps) => {
             <StatusTag status="Review needed" statusType={StatusType.warning} />
           )}
         </View>
-        <View style={[flex.flexCol, gap.default, rounded.default]}>
-          {sortedBrainstorms.slice(0, 1).map((brainstorm, brainstormIndex) => (
-            <BrainstormSubmissionCard
-              key={brainstormIndex}
-              transaction={props.transaction}
-              content={brainstorm}
-            />
-          ))}
-        </View>
+        {sortedBrainstorms.length > 0 ? (
+          <View style={[flex.flexCol, gap.default, rounded.default]}>
+            {sortedBrainstorms
+              .slice(0, 1)
+              .map((brainstorm, brainstormIndex) => (
+                <BrainstormSubmissionCard
+                  key={brainstormIndex}
+                  transaction={props.transaction}
+                  content={brainstorm}
+                />
+              ))}
+          </View>
+        ) : (
+          <EmptyContent />
+        )}
         {sortedBrainstorms.length > 1 && (
           <CollapsiblePanel
             hiddenText={`Show ${sortedBrainstorms.length - 1} more`}>
@@ -1095,63 +1033,66 @@ export const BrainstormSubmissionCard = ({
           )}
         </View>
         <View style={[flex.flexCol, gap.medium]}>
-          {props?.content?.content?.map((transactionContent, platformIndex) => (
-            <View
-              key={transactionContent.platform}
-              style={[flex.flexCol, gap.xsmall]}>
-              <View style={[flex.flexRow, gap.xsmall, items.center]}>
-                <PlatformIcon platform={transactionContent.platform} />
-                <Text
-                  className="font-bold"
-                  style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-                  {transactionContent.platform}
-                </Text>
+          {props?.content?.content &&
+            props.content.content?.map((transactionContent, platformIndex) => (
+              <View
+                key={transactionContent.platform}
+                style={[flex.flexCol, gap.xsmall]}>
+                <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                  <PlatformIcon platform={transactionContent.platform} />
+                  <Text
+                    className="font-bold"
+                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    {transactionContent.platform}
+                  </Text>
+                </View>
+                <View style={[flex.flexCol, gap.small]}>
+                  {transactionContent.tasks.map(
+                    (brainstorm, brainstormIndex) => {
+                      const transactionTask =
+                        props.transaction.platformTasks?.[platformIndex].tasks[
+                          brainstormIndex
+                        ];
+                      return (
+                        <View
+                          key={brainstormIndex}
+                          style={[flex.flexCol, gap.small]}>
+                          {transactionTask && (
+                            <Text
+                              className="font-medium"
+                              style={[
+                                font.size[20],
+                                textColor(COLOR.text.neutral.med),
+                              ]}>
+                              {campaignTaskToString(transactionTask)}
+                            </Text>
+                          )}
+                          <View
+                            style={[
+                              flex.flexCol,
+                              gap.default,
+                              border({
+                                borderWidth: 1,
+                                color: COLOR.black[20],
+                              }),
+                              padding.default,
+                              rounded.default,
+                            ]}>
+                            <Text
+                              style={[
+                                font.size[20],
+                                textColor(COLOR.text.neutral.high),
+                              ]}>
+                              {brainstorm}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    },
+                  )}
+                </View>
               </View>
-              <View style={[flex.flexCol, gap.small]}>
-                {transactionContent.tasks.map((brainstorm, brainstormIndex) => {
-                  const transactionTask =
-                    props.transaction.platformTasks?.[platformIndex].tasks[
-                      brainstormIndex
-                    ];
-                  return (
-                    <View
-                      key={brainstormIndex}
-                      style={[flex.flexCol, gap.small]}>
-                      {transactionTask && (
-                        <Text
-                          className="font-medium"
-                          style={[
-                            font.size[20],
-                            textColor(COLOR.text.neutral.med),
-                          ]}>
-                          {campaignTaskToString(transactionTask)}
-                        </Text>
-                      )}
-                      <View
-                        style={[
-                          flex.flexCol,
-                          gap.default,
-                          border({
-                            borderWidth: 1,
-                            color: COLOR.black[20],
-                          }),
-                          padding.default,
-                          rounded.default,
-                        ]}>
-                        <Text
-                          style={[
-                            font.size[20],
-                            textColor(COLOR.text.neutral.high),
-                          ]}>
-                          {brainstorm}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          ))}
+            ))}
           {props.content?.rejection && (
             <View
               style={[
@@ -1214,15 +1155,19 @@ const ContentSubmissionDetailSection = ({
           )}
           {/* TODO: update status based on transaction status  */}
         </View>
-        <View style={[flex.flexCol, gap.default, rounded.default]}>
-          {sortedContents.slice(0, 1).map((c, cIndex) => (
-            <ContentSubmissionCard
-              key={cIndex}
-              transaction={props.transaction}
-              content={c}
-            />
-          ))}
-        </View>
+        {sortedContents.length > 0 ? (
+          <View style={[flex.flexCol, gap.default, rounded.default]}>
+            {sortedContents.slice(0, 1).map((c, cIndex) => (
+              <ContentSubmissionCard
+                key={cIndex}
+                transaction={props.transaction}
+                content={c}
+              />
+            ))}
+          </View>
+        ) : (
+          <EmptyContent />
+        )}
         {sortedContents.length > 1 && (
           <CollapsiblePanel
             hiddenText={`Show ${sortedContents.length - 1} more`}>
@@ -1432,15 +1377,21 @@ const EngagementResultSubmissionDetailSection = ({
           )}
           {/* TODO: update status based on transaction status  */}
         </View>
-        <View style={[flex.flexCol, gap.default, rounded.default]}>
-          {sortedEngagements.slice(0, 1).map((engagement, engagementIndex) => (
-            <EngagementSubmissionCard
-              key={engagementIndex}
-              transaction={props.transaction}
-              engagement={engagement}
-            />
-          ))}
-        </View>
+        {sortedEngagements.length > 0 ? (
+          <View style={[flex.flexCol, gap.default, rounded.default]}>
+            {sortedEngagements
+              .slice(0, 1)
+              .map((engagement, engagementIndex) => (
+                <EngagementSubmissionCard
+                  key={engagementIndex}
+                  transaction={props.transaction}
+                  engagement={engagement}
+                />
+              ))}
+          </View>
+        ) : (
+          <EmptyContent />
+        )}
         {sortedEngagements.length > 1 && (
           <CollapsiblePanel
             hiddenText={`Show ${sortedEngagements.length - 1} more`}>
@@ -1724,6 +1675,18 @@ const CollapsiblePanel = ({
           <ChevronRight size="medium" color={COLOR.text.green.default} />
         </Animated.View>
       </AnimatedPressable>
+    </View>
+  );
+};
+
+const EmptyContent = () => {
+  return (
+    <View style={[flex.flexCol, justify.center, padding.medium]}>
+      <Text
+        className="text-center"
+        style={[self.center, font.size[30], textColor(COLOR.text.neutral.med)]}>
+        No submission yet
+      </Text>
     </View>
   );
 };
