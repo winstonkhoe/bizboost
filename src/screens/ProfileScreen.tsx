@@ -47,11 +47,14 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     // TODO: gatau ini mestinya gabung sama yang di dalem modal transactionsnya apa ngga biar fetch skali? tp kalo kek gitu gabisa dua"nya ngelisten, jadinya cuma salah satu, krn behaviour si modal kan navigate yaa
-    const unsubscribeTransaction = Transaction.getAllTransactionsByRole(
-      uid || '',
-      activeRole,
-      t => setTransactions(t),
-    );
+    var unsubscribeTransaction: () => void;
+    if (activeRole !== UserRole.Admin) {
+      unsubscribeTransaction = Transaction.getAllTransactionsByRole(
+        uid || '',
+        activeRole,
+        t => setTransactions(t),
+      );
+    }
 
     const unsubscribeCampaign = Campaign.getUserCampaignsReactive(
       uid || '',
@@ -67,7 +70,7 @@ const ProfileScreen = () => {
 
     return () => {
       // TODO: kyknya yang bener kayak campaign aja, di transaction tiap catch eror masih ngethrow lagi, kyknya nanti hapus aja thrownya tktnya bikin ribet
-      unsubscribeTransaction();
+      unsubscribeTransaction && unsubscribeTransaction();
       if (unsubscribeCampaign) unsubscribeCampaign();
     };
   }, [uid, activeRole]);

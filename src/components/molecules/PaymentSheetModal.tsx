@@ -29,6 +29,8 @@ type Props = {
   defaultImage?: string;
   onProofAccepted?: () => void;
   onProofRejected?: () => void;
+  onWithdrawalAccepted?: () => void;
+  onWithdrawalRejected?: () => void;
   paymentStatus?: PaymentStatus;
 };
 
@@ -40,6 +42,7 @@ const PaymentSheetModal = ({
   defaultImage = undefined,
   onProofAccepted = undefined,
   onProofRejected = undefined,
+  onWithdrawalAccepted = undefined,
   paymentStatus,
 }: Props) => {
   const {activeRole} = useUser();
@@ -82,14 +85,29 @@ const PaymentSheetModal = ({
                 }
               />
             </View>
-            {activeRole === UserRole.BusinessPeople && (
-              <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                {/* TODO: fix copywriting */}
-                {`You need to pay ${formatToRupiah(
+            <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+              {/* TODO: fix copywriting */}
+              {/* TODO: taro bank account admin */}
+              {activeRole === UserRole.BusinessPeople &&
+                `You need to pay ${formatToRupiah(
                   amount,
-                )} to }Account Number xxxxxxxxxx by [End Date regis]. Upload your payment proof here.`}
-              </Text>
-            )}
+                )} to Account Number xxxxxxxxxx [admin bank account] by [End Date regis]. Upload your payment proof here.`}
+
+              {activeRole === UserRole.Admin && (
+                <>
+                  {paymentStatus ===
+                    PaymentStatus.proofWaitingForVerification &&
+                    `Business People have paid ${formatToRupiah(
+                      amount,
+                    )}, please verify the payment.`}
+                  {/* TODO: taro bank account CC */}
+                  {paymentStatus === PaymentStatus.withdrawalRequested &&
+                    `Content creator have requested to withdraw their money, you need to pay ${formatToRupiah(
+                      amount,
+                    )} to Account Number xxxxxxxxxx [CC bank account]`}
+                </>
+              )}
+            </Text>
           </View>
 
           <View style={[flex.flexCol, items.center]}>
@@ -105,8 +123,9 @@ const PaymentSheetModal = ({
                 </View>
               </TouchableOpacity>
             )}
-            {activeRole === UserRole.BusinessPeople &&
-            paymentStatus !== PaymentStatus.proofApproved ? (
+            {(activeRole === UserRole.BusinessPeople &&
+              paymentStatus === PaymentStatus.proofWaitingForVerification) ||
+            paymentStatus === PaymentStatus.proofRejected ? (
               <MediaUploader
                 targetFolder="payment"
                 showUploadProgress
@@ -158,6 +177,8 @@ const PaymentSheetModal = ({
                         type="alternate"
                       />
                     </View>
+                    {/* {paymentStatus === */}
+                    {/* PaymentStatus.proofWaitingForVerification && ( */}
                     <View style={[flex.flex1]}>
                       <CustomButton
                         text="Accept"
@@ -166,8 +187,20 @@ const PaymentSheetModal = ({
                         customTextSize={font.size[20]}
                       />
                     </View>
+                    {/* )} */}
                   </>
                 )}
+                {paymentStatus === PaymentStatus.withdrawalRequested &&
+                  activeRole === UserRole.Admin && (
+                    <View style={[flex.flex1]}>
+                      <CustomButton
+                        text="I Have Paid This User"
+                        scale={1}
+                        onPress={onWithdrawalAccepted}
+                        customTextSize={font.size[20]}
+                      />
+                    </View>
+                  )}
               </View>
             )}
           </View>

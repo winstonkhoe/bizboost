@@ -5,7 +5,13 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../../navigation/StackNavigation';
-import {Pressable, StyleSheet, Text, useWindowDimensions} from 'react-native';
+import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+} from 'react-native';
 import {View} from 'react-native';
 import {Campaign, CampaignStep} from '../../model/Campaign';
 import {
@@ -186,7 +192,22 @@ const TransactionDetailScreen = ({route}: Props) => {
   const closeOthersSheetModal = () => {
     setIsOthersSheetModalOpen(false);
   };
-
+  const onRequestWithdraw = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.withdrawalRequested,
+        },
+      })
+      .then(() => {
+        showToast({
+          message:
+            'Withdrawal Requested! You will receive your money in no later than 7 x 24 hours.',
+          type: ToastType.success,
+        });
+      });
+  };
   const onProofAccepted = () => {
     transaction
       ?.update({
@@ -320,7 +341,6 @@ const TransactionDetailScreen = ({route}: Props) => {
               </View>
             )}
 
-            {/* TODO: kalo cc liat payment pas bisa diwithdraw aja? */}
             {transaction.payment && activeRole !== UserRole.ContentCreator && (
               <>
                 <View style={[styles.bottomBorder]} />
@@ -340,18 +360,26 @@ const TransactionDetailScreen = ({route}: Props) => {
                     PaymentStatus.proofRejected ? (
                       <CrossIcon width={14} height={14} fill={COLOR.red[50]} />
                     ) : transaction.payment.status ===
-                      PaymentStatus.proofWaitingForVerification ? (
+                        PaymentStatus.proofWaitingForVerification ||
+                      // Tujuannya supaya tanda warning kl withdrawal requested tu dari admin aja sih keliatannya
+                      (transaction.payment.status ===
+                        PaymentStatus.withdrawalRequested &&
+                        activeRole === UserRole.Admin) ? (
                       <WarningIcon
                         width={14}
                         height={14}
                         fill={COLOR.yellow[20]}
                       />
-                    ) : (
+                    ) : transaction.payment.status ===
+                        PaymentStatus.proofApproved ||
+                      activeRole === UserRole.BusinessPeople ? (
                       <CheckmarkIcon
                         width={14}
                         height={14}
                         fill={COLOR.green[40]}
                       />
+                    ) : (
+                      <></>
                     )}
                   </View>
                   <Text
@@ -359,19 +387,36 @@ const TransactionDetailScreen = ({route}: Props) => {
                       font.size[30],
                       textColor(COLOR.text.green.default),
                     ]}>
-                    View Proof
+                    {activeRole !== UserRole.Admin ? 'View Proof' : 'Manage'}
                   </Text>
                 </Pressable>
               </>
             )}
+            {/* TODO: jadi satu deh ama yg atas abis ini */}
             {transaction.payment && activeRole === UserRole.ContentCreator && (
               <>
                 <View style={[styles.bottomBorder]} />
 
                 <Pressable
                   onPress={() => {
-                    // TODO: masukin no rek? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
-                    console.log('masuk');
+                    // TODO: masukin no rek -> keknya dari profile aja? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
+                    Alert.alert(
+                      'Withdraw',
+                      'You are about to request money withdrawal from Admin, and the money will be sent to the bank account that you use on your Profile! Do you wish to continue?',
+                      [
+                        {
+                          text: 'Cancel',
+                          onPress: () =>
+                            console.log('Cancel Withdrawal Pressed'),
+                          style: 'cancel',
+                        },
+                        {
+                          text: 'OK',
+                          onPress: onRequestWithdraw,
+                          style: 'default',
+                        },
+                      ],
+                    );
                   }}
                   disabled={
                     transaction.status !== TransactionStatus.completed ||

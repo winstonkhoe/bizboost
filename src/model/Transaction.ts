@@ -491,6 +491,7 @@ export class Transaction extends BaseModel {
     role: UserRole | undefined,
     onComplete: (transactions: Transaction[]) => void,
   ) {
+    console.log(role + ' : ' + userId);
     try {
       const unsubscribe = Transaction.getCollectionReference()
         .where(
