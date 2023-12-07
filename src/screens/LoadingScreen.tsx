@@ -1,4 +1,4 @@
-import {ModalProps, View} from 'react-native';
+import {ModalProps, StyleSheet, View} from 'react-native';
 import {flex, items, justify} from '../styles/Flex';
 import {Modal} from 'react-native';
 import {ReactNode, useEffect} from 'react';
@@ -15,11 +15,13 @@ import {rounded} from '../styles/BorderRadius';
 import {LoadingSpinner} from '../components/atoms/LoadingSpinner';
 
 interface LoadingScreenProps extends ModalProps {
+  type?: 'default' | 'modal';
   children?: ReactNode;
 }
 
 export const LoadingScreen = ({
   children,
+  type = 'default',
   transparent = true,
   visible = true,
   ...props
@@ -37,7 +39,7 @@ export const LoadingScreen = ({
     opacity.value = withTiming(visible ? 1 : 0, {duration: 200});
   }, [visible, opacity]);
 
-  return (
+  return type === 'modal' ? (
     <Modal
       visible={visible}
       transparent={transparent}
@@ -68,5 +70,38 @@ export const LoadingScreen = ({
         </View>
       </Animated.View>
     </Modal>
+  ) : (
+    <View
+      style={[
+        StyleSheet.absoluteFill,
+        {
+          zIndex: 9999,
+        },
+      ]}>
+      <Animated.View
+        style={[
+          flex.flex1,
+          flex.flexCol,
+          items.center,
+          justify.center,
+          gap.default,
+          animatedBackgroundStyle,
+          background(`${COLOR.black[0]}a3`),
+        ]}>
+        <View
+          style={[
+            flex.flexCol,
+            padding.vertical.large,
+            padding.horizontal.xlarge3,
+            rounded.medium,
+            items.center,
+            justify.center,
+            gap.medium,
+          ]}>
+          <LoadingSpinner />
+          {children ? children : null}
+        </View>
+      </Animated.View>
+    </View>
   );
 };
