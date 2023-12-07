@@ -15,12 +15,18 @@ import Copy from '../../assets/vectors/copy.svg';
 import Open from '../../assets/vectors/open.svg';
 import BrokenLink from '../../assets/vectors/broken-link.svg';
 import PhotoRevision from '../../assets/vectors/photo-revision.svg';
+import Upload from '../../assets/vectors/upload.svg';
+import MissingDocument from '../../assets/vectors/document-missing.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path} from 'react-native-svg';
+import {gap} from '../../styles/Gap';
+import {background} from '../../styles/BackgroundColor';
+import {rounded} from '../../styles/BorderRadius';
 
 interface IconProps {
   size?: SizeType;
   color?: string;
+  strokeWidth?: number;
 }
 
 export const AddIcon = ({
@@ -103,12 +109,14 @@ export const MinusIcon = ({
 export const InstagramIcon = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
+  ...props
 }: IconProps) => {
   return (
     <InstagramMono
       width={size[sizeType]}
       height={size[sizeType]}
       color={color}
+      {...props}
     />
   );
 };
@@ -140,6 +148,7 @@ export const PlatformIcon = ({platform, ...props}: PlatformIconProps) => {
 export const ChevronRight = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
+  strokeWidth = 2,
 }: IconProps) => {
   const dimension = size[sizeType];
   return (
@@ -152,7 +161,7 @@ export const ChevronRight = ({
           dimension * 0.5
         } ${dimension * 0.2} ${dimension * 0.8}`}
         stroke={color}
-        strokeWidth="2"
+        strokeWidth={strokeWidth}
         fill="transparent"
       />
     </Svg>
@@ -167,6 +176,7 @@ export const ArrowIcon = ({
   type = 'default',
   size: sizeType = 'default',
   color = COLOR.black[100],
+  strokeWidth = 4,
 }: IconArrowProps) => {
   const dimension = size[sizeType];
   return (
@@ -178,7 +188,7 @@ export const ArrowIcon = ({
         d={`M0 12L22 12M15 5l7 7-${type === 'default' ? 7 : 99999} 7`}
         stroke={color}
         fill="transparent"
-        strokeWidth="4"
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
       />
     </Svg>
@@ -188,35 +198,126 @@ export const ArrowIcon = ({
 export const CopyIcon = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
+  ...props
 }: IconProps) => {
-  return <Copy width={size[sizeType]} height={size[sizeType]} color={color} />;
+  return (
+    <Copy
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
 };
 
 export const OpenIcon = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
+  ...props
 }: IconProps) => {
-  return <Open width={size[sizeType]} height={size[sizeType]} color={color} />;
+  return (
+    <Open
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
 };
 
 export const BrokenLinkIcon = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
+  ...props
 }: IconProps) => {
   return (
-    <BrokenLink width={size[sizeType]} height={size[sizeType]} color={color} />
+    <BrokenLink
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
   );
 };
 
 export const PhotoRevisionIcon = ({
   size: sizeType = 'default',
   color = 'transparent',
+  ...props
 }: IconProps) => {
   return (
     <PhotoRevision
       width={size[sizeType]}
       height={size[sizeType]}
       color={color}
+      {...props}
+    />
+  );
+};
+
+export const UploadIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  ...props
+}: IconProps) => {
+  return (
+    <Upload
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
+};
+
+export const CircleIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[40],
+}: IconProps) => {
+  return (
+    <View
+      style={[dimension.square[sizeType], rounded.max, background(color)]}
+    />
+  );
+};
+
+export const MeatballMenuIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[40],
+}: IconProps) => {
+  return (
+    <View style={[flex.flexRow, gap[sizeType]]}>
+      {[...Array(3)].map((_, i) => (
+        <CircleIcon key={i} color={color} size={sizeType} />
+      ))}
+    </View>
+  );
+};
+
+export const KebabMenuIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[40],
+}: IconProps) => {
+  return (
+    <View style={[flex.flexCol, gap[sizeType]]}>
+      {[...Array(3)].map((_, i) => (
+        <CircleIcon key={i} color={color} size={sizeType} />
+      ))}
+    </View>
+  );
+};
+
+export const MissingDocumentIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  strokeWidth = 2,
+}: IconProps) => {
+  return (
+    <MissingDocument
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      strokeWidth={strokeWidth}
     />
   );
 };

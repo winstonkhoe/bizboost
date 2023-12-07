@@ -56,7 +56,7 @@ export const ModalWebView = ({...props}: ModalWebViewProps) => {
         </View>
         <CustomButton
           text="Close Preview"
-          customTextSize={font.size[30]}
+          customTextSize={30}
           rounded="large"
           verticalPadding="medium"
           onPress={props?.onClose}

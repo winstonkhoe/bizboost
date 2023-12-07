@@ -4,36 +4,37 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
   AuthenticatedStack,
-} from '../navigation/StackNavigation';
+} from '../../navigation/StackNavigation';
 import {Pressable, StyleSheet, Text} from 'react-native';
 import {View} from 'react-native';
-import TagCard from '../components/atoms/TagCard';
-import {Campaign} from '../model/Campaign';
-import {formatDateToDayMonthYear} from '../utils/date';
-import {CustomButton} from '../components/atoms/Button';
-import {useUser} from '../hooks/user';
-import {Transaction, TransactionStatus} from '../model/Transaction';
-import {PageWithBackButton} from '../components/templates/PageWithBackButton';
+import TagCard from '../../components/atoms/TagCard';
+import {Campaign} from '../../model/Campaign';
+import {formatDateToDayMonthYear} from '../../utils/date';
+import {CustomButton} from '../../components/atoms/Button';
+import {useUser} from '../../hooks/user';
+import {Transaction, TransactionStatus} from '../../model/Transaction';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 
-import People from '../assets/vectors/people.svg';
-import ChevronRight from '../assets/vectors/chevron-right.svg';
-import {COLOR} from '../styles/Color';
-import {gap} from '../styles/Gap';
+import People from '../../assets/vectors/people.svg';
+import {COLOR} from '../../styles/Color';
+import {gap} from '../../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
-import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
-import {User} from '../model/User';
-import {flex} from '../styles/Flex';
-import {horizontalPadding, verticalPadding} from '../styles/Padding';
-import {rounded} from '../styles/BorderRadius';
-import {border} from '../styles/Border';
-import {textColor} from '../styles/Text';
-import {formatToRupiah} from '../utils/currency';
-import {LoadingScreen} from './LoadingScreen';
+import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
+import {User} from '../../model/User';
+import {flex} from '../../styles/Flex';
+import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {rounded} from '../../styles/BorderRadius';
+import {border} from '../../styles/Border';
+import {textColor} from '../../styles/Text';
+import {formatToRupiah} from '../../utils/currency';
+import {LoadingScreen} from '../LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
-import {dimension} from '../styles/Dimension';
-import {showToast} from '../helpers/toast';
-import {ToastType} from '../providers/ToastProvider';
+import {dimension} from '../../styles/Dimension';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
+import {ChevronRight} from '../../components/atoms/Icon';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -222,14 +223,9 @@ const CampaignDetailScreen = ({route}: Props) => {
                     style={[flex.flexRow, rounded.max]}>
                     <FastImage
                       className="w-full h-full object-cover"
-                      source={
-                        businessPeople.businessPeople?.profilePicture
-                          ? {
-                              uri: businessPeople.businessPeople
-                                ?.profilePicture,
-                            }
-                          : require('../assets/images/bizboost-avatar.png')
-                      }
+                      source={getSourceOrDefaultAvatar({
+                        uri: businessPeople.businessPeople?.profilePicture,
+                      })}
                     />
                   </View>
                   <View className="flex flex-col">
@@ -244,7 +240,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                   </View>
                 </View>
 
-                <ChevronRight fill={COLOR.black[20]} />
+                <ChevronRight color={COLOR.black[20]} />
               </Pressable>
             )}
 
@@ -333,8 +329,10 @@ const CampaignDetailScreen = ({route}: Props) => {
             {isCampaignOwner && (
               <View className="">
                 <CustomButton
-                  customBackgroundColor={COLOR.background.neutral}
-                  customTextColor={COLOR.text.neutral}
+                  customBackgroundColor={{
+                    default: COLOR.background.neutral.high,
+                    disabled: COLOR.background.neutral.disabled,
+                  }}
                   text="View Registrants"
                   rounded="default"
                   onPress={() =>
@@ -355,13 +353,25 @@ const CampaignDetailScreen = ({route}: Props) => {
                 <CustomButton
                   customBackgroundColor={
                     campaign.paymentProofImage
-                      ? COLOR.background.neutral
-                      : COLOR.background.danger
+                      ? {
+                          default: COLOR.background.neutral.high,
+                          disabled: COLOR.background.neutral.disabled,
+                        }
+                      : {
+                          default: COLOR.background.danger.high,
+                          disabled: COLOR.background.danger.disabled,
+                        }
                   }
                   customTextColor={
                     campaign.paymentProofImage
-                      ? COLOR.text.neutral
-                      : COLOR.text.danger
+                      ? {
+                          default: COLOR.text.neutral.high,
+                          disabled: COLOR.text.neutral.disabled,
+                        }
+                      : {
+                          default: COLOR.black[1],
+                          disabled: COLOR.text.danger.disabled,
+                        }
                   }
                   type="secondary"
                   text={

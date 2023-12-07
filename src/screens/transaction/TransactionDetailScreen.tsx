@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {ReactNode, useEffect, useMemo, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -22,8 +22,11 @@ import {CustomButton} from '../../components/atoms/Button';
 import {useUser} from '../../hooks/user';
 import {
   BasicStatus,
+  Brainstorm,
+  BrainstormContent,
   Content,
   PaymentStatus,
+  Engagement,
   Transaction,
   TransactionStatus,
   basicStatusTypeMap,
@@ -55,6 +58,7 @@ import {PlatformData} from '../signup/RegisterSocialPlatform';
 import {
   ChevronRight,
   CopyIcon,
+  MeatballMenuIcon,
   OpenIcon,
   PlatformIcon,
 } from '../../components/atoms/Icon';
@@ -86,6 +90,8 @@ import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
+import {BackButtonLabel} from '../../components/atoms/Header';
+import ImageView from 'react-native-image-viewing';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -144,26 +150,15 @@ const TransactionDetailScreen = ({route}: Props) => {
 
   const handleApprove = () => {
     if (transaction) {
-      if (TransactionStatus.brainstormSubmitted === transaction.status) {
-        setIsConfirmModalOpen(false);
-        setIsLoading(true);
-        transaction
-          .approveBrainstorm()
-          .catch(err => console.log(err))
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-      if (TransactionStatus.contentSubmitted === transaction.status) {
-        setIsConfirmModalOpen(false);
-        setIsLoading(true);
-        transaction
-          .approveContent()
-          .catch(err => console.log(err))
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
+      setIsLoading(true);
+      transaction
+        .approve()
+        .then(() => {
+          setIsConfirmModalOpen(false);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
   };
 
@@ -308,13 +303,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         fullHeight
         threshold={0}
         withoutScrollView
-        backButtonPlaceholder={
-          <Text
-            className="font-bold"
-            style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
-            Transaction Detail
-          </Text>
-        }>
+        backButtonPlaceholder={<BackButtonLabel text="Transaction Detail" />}>
         <ScrollView
           bounces={true}
           showsVerticalScrollIndicator={false}
@@ -529,12 +518,17 @@ const TransactionDetailScreen = ({route}: Props) => {
             transaction={transaction}
             isCampaignOwner={isCampaignOwner}
           />
+          <EngagementResultSubmissionDetailSection
+            transaction={transaction}
+            isCampaignOwner={isCampaignOwner}
+          />
         </ScrollView>
         {isCampaignOwner &&
           transaction.status &&
           [
             TransactionStatus.brainstormSubmitted,
             TransactionStatus.contentSubmitted,
+            TransactionStatus.engagementSubmitted,
           ].find(status => transaction.status === status) && (
             <View
               style={[
@@ -549,11 +543,11 @@ const TransactionDetailScreen = ({route}: Props) => {
               ]}>
               <AnimatedPressable
                 style={[
+                  flex.flex1,
                   flex.flexRow,
-                  gap.xsmall,
                   items.center,
                   justify.center,
-                  dimension.square.xlarge2,
+                  dimension.width.xlarge2,
                   rounded.default,
                   border({
                     borderWidth: 1,
@@ -563,16 +557,7 @@ const TransactionDetailScreen = ({route}: Props) => {
                 onPress={() => {
                   setIsOthersSheetModalOpen(true);
                 }}>
-                {[...Array(3)].map((_, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      rounded.max,
-                      dimension.square.xsmall,
-                      background(COLOR.black[40]),
-                    ]}
-                  />
-                ))}
+                <MeatballMenuIcon size="xsmall" />
               </AnimatedPressable>
               <View style={[flex.flex1]}>
                 <CustomButton
@@ -1018,6 +1003,13 @@ interface BrainstormDetailSectionProps {
 }
 
 const BrainstormDetailSection = ({...props}: BrainstormDetailSectionProps) => {
+  const sortedBrainstorms = useMemo(
+    () =>
+      props.transaction.brainstorms?.sort(
+        (a, b) => b.createdAt - a.createdAt,
+      ) || [],
+    [props.transaction],
+  );
   return (
     <>
       <Seperator />
@@ -1033,25 +1025,152 @@ const BrainstormDetailSection = ({...props}: BrainstormDetailSectionProps) => {
             <StatusTag status="Review needed" statusType={StatusType.warning} />
           )}
         </View>
-        <View
-          style={[
-            flex.flexCol,
-            gap.default,
-            border({
-              borderWidth: 1,
-              color: COLOR.black[20],
-            }),
-            padding.default,
-            rounded.default,
-          ]}>
+        <View style={[flex.flexCol, gap.default, rounded.default]}>
+          {sortedBrainstorms.slice(0, 1).map((brainstorm, brainstormIndex) => (
+            <BrainstormSubmissionCard
+              key={brainstormIndex}
+              transaction={props.transaction}
+              content={brainstorm}
+            />
+          ))}
+        </View>
+        {sortedBrainstorms.length > 1 && (
+          <CollapsiblePanel
+            hiddenText={`Show ${sortedBrainstorms.length - 1} more`}>
+            {sortedBrainstorms.slice(1).map((brainstorm, brainstormIndex) => (
+              <BrainstormSubmissionCard
+                key={brainstormIndex}
+                transaction={props.transaction}
+                content={brainstorm}
+              />
+            ))}
+          </CollapsiblePanel>
+        )}
+      </View>
+    </>
+  );
+};
+
+interface BrainstormSubmissionCardProps {
+  transaction: Transaction;
+  content: Brainstorm;
+  hideStatus?: boolean;
+}
+
+export const BrainstormSubmissionCard = ({
+  ...props
+}: BrainstormSubmissionCardProps) => {
+  const [activeUri, setActiveUri] = useState<string>('');
+  return (
+    <>
+      <ModalWebView
+        url={activeUri}
+        visible={activeUri !== ''}
+        onClose={() => {
+          setActiveUri('');
+        }}
+      />
+      <View
+        style={[
+          flex.flexCol,
+          padding.default,
+          gap.default,
+          rounded.medium,
+          border({
+            borderWidth: 1,
+            color: COLOR.black[20],
+          }),
+        ]}>
+        <View style={[flex.flexRow, justify.between, items.center]}>
           <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
             {formatDateToDayMonthYearHourMinute(
-              new Date(props.transaction?.getLatestBrainstorm()!!.createdAt),
+              new Date(props.content.createdAt),
             )}
           </Text>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-            {props.transaction?.getLatestBrainstorm()?.content}
-          </Text>
+          {!props.hideStatus && (
+            <StatusTag
+              status={props.content.status}
+              statusType={basicStatusTypeMap[props.content.status]}
+            />
+          )}
+        </View>
+        <View style={[flex.flexCol, gap.medium]}>
+          {props?.content?.content?.map((transactionContent, platformIndex) => (
+            <View
+              key={transactionContent.platform}
+              style={[flex.flexCol, gap.xsmall]}>
+              <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                <PlatformIcon platform={transactionContent.platform} />
+                <Text
+                  className="font-bold"
+                  style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                  {transactionContent.platform}
+                </Text>
+              </View>
+              <View style={[flex.flexCol, gap.small]}>
+                {transactionContent.tasks.map((brainstorm, brainstormIndex) => {
+                  const transactionTask =
+                    props.transaction.platformTasks?.[platformIndex].tasks[
+                      brainstormIndex
+                    ];
+                  return (
+                    <View
+                      key={brainstormIndex}
+                      style={[flex.flexCol, gap.small]}>
+                      {transactionTask && (
+                        <Text
+                          className="font-medium"
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>
+                          {campaignTaskToString(transactionTask)}
+                        </Text>
+                      )}
+                      <View
+                        style={[
+                          flex.flexCol,
+                          gap.default,
+                          border({
+                            borderWidth: 1,
+                            color: COLOR.black[20],
+                          }),
+                          padding.default,
+                          rounded.default,
+                        ]}>
+                        <Text
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.high),
+                          ]}>
+                          {brainstorm}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+          {props.content?.rejection && (
+            <View
+              style={[
+                flex.flexCol,
+                gap.small,
+                padding.default,
+                background(COLOR.red[5]),
+                rounded.default,
+              ]}>
+              <Text
+                className="font-bold"
+                style={[font.size[20], textColor(COLOR.red[60])]}>
+                {props.content.rejection.type}
+              </Text>
+              <Text style={[font.size[20], textColor(COLOR.red[60])]}>
+                {props.content.rejection.reason}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </>
@@ -1072,23 +1191,6 @@ const ContentSubmissionDetailSection = ({
       [],
     [props.transaction],
   );
-  const [isSeeMore, setIsSeeMore] = useState(false);
-  const seeMoreValue = useSharedValue(0);
-  const chevronStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(seeMoreValue.value, [0, 1], [90, -90]);
-    return {
-      transform: [
-        {
-          rotate: `${rotation}deg`,
-        },
-      ],
-    };
-  });
-  useEffect(() => {
-    seeMoreValue.value = withTiming(isSeeMore ? 1 : 0, {
-      duration: 300,
-    });
-  }, [isSeeMore, seeMoreValue]);
   return (
     <>
       <Seperator />
@@ -1099,7 +1201,7 @@ const ContentSubmissionDetailSection = ({
             <Text
               className="font-semibold"
               style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-              {CampaignStep.ContentSubmission}
+              {CampaignStep.ContentCreation}
             </Text>
             <Text
               style={[
@@ -1122,47 +1224,16 @@ const ContentSubmissionDetailSection = ({
           ))}
         </View>
         {sortedContents.length > 1 && (
-          <View style={[flex.flexCol, gap.large]}>
-            <View
-              className="overflow-hidden"
-              style={[
-                !isSeeMore && {
-                  maxHeight: 0,
-                },
-                flex.flexCol,
-                gap.medium,
-              ]}>
-              {sortedContents.slice(1).map((c, cIndex) => (
-                <ContentSubmissionCard
-                  key={cIndex}
-                  transaction={props.transaction}
-                  content={c}
-                />
-              ))}
-            </View>
-            <AnimatedPressable
-              style={[flex.flexRow, items.center, justify.center, gap.small]}
-              onPress={() => {
-                setIsSeeMore(!isSeeMore);
-              }}>
-              <Text
-                className="font-semibold"
-                style={[font.size[30], textColor(COLOR.text.green.default)]}>
-                {!isSeeMore
-                  ? `Show ${sortedContents.length - 1} more`
-                  : 'Show less'}
-              </Text>
-              <Animated.View
-                style={[
-                  flex.flexRow,
-                  justify.center,
-                  items.start,
-                  chevronStyle,
-                ]}>
-                <ChevronRight size="medium" color={COLOR.text.green.default} />
-              </Animated.View>
-            </AnimatedPressable>
-          </View>
+          <CollapsiblePanel
+            hiddenText={`Show ${sortedContents.length - 1} more`}>
+            {sortedContents.slice(1).map((c, cIndex) => (
+              <ContentSubmissionCard
+                key={cIndex}
+                transaction={props.transaction}
+                content={c}
+              />
+            ))}
+          </CollapsiblePanel>
         )}
       </View>
     </>
@@ -1200,11 +1271,13 @@ export const ContentSubmissionCard = ({
           }),
         ]}>
         <View style={[flex.flexRow, justify.between, items.center]}>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-            {formatDateToDayMonthYearHourMinute(
-              new Date(props.content.createdAt),
-            )}
-          </Text>
+          {props.content?.createdAt && (
+            <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+              {formatDateToDayMonthYearHourMinute(
+                new Date(props.content.createdAt),
+              )}
+            </Text>
+          )}
           {!props.hideStatus && (
             <StatusTag
               status={props.content.status}
@@ -1213,93 +1286,94 @@ export const ContentSubmissionCard = ({
           )}
         </View>
         <View style={[flex.flexCol, gap.medium]}>
-          {props.content.content.map((transactionContent, platformIndex) => (
-            <View
-              key={transactionContent.platform}
-              style={[flex.flexCol, gap.xsmall]}>
-              <View style={[flex.flexRow, gap.xsmall, items.center]}>
-                <PlatformIcon platform={transactionContent.platform} />
-                <Text
-                  className="font-bold"
-                  style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-                  {transactionContent.platform}
-                </Text>
-              </View>
-              <View style={[flex.flexCol, gap.small]}>
-                {transactionContent.tasks.map((task, taskIndex) => {
-                  const transactionTask =
-                    props.transaction.platformTasks?.[platformIndex].tasks[
-                      taskIndex
-                    ];
-                  return (
-                    <View key={taskIndex} style={[flex.flexCol, gap.small]}>
-                      {transactionTask && (
-                        <Text
-                          className="font-medium"
-                          style={[
-                            font.size[20],
-                            textColor(COLOR.text.neutral.med),
-                          ]}>
-                          {campaignTaskToString(transactionTask)}
-                        </Text>
-                      )}
-                      {task.uri.map((taskUri, taskUriIndex) => (
-                        <View
-                          key={taskUriIndex}
-                          style={[flex.flexRow, items.center, gap.default]}>
-                          <View style={[flex.flex1]}>
-                            <Pressable
-                              style={[
-                                flex.flex1,
-                                flex.flexRow,
-                                items.center,
-                                padding.small,
-                                rounded.default,
-                                background(COLOR.black[5]),
-                              ]}
-                              onPress={() => {
-                                setActiveUri(taskUri);
-                              }}>
-                              <Text
-                                className="font-bold"
+          {props?.content?.content &&
+            props.content.content.map((transactionContent, platformIndex) => (
+              <View
+                key={transactionContent.platform}
+                style={[flex.flexCol, gap.xsmall]}>
+                <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                  <PlatformIcon platform={transactionContent.platform} />
+                  <Text
+                    className="font-bold"
+                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    {transactionContent.platform}
+                  </Text>
+                </View>
+                <View style={[flex.flexCol, gap.small]}>
+                  {transactionContent.tasks.map((task, taskIndex) => {
+                    const transactionTask =
+                      props.transaction.platformTasks?.[platformIndex].tasks[
+                        taskIndex
+                      ];
+                    return (
+                      <View key={taskIndex} style={[flex.flexCol, gap.small]}>
+                        {transactionTask && (
+                          <Text
+                            className="font-medium"
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.med),
+                            ]}>
+                            {campaignTaskToString(transactionTask)}
+                          </Text>
+                        )}
+                        {task.uri.map((taskUri, taskUriIndex) => (
+                          <View
+                            key={taskUriIndex}
+                            style={[flex.flexRow, items.center, gap.default]}>
+                            <View style={[flex.flex1]}>
+                              <Pressable
                                 style={[
                                   flex.flex1,
-                                  font.size[20],
-                                  textColor(COLOR.black[60]),
+                                  flex.flexRow,
+                                  items.center,
+                                  padding.small,
+                                  rounded.default,
+                                  background(COLOR.black[5]),
                                 ]}
-                                numberOfLines={1}>
-                                {taskUri}
-                              </Text>
-                              <OpenIcon size="medium" />
-                            </Pressable>
+                                onPress={() => {
+                                  setActiveUri(taskUri);
+                                }}>
+                                <Text
+                                  className="font-bold"
+                                  style={[
+                                    flex.flex1,
+                                    font.size[20],
+                                    textColor(COLOR.black[60]),
+                                  ]}
+                                  numberOfLines={1}>
+                                  {taskUri}
+                                </Text>
+                                <OpenIcon size="medium" />
+                              </Pressable>
+                            </View>
+                            <AnimatedPressable
+                              scale={0.9}
+                              style={[
+                                padding.small,
+                                rounded.default,
+                                border({
+                                  borderWidth: 1,
+                                  color: COLOR.black[25],
+                                }),
+                              ]}
+                              onPress={() => {
+                                Clipboard.setString(taskUri);
+                                showToast({
+                                  message: 'Link copied to clipboard',
+                                });
+                              }}>
+                              <CopyIcon size="medium" color={COLOR.black[25]} />
+                            </AnimatedPressable>
                           </View>
-                          <AnimatedPressable
-                            scale={0.9}
-                            style={[
-                              padding.small,
-                              rounded.default,
-                              border({
-                                borderWidth: 1,
-                                color: COLOR.black[25],
-                              }),
-                            ]}
-                            onPress={() => {
-                              Clipboard.setString(taskUri);
-                              showToast({
-                                message: 'Link copied to clipboard',
-                              });
-                            }}>
-                            <CopyIcon size="medium" color={COLOR.black[25]} />
-                          </AnimatedPressable>
-                        </View>
-                      ))}
-                    </View>
-                  );
-                })}
+                        ))}
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          ))}
-          {props.content.rejection && (
+            ))}
+          {props.content?.rejection && (
             <View
               style={[
                 flex.flexCol,
@@ -1321,6 +1395,336 @@ export const ContentSubmissionCard = ({
         </View>
       </View>
     </>
+  );
+};
+
+interface EngagementResultSubmissionDetailSectionProps {
+  transaction: Transaction;
+  isCampaignOwner: boolean;
+}
+
+const EngagementResultSubmissionDetailSection = ({
+  ...props
+}: EngagementResultSubmissionDetailSectionProps) => {
+  const sortedEngagements = useMemo(
+    () =>
+      props.transaction.engagements?.sort(
+        (a, b) => b.createdAt - a.createdAt,
+      ) || [],
+    [props.transaction],
+  );
+  return (
+    <>
+      <Seperator />
+      <View style={[flex.flexCol, padding.default, gap.medium]}>
+        <View
+          style={[flex.flexRow, gap.default, items.center, justify.between]}>
+          <View style={[flex.flexCol]}>
+            <Text
+              className="font-semibold"
+              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              {CampaignStep.ResultSubmission}
+            </Text>
+          </View>
+          {TransactionStatus.engagementSubmitted ===
+            props.transaction.status && (
+            <StatusTag status="Review needed" statusType={StatusType.warning} />
+          )}
+          {/* TODO: update status based on transaction status  */}
+        </View>
+        <View style={[flex.flexCol, gap.default, rounded.default]}>
+          {sortedEngagements.slice(0, 1).map((engagement, engagementIndex) => (
+            <EngagementSubmissionCard
+              key={engagementIndex}
+              transaction={props.transaction}
+              engagement={engagement}
+            />
+          ))}
+        </View>
+        {sortedEngagements.length > 1 && (
+          <CollapsiblePanel
+            hiddenText={`Show ${sortedEngagements.length - 1} more`}>
+            {sortedEngagements.slice(1).map((engagement, engagementIndex) => (
+              <EngagementSubmissionCard
+                key={engagementIndex}
+                transaction={props.transaction}
+                engagement={engagement}
+              />
+            ))}
+          </CollapsiblePanel>
+        )}
+      </View>
+    </>
+  );
+};
+
+interface EngagementSubmissionCardProps {
+  transaction: Transaction;
+  engagement: Engagement;
+  hideStatus?: boolean;
+}
+
+export const EngagementSubmissionCard = ({
+  ...props
+}: EngagementSubmissionCardProps) => {
+  const [activePreviewIndex, setActivePreviewIndex] = useState({
+    platformIndex: 0,
+    taskIndex: 0,
+    attachmentIndex: -1,
+  });
+  const [activeUri, setActiveUri] = useState<string>('');
+  return (
+    <>
+      <ImageView
+        images={props.engagement.content[
+          activePreviewIndex.platformIndex
+        ].tasks[activePreviewIndex.taskIndex].attachments.map(attachment => {
+          return {uri: attachment};
+        })}
+        imageIndex={activePreviewIndex.attachmentIndex}
+        visible={activePreviewIndex.attachmentIndex >= 0}
+        onRequestClose={() => {
+          setActivePreviewIndex(prev => ({
+            ...prev,
+            attachmentIndex: -1,
+          }));
+        }}
+      />
+      <ModalWebView
+        url={activeUri}
+        visible={activeUri !== ''}
+        onClose={() => {
+          setActiveUri('');
+        }}
+      />
+      <View
+        style={[
+          flex.flexCol,
+          padding.default,
+          gap.default,
+          rounded.medium,
+          border({
+            borderWidth: 1,
+            color: COLOR.black[20],
+          }),
+        ]}>
+        <View style={[flex.flexRow, justify.between, items.center]}>
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+            {formatDateToDayMonthYearHourMinute(
+              new Date(props.engagement.createdAt),
+            )}
+          </Text>
+          {!props.hideStatus && (
+            <StatusTag
+              status={props.engagement.status}
+              statusType={basicStatusTypeMap[props.engagement.status]}
+            />
+          )}
+        </View>
+        <View style={[flex.flexCol, gap.medium]}>
+          {props.engagement.content.map(
+            (transactionEngagement, platformIndex) => (
+              <View
+                key={transactionEngagement.platform}
+                style={[flex.flexCol, gap.xsmall]}>
+                <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                  <PlatformIcon platform={transactionEngagement.platform} />
+                  <Text
+                    className="font-bold"
+                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    {transactionEngagement.platform}
+                  </Text>
+                </View>
+                <View style={[flex.flexCol, gap.default]}>
+                  {transactionEngagement.tasks.map((task, taskIndex) => {
+                    const transactionTask =
+                      props.transaction.platformTasks?.[platformIndex].tasks[
+                        taskIndex
+                      ];
+                    return (
+                      <View key={taskIndex} style={[flex.flexCol, gap.small]}>
+                        {transactionTask && (
+                          <Text
+                            className="font-medium"
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.med),
+                            ]}>
+                            {campaignTaskToString(transactionTask)}
+                          </Text>
+                        )}
+                        {task.uri.map((taskUri, taskUriIndex) => (
+                          <View
+                            key={taskUriIndex}
+                            style={[flex.flexRow, items.center, gap.default]}>
+                            <View style={[flex.flex1]}>
+                              <Pressable
+                                style={[
+                                  flex.flex1,
+                                  flex.flexRow,
+                                  items.center,
+                                  padding.small,
+                                  rounded.default,
+                                  background(COLOR.black[5]),
+                                ]}
+                                onPress={() => {
+                                  setActiveUri(taskUri);
+                                }}>
+                                <Text
+                                  className="font-bold"
+                                  style={[
+                                    flex.flex1,
+                                    font.size[20],
+                                    textColor(COLOR.black[60]),
+                                  ]}
+                                  numberOfLines={1}>
+                                  {taskUri}
+                                </Text>
+                                <OpenIcon size="medium" />
+                              </Pressable>
+                            </View>
+                            <AnimatedPressable
+                              scale={0.9}
+                              style={[
+                                padding.small,
+                                rounded.default,
+                                border({
+                                  borderWidth: 1,
+                                  color: COLOR.black[25],
+                                }),
+                              ]}
+                              onPress={() => {
+                                Clipboard.setString(taskUri);
+                                showToast({
+                                  message: 'Link copied to clipboard',
+                                });
+                              }}>
+                              <CopyIcon size="medium" color={COLOR.black[25]} />
+                            </AnimatedPressable>
+                          </View>
+                        ))}
+                        <ScrollView
+                          horizontal
+                          contentContainerStyle={[flex.flexRow, gap.small]}>
+                          {task.attachments.map(
+                            (attachment, attachmentIndex) => (
+                              <View key={attachmentIndex} className="relative">
+                                <Pressable
+                                  className="overflow-hidden"
+                                  style={[
+                                    dimension.width.xlarge4,
+                                    {
+                                      aspectRatio: 1 / 1.3,
+                                    },
+                                    rounded.default,
+                                  ]}
+                                  onPress={() => {
+                                    setActivePreviewIndex({
+                                      platformIndex,
+                                      taskIndex,
+                                      attachmentIndex,
+                                    });
+                                  }}>
+                                  <FastImage
+                                    style={[dimension.full]}
+                                    source={{
+                                      uri: attachment,
+                                    }}
+                                  />
+                                </Pressable>
+                              </View>
+                            ),
+                          )}
+                        </ScrollView>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            ),
+          )}
+          {props.engagement.rejection && (
+            <View
+              style={[
+                flex.flexCol,
+                gap.small,
+                padding.default,
+                background(COLOR.red[5]),
+                rounded.default,
+              ]}>
+              <Text
+                className="font-bold"
+                style={[font.size[20], textColor(COLOR.red[60])]}>
+                {props.engagement.rejection.type}
+              </Text>
+              <Text style={[font.size[20], textColor(COLOR.red[60])]}>
+                {props.engagement.rejection.reason}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </>
+  );
+};
+
+interface CollapsiblePanelProps {
+  visibleText?: string;
+  hiddenText?: string;
+  children: ReactNode;
+}
+
+const CollapsiblePanel = ({
+  visibleText = 'Show less',
+  hiddenText = 'Show more',
+  ...props
+}: CollapsiblePanelProps) => {
+  const [isSeeMore, setIsSeeMore] = useState(false);
+  const seeMoreValue = useSharedValue(0);
+  const chevronStyle = useAnimatedStyle(() => {
+    const rotation = interpolate(seeMoreValue.value, [0, 1], [90, -90]);
+    return {
+      transform: [
+        {
+          rotate: `${rotation}deg`,
+        },
+      ],
+    };
+  });
+  useEffect(() => {
+    seeMoreValue.value = withTiming(isSeeMore ? 1 : 0, {
+      duration: 300,
+    });
+  }, [isSeeMore, seeMoreValue]);
+  return (
+    <View style={[flex.flexCol, gap.large]}>
+      <View
+        className="overflow-hidden"
+        style={[
+          !isSeeMore && {
+            maxHeight: 0,
+          },
+          flex.flexCol,
+          gap.medium,
+        ]}>
+        {props.children}
+      </View>
+      <AnimatedPressable
+        style={[flex.flexRow, items.center, justify.center, gap.small]}
+        onPress={() => {
+          setIsSeeMore(!isSeeMore);
+        }}>
+        <Text
+          className="font-semibold"
+          style={[font.size[30], textColor(COLOR.text.green.default)]}>
+          {!isSeeMore ? hiddenText : visibleText}
+        </Text>
+        <Animated.View
+          style={[flex.flexRow, justify.center, items.start, chevronStyle]}>
+          <ChevronRight size="medium" color={COLOR.text.green.default} />
+        </Animated.View>
+      </AnimatedPressable>
+    </View>
   );
 };
 
