@@ -38,6 +38,7 @@ export enum UserStatus {
 
 export interface BankAccountInformation {
   bankName: string;
+  accountHolderName: string;
   accountNumber: string;
 }
 

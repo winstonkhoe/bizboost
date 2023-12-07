@@ -377,7 +377,9 @@ const AboutMeScreen = () => {
             <Pressable
               className="flex flex-row items-center justify-between"
               onPress={() => {
-                navigation.navigate(AuthenticatedNavigation.EditPreferences);
+                navigation.navigate(
+                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                );
               }}>
               <Text
                 className="font-medium"
