@@ -30,7 +30,6 @@ type Props = {
   onProofAccepted?: () => void;
   onProofRejected?: () => void;
   onWithdrawalAccepted?: () => void;
-  onWithdrawalRejected?: () => void;
   paymentStatus?: PaymentStatus;
 };
 

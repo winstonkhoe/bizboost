@@ -225,6 +225,22 @@ const TransactionDetailScreen = ({route}: Props) => {
       });
   };
 
+  const onWithdrawalAccepted = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.withdrawn,
+        },
+      })
+      .then(() => {
+        showToast({
+          message: 'Payment status has been changed to "Withdrawn".',
+          type: ToastType.success,
+        });
+      });
+  };
+
   const onProofRejected = () => {
     transaction
       ?.update({
@@ -674,6 +690,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         onProofAccepted={onProofAccepted}
         onProofRejected={onProofRejected}
         paymentStatus={transaction.payment?.status}
+        onWithdrawalAccepted={onWithdrawalAccepted}
       />
     </>
   );
