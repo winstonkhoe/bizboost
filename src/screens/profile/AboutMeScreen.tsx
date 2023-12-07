@@ -404,7 +404,7 @@ const AboutMeScreen = () => {
             </Pressable>
           </View>
 
-          <View className="mt-8">
+          <View className="mt-9">
             <View
               className="mb-4 flex flex-row items-center w-full"
               style={[gap.small]}>

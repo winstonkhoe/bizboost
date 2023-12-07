@@ -17,7 +17,7 @@ import PhotosIcon from '../../assets/vectors/photos.svg';
 import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useUser} from '../../hooks/user';
-import {UserRole} from '../../model/User';
+import {BankAccountInformation, UserRole} from '../../model/User';
 import {PaymentStatus, paymentStatusTypeMap} from '../../model/Transaction';
 import StatusTag, {StatusType} from '../atoms/StatusTag';
 
@@ -31,6 +31,7 @@ type Props = {
   onProofRejected?: () => void;
   onWithdrawalAccepted?: () => void;
   paymentStatus?: PaymentStatus;
+  contentCreatorBankAccount?: BankAccountInformation;
 };
 
 const PaymentSheetModal = ({
@@ -43,6 +44,7 @@ const PaymentSheetModal = ({
   onProofRejected = undefined,
   onWithdrawalAccepted = undefined,
   paymentStatus,
+  contentCreatorBankAccount = undefined,
 }: Props) => {
   const {activeRole} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
@@ -103,7 +105,11 @@ const PaymentSheetModal = ({
                   {paymentStatus === PaymentStatus.withdrawalRequested &&
                     `Content creator have requested to withdraw their money, you need to pay ${formatToRupiah(
                       amount,
-                    )} to Account Number xxxxxxxxxx [CC bank account]`}
+                    )} to the following bank account: ${
+                      contentCreatorBankAccount?.bankName
+                    } - ${contentCreatorBankAccount?.accountNumber} (${
+                      contentCreatorBankAccount?.accountHolderName
+                    })`}
                 </>
               )}
             </Text>

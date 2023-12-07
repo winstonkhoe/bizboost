@@ -102,7 +102,7 @@ const rules = {
 const TransactionDetailScreen = ({route}: Props) => {
   // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
-  const {uid, activeRole} = useUser();
+  const {uid, user, activeRole} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
@@ -419,7 +419,9 @@ const TransactionDetailScreen = ({route}: Props) => {
                     // TODO: masukin no rek -> keknya dari profile aja? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
                     Alert.alert(
                       'Withdraw',
-                      'You are about to request money withdrawal from Admin, and the money will be sent to the bank account that you use on your Profile! Do you wish to continue?',
+                      user?.bankAccountInformation
+                        ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                        : 'You have not set your payment information yet, do you want to set it now?',
                       [
                         {
                           text: 'Cancel',
@@ -429,7 +431,12 @@ const TransactionDetailScreen = ({route}: Props) => {
                         },
                         {
                           text: 'OK',
-                          onPress: onRequestWithdraw,
+                          onPress: user?.bankAccountInformation
+                            ? onRequestWithdraw
+                            : () =>
+                                navigation.navigate(
+                                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                                ),
                           style: 'default',
                         },
                       ],
@@ -476,7 +483,7 @@ const TransactionDetailScreen = ({route}: Props) => {
                           : COLOR.text.green.default,
                       ),
                     ]}>
-                    {/* TODO: gatau in ibagusnya nampilim chip juga apa message panjang */}
+                    {/* TODO: gatau ini bagusnya nampilin chip juga apa message panjang */}
                     {transaction.payment.status ===
                       PaymentStatus.withdrawalRequested ||
                     transaction.payment.status === PaymentStatus.withdrawn
@@ -709,6 +716,7 @@ const TransactionDetailScreen = ({route}: Props) => {
           onProofRejected={onProofRejected}
           paymentStatus={transaction.payment?.status}
           onWithdrawalAccepted={onWithdrawalAccepted}
+          contentCreatorBankAccount={contentCreator?.bankAccountInformation}
         />
       )}
     </>
