@@ -41,6 +41,7 @@ import {TransactionStatus} from '../model/Transaction';
 import PayCampaignScreen from '../screens/payment/PayCampaignScreen';
 import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
 import RejectTransactionScreen from '../screens/transaction/RejectTransactionScreen';
+import EditBankAccountInformationScreen from '../screens/profile/edit/EditBankAccountInformationScreen';
 import ModalSubmitResult from '../screens/campaign/timeline/ModalSubmitResult';
 import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrainstorm';
 
@@ -75,6 +76,7 @@ export enum AuthenticatedNavigation {
   EditMaxContentRevision = 'Edit Max Content Revision',
   EditPostingSchedule = 'Edit Posting Schedule',
   EditPreferences = 'Edit Preferences',
+  EditBankAccountInformationScreen = 'Edit Bank Account Information',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -129,6 +131,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
   [AuthenticatedNavigation.EditPostingSchedule]: undefined;
   [AuthenticatedNavigation.EditPreferences]: undefined;
+  [AuthenticatedNavigation.EditBankAccountInformationScreen]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
@@ -332,6 +335,12 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.EditPreferences}
                   component={EditPreferencesScreen}
+                />
+                <Stack.Screen
+                  name={
+                    AuthenticatedNavigation.EditBankAccountInformationScreen
+                  }
+                  component={EditBankAccountInformationScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}

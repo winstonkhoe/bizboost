@@ -48,7 +48,7 @@ const UserDetailScreen = ({route}: Props) => {
     user.updateUserData();
   };
   return (
-    <PageWithBackButton>
+    <PageWithBackButton enableSafeAreaContainer>
       <ScrollView
         contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}>

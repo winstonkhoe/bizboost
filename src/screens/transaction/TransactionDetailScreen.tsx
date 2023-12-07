@@ -5,7 +5,13 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../../navigation/StackNavigation';
-import {Pressable, StyleSheet, Text, useWindowDimensions} from 'react-native';
+import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+} from 'react-native';
 import {View} from 'react-native';
 import {Campaign, CampaignStep} from '../../model/Campaign';
 import {
@@ -19,6 +25,7 @@ import {
   Brainstorm,
   BrainstormContent,
   Content,
+  PaymentStatus,
   Engagement,
   Transaction,
   TransactionStatus,
@@ -30,8 +37,8 @@ import {PageWithBackButton} from '../../components/templates/PageWithBackButton'
 
 import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
-import {useNavigation} from '@react-navigation/native';
-import {SocialPlatform, User} from '../../model/User';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {SocialPlatform, User, UserRole} from '../../model/User';
 import {flex, items, justify} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
@@ -55,6 +62,10 @@ import {
   OpenIcon,
   PlatformIcon,
 } from '../../components/atoms/Icon';
+import WarningIcon from '../../assets/vectors/warning-circle.svg';
+import CheckmarkIcon from '../../assets/vectors/checkmark-circle.svg';
+import CrossIcon from '../../assets/vectors/cross-circle.svg';
+
 import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {CustomModal} from '../../components/atoms/CustomModal';
 import {SheetModal} from '../../containers/SheetModal';
@@ -78,6 +89,7 @@ import {Seperator} from '../../components/atoms/Separator';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
+import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import ImageView from 'react-native-image-viewing';
 
@@ -94,8 +106,9 @@ const rules = {
 };
 
 const TransactionDetailScreen = ({route}: Props) => {
+  // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
-  const {uid} = useUser();
+  const {uid, user, activeRole} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
@@ -174,6 +187,70 @@ const TransactionDetailScreen = ({route}: Props) => {
   const closeOthersSheetModal = () => {
     setIsOthersSheetModalOpen(false);
   };
+  const onRequestWithdraw = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.withdrawalRequested,
+        },
+      })
+      .then(() => {
+        showToast({
+          message:
+            'Withdrawal Requested! You will receive your money in no later than 7 x 24 hours.',
+          type: ToastType.success,
+        });
+      });
+  };
+  const onProofAccepted = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.proofApproved,
+        },
+      })
+      .then(() => {
+        transaction?.approveRegistration();
+        showToast({
+          message: 'Payment Approved! Registration Status has changed.',
+          type: ToastType.success,
+        });
+      });
+  };
+
+  const onWithdrawalAccepted = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.withdrawn,
+        },
+      })
+      .then(() => {
+        showToast({
+          message: 'Payment status has been changed to "Withdrawn".',
+          type: ToastType.success,
+        });
+      });
+  };
+
+  const onProofRejected = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.proofRejected,
+        },
+      })
+      .then(() => {
+        showToast({
+          message: 'Payment Rejected!',
+          type: ToastType.danger,
+        });
+      });
+  };
 
   const currentActiveTimeline = useMemo(() => {
     const now = new Date().getTime();
@@ -182,6 +259,28 @@ const TransactionDetailScreen = ({route}: Props) => {
     );
   }, [campaign]);
 
+  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
+
+  // TODO: duplicate with RegisteredUserListCard
+  const onProofUploaded = (url: string) => {
+    if (!transaction) return;
+    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
+    transaction
+      .update({
+        payment: {
+          proofImage: url,
+          status: PaymentStatus.proofWaitingForVerification,
+        },
+      })
+      .then(() => {
+        console.log('updated proof!');
+        showToast({
+          message:
+            'Registration Approved! Your payment is being reviewed by our Admin',
+          type: ToastType.success,
+        });
+      });
+  };
   if (transaction === undefined || !campaign) {
     return <LoadingScreen />;
   }
@@ -246,11 +345,143 @@ const TransactionDetailScreen = ({route}: Props) => {
                 </Pressable>
               </View>
             )}
-            {/* <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-              {transaction.status}
-            </Text> */}
+
+            {transaction.payment && activeRole !== UserRole.ContentCreator && (
+              <>
+                <View style={[styles.bottomBorder]} />
+
+                <Pressable
+                  onPress={() => setIsPaymentModalOpened(true)}
+                  style={[flex.flexRow, justify.between, items.center]}>
+                  <View style={[flex.flexRow, items.center, gap.default]}>
+                    <Text
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.med),
+                      ]}>
+                      Payment
+                    </Text>
+                    {transaction.payment.status ===
+                    PaymentStatus.proofRejected ? (
+                      <CrossIcon width={14} height={14} fill={COLOR.red[50]} />
+                    ) : transaction.payment.status ===
+                        PaymentStatus.proofWaitingForVerification ||
+                      // Tujuannya supaya tanda warning kl withdrawal requested tu dari admin aja sih keliatannya
+                      (transaction.payment.status ===
+                        PaymentStatus.withdrawalRequested &&
+                        activeRole === UserRole.Admin) ? (
+                      <WarningIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.yellow[20]}
+                      />
+                    ) : transaction.payment.status ===
+                        PaymentStatus.proofApproved ||
+                      transaction.payment.status === PaymentStatus.withdrawn ||
+                      activeRole === UserRole.BusinessPeople ? (
+                      <CheckmarkIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.green[40]}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      font.size[30],
+                      textColor(COLOR.text.green.default),
+                    ]}>
+                    {activeRole !== UserRole.Admin ? 'View Proof' : 'Manage'}
+                  </Text>
+                </Pressable>
+              </>
+            )}
+            {/* TODO: jadi satu deh ama yg atas abis ini */}
+            {transaction.payment && activeRole === UserRole.ContentCreator && (
+              <>
+                <View style={[styles.bottomBorder]} />
+
+                <Pressable
+                  onPress={() => {
+                    // TODO: masukin no rek -> keknya dari profile aja? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
+                    Alert.alert(
+                      'Withdraw',
+                      user?.bankAccountInformation
+                        ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                        : 'You have not set your payment information yet, do you want to set it now?',
+                      [
+                        {
+                          text: 'Cancel',
+                          onPress: () =>
+                            console.log('Cancel Withdrawal Pressed'),
+                          style: 'cancel',
+                        },
+                        {
+                          text: 'OK',
+                          onPress: user?.bankAccountInformation
+                            ? onRequestWithdraw
+                            : () =>
+                                navigation.navigate(
+                                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                                ),
+                          style: 'default',
+                        },
+                      ],
+                    );
+                  }}
+                  disabled={
+                    transaction.status !== TransactionStatus.completed ||
+                    transaction.payment.status !== PaymentStatus.proofApproved
+                  }
+                  style={[flex.flexRow, justify.between, items.center]}>
+                  <View style={[flex.flexRow, items.center, gap.default]}>
+                    <Text
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.med),
+                      ]}>
+                      Payment
+                    </Text>
+                    {transaction.payment.status === PaymentStatus.withdrawn ? (
+                      <CheckmarkIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.green[40]}
+                      />
+                    ) : transaction.payment.status ===
+                      PaymentStatus.withdrawalRequested ? (
+                      <WarningIcon
+                        width={14}
+                        height={14}
+                        fill={COLOR.yellow[20]}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      font.size[30],
+                      textColor(
+                        transaction.status !== TransactionStatus.completed ||
+                          transaction.payment.status !==
+                            PaymentStatus.proofApproved
+                          ? COLOR.text.neutral.disabled
+                          : COLOR.text.green.default,
+                      ),
+                    ]}>
+                    {/* TODO: gatau ini bagusnya nampilin chip juga apa message panjang */}
+                    {transaction.payment.status ===
+                      PaymentStatus.withdrawalRequested ||
+                    transaction.payment.status === PaymentStatus.withdrawn
+                      ? transaction.payment.status
+                      : 'Withdraw'}
+                  </Text>
+                </Pressable>
+              </>
+            )}
             {transaction.createdAt && (
               <>
                 <View style={[styles.bottomBorder]} />
@@ -268,6 +499,8 @@ const TransactionDetailScreen = ({route}: Props) => {
                 </View>
               </>
             )}
+
+            {/* <View style={[styles.bottomBorder]} /> */}
           </View>
           {!isCampaignOwner && (
             <CampaignDetailSection
@@ -456,6 +689,21 @@ const TransactionDetailScreen = ({route}: Props) => {
           </View>
         </View>
       </CustomModal>
+
+      {isPaymentModalOpened && (
+        <PaymentSheetModal
+          isModalOpened={isPaymentModalOpened}
+          onModalDismiss={() => setIsPaymentModalOpened(false)}
+          amount={campaign?.fee || -1}
+          onProofUploaded={onProofUploaded}
+          defaultImage={transaction.payment?.proofImage}
+          onProofAccepted={onProofAccepted}
+          onProofRejected={onProofRejected}
+          paymentStatus={transaction.payment?.status}
+          onWithdrawalAccepted={onWithdrawalAccepted}
+          contentCreatorBankAccount={contentCreator?.bankAccountInformation}
+        />
+      )}
     </>
   );
 };

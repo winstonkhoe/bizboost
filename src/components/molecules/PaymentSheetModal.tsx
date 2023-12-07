@@ -16,6 +16,10 @@ import FastImage from 'react-native-fast-image';
 import PhotosIcon from '../../assets/vectors/photos.svg';
 import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import {useUser} from '../../hooks/user';
+import {BankAccountInformation, UserRole} from '../../model/User';
+import {PaymentStatus, paymentStatusTypeMap} from '../../model/Transaction';
+import StatusTag, {StatusType} from '../atoms/StatusTag';
 
 type Props = {
   isModalOpened: boolean;
@@ -23,6 +27,11 @@ type Props = {
   amount: number;
   onProofUploaded: (url: string) => void;
   defaultImage?: string;
+  onProofAccepted?: () => void;
+  onProofRejected?: () => void;
+  onWithdrawalAccepted?: () => void;
+  paymentStatus?: PaymentStatus;
+  contentCreatorBankAccount?: BankAccountInformation;
 };
 
 const PaymentSheetModal = ({
@@ -31,7 +40,13 @@ const PaymentSheetModal = ({
   amount,
   onProofUploaded,
   defaultImage = undefined,
+  onProofAccepted = undefined,
+  onProofRejected = undefined,
+  onWithdrawalAccepted = undefined,
+  paymentStatus,
+  contentCreatorBankAccount = undefined,
 }: Props) => {
+  const {activeRole} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
 
@@ -51,17 +66,52 @@ const PaymentSheetModal = ({
             gap.default,
             padding.top.default,
             padding.bottom.xlarge,
-            padding.horizontal.default,
+            padding.horizontal.medium,
           ]}>
           <View style={[flex.flexCol, items.center, gap.default]}>
-            <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-              Upload Payment Proof
-            </Text>
+            <View
+              style={[flex.flexRow, items.center, justify.between]}
+              className="w-full">
+              <Text
+                className="font-bold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                Payment Proof
+              </Text>
+              <StatusTag
+                status={paymentStatus || 'Not Uploaded'}
+                statusType={
+                  paymentStatus
+                    ? paymentStatusTypeMap[paymentStatus]
+                    : StatusType.terminated
+                }
+              />
+            </View>
             <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-              You need to pay {formatToRupiah(amount)} to Account Number
-              xxxxxxxxxx by [End Date regis]
+              {/* TODO: fix copywriting */}
+              {/* TODO: taro bank account admin */}
+              {activeRole === UserRole.BusinessPeople &&
+                `You need to pay ${formatToRupiah(
+                  amount,
+                )} to Account Number xxxxxxxxxx [admin bank account] by [End Date regis]. Upload your payment proof here.`}
+
+              {activeRole === UserRole.Admin && (
+                <>
+                  {paymentStatus ===
+                    PaymentStatus.proofWaitingForVerification &&
+                    `Business People have paid ${formatToRupiah(
+                      amount,
+                    )}, please verify the payment.`}
+                  {/* TODO: taro bank account CC */}
+                  {paymentStatus === PaymentStatus.withdrawalRequested &&
+                    `Content creator have requested to withdraw their money, you need to pay ${formatToRupiah(
+                      amount,
+                    )} to the following bank account: ${
+                      contentCreatorBankAccount?.bankName
+                    } - ${contentCreatorBankAccount?.accountNumber} (${
+                      contentCreatorBankAccount?.accountHolderName
+                    })`}
+                </>
+              )}
             </Text>
           </View>
 
@@ -70,7 +120,7 @@ const PaymentSheetModal = ({
               <TouchableOpacity onPress={() => setIsImageViewOpened(true)}>
                 <View
                   className="overflow-hidden"
-                  style={[dimension.square.xlarge12, rounded.medium]}>
+                  style={[dimension.square.xlarge15, rounded.medium]}>
                   <FastImage
                     style={[dimension.full]}
                     source={{uri: uploadedImage}}
@@ -78,43 +128,87 @@ const PaymentSheetModal = ({
                 </View>
               </TouchableOpacity>
             )}
-            <MediaUploader
-              targetFolder="payment"
-              showUploadProgress
-              options={{
-                //   width: 400,
-                //   height: 400,
-                compressImageQuality: 0.5,
-                //   cropping: true,
-              }}
-              onUploadSuccess={url => {
-                setUploadedImage(url);
-                onProofUploaded(url);
-              }}
-              onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-              {uploadedImage ? (
-                <Text
-                  style={[
-                    padding.top.default,
-                    textColor(COLOR.text.green.default),
-                    font.size[30],
-                  ]}>
-                  Reupload
-                </Text>
-              ) : (
-                <View
-                  className="border-dashed border"
-                  style={[
-                    dimension.square.xlarge12,
-                    rounded.medium,
-                    flex.flexRow,
-                    justify.center,
-                    items.center,
-                  ]}>
-                  <PhotosIcon width={30} height={30} />
-                </View>
-              )}
-            </MediaUploader>
+            {activeRole === UserRole.BusinessPeople &&
+            (paymentStatus === PaymentStatus.proofWaitingForVerification ||
+              paymentStatus === PaymentStatus.proofRejected ||
+              paymentStatus === undefined) ? (
+              <MediaUploader
+                targetFolder="payment"
+                showUploadProgress
+                options={{
+                  //   width: 400,
+                  //   height: 400,
+                  compressImageQuality: 0.5,
+                  //   cropping: true,
+                }}
+                onUploadSuccess={url => {
+                  setUploadedImage(url);
+                  onProofUploaded(url);
+                }}
+                onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
+                {uploadedImage ? (
+                  <Text
+                    style={[
+                      padding.top.default,
+                      textColor(COLOR.text.green.default),
+                      font.size[30],
+                    ]}>
+                    Reupload
+                  </Text>
+                ) : (
+                  <View
+                    className="border-dashed border"
+                    style={[
+                      dimension.square.xlarge12,
+                      rounded.medium,
+                      flex.flexRow,
+                      justify.center,
+                      items.center,
+                    ]}>
+                    <PhotosIcon width={30} height={30} />
+                  </View>
+                )}
+              </MediaUploader>
+            ) : (
+              <View style={[flex.flexRow, gap.default, padding.top.default]}>
+                {paymentStatus ===
+                  PaymentStatus.proofWaitingForVerification && (
+                  <>
+                    <View style={[flex.flex1]}>
+                      <CustomButton
+                        text="Reject"
+                        scale={1}
+                        onPress={onProofRejected}
+                        customTextSize={font.size[20]}
+                        type="alternate"
+                      />
+                    </View>
+                    {/* {paymentStatus === */}
+                    {/* PaymentStatus.proofWaitingForVerification && ( */}
+                    <View style={[flex.flex1]}>
+                      <CustomButton
+                        text="Accept"
+                        scale={1}
+                        onPress={onProofAccepted}
+                        customTextSize={font.size[20]}
+                      />
+                    </View>
+                    {/* )} */}
+                  </>
+                )}
+                {paymentStatus === PaymentStatus.withdrawalRequested &&
+                  activeRole === UserRole.Admin && (
+                    <View style={[flex.flex1]}>
+                      <CustomButton
+                        text="I Have Paid This User"
+                        scale={1}
+                        onPress={onWithdrawalAccepted}
+                        customTextSize={font.size[20]}
+                      />
+                    </View>
+                  )}
+              </View>
+            )}
           </View>
         </View>
       </SheetModal>

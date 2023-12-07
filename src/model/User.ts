@@ -36,6 +36,12 @@ export enum UserStatus {
   Suspended = 'Suspended',
 }
 
+export interface BankAccountInformation {
+  bankName: string;
+  accountHolderName: string;
+  accountNumber: string;
+}
+
 export interface ContentCreatorPreference {
   contentRevisionLimit?: number;
   postingSchedules: number[];
@@ -89,6 +95,7 @@ export class User extends BaseModel {
   joinedAt?: number;
   isAdmin?: boolean;
   status?: UserStatus;
+  bankAccountInformation?: BankAccountInformation;
 
   constructor({
     id,
@@ -102,6 +109,7 @@ export class User extends BaseModel {
     status,
     instagram,
     tiktok,
+    bankAccountInformation,
   }: Partial<User>) {
     super();
     this.id = id;
@@ -115,6 +123,7 @@ export class User extends BaseModel {
     this.status = status;
     this.instagram = instagram;
     this.tiktok = tiktok;
+    this.bankAccountInformation = bankAccountInformation;
     // Add your non-static methods here
   }
 
@@ -148,6 +157,7 @@ export class User extends BaseModel {
         joinedAt: data?.joinedAt,
         isAdmin: data?.isAdmin,
         status: data?.status || UserStatus.Active,
+        bankAccountInformation: data.bankAccountInformation,
       });
     }
 

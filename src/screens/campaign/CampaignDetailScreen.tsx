@@ -20,7 +20,7 @@ import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
-import {User, UserRole} from '../../model/User';
+import {User} from '../../model/User';
 import {flex} from '../../styles/Flex';
 import {horizontalPadding, verticalPadding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
@@ -31,7 +31,6 @@ import {LoadingScreen} from '../LoadingScreen';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import {dimension} from '../../styles/Dimension';
-import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {ChevronRight} from '../../components/atoms/Icon';
@@ -42,8 +41,7 @@ type Props = NativeStackScreenProps<
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {uid, activeRole} = useUser();
-  const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
+  const {uid} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
@@ -127,15 +125,6 @@ const CampaignDetailScreen = ({route}: Props) => {
           setIsLoading(false);
         });
     }
-  };
-
-  const onProofUploaded = (url: string) => {
-    console.log('url: ' + url);
-    const copy = new Campaign({...campaign});
-    copy.paymentProofImage = url;
-    copy.update().then(() => {
-      console.log('updated proof!');
-    });
   };
 
   if (!campaign || businessPeople === undefined) {
@@ -359,7 +348,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               </View>
             )}
 
-            {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
+            {/* {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
               <View className="pb-2">
                 <CustomButton
                   customBackgroundColor={
@@ -394,17 +383,10 @@ const CampaignDetailScreen = ({route}: Props) => {
                   onPress={() => setIsPaymentModalOpened(true)}
                 />
               </View>
-            )}
+            )} */}
           </View>
         </View>
       </PageWithBackButton>
-      <PaymentSheetModal
-        isModalOpened={isPaymentModalOpened}
-        onModalDismiss={() => setIsPaymentModalOpened(false)}
-        amount={(campaign.fee || 0) * (campaign.slot || 0)}
-        onProofUploaded={onProofUploaded}
-        defaultImage={campaign.paymentProofImage}
-      />
     </>
   );
 };
