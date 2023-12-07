@@ -663,7 +663,7 @@ export class Transaction extends BaseModel {
           )
         : 0;
       const isTerminated =
-        now.getTime() > campaign?.getTimelineEnd().end ||
+        now.getTime() > campaign?.getTimelineEnd()?.end ||
         transactionStatusIndexMap[status || TransactionStatus.notRegistered] <
           campaignIndexMap[activeStep] - indexOffset;
 
