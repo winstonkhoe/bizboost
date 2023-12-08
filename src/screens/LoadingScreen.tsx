@@ -13,7 +13,7 @@ import {COLOR} from '../styles/Color';
 import {padding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
 import {LoadingSpinner} from '../components/atoms/LoadingSpinner';
-import { zIndex } from '../styles/zIndex';
+import {zIndex} from '../styles/zIndex';
 
 interface LoadingScreenProps extends ModalProps {
   type?: 'default' | 'modal';
