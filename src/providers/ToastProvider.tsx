@@ -20,6 +20,7 @@ import {textColor} from '../styles/Text';
 import {font} from '../styles/Font';
 import {useEffect, useState} from 'react';
 import {ShowToastProps} from '../helpers/toast';
+import { zIndex } from '../styles/zIndex';
 
 export enum ToastType {
   danger = 'danger',
@@ -115,7 +116,7 @@ const ToastProvider = () => {
         dimension.width.full,
         padding.horizontal.default,
         {
-          zIndex: 1000,
+          zIndex: zIndex.toast,
           position: 'absolute',
         },
       ]}>
