@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {ReactNode, useEffect, useMemo, useState} from 'react';
+import React, {ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -10,6 +10,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
 import {View} from 'react-native';
@@ -58,9 +59,11 @@ import {PlatformData} from '../signup/RegisterSocialPlatform';
 import {
   ChevronRight,
   CopyIcon,
+  KebabMenuIcon,
   MeatballMenuIcon,
   OpenIcon,
   PlatformIcon,
+  ReportIcon,
 } from '../../components/atoms/Icon';
 import WarningIcon from '../../assets/vectors/warning-circle.svg';
 import CheckmarkIcon from '../../assets/vectors/checkmark-circle.svg';
@@ -72,7 +75,10 @@ import {SheetModal} from '../../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
 import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
-import {FormlessCustomTextInput} from '../../components/atoms/Input';
+import {
+  CustomTextInput,
+  FormlessCustomTextInput,
+} from '../../components/atoms/Input';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
 import {formatToRupiah} from '../../utils/currency';
@@ -93,6 +99,8 @@ import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import ImageView from 'react-native-image-viewing';
 import {CustomAlert} from '../../components/molecules/CustomAlert';
+import {ReportType, reportTypeLabelMap} from '../../model/Report';
+import PagerView from 'react-native-pager-view';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -116,6 +124,12 @@ const TransactionDetailScreen = ({route}: Props) => {
   const {transactionId} = route.params;
   const [isOthersSheetModalOpen, setIsOthersSheetModalOpen] =
     useState<boolean>(false);
+  const [reportIndex, setReportIndex] = useState(0);
+  const [isReportSheetModalOpen, setIsReportSheetModalOpen] =
+    useState<boolean>(false);
+  const reportViewPagerRef = useRef<PagerView>(null);
+  const [reportDescription, setReportDescription] = useState<string>('');
+  const [selectedReportType, setSelectedReportType] = useState<ReportType>();
   const [rejectReason, setRejectReason] = useState<string>('');
   const [campaign, setCampaign] = useState<Campaign>();
   const [transaction, setTransaction] = useState<Transaction | null>();
@@ -267,6 +281,12 @@ const TransactionDetailScreen = ({route}: Props) => {
         });
       });
   };
+
+  const selectReportType = (reportType: ReportType) => {
+    setSelectedReportType(reportType);
+    reportViewPagerRef.current?.setPage(1);
+  };
+
   if (transaction === undefined || !campaign) {
     return <LoadingScreen />;
   }
@@ -289,7 +309,31 @@ const TransactionDetailScreen = ({route}: Props) => {
         fullHeight
         threshold={0}
         withoutScrollView
-        backButtonPlaceholder={<BackButtonLabel text="Transaction Detail" />}>
+        backButtonPlaceholder={
+          <View
+            style={[flex.flex1, flex.flexRow, justify.between, items.center]}>
+            <BackButtonLabel text="Transaction Detail" />
+            <TouchableOpacity
+              style={[
+                flex.flexRow,
+                gap.small,
+                padding.small,
+                rounded.default,
+                items.center,
+                background(COLOR.red[50]),
+              ]}
+              onPress={() => {
+                setIsReportSheetModalOpen(true);
+              }}>
+              <ReportIcon color={COLOR.black[0]} size="medium" />
+              <Text
+                className="font-bold"
+                style={[font.size[20], textColor(COLOR.black[0])]}>
+                Report
+              </Text>
+            </TouchableOpacity>
+          </View>
+        }>
         <ScrollView
           bounces={true}
           showsVerticalScrollIndicator={false}
@@ -590,7 +634,10 @@ const TransactionDetailScreen = ({route}: Props) => {
             <AnimatedPressable
               scale={1}
               style={[padding.vertical.default]}
-              onPress={() => {}}>
+              onPress={() => {
+                closeOthersSheetModal();
+                setIsReportSheetModalOpen(true);
+              }}>
               <Text
                 className="font-bold"
                 style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
@@ -619,6 +666,145 @@ const TransactionDetailScreen = ({route}: Props) => {
               </Text>
             </AnimatedPressable>
           </View>
+        </BottomSheetModalWithTitle>
+      </SheetModal>
+      <SheetModal
+        open={isReportSheetModalOpen}
+        onDismiss={() => {
+          setIsReportSheetModalOpen(false);
+        }}
+        fullHeight
+        disablePanDownToClose={true}
+        enableHandlePanningGesture={false}
+        enableOverDrag={false}
+        overDragResistanceFactor={0}
+        snapPoints={['50%']}
+        enableDynamicSizing={false}>
+        <BottomSheetModalWithTitle
+          title={'Report'}
+          type="modal"
+          icon={reportIndex > 0 ? 'back' : 'close'}
+          fullHeight
+          onPress={() => {
+            if (reportIndex === 0) {
+              setIsReportSheetModalOpen(false);
+              return;
+            }
+            reportViewPagerRef.current?.setPage(0);
+          }}>
+          <PagerView
+            ref={reportViewPagerRef}
+            initialPage={0}
+            style={[
+              flex.flex1,
+              {
+                marginHorizontal: -size.large,
+              },
+            ]}
+            onPageSelected={e => {
+              setReportIndex(e.nativeEvent.position);
+            }}>
+            <View key={0} style={[flex.grow, flex.flexCol, gap.xsmall2]}>
+              {Object.values(ReportType).map((reportType, reportTypeIndex) => (
+                <View style={[flex.flexCol]}>
+                  {reportTypeIndex > 0 && (
+                    <View style={[styles.bottomBorder]} />
+                  )}
+                  <AnimatedPressable
+                    key={reportType}
+                    scale={1}
+                    style={[
+                      flex.flexRow,
+                      justify.between,
+                      items.center,
+                      padding.default,
+                    ]}
+                    onPress={() => {
+                      selectReportType(reportType);
+                    }}>
+                    <Text
+                      className="font-medium"
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {reportType}
+                    </Text>
+                    <ChevronRight strokeWidth={1} size="medium" />
+                  </AnimatedPressable>
+                </View>
+              ))}
+            </View>
+            <View
+              key={1}
+              style={[
+                flex.grow,
+                flex.flexCol,
+                gap.medium,
+                padding.horizontal.default,
+              ]}>
+              {selectedReportType && (
+                <View style={[flex.flexCol, gap.small]}>
+                  <Text
+                    className="font-bold"
+                    style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                    {`${selectedReportType} guidelines`}
+                  </Text>
+                  <Text
+                    className="font-medium"
+                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    {`We define ${selectedReportType.toLocaleLowerCase()} for things like:`}
+                  </Text>
+                  <Text
+                    style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                    {reportTypeLabelMap[selectedReportType]}
+                  </Text>
+                </View>
+              )}
+              <View style={[flex.flex1, flex.flexCol, gap.small]}>
+                <FormFieldHelper
+                  title="Describe your report"
+                  type={
+                    selectedReportType === ReportType.other
+                      ? 'required'
+                      : 'optional'
+                  }
+                  titleSize={30}
+                />
+                <BottomSheetScrollView style={[flex.flex1, flex.flexCol]}>
+                  <FormlessCustomTextInput
+                    type="textarea"
+                    rules={
+                      selectedReportType === ReportType.other
+                        ? {
+                            required: 'Report description is required',
+                          }
+                        : undefined
+                    }
+                    counter
+                    description="Min. 30 character, Max. 1000 character"
+                    placeholder="Describe your report here"
+                    max={1000}
+                    onChange={setReportDescription}
+                  />
+                </BottomSheetScrollView>
+              </View>
+              <CustomButton
+                text="Submit"
+                disabled={
+                  selectedReportType === ReportType.other &&
+                  reportDescription.length < 30
+                }
+                onPress={() => {
+                  setIsReportSheetModalOpen(false);
+                  showToast({
+                    message: 'Report submitted!',
+                    type: ToastType.success,
+                  });
+                }}
+              />
+            </View>
+          </PagerView>
         </BottomSheetModalWithTitle>
       </SheetModal>
 

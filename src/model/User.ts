@@ -606,6 +606,16 @@ export class User extends BaseModel {
     }
   }
 
+  async suspend() {
+    this.status = UserStatus.Suspended;
+    await this.updateUserData();
+  }
+
+  async activate() {
+    this.status = UserStatus.Active;
+    await this.updateUserData();
+  }
+
   static async signOut() {
     await auth().signOut();
   }

@@ -7,11 +7,13 @@ import {font} from '../../styles/Font';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {ReactNode} from 'react';
-import {AnimatedPressableProps} from '../atoms/AnimatedPressable';
-import {BackButtonPlaceholder} from '../molecules/BackButtonPlaceholder';
+import {
+  BackButtonPlaceholder,
+  BackButtonPlaceholderProps,
+} from '../molecules/BackButtonPlaceholder';
 
 interface BottomSheetModalWithTitleProps
-  extends Partial<AnimatedPressableProps> {
+  extends Partial<BackButtonPlaceholderProps> {
   title: string;
   children?: ReactNode;
   type?: 'default' | 'modal';
@@ -23,6 +25,7 @@ export const BottomSheetModalWithTitle = ({
   children,
   type = 'default',
   fullHeight = false,
+  icon = 'close',
   ...props
 }: BottomSheetModalWithTitleProps) => {
   return (
@@ -38,7 +41,7 @@ export const BottomSheetModalWithTitle = ({
           ]}>
           <View>
             {type === 'modal' && (
-              <BackButtonPlaceholder icon="close" {...props} />
+              <BackButtonPlaceholder {...props} icon={icon} />
             )}
           </View>
           <Text

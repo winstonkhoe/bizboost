@@ -34,13 +34,13 @@ type ReportTypeLabelMap = {
 
 export const reportTypeLabelMap: ReportTypeLabelMap = {
   [ReportType.cheating]:
-    'Report this when you suspect a user is not following the rules or is being dishonest.',
+    '· You suspect a user is not following the rules or is being dishonest.',
   [ReportType.unfairRejection]:
-    'Use this when you believe your content has been rejected without a valid reason.',
+    '· You believe your content has been rejected without a valid reason',
   [ReportType.harassment]:
     'Choose this if you are experiencing threatening, abusive, or persistently annoying behavior from a user.',
   [ReportType.fraud]:
-    'Select this if you encounter deceptive practices, such as providing false information or impersonating another user.',
+    '· Encounter deceptive practices\n· Providing false information\n· Impersonating another user.',
   [ReportType.other]:
     'If none of the above categories apply, use this option and provide a detailed description of the issue.',
 };
@@ -324,6 +324,44 @@ export class Report extends BaseModel {
               await this.resolveReport(ActionTaken.approveTransaction, reason);
               unsubscribe();
               resolve();
+            }
+          },
+        );
+      } catch (error) {
+        console.log(error);
+        reject(Error('Report.approveTransaction err!'));
+      }
+    });
+  }
+
+  async suspendUser(reason?: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        const {transactionId} = this;
+        if (!transactionId) {
+          throw Error('Missing transaction identifier');
+        }
+        const unsubscribe = Transaction.getById(
+          transactionId,
+          async transaction => {
+            if (transaction) {
+              let targetSuspendUserId;
+              if (this.reporterId === transaction.businessPeopleId) {
+                targetSuspendUserId = transaction.contentCreatorId;
+              } else {
+                targetSuspendUserId = transaction.businessPeopleId;
+              }
+              unsubscribe();
+              if (targetSuspendUserId) {
+                const user = await User.getById(targetSuspendUserId);
+                if (user) {
+                  await user.suspend();
+                  await this.resolveReport(ActionTaken.suspendUser, reason);
+                  resolve();
+                  return;
+                }
+              }
+              reject(Error('Missing targer suspend user id'));
             }
           },
         );
