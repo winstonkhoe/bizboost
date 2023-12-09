@@ -248,7 +248,7 @@ export const BaseCard = ({
               font.size[20],
             ]}
             numberOfLines={1}
-            className="w-2/3">
+            className="w-11/12">
             {headerTextLeading}
           </Text>
         </View>

@@ -25,9 +25,13 @@ const UserListCard = ({user}: Props) => {
 
   return (
     <BaseCard
-      headerTextLeading={`${user.contentCreator && 'Content Creator'}
-    ${user.contentCreator && user.businessPeople ? '·' : ''}
-    ${user.businessPeople && 'Business People'}`}
+      headerTextLeading={
+        user.isAdmin
+          ? 'Admin'
+          : `${user.contentCreator && 'Content Creator'}${
+              user.contentCreator && user.businessPeople ? ' · ' : ''
+            }${user.businessPeople && 'Business People'}`
+      }
       handleClickBody={() => {
         navigation.navigate(AuthenticatedNavigation.UserDetail, {
           userId: user.id || '',
