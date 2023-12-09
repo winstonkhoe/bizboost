@@ -275,15 +275,15 @@ const HomeScreen = () => {
               />
               <View style={[flex.flexCol, gap.medium]} className="mt-4">
                 {users.slice(0, userLimit).map((u, index) => (
-                  <Pressable
-                    key={index}
-                    onPress={() => {
-                      navigation.navigate(AuthenticatedNavigation.UserDetail, {
-                        userId: u.id || '',
-                      });
-                    }}>
-                    <UserListCard user={u} />
-                  </Pressable>
+                  // <Pressable
+                  //   key={index}
+                  //   onPress={() => {
+                  //     navigation.navigate(AuthenticatedNavigation.UserDetail, {
+                  //       userId: u.id || '',
+                  //     });
+                  //   }}>
+                  <UserListCard user={u} key={index} />
+                  // </Pressable>
                 ))}
               </View>
             </View>

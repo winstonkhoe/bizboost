@@ -22,7 +22,7 @@ import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import Private from '../../assets/vectors/private.svg';
 import Public from '../../assets/vectors/public.svg';
 import Business from '../../assets/vectors/business.svg';
-import StatusTag from '../atoms/StatusTag';
+import StatusTag, {StatusType} from '../atoms/StatusTag';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -108,6 +108,11 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         }
         bodyText={contentCreator?.contentCreator?.fullname || ''}
         statusText={transaction.status}
+        statusType={
+          transactionStatusTypeMap[
+            transaction.status || TransactionStatus.terminated
+          ]
+        }
         doesNeedApproval={
           transaction.status === TransactionStatus.registrationPending &&
           transaction.payment === undefined
@@ -183,25 +188,31 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       }
       bodyText={campaign?.title || ''}
       statusText={transaction.status}
+      statusType={
+        transactionStatusTypeMap[
+          transaction.status || TransactionStatus.terminated
+        ]
+      }
     />
   );
 };
 
 // MARK: kalo mau edit base card dari sini
 type BaseCardProps = {
-  handleClickHeader: () => void;
+  handleClickHeader?: () => void;
   icon?: ReactNode;
   headerTextLeading: string;
-  headerTextTrailing: string;
+  headerTextTrailing?: string;
   handleClickBody: () => void;
   imageSource: Source | ImageRequireSource;
   bodyText: string;
-  statusText?: TransactionStatus;
+  statusText?: string;
+  statusType?: StatusType;
   doesNeedApproval?: boolean;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
 };
-const BaseCard = ({
+export const BaseCard = ({
   handleClickHeader,
   icon,
   headerTextLeading,
@@ -210,10 +221,12 @@ const BaseCard = ({
   imageSource = require('../../assets/images/bizboost-avatar.png'),
   bodyText,
   statusText,
+  statusType,
   doesNeedApproval = false,
   handleClickReject,
   handleClickAccept,
 }: BaseCardProps) => {
+  console.log('text:' + headerTextLeading);
   return (
     <View
       className="bg-white flex flex-col pt-3 overflow-hidden border border-gray-200"
@@ -228,7 +241,12 @@ const BaseCard = ({
               <Private width={15} height={15} stroke={COLOR.black[40]} />
             )} */}
           <Text
-            style={[textColor(COLOR.green[50]), font.size[20]]}
+            style={[
+              textColor(
+                handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
+              ),
+              font.size[20],
+            ]}
             numberOfLines={1}
             className="w-2/3">
             {headerTextLeading}
@@ -253,10 +271,7 @@ const BaseCard = ({
             </Text>
             {statusText && (
               <View>
-                <StatusTag
-                  status={`${statusText}`}
-                  statusType={transactionStatusTypeMap[statusText]}
-                />
+                <StatusTag status={statusText} statusType={statusType} />
               </View>
             )}
           </View>
