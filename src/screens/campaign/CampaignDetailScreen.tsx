@@ -22,7 +22,11 @@ import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
 import {User} from '../../model/User';
 import {flex} from '../../styles/Flex';
-import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {
+  horizontalPadding,
+  padding,
+  verticalPadding,
+} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
 import {border} from '../../styles/Border';
 import {textColor} from '../../styles/Text';
@@ -35,6 +39,7 @@ import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {ChevronRight} from '../../components/atoms/Icon';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {CollapsiblePanel} from '../transaction/TransactionDetailScreen';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -150,7 +155,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               ]}
             />
           </View>
-          <View className="flex flex-col p-4 gap-4">
+          <View style={[flex.flexCol, padding.medium, gap.medium]}>
             <View>
               <Text className="font-bold text-2xl mb-2">{campaign.title}</Text>
               <View className="flex flex-row justify-between">
@@ -158,7 +163,8 @@ const CampaignDetailScreen = ({route}: Props) => {
                   {`${formatDateToDayMonthYear(
                     new Date(new Campaign(campaign).getTimelineStart().start),
                   )} - ${formatDateToDayMonthYear(
-                    new Date(new Campaign(campaign).getTimelineEnd().end),
+                    // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
+                    new Date(new Campaign(campaign).getTimelineEnd()?.end),
                   )}`}
                 </Text>
                 <View className="flex flex-row items-center">
@@ -244,7 +250,9 @@ const CampaignDetailScreen = ({route}: Props) => {
               </Pressable>
             )}
 
-            {isMoreInfoVisible && (
+            <CollapsiblePanel
+              hiddenText="Read More Information"
+              visibleText="Hide Information">
               <View className="flex flex-col" style={[gap.medium]}>
                 <View className="">
                   <Text className="font-semibold text-base pb-2">
@@ -289,20 +297,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                   </View>
                 </View>
               </View>
-            )}
-            <View>
-              <CustomButton
-                type="secondary"
-                text={
-                  isMoreInfoVisible
-                    ? 'Hide Information'
-                    : 'Read More Information'
-                }
-                rounded="default"
-                onPress={() => setIsMoreInfoVisible(value => !value)}
-              />
-            </View>
-            {/* <Text>{transactionStatus}</Text> */}
+            </CollapsiblePanel>
             {!isCampaignOwner &&
               transactionStatus === TransactionStatus.notRegistered && (
                 <View className="py-2" style={[flex.flexCol, gap.default]}>
