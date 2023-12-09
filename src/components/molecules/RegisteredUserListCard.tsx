@@ -276,7 +276,7 @@ export const BaseCard = ({
             />
           </View>
           <View
-            className="flex flex-col items-start w-3/4"
+            className="flex flex-col items-start w-2/3"
             style={[gap.xsmall]}>
             <Text className="font-semibold text-base " numberOfLines={1}>
               {bodyText}
