@@ -35,6 +35,7 @@ import {ImageRequireSource} from 'react-native';
 import PaymentSheetModal from './PaymentSheetModal';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
+import {dimension} from '../../styles/Dimension';
 
 type Props = {
   transaction: Transaction;
@@ -90,7 +91,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           )
         }
         headerTextLeading={campaign?.title || ''}
-        headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+        // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
         handleClickBody={() => {
           console.log('open transaction ', transaction.id, ' detail');
           if (transaction.id) {
@@ -171,7 +172,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       }}
       icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
       headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
-      headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+      // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
         if (transaction.id) {
           navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
@@ -205,7 +206,9 @@ type BaseCardProps = {
   headerTextTrailing?: string;
   handleClickBody: () => void;
   imageSource: Source | ImageRequireSource;
+  imageDimension?: typeof dimension.square.xlarge3;
   bodyText: string;
+  bodyContent?: ReactNode;
   statusText?: string;
   statusType?: StatusType;
   doesNeedApproval?: boolean;
@@ -219,14 +222,15 @@ export const BaseCard = ({
   headerTextTrailing,
   handleClickBody,
   imageSource = require('../../assets/images/bizboost-avatar.png'),
+  imageDimension = dimension.square.xlarge3,
   bodyText,
   statusText,
   statusType,
   doesNeedApproval = false,
   handleClickReject,
   handleClickAccept,
+  bodyContent,
 }: BaseCardProps) => {
-  console.log('text:' + headerTextLeading);
   return (
     <View
       className="bg-white flex flex-col pt-3 overflow-hidden border border-gray-200"
@@ -247,25 +251,33 @@ export const BaseCard = ({
               ),
               font.size[20],
             ]}
-            numberOfLines={1}
-            className="w-11/12">
+            className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
+            numberOfLines={1}>
             {headerTextLeading}
           </Text>
         </View>
+        <Text
+          style={[textColor(COLOR.text.neutral.med), font.size[20]]}
+          className="max-w-[33%]"
+          numberOfLines={1}>
+          {headerTextTrailing}
+        </Text>
       </Pressable>
       <Pressable
         onPress={handleClickBody}
         className="flex flex-row items-center px-3 py-4 justify-between">
         <View className="flex flex-row items-center">
           <View
-            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-            style={[flex.flexRow, rounded.default]}>
+            className="mr-2 items-center justify-center overflow-hidden"
+            style={[flex.flexRow, rounded.default, imageDimension]}>
             <FastImage
               className="w-full h-full object-cover"
               source={imageSource}
             />
           </View>
-          <View className="flex flex-col items-start w-3/4">
+          <View
+            className="flex flex-col items-start w-3/4"
+            style={[gap.xsmall]}>
             <Text className="font-semibold text-base " numberOfLines={1}>
               {bodyText}
             </Text>
@@ -274,6 +286,7 @@ export const BaseCard = ({
                 <StatusTag status={statusText} statusType={statusType} />
               </View>
             )}
+            {bodyContent}
           </View>
         </View>
         <ChevronRight fill={COLOR.black[20]} />

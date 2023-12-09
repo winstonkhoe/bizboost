@@ -4,6 +4,8 @@ import {gap} from '../../styles/Gap';
 import {rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
 import {Campaign} from '../../model/Campaign';
+import Business from '../../assets/vectors/business.svg';
+
 import {
   formatDateToDayMonthYear,
   getDateDiff,
@@ -27,6 +29,7 @@ import {dimension} from '../../styles/Dimension';
 import {formatToRupiah} from '../../utils/currency';
 import {size} from '../../styles/Size';
 import {useCategory} from '../../hooks/category';
+import {BaseCard} from './RegisteredUserListCard';
 type Props = {
   campaign: Campaign;
 };
@@ -58,100 +61,161 @@ const OngoingCampaignCard = ({campaign}: Props) => {
   };
 
   return (
-    <AnimatedPressable
-      scale={0.95}
-      className="border border-gray-200"
-      style={[flex.flexCol, rounded.medium]}
-      onPress={onViewCampaignDetailButtonClicked}>
-      <View
-        style={[
-          flex.flexRow,
-          justify.between,
-          items.center,
-          {
-            borderBottomWidth: 1,
-            borderBottomColor: COLOR.black[20],
-          },
-          padding.horizontal.default,
-          padding.vertical.default,
-        ]}>
-        <View style={[flex.flexRow, gap.small, justify.start, items.center]}>
-          <View style={[flex.flexCol, items.start, gap.xsmall2]}>
-            <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-              {user?.businessPeople?.fullname}
-            </Text>
-          </View>
-        </View>
-        {campaignUnderAWeek ? (
-          <Label
-            radius="default"
-            fontSize={20}
-            text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
-            type="danger"
-          />
-        ) : (
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-            {`Until ${formatDateToDayMonthYear(
-              new Date(new Campaign(campaign).getTimelineStart().end),
-            )}`}
-          </Text>
-        )}
-      </View>
-      <View style={[flex.flexCol]}>
-        <View style={[flex.flexRow, gap.medium, padding.default]}>
-          <View style={[flex.flexCol, items.center, gap.default]}>
-            <View
-              className="w-20 h-20 overflow-hidden"
-              style={[rounded.medium]}>
-              <FastImage
-                style={[dimension.full]}
-                source={{uri: campaign.image}}
+    <BaseCard
+      icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
+      headerTextLeading={`${user?.businessPeople?.fullname}`}
+      handleClickHeader={() => {
+        navigation.navigate(AuthenticatedNavigation.BusinessPeopleDetail, {
+          businessPeopleId: user?.id || '',
+        });
+      }}
+      // TODO: buat trailing if under a week
+      // <Label
+      //           radius="default"
+      //           fontSize={20}
+      //           text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
+      //           type="danger"
+      //         />
+      headerTextTrailing={`Until ${formatDateToDayMonthYear(
+        new Date(new Campaign(campaign).getTimelineStart().end),
+      )}`}
+      imageSource={{uri: campaign.image}}
+      imageDimension={dimension.square.xlarge4}
+      bodyText={`${campaign.title}`}
+      handleClickBody={onViewCampaignDetailButtonClicked}
+      bodyContent={
+        <>
+          {campaign.categories?.slice(0, 1).map(category => (
+            <View key={category} style={[flex.flexRow]}>
+              <Label
+                key={category}
+                radius="default"
+                fontSize={10}
+                text={`${
+                  currentCategory?.alias || currentCategory?.id || category
+                }`}
               />
             </View>
-          </View>
-          <View style={[flex.flex1, flex.flexCol, gap.small]}>
-            <Text
-              className="font-bold"
-              style={[font.size[30], textColor(COLOR.text.neutral.high)]}
-              numberOfLines={2}>
-              {campaign.title}
-            </Text>
-            {campaign.categories?.slice(0, 1).map(category => (
-              <View key={category} style={[flex.flexRow]}>
-                <Label
-                  key={category}
-                  radius="default"
-                  fontSize={10}
-                  text={`${
-                    currentCategory?.alias || currentCategory?.id || category
-                  }`}
-                />
-              </View>
+          ))}
+          <View style={[flex.flexRow, gap.small]}>
+            {campaign?.platformTasks?.map(platform => (
+              <Label
+                key={platform.name}
+                type="neutral"
+                radius="default"
+                text={platform.name}
+              />
             ))}
-            <View style={[flex.flexRow, gap.small]}>
-              {campaign?.platforms?.map(platform => (
-                <Label
-                  key={platform.name}
-                  type="neutral"
-                  radius="default"
-                  text={platform.name}
-                />
-              ))}
-            </View>
-            <View style={[flex.flexCol, gap.small]}>
-              {campaign.fee && (
-                <Text
-                  className="font-semibold"
-                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                  {formatToRupiah(campaign.fee)}
-                </Text>
-              )}
-            </View>
           </View>
-        </View>
-      </View>
-    </AnimatedPressable>
+          <View style={[flex.flexCol, gap.small]}>
+            {campaign.fee && (
+              <Text
+                className="font-semibold"
+                style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                {formatToRupiah(campaign.fee)}
+              </Text>
+            )}
+          </View>
+        </>
+      }
+    />
   );
+
+  // return (
+  //   <AnimatedPressable
+  //     scale={0.95}
+  //     className="border border-gray-200"
+  //     style={[flex.flexCol, rounded.medium]}
+  //     onPress={onViewCampaignDetailButtonClicked}>
+  //     <View
+  //       style={[
+  //         flex.flexRow,
+  //         justify.between,
+  //         items.center,
+  //         {
+  //           borderBottomWidth: 1,
+  //           borderBottomColor: COLOR.black[20],
+  //         },
+  //         padding.horizontal.default,
+  //         padding.vertical.default,
+  //       ]}>
+  //       <View style={[flex.flexRow, gap.small, justify.start, items.center]}>
+  //         <View style={[flex.flexCol, items.start, gap.xsmall2]}>
+  //           <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+  //             {user?.businessPeople?.fullname}
+  //           </Text>
+  //         </View>
+  //       </View>
+  //       {campaignUnderAWeek ? (
+  //         <Label
+  //           radius="default"
+  //           fontSize={20}
+  //           text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
+  //           type="danger"
+  //         />
+  //       ) : (
+  //         <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+  //           {`Until ${formatDateToDayMonthYear(
+  //             new Date(new Campaign(campaign).getTimelineStart().end),
+  //           )}`}
+  //         </Text>
+  //       )}
+  //     </View>
+  //     <View style={[flex.flexCol]}>
+  //       <View style={[flex.flexRow, gap.medium, padding.default]}>
+  //         <View style={[flex.flexCol, items.center, gap.default]}>
+  //           <View
+  //             className="w-20 h-20 overflow-hidden"
+  //             style={[rounded.medium]}>
+  //             <FastImage
+  //               style={[dimension.full]}
+  //               source={{uri: campaign.image}}
+  //             />
+  //           </View>
+  //         </View>
+  //         <View style={[flex.flex1, flex.flexCol, gap.small]}>
+  //           <Text
+  //             className="font-bold"
+  //             style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+  //             numberOfLines={2}>
+  //             {campaign.title}
+  //           </Text>
+  //           {campaign.categories?.slice(0, 1).map(category => (
+  //             <View key={category} style={[flex.flexRow]}>
+  //               <Label
+  //                 key={category}
+  //                 radius="default"
+  //                 fontSize={10}
+  //                 text={`${
+  //                   currentCategory?.alias || currentCategory?.id || category
+  //                 }`}
+  //               />
+  //             </View>
+  //           ))}
+  //           <View style={[flex.flexRow, gap.small]}>
+  //             {campaign?.platforms?.map(platform => (
+  //               <Label
+  //                 key={platform.name}
+  //                 type="neutral"
+  //                 radius="default"
+  //                 text={platform.name}
+  //               />
+  //             ))}
+  //           </View>
+  //           <View style={[flex.flexCol, gap.small]}>
+  //             {campaign.fee && (
+  //               <Text
+  //                 className="font-semibold"
+  //                 style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+  //                 {formatToRupiah(campaign.fee)}
+  //               </Text>
+  //             )}
+  //           </View>
+  //         </View>
+  //       </View>
+  //     </View>
+  //   </AnimatedPressable>
+  // );
 };
 
 export {OngoingCampaignCard};
