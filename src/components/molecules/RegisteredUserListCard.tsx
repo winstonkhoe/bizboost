@@ -203,14 +203,17 @@ type BaseCardProps = {
   handleClickHeader?: () => void;
   icon?: ReactNode;
   headerTextLeading: string;
-  headerTextTrailing?: string;
+  headerTextTrailing?: string | ReactNode;
   handleClickBody: () => void;
   imageSource: Source | ImageRequireSource;
   imageDimension?: typeof dimension.square.xlarge3;
   bodyText: string;
+
+  // TODO: kalo sempet rapihin bodycontent sama status
   bodyContent?: ReactNode;
   statusText?: string;
   statusType?: StatusType;
+
   doesNeedApproval?: boolean;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
@@ -256,12 +259,16 @@ export const BaseCard = ({
             {headerTextLeading}
           </Text>
         </View>
-        <Text
-          style={[textColor(COLOR.text.neutral.med), font.size[20]]}
-          className="max-w-[33%]"
-          numberOfLines={1}>
-          {headerTextTrailing}
-        </Text>
+        {typeof headerTextTrailing === 'string' ? (
+          <Text
+            style={[textColor(COLOR.text.neutral.med), font.size[20]]}
+            className="max-w-[33%]"
+            numberOfLines={1}>
+            {headerTextTrailing}
+          </Text>
+        ) : (
+          headerTextTrailing
+        )}
       </Pressable>
       <Pressable
         onPress={handleClickBody}

@@ -38,7 +38,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
     );
   }, [categories, campaign]);
   const now = new Date();
-  const campaignUnderAWeek =
+  const isCampaignUnderAWeek =
     getDateDiff(now, new Date(new Campaign(campaign).getTimelineStart().end)) <
     7;
 
@@ -63,16 +63,20 @@ const OngoingCampaignCard = ({campaign}: Props) => {
           businessPeopleId: user?.id || '',
         });
       }}
-      // TODO: buat trailing if under a week
-      // <Label
-      //           radius="default"
-      //           fontSize={20}
-      //           text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
-      //           type="danger"
-      //         />
-      headerTextTrailing={`Until ${formatDateToDayMonthYear(
-        new Date(new Campaign(campaign).getTimelineStart().end),
-      )}`}
+      headerTextTrailing={
+        !isCampaignUnderAWeek ? (
+          `Until ${formatDateToDayMonthYear(
+            new Date(new Campaign(campaign).getTimelineStart().end),
+          )}`
+        ) : (
+          <Label
+            radius="default"
+            fontSize={20}
+            text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
+            type="danger"
+          />
+        )
+      }
       imageSource={{uri: campaign.image}}
       imageDimension={dimension.square.xlarge4}
       bodyText={`${campaign.title}`}
