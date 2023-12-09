@@ -28,9 +28,11 @@ const UserListCard = ({user}: Props) => {
       headerTextLeading={
         user.isAdmin
           ? 'Admin'
-          : `${user.contentCreator && 'Content Creator'}${
-              user.contentCreator && user.businessPeople ? ' · ' : ''
-            }${user.businessPeople && 'Business People'}`
+          : `${user.contentCreator?.fullname ? 'Content Creator' : ''}${
+              user.contentCreator?.fullname && user.businessPeople?.fullname
+                ? ' · '
+                : ''
+            }${user.businessPeople?.fullname ? 'Business People' : ''}`
       }
       handleClickBody={() => {
         navigation.navigate(AuthenticatedNavigation.UserDetail, {
