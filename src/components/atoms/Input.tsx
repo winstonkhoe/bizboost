@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {
   Controller,
   FormProvider,
@@ -37,6 +37,7 @@ import {AddIcon, MinusIcon} from './Icon';
 import {font, lineHeight} from '../../styles/Font';
 import {ProgressBar} from './ProgressBar';
 import {uploadFile} from '../../helpers/storage';
+import {debounce} from 'lodash';
 
 interface CustomTextInputProps extends UseControllerProps {
   label?: string;
@@ -141,31 +142,31 @@ export const CustomTextInput = ({
     ],
   }));
 
-  const handleChangeText = (
-    text: string,
-    onChange: (...event: any[]) => void,
-  ) => {
-    let actual = text;
-    if (!max || (max && actual.length <= max)) {
-      if (inputType === 'price' || inputType === 'number') {
-        if (text !== '') {
-          actual = actual.replaceAll('.', '');
-          const parsedNumber = parseInt(actual, 10);
-          if (!isNaN(parsedNumber)) {
-            actual = `${parsedNumber}`;
-          } else {
-            actual = '0';
+  const handleChangeText = useCallback(
+    (text: string, onChange: (...event: any[]) => void) => {
+      let actual = text;
+      if (!max || (max && actual.length <= max)) {
+        if (inputType === 'price' || inputType === 'number') {
+          if (text !== '') {
+            actual = actual.replaceAll('.', '');
+            const parsedNumber = parseInt(actual, 10);
+            if (!isNaN(parsedNumber)) {
+              actual = `${parsedNumber}`;
+            } else {
+              actual = '0';
+            }
           }
         }
+        if (forceLowercase) {
+          actual = actual.toLocaleLowerCase();
+        }
+        onChange(actual);
+      } else if (max && actual.length > max) {
+        onChange(actual.substring(0, max));
       }
-      if (forceLowercase) {
-        actual = actual.toLocaleLowerCase();
-      }
-      onChange(actual);
-    } else if (max && actual.length > max) {
-      onChange(actual.substring(0, max));
-    }
-  };
+    },
+    [forceLowercase, inputType, max],
+  );
 
   return (
     <View style={[flex.flexCol, gap.xsmall2]}>
@@ -341,9 +342,12 @@ export const FormlessCustomTextInput = ({
   } = methods;
   const value = watch('value');
 
+  // // Create a debounced version of onChange
+  const debouncedOnChange = debounce(onChange, 300);
+
   useEffect(() => {
-    onChange(value);
-  }, [value, onChange]);
+    debouncedOnChange(value);
+  }, [value, debouncedOnChange]);
 
   useEffect(() => {
     onValidChange && onValidChange(isValid);
