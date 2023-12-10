@@ -2,8 +2,8 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
-import {User} from './User';
-import {Transaction} from './Transaction';
+import {User, UserRole} from './User';
+import {Transaction, TransactionStatus} from './Transaction';
 
 export const REPORT_COLLECTION = 'reports';
 
@@ -29,55 +29,82 @@ export enum ActionTaken {
 }
 
 type ReportTypeLabelMap = {
-  [key in ReportType]: string;
+  [type in ReportType]: {
+    [key in UserRole]?: string;
+  };
 };
-
 export const reportTypeLabelMap: ReportTypeLabelMap = {
-  [ReportType.cheating]:
-    '· You suspect a user is not following the rules or is being dishonest.',
-  [ReportType.unfairRejection]:
-    '· You believe your content has been rejected without a valid reason',
-  [ReportType.harassment]:
-    'Choose this if you are experiencing threatening, abusive, or persistently annoying behavior from a user.',
-  [ReportType.fraud]:
-    '· Encounter deceptive practices\n· Providing false information\n· Impersonating another user.',
-  [ReportType.other]:
-    'If none of the above categories apply, use this option and provide a detailed description of the issue.',
+  [ReportType.cheating]: {
+    [UserRole.ContentCreator]:
+      '· You suspect a business person is not following the rules or is being dishonest.',
+    [UserRole.BusinessPeople]:
+      '· You suspect a content creator is not following the rules or is being dishonest.',
+  },
+  [ReportType.unfairRejection]: {
+    [UserRole.ContentCreator]:
+      '· You believe your content has been rejected by a business person without a valid reason.',
+    [UserRole.BusinessPeople]:
+      "· You believe a content creator's content has been unfairly rejected.",
+  },
+  [ReportType.harassment]: {
+    [UserRole.ContentCreator]:
+      '· You are experiencing threatening, abusive, or persistently annoying behavior from a business person.',
+    [UserRole.BusinessPeople]:
+      '· You are experiencing threatening, abusive, or persistently annoying behavior from a content creator.',
+  },
+  [ReportType.fraud]: {
+    [UserRole.ContentCreator]:
+      '· You encounter deceptive practices, false information, or impersonation by a business person.',
+    [UserRole.BusinessPeople]:
+      '· You encounter deceptive practices, false information, or impersonation by a content creator.',
+  },
+  [ReportType.other]: {
+    [UserRole.ContentCreator]:
+      'If none of the above categories apply to issues with a business person, use this option and provide a detailed description of the issue.',
+    [UserRole.BusinessPeople]:
+      'If none of the above categories apply to issues with a content creator, use this option and provide a detailed description of the issue.',
+  },
 };
 
 export class Report extends BaseModel {
   id?: string;
   transactionId?: string;
+  transactionStatus?: TransactionStatus;
   type?: ReportType;
   status?: ReportStatus;
   reason?: string;
   actionTaken?: ActionTaken;
   actionTakenReason?: string;
   reporterId?: string;
+  reportedId?: string;
   createdAt?: number;
   updatedAt?: number;
 
   constructor({
     id,
     transactionId,
+    transactionStatus,
     type,
     status,
     reason,
     actionTaken,
     actionTakenReason,
     reporterId,
+    reportedId,
     createdAt,
     updatedAt,
   }: Partial<Report>) {
     super();
     this.id = id;
     this.transactionId = transactionId;
+    this.transactionStatus = transactionStatus;
     this.type = type;
     this.status = status;
     this.reason = reason;
     this.actionTaken = actionTaken;
     this.actionTakenReason = actionTakenReason;
     this.reporterId = reporterId;
+    this.reportedId = reportedId;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
@@ -92,12 +119,14 @@ export class Report extends BaseModel {
       return new Report({
         id: doc.id,
         transactionId: data.transactionId.id,
+        transactionStatus: data.transactionStatus,
         type: data.type,
         status: data.status,
         reason: data.reason,
         actionTaken: data.actionTaken,
         actionTakenReason: data.actionTakenReason,
         reporterId: data.reporterId.id,
+        reportedId: data.reportedId.id,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       });
@@ -117,9 +146,12 @@ export class Report extends BaseModel {
 
   async insert() {
     try {
-      const {reporterId, transactionId, ...rest} = this;
+      const {reporterId, reportedId, transactionId, ...rest} = this;
       if (!reporterId) {
         throw Error('Missing reporter identifier');
+      }
+      if (!reportedId) {
+        throw Error('Missing reported identifier');
       }
       if (!transactionId) {
         throw Error('Missing transaction identifier');
@@ -128,14 +160,15 @@ export class Report extends BaseModel {
         ...rest,
         id: undefined,
         reporterId: User.getDocumentReference(reporterId),
+        reportedId: User.getDocumentReference(reportedId),
         transactionId: Transaction.getDocumentReference(transactionId),
         createdAt: new Date().getTime(),
       };
       await Report.getCollectionReference().add(data);
     } catch (error) {
       console.log(error);
+      throw Error('Report.insert err! ' + error);
     }
-    throw Error('Report.insert err!');
   }
 
   async update(fields?: Partial<Report>) {
@@ -180,6 +213,38 @@ export class Report extends BaseModel {
               return;
             }
             onComplete && onComplete(null);
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getByTransactionId(
+    transactionId: string,
+    onComplete: (transaction: Report[]) => void,
+  ) {
+    try {
+      const unsubscribe = Report.getCollectionReference()
+        .where(
+          'transactionId',
+          '==',
+          Transaction.getDocumentReference(transactionId),
+        )
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete && onComplete([]);
+              return;
+            }
+            onComplete &&
+              onComplete(querySnapshot.docs.map(Report.fromSnapshot));
           },
           error => {
             console.log(error);

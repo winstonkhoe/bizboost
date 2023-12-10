@@ -1,5 +1,12 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {ReactNode, useEffect, useMemo, useRef, useState} from 'react';
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -16,6 +23,7 @@ import {
 import {View} from 'react-native';
 import {Campaign, CampaignStep} from '../../model/Campaign';
 import {
+  formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
   formatDateToHourMinute,
 } from '../../utils/date';
@@ -99,8 +107,9 @@ import PaymentSheetModal from '../../components/molecules/PaymentSheetModal';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import ImageView from 'react-native-image-viewing';
 import {CustomAlert} from '../../components/molecules/CustomAlert';
-import {ReportType, reportTypeLabelMap} from '../../model/Report';
+import {Report, ReportType, reportTypeLabelMap} from '../../model/Report';
 import PagerView from 'react-native-pager-view';
+import {InternalLink} from '../../components/atoms/Link';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -129,6 +138,7 @@ const TransactionDetailScreen = ({route}: Props) => {
     useState<boolean>(false);
   const reportViewPagerRef = useRef<PagerView>(null);
   const [reportDescription, setReportDescription] = useState<string>('');
+  const [transactionReports, setTransactionReports] = useState<Report[]>([]);
   const [selectedReportType, setSelectedReportType] = useState<ReportType>();
   const [rejectReason, setRejectReason] = useState<string>('');
   const [campaign, setCampaign] = useState<Campaign>();
@@ -159,6 +169,16 @@ const TransactionDetailScreen = ({route}: Props) => {
       User.getById(transaction?.businessPeopleId).then(setBusinessPeople);
     }
   }, [transaction]);
+
+  const updateReportDescription = useCallback((description: string) => {
+    setReportDescription(description);
+  }, []);
+
+  useEffect(() => {
+    if (transactionId) {
+      return Report.getByTransactionId(transactionId, setTransactionReports);
+    }
+  }, [transactionId]);
 
   const handleApprove = () => {
     if (transaction) {
@@ -279,6 +299,67 @@ const TransactionDetailScreen = ({route}: Props) => {
             'Registration Approved! Your payment is being reviewed by our Admin',
           type: ToastType.success,
         });
+      });
+  };
+
+  const submitReport = () => {
+    const reportedId = isCampaignOwner
+      ? transaction?.contentCreatorId
+      : transaction?.businessPeopleId;
+    if (
+      !transaction ||
+      !selectedReportType ||
+      !uid ||
+      !reportedId ||
+      !transaction.id ||
+      !transaction.status
+    ) {
+      showToast({
+        message: 'Something went wrong',
+        type: ToastType.danger,
+      });
+      return;
+    }
+    setIsLoading(true);
+    const report = new Report({
+      type: selectedReportType,
+      reason: reportDescription.length > 0 ? reportDescription : undefined,
+      transactionId: transaction.id,
+      transactionStatus: transaction.status,
+      reporterId: uid,
+      reportedId: reportedId,
+    });
+    report
+      .insert()
+      .then(() => {
+        setIsReportSheetModalOpen(false);
+        showToast({
+          message: 'Report submitted!',
+          type: ToastType.success,
+        });
+        // TODO: confirm if we will update the transaction to reported or not
+        // transaction
+        //   .updateStatus(TransactionStatus.reported)
+        //   .then(() => {
+        //     setIsReportSheetModalOpen(false);
+        //     showToast({
+        //       message: 'Report submitted!',
+        //       type: ToastType.success,
+        //     });
+        //   })
+        //   .catch(() => {
+        //     throw Error('Update transaction status failed');
+        //   });
+      })
+      .catch(err => {
+        showToast({
+          message: 'Failed to submit report',
+          type: ToastType.danger,
+        });
+        console.log('insert error', err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
@@ -633,7 +714,7 @@ const TransactionDetailScreen = ({route}: Props) => {
           <View style={[flex.flexCol, gap.xsmall2]}>
             <AnimatedPressable
               scale={1}
-              style={[padding.vertical.default]}
+              style={[padding.vertical.default, padding.horizontal.large]}
               onPress={() => {
                 closeOthersSheetModal();
                 setIsReportSheetModalOpen(true);
@@ -647,7 +728,7 @@ const TransactionDetailScreen = ({route}: Props) => {
             <View style={[styles.bottomBorder]} />
             <AnimatedPressable
               scale={1}
-              style={[padding.vertical.default]}
+              style={[padding.vertical.default, padding.horizontal.large]}
               onPress={() => {
                 if (transaction.id) {
                   setIsOthersSheetModalOpen(false);
@@ -674,15 +755,15 @@ const TransactionDetailScreen = ({route}: Props) => {
           setIsReportSheetModalOpen(false);
         }}
         fullHeight
-        disablePanDownToClose={true}
         enableHandlePanningGesture={false}
         enableOverDrag={false}
         overDragResistanceFactor={0}
-        snapPoints={['50%']}
+        snapPoints={reportIndex === 0 ? [500] : ['70%']}
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
           title={'Report'}
-          type="modal"
+          showIcon={reportIndex > 0}
+          // type="modal"
           icon={reportIndex > 0 ? 'back' : 'close'}
           fullHeight
           onPress={() => {
@@ -695,45 +776,121 @@ const TransactionDetailScreen = ({route}: Props) => {
           <PagerView
             ref={reportViewPagerRef}
             initialPage={0}
-            style={[
-              flex.flex1,
-              {
-                marginHorizontal: -size.large,
-              },
-            ]}
+            style={[flex.flex1]}
             onPageSelected={e => {
               setReportIndex(e.nativeEvent.position);
             }}>
-            <View key={0} style={[flex.grow, flex.flexCol, gap.xsmall2]}>
-              {Object.values(ReportType).map((reportType, reportTypeIndex) => (
-                <View style={[flex.flexCol]}>
-                  {reportTypeIndex > 0 && (
-                    <View style={[styles.bottomBorder]} />
-                  )}
-                  <AnimatedPressable
-                    key={reportType}
-                    scale={1}
+            <View key={0} style={[flex.grow, flex.flexCol]}>
+              {transactionReports.length > 0 && (
+                <View
+                  style={[
+                    flex.flexCol,
+                    gap.small,
+                    padding.top.default,
+                    styles.bottomBorder,
+                  ]}>
+                  <View
                     style={[
                       flex.flexRow,
                       justify.between,
-                      items.center,
-                      padding.default,
-                    ]}
-                    onPress={() => {
-                      selectReportType(reportType);
-                    }}>
+                      padding.horizontal.default,
+                    ]}>
                     <Text
-                      className="font-medium"
+                      className="font-semibold"
                       style={[
                         font.size[30],
                         textColor(COLOR.text.neutral.high),
                       ]}>
-                      {reportType}
+                      Your reports
                     </Text>
-                    <ChevronRight strokeWidth={1} size="medium" />
-                  </AnimatedPressable>
+                    <InternalLink text="See all" size={30} />
+                  </View>
+                  <ScrollView
+                    style={[
+                      {
+                        height: 140,
+                      },
+                    ]}
+                    contentContainerStyle={[
+                      flex.flexCol,
+                      gap.default,
+                      padding.horizontal.default,
+                      padding.bottom.default,
+                    ]}>
+                    {transactionReports
+                      .sort((a, b) => b?.createdAt - a?.createdAt)
+                      .map(transactionReport => (
+                        <View
+                          style={[
+                            flex.flexCol,
+                            padding.default,
+                            rounded.default,
+                            gap.small,
+                            background(COLOR.red[5]),
+                            border({
+                              borderWidth: 0.5,
+                              color: COLOR.red[60],
+                            }),
+                          ]}>
+                          <View style={[flex.flexCol, gap.xsmall2]}>
+                            <Text
+                              className="font-semibold"
+                              style={[font.size[20], textColor(COLOR.red[60])]}>
+                              {transactionReport.type}
+                            </Text>
+                            {transactionReport.reason && (
+                              <Text
+                                style={[
+                                  font.size[20],
+                                  textColor(COLOR.text.danger.default),
+                                ]}>
+                                {transactionReport.reason}
+                              </Text>
+                            )}
+                          </View>
+                          <Text
+                            style={[
+                              font.size[10],
+                              textColor(COLOR.text.danger.default),
+                              self.start,
+                            ]}>
+                            {formatDateToDayMonthYear(
+                              new Date(transactionReport.createdAt!!),
+                            )}
+                          </Text>
+                        </View>
+                      ))}
+                  </ScrollView>
                 </View>
-              ))}
+              )}
+              <View style={[flex.flexCol]}>
+                {Object.values(ReportType).map(reportType => (
+                  <View key={reportType} style={[flex.flexCol]}>
+                    <AnimatedPressable
+                      scale={1}
+                      style={[
+                        flex.flexRow,
+                        justify.between,
+                        items.center,
+                        padding.default,
+                      ]}
+                      onPress={() => {
+                        selectReportType(reportType);
+                      }}>
+                      <Text
+                        className="font-medium"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.high),
+                        ]}>
+                        {reportType}
+                      </Text>
+                      <ChevronRight strokeWidth={1} size="medium" />
+                    </AnimatedPressable>
+                    <View style={[styles.bottomBorder]} />
+                  </View>
+                ))}
+              </View>
             </View>
             <View
               key={1}
@@ -741,26 +898,41 @@ const TransactionDetailScreen = ({route}: Props) => {
                 flex.grow,
                 flex.flexCol,
                 gap.medium,
+                padding.top.medium,
                 padding.horizontal.default,
               ]}>
-              {selectedReportType && (
-                <View style={[flex.flexCol, gap.small]}>
-                  <Text
-                    className="font-bold"
-                    style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                    {`${selectedReportType} guidelines`}
-                  </Text>
-                  <Text
-                    className="font-medium"
-                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-                    {`We define ${selectedReportType.toLocaleLowerCase()} for things like:`}
-                  </Text>
-                  <Text
-                    style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                    {reportTypeLabelMap[selectedReportType]}
-                  </Text>
-                </View>
-              )}
+              {selectedReportType &&
+                selectedReportType !== ReportType.other && (
+                  <View style={[flex.flexCol, gap.small]}>
+                    <Text
+                      className="font-bold"
+                      style={[
+                        font.size[40],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {`${selectedReportType} guidelines`}
+                    </Text>
+                    <Text
+                      className="font-medium"
+                      style={[
+                        font.size[20],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {`We define ${selectedReportType.toLocaleLowerCase()} for things like:`}
+                    </Text>
+                    <Text
+                      style={[
+                        font.size[20],
+                        textColor(COLOR.text.neutral.med),
+                      ]}>
+                      {
+                        reportTypeLabelMap[selectedReportType][
+                          activeRole || UserRole.ContentCreator
+                        ]
+                      }
+                    </Text>
+                  </View>
+                )}
               <View style={[flex.flex1, flex.flexCol, gap.small]}>
                 <FormFieldHelper
                   title="Describe your report"
@@ -785,7 +957,7 @@ const TransactionDetailScreen = ({route}: Props) => {
                     description="Min. 30 character, Max. 1000 character"
                     placeholder="Describe your report here"
                     max={1000}
-                    onChange={setReportDescription}
+                    onChange={updateReportDescription}
                   />
                 </BottomSheetScrollView>
               </View>
@@ -795,13 +967,7 @@ const TransactionDetailScreen = ({route}: Props) => {
                   selectedReportType === ReportType.other &&
                   reportDescription.length < 30
                 }
-                onPress={() => {
-                  setIsReportSheetModalOpen(false);
-                  showToast({
-                    message: 'Report submitted!',
-                    type: ToastType.success,
-                  });
-                }}
+                onPress={submitReport}
               />
             </View>
           </PagerView>
@@ -1220,65 +1386,69 @@ export const BrainstormSubmissionCard = ({
         </View>
         <View style={[flex.flexCol, gap.medium]}>
           {props?.content?.content &&
-            props.content.content?.map((transactionContent, platformIndex) => (
-              <View
-                key={transactionContent.platform}
-                style={[flex.flexCol, gap.xsmall]}>
-                <View style={[flex.flexRow, gap.xsmall, items.center]}>
-                  <PlatformIcon platform={transactionContent.platform} />
-                  <Text
-                    className="font-bold"
-                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
-                    {transactionContent.platform}
-                  </Text>
-                </View>
-                <View style={[flex.flexCol, gap.small]}>
-                  {transactionContent.tasks.map(
-                    (brainstorm, brainstormIndex) => {
-                      const transactionTask =
-                        props.transaction.platformTasks?.[platformIndex].tasks[
-                          brainstormIndex
-                        ];
-                      return (
-                        <View
-                          key={brainstormIndex}
-                          style={[flex.flexCol, gap.small]}>
-                          {transactionTask && (
-                            <Text
-                              className="font-medium"
-                              style={[
-                                font.size[20],
-                                textColor(COLOR.text.neutral.med),
-                              ]}>
-                              {campaignTaskToString(transactionTask)}
-                            </Text>
-                          )}
+            props?.content?.content?.map(
+              (transactionContent, platformIndex) => (
+                <View
+                  key={transactionContent.platform}
+                  style={[flex.flexCol, gap.xsmall]}>
+                  <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                    <PlatformIcon platform={transactionContent.platform} />
+                    <Text
+                      className="font-bold"
+                      style={[
+                        font.size[20],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {transactionContent.platform}
+                    </Text>
+                  </View>
+                  <View style={[flex.flexCol, gap.small]}>
+                    {transactionContent.tasks.map(
+                      (brainstorm, brainstormIndex) => {
+                        const transactionTask =
+                          props.transaction.platformTasks?.[platformIndex]
+                            .tasks[brainstormIndex];
+                        return (
                           <View
-                            style={[
-                              flex.flexCol,
-                              gap.default,
-                              border({
-                                borderWidth: 1,
-                                color: COLOR.black[20],
-                              }),
-                              padding.default,
-                              rounded.default,
-                            ]}>
-                            <Text
+                            key={brainstormIndex}
+                            style={[flex.flexCol, gap.small]}>
+                            {transactionTask && (
+                              <Text
+                                className="font-medium"
+                                style={[
+                                  font.size[20],
+                                  textColor(COLOR.text.neutral.med),
+                                ]}>
+                                {campaignTaskToString(transactionTask)}
+                              </Text>
+                            )}
+                            <View
                               style={[
-                                font.size[20],
-                                textColor(COLOR.text.neutral.high),
+                                flex.flexCol,
+                                gap.default,
+                                border({
+                                  borderWidth: 1,
+                                  color: COLOR.black[20],
+                                }),
+                                padding.default,
+                                rounded.default,
                               ]}>
-                              {brainstorm}
-                            </Text>
+                              <Text
+                                style={[
+                                  font.size[20],
+                                  textColor(COLOR.text.neutral.high),
+                                ]}>
+                                {brainstorm}
+                              </Text>
+                            </View>
                           </View>
-                        </View>
-                      );
-                    },
-                  )}
+                        );
+                      },
+                    )}
+                  </View>
                 </View>
-              </View>
-            ))}
+              ),
+            )}
           {props.content?.rejection && (
             <View
               style={[
