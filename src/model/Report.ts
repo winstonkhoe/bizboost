@@ -4,6 +4,7 @@ import firestore, {
 import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
 import {Transaction, TransactionStatus} from './Transaction';
+import {StatusType} from '../components/atoms/StatusTag';
 
 export const REPORT_COLLECTION = 'reports';
 
@@ -11,6 +12,15 @@ export enum ReportStatus {
   pending = 'Pending',
   resolved = 'Resolved',
 }
+
+type ReportStatusTypeMap = {
+  [key in ReportStatus]: StatusType;
+};
+
+export const reportStatusTypeMap: ReportStatusTypeMap = {
+  [ReportStatus.pending]: StatusType.warning,
+  [ReportStatus.resolved]: StatusType.success,
+};
 
 export enum ReportType {
   cheating = 'Cheating',
@@ -71,7 +81,7 @@ export class Report extends BaseModel {
   transactionId?: string;
   transactionStatus?: TransactionStatus;
   type?: ReportType;
-  status?: ReportStatus;
+  status: ReportStatus;
   reason?: string;
   actionTaken?: ActionTaken;
   actionTakenReason?: string;
@@ -99,7 +109,7 @@ export class Report extends BaseModel {
     this.transactionId = transactionId;
     this.transactionStatus = transactionStatus;
     this.type = type;
-    this.status = status;
+    this.status = status || ReportStatus.pending;
     this.reason = reason;
     this.actionTaken = actionTaken;
     this.actionTakenReason = actionTakenReason;
@@ -159,6 +169,7 @@ export class Report extends BaseModel {
       const data = {
         ...rest,
         id: undefined,
+        status: ReportStatus.pending,
         reporterId: User.getDocumentReference(reporterId),
         reportedId: User.getDocumentReference(reportedId),
         transactionId: Transaction.getDocumentReference(transactionId),
