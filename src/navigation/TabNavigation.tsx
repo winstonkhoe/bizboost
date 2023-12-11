@@ -50,6 +50,9 @@ export type TabNavigationProps = NavigationProp<TabNavigationParamList>;
 export const TabNavigator = () => {
   const dispatch = useAppDispatch();
   const {user, activeRole} = useUser();
+  const isContentCreator = activeRole === UserRole.ContentCreator;
+  const isBusinessPeople = activeRole === UserRole.BusinessPeople;
+  const isAdmin = activeRole === UserRole.Admin;
 
   const resetSearchState = () => {
     dispatch(updateSearchTerm(''));
@@ -132,7 +135,7 @@ export const TabNavigator = () => {
 
   return (
     <Tab.Navigator>
-      {UserRole.ContentCreator === activeRole && (
+      {isContentCreator && (
         <Tab.Group screenOptions={{headerShown: false}}>
           <Tab.Screen
             name={TabNavigation.Home}
@@ -179,7 +182,7 @@ export const TabNavigator = () => {
           />
         </Tab.Group>
       )}
-      {UserRole.BusinessPeople === activeRole && (
+      {isBusinessPeople && (
         <Tab.Group screenOptions={{headerShown: false}}>
           <Tab.Screen
             name={TabNavigation.Home}
@@ -228,7 +231,7 @@ export const TabNavigator = () => {
           />
         </Tab.Group>
       )}
-      {UserRole.Admin === activeRole && (
+      {isAdmin && (
         <Tab.Group screenOptions={{headerShown: false}}>
           <Tab.Screen
             name={TabNavigation.Home}
