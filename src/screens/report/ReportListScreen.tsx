@@ -124,7 +124,7 @@ export const ReportCard = ({report}: ReportCardProps) => {
           });
         }
       }}>
-      <View style={[flex.flexRow, items.center, padding.default]}>
+      <View style={[flex.flexRow, items.center, padding.default, gap.default]}>
         <SkeletonPlaceholder style={[flex.flex1]} isLoading={isLoading}>
           <View style={[flex.flexRow, gap.small, items.center]}>
             <ReportIcon size="large" />
