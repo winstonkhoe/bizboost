@@ -24,6 +24,8 @@ import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
 import ContentCreatorsScreen from '../screens/ContentCreatorsScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import FastImage from 'react-native-fast-image';
+import {DashboardIcon} from '../components/atoms/Icon';
+import DashboardScreen from '../screens/dashboard/DashboardScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,6 +33,7 @@ export enum TabNavigation {
   Campaigns = 'Campaigns',
   Chat = 'Chat',
   Home = 'Home',
+  Dashboard = 'Dashboard',
   Profile = 'Profile',
   ContentCreators = 'Content Creators',
   Explore = 'Explore',
@@ -129,6 +132,16 @@ export const TabNavigator = () => {
     [],
   );
 
+  const dashboardIcon = useCallback(
+    (focused: boolean) => (
+      <DashboardIcon
+        size="xlarge"
+        color={focused ? COLOR.green[50] : COLOR.green[80]}
+      />
+    ),
+    [],
+  );
+
   if (!user || !activeRole) {
     return null;
   }
@@ -154,6 +167,13 @@ export const TabNavigator = () => {
             component={ChatListScreen}
             options={{
               tabBarIcon: ({focused}) => chatIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Dashboard}
+            component={DashboardScreen}
+            options={{
+              tabBarIcon: ({focused}) => dashboardIcon(focused),
             }}
           />
           <Tab.Screen
