@@ -23,6 +23,9 @@ import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholde
 import FastImage from 'react-native-fast-image';
 import {dimension} from '../../styles/Dimension';
 import {formatDateToDayMonthYear} from '../../utils/date';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {background} from '../../styles/BackgroundColor';
+import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
 
 const ReportListScreen = () => {
   const {uid, activeRole} = useUser();
@@ -49,10 +52,11 @@ interface ReportCardProps {
 }
 
 export const ReportCard = ({report}: ReportCardProps) => {
-  const [user, setUser] = useState<User | null>();
+  const [reporterUser, setReporterUser] = useState<User | null>();
+  const [reportedUser, setReportedUser] = useState<User | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
   const [transaction, setTransaction] = useState<Transaction | null>();
-  const isLoading = !transaction || !campaign || !user;
+  const isLoading = !transaction || !campaign || !reporterUser || !reportedUser;
   const isReporterCampaignOwner = report?.reporterId === campaign?.userId;
 
   useEffect(() => {
@@ -74,15 +78,25 @@ export const ReportCard = ({report}: ReportCardProps) => {
   useEffect(() => {
     if (report.reporterId) {
       User.getById(report.reporterId)
-        .then(setUser)
+        .then(setReporterUser)
         .catch(() => {
-          setUser(null);
+          setReporterUser(null);
+        });
+    }
+    if (report.reportedId) {
+      User.getById(report.reportedId)
+        .then(setReportedUser)
+        .catch(() => {
+          setReportedUser(null);
         });
     }
   }, [report]);
 
   return (
-    <View style={[flex.flexCol, shadow.small, rounded.default]}>
+    <AnimatedPressable
+      scale={0.95}
+      style={[flex.flexCol, shadow.small, rounded.default]}
+      onPress={() => {}}>
       <View style={[flex.flexRow, items.center, padding.default]}>
         <SkeletonPlaceholder style={[flex.flex1]} isLoading={isLoading}>
           <View style={[flex.flexRow, gap.small, items.center]}>
@@ -100,10 +114,12 @@ export const ReportCard = ({report}: ReportCardProps) => {
                   font.size[10],
                   textColor(COLOR.text.neutral.med),
                 ]}>
-                {`${formatDateToDayMonthYear(new Date(report.createdAt!!))} · ${
+                {`${formatDateToDayMonthYear(
+                  new Date(report.createdAt!!),
+                )} · Reported by ${
                   isReporterCampaignOwner
-                    ? user?.businessPeople?.fullname
-                    : user?.contentCreator?.fullname
+                    ? reporterUser?.businessPeople?.fullname
+                    : reporterUser?.contentCreator?.fullname
                 }`}
               </Text>
             </View>
@@ -126,15 +142,19 @@ export const ReportCard = ({report}: ReportCardProps) => {
             style={[dimension.square.xlarge2, rounded.small]}>
             <FastImage
               style={[dimension.full]}
-              source={{uri: campaign?.image}}
+              source={getSourceOrDefaultAvatar({
+                uri: isReporterCampaignOwner
+                  ? reportedUser?.contentCreator?.profilePicture
+                  : reportedUser?.businessPeople?.profilePicture,
+              })}
             />
           </View>
         </SkeletonPlaceholder>
-        <View style={[flex.flexCol, flex.flex1]}>
+        <View style={[flex.flexCol, flex.flex1, gap.small]}>
           <SkeletonPlaceholder
             isLoading={isLoading}
             height={lineHeight[20] * 1}>
-            <View style={[flex.flexRow, items.start, gap.default]}>
+            <View style={[flex.flexRow, items.center, gap.default]}>
               <Text
                 className="font-medium"
                 numberOfLines={1}
@@ -143,20 +163,38 @@ export const ReportCard = ({report}: ReportCardProps) => {
                   font.size[20],
                   textColor(COLOR.text.neutral.high),
                 ]}>
-                {campaign?.title}
+                {isReporterCampaignOwner
+                  ? reportedUser?.contentCreator?.fullname
+                  : reportedUser?.businessPeople?.fullname}
               </Text>
-              {transaction?.status && (
-                <StatusTag
-                  statusType={transactionStatusTypeMap[transaction.status]}
-                  status={transaction?.status}
-                  fontSize={5}
-                />
-              )}
             </View>
           </SkeletonPlaceholder>
+          {report.reason && (
+            <SkeletonPlaceholder
+              isLoading={isLoading}
+              height={lineHeight[20] * 2}>
+              <View
+                style={[
+                  background(COLOR.red[5]),
+                  padding.small,
+                  rounded.small,
+                ]}>
+                <Text
+                  className="font-medium"
+                  numberOfLines={2}
+                  style={[
+                    flex.flex1,
+                    font.size[10],
+                    textColor(COLOR.text.danger.default),
+                  ]}>
+                  {report.reason}
+                </Text>
+              </View>
+            </SkeletonPlaceholder>
+          )}
         </View>
       </View>
-    </View>
+    </AnimatedPressable>
   );
 };
 

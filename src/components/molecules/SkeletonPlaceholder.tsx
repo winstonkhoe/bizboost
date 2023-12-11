@@ -43,7 +43,6 @@ export const SkeletonPlaceholder: React.FC<SkeletonPlaceholderProps> = ({
 
   useEffect(() => {
     ref.current?.measure((x, y, width, height) => {
-      console.log(width, height, ' finish measure', children);
       setDimensions({width, height});
     });
   }, [children]);
@@ -56,6 +55,7 @@ export const SkeletonPlaceholder: React.FC<SkeletonPlaceholderProps> = ({
 
   return (
     <View
+      {...props}
       style={[
         isLoading && [
           styles.container,
@@ -67,8 +67,8 @@ export const SkeletonPlaceholder: React.FC<SkeletonPlaceholderProps> = ({
           },
           rounded.small,
         ],
-      ]}
-      {...props}>
+        props.style,
+      ]}>
       <View ref={ref} style={{opacity: isLoading ? 0 : 1}}>
         {children}
       </View>
