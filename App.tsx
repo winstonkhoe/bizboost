@@ -8,11 +8,10 @@
 import {Provider} from 'react-redux';
 import React from 'react';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {store} from './src/redux/store';
-import {AuthProvider} from './src/providers/AuthProvider';
+import Providers from './src/providers/Providers';
 import {Settings} from 'react-native-fbsdk-next';
 import TimeAgo from 'javascript-time-ago';
 
@@ -26,13 +25,12 @@ GoogleSignin.configure({
 });
 const App = () => {
   Settings.initializeSDK();
-  TimeAgo.addDefaultLocale(en);
+  TimeAgo.setDefaultLocale(en.locale);
+  TimeAgo.addLocale(en);
   return (
     <Provider store={store}>
       <GestureHandlerRootView style={{flex: 1}}>
-        <SafeAreaProvider>
-          <AuthProvider />
-        </SafeAreaProvider>
+        <Providers />
       </GestureHandlerRootView>
     </Provider>
   );

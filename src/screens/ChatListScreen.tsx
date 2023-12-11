@@ -1,13 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import {View, Text, ScrollView, TouchableWithoutFeedback} from 'react-native';
 import {useUserChats} from '../hooks/chats';
-import {useUser} from '../hooks/user'; // Import the hook for user information
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {getDate} from '../utils/date';
@@ -17,9 +10,9 @@ import {
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
+import FastImage from 'react-native-fast-image';
 
 const ChatListScreen = () => {
-  const {uid} = useUser();
   const chats = useUserChats();
 
   const navigation = useNavigation<NavigationStackProps>();
@@ -50,9 +43,8 @@ const ChatListScreen = () => {
                   }}>
                   <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
                     <View style={gap.medium} className="flex flex-row h-full">
-
                       <View className="w-12 h-12 rounded-full overflow-hidden">
-                        <Image
+                        <FastImage
                           source={
                             item.recipient?.profilePicture
                               ? {
@@ -60,7 +52,6 @@ const ChatListScreen = () => {
                                 }
                               : profilePictureSource
                           }
-                          alt=""
                           className="w-full h-full object-cover"
                         />
                       </View>
@@ -100,13 +91,16 @@ const ChatListScreen = () => {
             <View
               style={flex.flexCol}
               className="px-4 py-32 justify-center items-center">
-              <Image
+              <FastImage
                 source={{
                   uri: 'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fempty-chat.png?alt=media&token=eff938c9-35e5-4b45-9ec9-cd4600d1c14e&_gl=1*9utvv8*_ga*MTQ2MjU4MzIzNC4xNjk2NjQ4NTYx*_ga_CW55HF8NVT*MTY5OTQ1NzkxMy42MS4xLjE2OTk0NTgwMTAuMzEuMC4w',
                 }}
-                width={300}
-                height={300}
-                alt="Default No Chat"
+                style={[
+                  {
+                    width: 300,
+                    height: 300,
+                  },
+                ]}
               />
               <Text className="text-black">No chat available</Text>
             </View>

@@ -1,5 +1,5 @@
 import {createAction, createSlice} from '@reduxjs/toolkit';
-import {User, UserRoles} from '../../../model/User';
+import {User} from '../../../model/User';
 import {Providers} from '../../../model/AuthMethod';
 
 export interface TemporarySignupData {

@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-interface AnimatedPressableProps extends PressableProps {
+export interface AnimatedPressableProps extends PressableProps {
   scale?: number;
   children: ReactNode;
 }
@@ -44,7 +44,9 @@ export const AnimatedTap = ({scale = 0.75, children}: AnimatedTapProps) => {
   }));
   return (
     <GestureDetector gesture={tap}>
-      <Animated.View style={[animatedStyles]}>{children}</Animated.View>
+      <Animated.View style={[animatedStyles]} collapsable={false}>
+        {children}
+      </Animated.View>
     </GestureDetector>
   );
 };

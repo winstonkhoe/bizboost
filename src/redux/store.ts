@@ -3,6 +3,7 @@ import modalReducer from './slices/modalSlice';
 import searchReducer from './slices/searchSlice';
 import userReducer from './slices/userSlice';
 import campaignReducer from './slices/campaignSlice';
+import categoryReducer from './slices/categorySlice';
 import chatReducer from './slices/chatSlice';
 import authReducer from './slices/authSlice';
 import contentReducer from './slices/contentSlice';
@@ -18,6 +19,7 @@ export const store = configureStore({
     createAdditionalAccount: createAdditionalAccountReducer,
     signup: signupReducer,
     chat: chatReducer,
+    category: categoryReducer,
     content: contentReducer,
     auth: authReducer,
   },

@@ -1,7 +1,4 @@
-import React, {useEffect, useState} from 'react';
-import {Text} from 'react-native';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
-import {ScrollView} from 'react-native-gesture-handler';
+import {RefreshControl, ScrollView} from 'react-native-gesture-handler';
 import {
   HorizontalPadding,
   VerticalPadding,
@@ -12,24 +9,41 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {Campaign} from '../model/Campaign';
 import {gap} from '../styles/Gap';
 import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
-import {useAppSelector} from '../redux/hooks';
+import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {getSimilarCampaigns} from '../validations/campaign';
+import {fetchNonUserCampaigns, useOngoingCampaign} from '../hooks/campaign';
+import {useCallback, useState} from 'react';
+import {useUser} from '../hooks/user';
+import {setNonUserCampaigns} from '../redux/slices/campaignSlice';
 
 const CampaignsScreen = () => {
-  // TODO: validasi, CC gabisa liat campaigns yang punyanya dia sebagai BP
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const {uid} = useUser();
+  const dispatch = useAppDispatch();
+  const {nonUserCampaigns} = useOngoingCampaign();
   const {searchTerm} = useAppSelector(select => select.search);
-  useEffect(() => {
-    Campaign.getAll().then(value => setCampaigns(value));
-  }, []);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    if (uid) {
+      setRefreshing(true);
+      fetchNonUserCampaigns(uid).then(campaigns => {
+        dispatch(setNonUserCampaigns(campaigns));
+        setRefreshing(false);
+      });
+    }
+  }, [dispatch, uid]);
 
   return (
     <PageWithSearchBar>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         <VerticalPadding>
           <HorizontalPadding>
             <View style={[flex.flexCol, gap.medium]}>
-              {getSimilarCampaigns(campaigns, searchTerm).map(
+              {getSimilarCampaigns(nonUserCampaigns, searchTerm).map(
                 (c: Campaign, index: number) => (
                   <OngoingCampaignCard campaign={c} key={index} />
                 ),

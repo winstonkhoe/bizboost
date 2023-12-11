@@ -1,6 +1,9 @@
 import {Text, View} from 'react-native';
 import {InternalLink} from '../atoms/Link';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
+import {COLOR} from '../../styles/Color';
 
 interface Props {
   header: string;
@@ -10,8 +13,12 @@ interface Props {
 
 const HomeSectionHeader = ({header, link, onPressLink}: Props) => {
   return (
-    <View className="items-center justify-between" style={[flex.flexRow]}>
-      <Text className="text-lg font-bold">{header}</Text>
+    <View style={[flex.flexRow, items.center, justify.between]}>
+      <Text
+        className="font-bold"
+        style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+        {header}
+      </Text>
       {link ? <InternalLink text={link} onPress={onPressLink} /> : null}
     </View>
   );

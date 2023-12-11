@@ -1,11 +1,14 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, Image} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import BackNav from '../../assets/vectors/chevron-left.svg';
 import {gap} from '../../styles/Gap';
 import {COLOR} from '../../styles/Color';
-import {UserRole} from '../../model/User';
-import {useUser} from '../../hooks/user';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
+import FastImage from 'react-native-fast-image';
 
 interface Props {
   recipientName: string;
@@ -13,11 +16,10 @@ interface Props {
 }
 
 const ChatHeader = ({recipientName, recipientPicture}: Props) => {
-  const navigation = useNavigation();
-  const {uid, user, activeRole} = useUser();
+  const navigation = useNavigation<NavigationStackProps>();
 
   const handleBackButtonPress = () => {
-    navigation.goBack();
+    navigation.navigate(AuthenticatedNavigation.ChatList);
   };
 
   let profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
@@ -34,9 +36,8 @@ const ChatHeader = ({recipientName, recipientPicture}: Props) => {
         <BackNav width={30} height={20} color={COLOR.black[100]} />
       </TouchableOpacity>
       <View className="w-10 h-10 rounded-full overflow-hidden">
-        <Image
+        <FastImage
           source={profilePictureSource}
-          alt=""
           className="w-full h-full object-cover"
         />
       </View>

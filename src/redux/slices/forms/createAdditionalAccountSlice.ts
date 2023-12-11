@@ -1,8 +1,8 @@
 import {createAction, createSlice} from '@reduxjs/toolkit';
-import {BusinessPeople, ContentCreator, UserRoles} from '../../../model/User';
+import {BusinessPeople, ContentCreator, UserRole} from '../../../model/User';
 
 interface CreateAdditionalAccountState {
-  role: UserRoles;
+  role?: UserRole;
   data?: ContentCreator | BusinessPeople;
 }
 
@@ -11,7 +11,7 @@ const initialState = {
   data: undefined,
 } as CreateAdditionalAccountState;
 
-export const setRole = createAction<UserRoles>('setRole');
+export const setRole = createAction<UserRole>('setRole');
 export const updateAdditionalAccountData = createAction<
   ContentCreator | BusinessPeople
 >('updateAdditionalAccountData');

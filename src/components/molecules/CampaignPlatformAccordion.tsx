@@ -45,7 +45,8 @@ const CampaignPlatformAccordion = ({platform}: Props) => {
         platform.tasks.map((t, idx) => (
           <View key={idx} className="flex flex-row items-center ml-2 mt-1">
             <Checkmark color={COLOR.black[100]} width={20} height={20} />
-            <Text className="ml-1">{t}</Text>
+            {/* TODO: fix, show desc etc */}
+            <Text className="ml-1">{t.name}</Text>
           </View>
         ))}
     </View>

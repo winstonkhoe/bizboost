@@ -4,12 +4,13 @@ import ChatListScreen from '../screens/ChatListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
+import CampaignLogoFilled from '../assets/vectors/campaign-filled.svg';
+import CampaignLogoOutline from '../assets/vectors/campaign-outline.svg';
 import ChatLogoFilled from '../assets/vectors/chat-filled.svg';
 import ChatLogoOutline from '../assets/vectors/chat-outline.svg';
 import ListLogoFilled from '../assets/vectors/list-box.svg';
 import ListLogoOutline from '../assets/vectors/list-box-line.svg';
 import SearchLogo from '../assets/vectors/search.svg';
-import {Image} from 'react-native';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
 import {useCallback} from 'react';
@@ -22,6 +23,7 @@ import {NavigationProp} from '@react-navigation/native';
 import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
 import ContentCreatorsScreen from '../screens/ContentCreatorsScreen';
 import ExploreScreen from '../screens/ExploreScreen';
+import FastImage from 'react-native-fast-image';
 
 const Tab = createBottomTabNavigator();
 
@@ -65,7 +67,7 @@ export const TabNavigator = () => {
     };
     return (
       <View className="rounded-full w-6 h-6 overflow-hidden">
-        <Image
+        <FastImage
           className="w-full h-full"
           source={
             getUserProfile()
@@ -80,6 +82,17 @@ export const TabNavigator = () => {
   const homeIcon = useCallback(
     (focused: boolean) =>
       focused ? <HomeLogoFilled width={30} /> : <HomeLogoOutline width={30} />,
+    [],
+  );
+
+  // TODO: kayaknya kureng icon campaignnya
+  const campaignIcon = useCallback(
+    (focused: boolean) =>
+      focused ? (
+        <CampaignLogoFilled width={30} fill={'black'} />
+      ) : (
+        <CampaignLogoOutline width={30} fill={'black'} />
+      ),
     [],
   );
 
@@ -113,6 +126,10 @@ export const TabNavigator = () => {
     [],
   );
 
+  if (!user || !activeRole) {
+    return null;
+  }
+
   return (
     <Tab.Navigator>
       {UserRole.ContentCreator === activeRole && (
@@ -143,6 +160,9 @@ export const TabNavigator = () => {
               tabPress: () => {
                 resetSearchState();
               },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => campaignIcon(focused),
             }}
           />
           <Tab.Screen

@@ -8,7 +8,6 @@ import {
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {rounded} from '../styles/BorderRadius';
-import {Image} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
@@ -22,6 +21,7 @@ import {ProfileItem} from '../components/molecules/ProfileItem';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TikTokLogo from '../assets/vectors/tiktok.svg';
+import FastImage from 'react-native-fast-image';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -38,17 +38,16 @@ const UserDetailScreen = ({route}: Props) => {
     return <Text>Error</Text>;
   }
 
-  const onSuspendButtonClick = () => {
+  const onSuspendButtonClick = async () => {
     if (user.status === UserStatus.Active) {
-      user.status = UserStatus.Suspended;
-    } else {
-      user.status = UserStatus.Active;
+      await user.suspend();
     }
-
-    User.updateUserData(user.id || '', user);
+    if (user.status === UserStatus.Suspended) {
+      await user.activate();
+    }
   };
   return (
-    <PageWithBackButton>
+    <PageWithBackButton enableSafeAreaContainer>
       <ScrollView
         contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}>
@@ -62,7 +61,7 @@ const UserDetailScreen = ({route}: Props) => {
                   <View
                     className="w-24 h-24 overflow-hidden"
                     style={[rounded.max]}>
-                    <Image
+                    <FastImage
                       className="w-full flex-1"
                       source={
                         user.contentCreator?.profilePicture
@@ -136,7 +135,10 @@ const UserDetailScreen = ({route}: Props) => {
                 onPress={onSuspendButtonClick}
                 customBackgroundColor={
                   user.status === UserStatus.Active
-                    ? COLOR.background.danger
+                    ? {
+                        default: COLOR.background.danger.high,
+                        disabled: COLOR.background.danger.disabled,
+                      }
                     : undefined
                 }
                 rounded="default"

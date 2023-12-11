@@ -7,7 +7,7 @@ import {FontSizeType, font} from '../../styles/Font';
 
 interface Props {
   text: string;
-  type?: 'success' | 'danger';
+  type?: 'success' | 'danger' | 'neutral';
   radius?: RadiusSizeType;
   fontSize?: FontSizeType;
 }
@@ -22,7 +22,9 @@ const Label = ({
       className="px-2 py-1"
       style={[
         rounded[radius],
-        background(type === 'success' ? COLOR.green[50] : COLOR.red[50]),
+        type === 'success' && background(COLOR.green[50]),
+        type === 'danger' && background(COLOR.red[50]),
+        type === 'neutral' && background(COLOR.background.neutral.high),
       ]}>
       <Text
         className="font-bold"

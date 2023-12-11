@@ -1,17 +1,14 @@
 import {Text} from 'react-native';
 import {User, UserStatus} from '../../model/User';
 import {View} from 'react-native';
-import {Image} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {borderRadius, radiusSize, rounded} from '../../styles/BorderRadius';
 import {COLOR} from '../../styles/Color';
 import {horizontalPadding, verticalPadding} from '../../styles/Padding';
-import {border} from '../../styles/Border';
 import {gap} from '../../styles/Gap';
-import PlatformTag from '../atoms/PlatformTag';
-import {textColor} from '../../styles/Text';
 import {shadow} from '../../styles/Shadow';
 import {background} from '../../styles/BackgroundColor';
+import FastImage from 'react-native-fast-image';
 
 type Props = {
   user: User;
@@ -44,7 +41,7 @@ const UserListCard = ({user}: Props) => {
           <View
             className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
             style={[flex.flexRow, rounded.max]}>
-            <Image
+            <FastImage
               className="w-full h-full object-cover"
               source={
                 user?.contentCreator?.profilePicture

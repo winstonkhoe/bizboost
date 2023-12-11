@@ -16,6 +16,7 @@ import {
 import {AuthMethod, Provider, Providers} from './AuthMethod';
 import {Category} from './Category';
 import {Location} from './Location';
+import {deleteFileByURL} from '../helpers/storage';
 
 const USER_COLLECTION = 'users';
 
@@ -35,14 +36,11 @@ export enum UserStatus {
   Suspended = 'Suspended',
 }
 
-export type SocialPlatforms = SocialPlatform.Instagram | SocialPlatform.Tiktok;
-
-// TODO: @win win kayaknya ini mayan memusingkan deh ada UserRoles dan UserRole, kenapa ga yang di UserRole tambah undefined aja?
-export type UserRoles =
-  | UserRole.ContentCreator
-  | UserRole.BusinessPeople
-  | UserRole.Admin
-  | undefined;
+export interface BankAccountInformation {
+  bankName: string;
+  accountHolderName: string;
+  accountNumber: string;
+}
 
 export interface ContentCreatorPreference {
   contentRevisionLimit?: number;
@@ -97,6 +95,7 @@ export class User extends BaseModel {
   joinedAt?: number;
   isAdmin?: boolean;
   status?: UserStatus;
+  bankAccountInformation?: BankAccountInformation;
 
   constructor({
     id,
@@ -110,6 +109,7 @@ export class User extends BaseModel {
     status,
     instagram,
     tiktok,
+    bankAccountInformation,
   }: Partial<User>) {
     super();
     this.id = id;
@@ -123,6 +123,7 @@ export class User extends BaseModel {
     this.status = status;
     this.instagram = instagram;
     this.tiktok = tiktok;
+    this.bankAccountInformation = bankAccountInformation;
     // Add your non-static methods here
   }
 
@@ -139,9 +140,6 @@ export class User extends BaseModel {
         phone: data?.phone,
         contentCreator: {
           ...data.contentCreator,
-          postingSchedules: data.contentCreator?.postingSchedules?.map(
-            (schedule: FirebaseFirestoreTypes.Timestamp) => schedule?.seconds,
-          ),
           specializedCategoryIds:
             data.contentCreator?.specializedCategoryIds?.map(
               (categoryId: FirebaseFirestoreTypes.DocumentReference) =>
@@ -159,20 +157,20 @@ export class User extends BaseModel {
         joinedAt: data?.joinedAt,
         isAdmin: data?.isAdmin,
         status: data?.status || UserStatus.Active,
+        bankAccountInformation: data.bankAccountInformation,
       });
     }
 
     throw Error("Error, document doesn't exist!");
   }
 
-  static getDocumentReference(
-    documentId: string,
-  ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    //TODO: tidy up, move somewhere else neater
-    firestore().settings({
-      ignoreUndefinedProperties: true,
-    });
-    return firestore().collection(USER_COLLECTION).doc(documentId);
+  static getCollectionReference() {
+    return firestore().collection(USER_COLLECTION);
+  }
+
+  static getDocumentReference(documentId: string) {
+    this.setFirestoreSettings();
+    return this.getCollectionReference().doc(documentId);
   }
 
   static async createUserWithEmailAndPassword(
@@ -206,12 +204,61 @@ export class User extends BaseModel {
     });
   }
 
-  static async updateUserData(documentId: string, data: User): Promise<void> {
-    await this.getDocumentReference(documentId).update(
-      this.mappingUserFields(data),
+  // TODO: ganti jadi ga static
+  async updateUserData(): Promise<void> {
+    await User.getDocumentReference(this.id || '').update(
+      User.mappingUserFields(this),
     );
   }
 
+  async updateProfilePicture(
+    activeRole: UserRole | undefined,
+    profilePictureUrl: string,
+  ): Promise<void> {
+    if (activeRole === UserRole.BusinessPeople) {
+      deleteFileByURL(this.businessPeople?.profilePicture || '');
+
+      this.businessPeople = {
+        ...this.businessPeople!,
+        profilePicture: profilePictureUrl,
+      };
+    } else if (activeRole === UserRole.ContentCreator) {
+      deleteFileByURL(this.contentCreator?.profilePicture || '');
+
+      this.contentCreator = {
+        ...this.contentCreator!,
+        profilePicture: profilePictureUrl,
+      };
+    }
+
+    this.updateUserData().then(() => console.log('Profile picture updated'));
+  }
+
+  async updatePassword(
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    try {
+      // Check if current pasword is correct
+      await auth().currentUser?.reauthenticateWithCredential(
+        auth.EmailAuthProvider.credential(this.email || '', oldPassword),
+      );
+
+      // Jangan pake auth().currentUser yang sama sama yang di atas, karena pas reauthenticate, itu berubah currentUsernya
+      await auth().currentUser?.updatePassword(newPassword);
+      console.log('Password updated!');
+    } catch (error: any) {
+      console.log(error.code);
+      const code: string = error.code;
+      // To format code, contoh weak-password jadi Weak Password, internal-error jadi Internal Error. (Boleh diimprove)
+      const formattedCode = code
+        .split('/')
+        .pop()
+        ?.replace('-', ' ')
+        .toUpperCase();
+      throw Error(`${formattedCode}! Update Password failed!`);
+    }
+  }
   // static async getAll(): Promise<User[]> {
   //   try {
   //     const users = await firestore()
@@ -252,24 +299,24 @@ export class User extends BaseModel {
     return unsubscribe;
   }
 
-  static async getById(documentId: string): Promise<User | undefined> {
+  static async getByIds(documentIds: string[]): Promise<User[]> {
+    try {
+      const users = await this.getCollectionReference()
+        .where(firestore.FieldPath.documentId(), 'in', documentIds)
+        .get();
+      return users?.docs?.map(this.fromSnapshot) || [];
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
+  static async getById(documentId: string): Promise<User | null> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {
-      const userData = snapshot.data();
-      const user = new User({
-        id: snapshot.id,
-        email: userData?.email,
-        phone: userData?.phone,
-        contentCreator: userData?.contentCreator,
-        businessPeople: userData?.businessPeople,
-        instagram: userData?.instagram,
-        tiktok: userData?.tiktok,
-        joinedAt: userData?.joinedAt?.seconds,
-        isAdmin: userData?.isAdmin,
-      });
-
-      return user;
+      return this.fromSnapshot(snapshot);
     }
+    return null;
   }
 
   static async getUser(documentId: string): Promise<User | null> {
@@ -410,6 +457,10 @@ export class User extends BaseModel {
           provider: Provider.GOOGLE,
           token: idToken,
         });
+        return {
+          id: id,
+          token: '',
+        };
       }
       return {
         id: id,
@@ -553,6 +604,16 @@ export class User extends BaseModel {
         .addRequest(getUserFacebookPagesListRequest)
         .start();
     }
+  }
+
+  async suspend() {
+    this.status = UserStatus.Suspended;
+    await this.updateUserData();
+  }
+
+  async activate() {
+    this.status = UserStatus.Active;
+    await this.updateUserData();
   }
 
   static async signOut() {

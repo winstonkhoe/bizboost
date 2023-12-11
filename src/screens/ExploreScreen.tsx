@@ -1,15 +1,22 @@
 import {
-  FlatList,
   Pressable,
   StatusBar,
   Text,
   View,
+  ViewToken,
   useWindowDimensions,
 } from 'react-native';
-import Video from 'react-native-video';
-import {useState} from 'react';
+import {FlashList} from '@shopify/flash-list';
+import Video, {
+  OnBufferData,
+  OnVideoErrorData,
+  ReactVideoProps,
+  ReactVideoSource,
+  ResizeMode,
+} from 'react-native-video';
+import {memo, useCallback, useMemo, useState} from 'react';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
-import {flex, items, justify} from '../styles/Flex';
+import {flex, items} from '../styles/Flex';
 import {rounded} from '../styles/BorderRadius';
 import {dimension} from '../styles/Dimension';
 import FastImage from 'react-native-fast-image';
@@ -22,32 +29,65 @@ import {padding} from '../styles/Padding';
 import {useIsFocused, useNavigation} from '@react-navigation/core';
 import {useContent} from '../hooks/content';
 import {ContentView} from '../model/Content';
+import {shuffle} from '../utils/array';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../navigation/StackNavigation';
+import {LoadingScreen} from './LoadingScreen';
+import {useAppFocus} from '../hooks/app';
 
 const ExploreScreen = () => {
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const {contents} = useContent();
+  const shuffledContents = useMemo(() => shuffle(contents), [contents]);
+  const isAppFocused = useAppFocus();
   const isFocused = useIsFocused();
   const bottomTabHeight = useBottomTabBarHeight();
-  const windowDimension = useWindowDimensions();
+
+  const keyExtractor = useCallback(
+    (item: ContentView) => item.content.id!!,
+    [],
+  );
+
+  const viewabilityConfig = useMemo(() => {
+    return {
+      itemVisiblePercentThreshold: 90,
+    };
+  }, []);
+
+  const onViewableItemsChanged = useCallback(
+    (info: {viewableItems: ViewToken[]}) => {
+      if (info.viewableItems.length > 0) {
+        const index = info.viewableItems[0].index;
+        if (index) {
+          setActiveVideoIndex(index);
+        }
+      }
+    },
+    [],
+  );
+
+  if (!shuffledContents || shuffledContents.length === 0) {
+    return <LoadingScreen />;
+  }
 
   return (
-    <FlatList
-      data={contents}
-      pagingEnabled
-      showsVerticalScrollIndicator={false}
+    <FlashList
+      estimatedItemSize={shuffledContents.length}
+      data={shuffledContents}
+      keyExtractor={keyExtractor}
       renderItem={({item, index}) => (
-        <ExploreItem
+        <ExploreItemMemo
           content={item}
-          active={isFocused && activeVideoIndex === index}
+          bottomTabHeight={bottomTabHeight}
+          active={isAppFocused && isFocused && activeVideoIndex === index}
         />
       )}
-      onScroll={e => {
-        const index = Math.round(
-          e.nativeEvent.contentOffset.y /
-            (windowDimension.height - bottomTabHeight),
-        );
-        setActiveVideoIndex(index);
-      }}
+      extraData={[activeVideoIndex, isFocused, isAppFocused]}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={viewabilityConfig}
+      pagingEnabled
     />
   );
 };
@@ -55,12 +95,50 @@ const ExploreScreen = () => {
 interface ExploreItemProps {
   content: ContentView;
   active: boolean;
+  bottomTabHeight?: number;
 }
 
-const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
-  const bottomTabHeight = useBottomTabBarHeight();
+export const ExploreItem = ({
+  content: contentView,
+  active,
+  bottomTabHeight = 0,
+}: ExploreItemProps) => {
+  const [isBuffering, setIsBuffering] = useState<boolean>(() => {
+    return true;
+  });
+
+  const navigation = useNavigation<NavigationStackProps>();
   const windowDimension = useWindowDimensions();
   const statusBarHeight = StatusBar.currentHeight || 0;
+
+  const handleBuffer = useCallback(
+    (buff: OnBufferData) => {
+      console.log(buff);
+      if (buff.isBuffering !== isBuffering) {
+        setIsBuffering(buff.isBuffering);
+      }
+    },
+    [isBuffering],
+  );
+
+  const handleLoadStart = useCallback(() => {
+    console.log('onload start');
+    if (!isBuffering) {
+      setIsBuffering(true);
+    }
+  }, [isBuffering]);
+
+  const handleLoad = useCallback(() => {
+    console.log('onload');
+    if (isBuffering) {
+      setIsBuffering(false);
+    }
+  }, [isBuffering]);
+
+  const handleError = useCallback((err: OnVideoErrorData) => {
+    console.log(err);
+  }, []);
+
   return (
     <View
       style={[
@@ -69,25 +147,49 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
           height: windowDimension.height - bottomTabHeight - statusBarHeight,
         },
       ]}>
-      <Video
-        source={{
-          uri: contentView.content.uri,
-        }} // Can be a URL or a local file.
-        paused={!active}
-        repeat
-        resizeMode="cover"
-        onBuffer={buff => console.log('buffer', buff)}
-        onError={err => console.log('error', err)}
-        style={{
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-        }}
-      />
-      <Pressable
-        className="absolute z-10 bottom-4 left-4 w-72"
-        style={[flex.flexCol, gap.xsmall]}>
+      {active && isBuffering && <LoadingScreen />}
+      {isBuffering && contentView?.content?.thumbnail && (
         <View
+          style={[
+            {
+              position: 'absolute',
+              zIndex: 10,
+            },
+            dimension.full,
+          ]}>
+          <FastImage
+            style={[dimension.full]}
+            source={{
+              uri: contentView.content.thumbnail,
+              priority: FastImage.priority.high,
+            }}
+            resizeMode={'cover'}
+          />
+        </View>
+      )}
+      {active && contentView?.content?.uri && (
+        <VideoMemo
+          active={active}
+          source={{
+            uri: contentView.content.uri,
+          }}
+          onBuffer={handleBuffer}
+          onLoad={handleLoad}
+          onLoadStart={handleLoadStart}
+          onError={handleError}
+        />
+      )}
+      <View
+        className="bottom-4 left-4 w-72"
+        style={[
+          flex.flexCol,
+          gap.xsmall,
+          {
+            position: 'absolute',
+            zIndex: 20,
+          },
+        ]}>
+        <Pressable
           className="self-start"
           style={[
             rounded.small,
@@ -96,7 +198,13 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
             gap.default,
             items.center,
             background(`${COLOR.black[100]}77`),
-          ]}>
+          ]}
+          onPress={() => {
+            navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
+              contentCreatorId:
+                contentView.user.id || contentView.content.userId!!,
+            });
+          }}>
           <View
             className="overflow-hidden"
             style={[rounded.max, dimension.square.xlarge]}>
@@ -113,7 +221,7 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
             style={[font.size[40], textColor(COLOR.black[0])]}>
             {contentView?.user?.contentCreator?.fullname}
           </Text>
-        </View>
+        </Pressable>
         <View style={[dimension.width.full]}>
           <Text
             numberOfLines={2}
@@ -126,9 +234,68 @@ const ExploreItem = ({content: contentView, active}: ExploreItemProps) => {
             {contentView?.content?.description}
           </Text>
         </View>
-      </Pressable>
+      </View>
     </View>
   );
 };
+
+interface VideoMemoProps {
+  source: ReactVideoSource;
+  active: boolean;
+  onBuffer?: (buff: OnBufferData) => void;
+  onLoad?: ReactVideoProps['onLoad'];
+  onLoadStart?: ReactVideoProps['onLoadStart'];
+  onError?: (e: OnVideoErrorData) => void;
+}
+
+const VideoMemo = memo(
+  ({
+    source,
+    active,
+    onBuffer,
+    onLoad,
+    onLoadStart,
+    onError,
+  }: VideoMemoProps) => {
+    return (
+      <Video
+        source={source} // Can be a URL or a local file.
+        paused={!active}
+        repeat
+        resizeMode={ResizeMode.COVER}
+        onBuffer={onBuffer}
+        onLoad={onLoad}
+        onLoadStart={onLoadStart}
+        onError={onError}
+        style={[flex.flex1]}
+      />
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.source === nextProps.source &&
+      prevProps.active === nextProps.active
+    );
+  },
+);
+
+const ExploreItemMemo = memo(
+  ({content, active, bottomTabHeight}: ExploreItemProps) => {
+    return (
+      <ExploreItem
+        active={active}
+        content={content}
+        bottomTabHeight={bottomTabHeight}
+      />
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.active === nextProps.active &&
+      prevProps.content.content.id === nextProps.content.content.id &&
+      prevProps.bottomTabHeight === nextProps.bottomTabHeight
+    );
+  },
+);
 
 export default ExploreScreen;

@@ -8,7 +8,7 @@ import {Dimensions} from 'react-native';
 import ContentCreator from '../../assets/vectors/content-creator.svg';
 import BusinessPeople from '../../assets/vectors/business-people.svg';
 import {SvgProps} from 'react-native-svg';
-import {UserRole, UserRoles} from '../../model/User';
+import {UserRole} from '../../model/User';
 import Animated, {
   interpolate,
   interpolateColor,
@@ -24,7 +24,7 @@ import {useEffect, useRef, useState} from 'react';
 import {font} from '../../styles/Font';
 
 interface RoleCard {
-  role: UserRoles;
+  role: UserRole;
   description: string;
   asset: React.FC<SvgProps>;
 }
@@ -43,7 +43,7 @@ const data: RoleCard[] = [
 ];
 
 interface ChooseRoleProps {
-  onChangeRole: (role: UserRoles) => void;
+  onChangeRole: (role: UserRole) => void;
 }
 
 export const ChooseRole = ({onChangeRole}: ChooseRoleProps) => {

@@ -11,36 +11,23 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import React, {
-  Children,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import React, {Children, ReactNode, useEffect, useState} from 'react';
 import {textColor} from '../../styles/Text';
 import {dimension} from '../../styles/Dimension';
 import {padding} from '../../styles/Padding';
-
-type StepperType = 'simple' | 'content';
+import {border} from '../../styles/Border';
 
 interface BaseStepperProps {
   currentPosition: number;
   maxPosition: number;
-  children?: ReactNode;
 }
 
 interface StepperProps extends BaseStepperProps {
-  type?: StepperType;
+  type?: 'simple';
 }
 
 export const Stepper = ({type = 'simple', ...props}: StepperProps) => {
-  return (
-    <View>
-      {type === 'simple' && <SimpleStepper {...props} />}
-      {type === 'content' && <ContentStepper {...props} />}
-    </View>
-  );
+  return <View>{type === 'simple' && <SimpleStepper {...props} />}</View>;
 };
 
 const SimpleStepper = ({...props}: BaseStepperProps) => {
@@ -116,46 +103,107 @@ const SimpleStepperBar = ({barIndex, currentPosition}: SimpleStepperBar) => {
   );
 };
 
-const ContentStepper = ({...props}: BaseStepperProps) => {
+export enum StepperState {
+  success = 'success',
+  danger = 'danger',
+  warning = 'warning',
+  inProgress = 'inProgress',
+  upcoming = 'upcoming',
+  terminated = 'terminated',
+}
+
+interface ContentStepperProps extends BaseStepperProps {
+  decreasePreviousVisibility?: boolean; //currently only support content stepper
+  stepperStates?: StepperState[];
+  children?: ReactNode;
+}
+
+export const ContentStepper = ({
+  decreasePreviousVisibility = true,
+  stepperStates = [],
+  ...props
+}: ContentStepperProps) => {
   const children = Children.toArray(props.children);
   return (
     <View style={[flex.flexCol, gap.small]}>
       {children.map((child: ReactNode, index: number) => {
+        const isUpcoming =
+          !stepperStates[index] ||
+          StepperState.upcoming === stepperStates[index];
+        const isSuccess =
+          !isUpcoming && StepperState.success === stepperStates[index];
+        const isDanger =
+          !isUpcoming && StepperState.danger === stepperStates[index];
+        const isWarning =
+          !isUpcoming && StepperState.warning === stepperStates[index];
+        const isInProgress =
+          !isUpcoming && StepperState.inProgress === stepperStates[index];
+        const isTerminated =
+          !isUpcoming && StepperState.terminated === stepperStates[index];
         return (
-          <View style={[flex.flexRow, gap.default]}>
+          <View key={index} style={[flex.flexRow, gap.default]}>
             <View style={[flex.flexCol, gap.small, items.center]}>
               <View
                 style={[
-                  dimension.square.xlarge2,
-                  background(
-                    props.currentPosition >= index
-                      ? COLOR.green[50]
-                      : COLOR.black[20],
-                  ),
+                  dimension.square.large,
+                  isUpcoming && background(COLOR.black[20]),
+                  isSuccess && background(COLOR.green[50]),
+                  isDanger && background(COLOR.red[50]),
+                  isWarning && background(COLOR.yellow[30]),
+                  isInProgress && [
+                    border({
+                      borderWidth: 2,
+                      color: COLOR.green[50],
+                    }),
+                    background(COLOR.background.neutral.default),
+                  ],
+                  isTerminated && background(COLOR.black[70]),
+                  index < props.currentPosition && {
+                    opacity: 0.5,
+                  },
                   rounded.max,
                 ]}
               />
               <View
                 style={[
                   flex.flex1,
-                  background(
-                    props.currentPosition - 1 >= index
-                      ? COLOR.green[50]
-                      : COLOR.black[20],
-                  ),
+                  index < props.currentPosition
+                    ? [background(COLOR.green[50])]
+                    : [background(COLOR.black[20])],
+                  index < props.currentPosition && {
+                    opacity: 0.5,
+                  },
                   dimension.width.xsmall,
                   rounded.max,
                 ]}
               />
             </View>
             <View
+              className="relative"
               style={[
                 flex.flex1,
                 padding.bottom.large,
-                {
-                  opacity: props.currentPosition >= index ? 1 : 0.3,
-                },
+                // index < props.currentPosition && {
+                //   opacity: 0.5,
+                // },
+                // index === props.currentPosition && {
+                //   opacity: 1,
+                // },
+                // index > props.currentPosition && {
+                //   opacity: 0.5,
+                // },
               ]}>
+              {((decreasePreviousVisibility && index < props.currentPosition) ||
+                index > props.currentPosition) && (
+                <View
+                  className="absolute z-10 top-0 left-0"
+                  style={[
+                    dimension.full,
+                    background(COLOR.black[0], 0.5),
+                    rounded.medium,
+                  ]}
+                />
+              )}
               {child}
             </View>
           </View>

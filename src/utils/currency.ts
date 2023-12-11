@@ -6,4 +6,14 @@ const currencyFormat = (value: number | string) => {
   return '';
 };
 
-export {currencyFormat};
+const formatToRupiah = (value: string | number = 0) => {
+  const currency = typeof value === 'string' ? parseInt(value, 10) : value;
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(currency);
+};
+
+export {currencyFormat, formatToRupiah};

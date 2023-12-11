@@ -1,15 +1,10 @@
-import {Image, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {flex, items} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
-import {
-  BusinessPeople,
-  ContentCreator,
-  UserRole,
-  UserRoles,
-} from '../../model/User';
+import {BusinessPeople, ContentCreator, UserRole} from '../../model/User';
 import {gap} from '../../styles/Gap';
 import Add from '../../assets/vectors/add-thin.svg';
 import {border} from '../../styles/Border';
@@ -26,11 +21,12 @@ import {AnimatedPressable} from '../atoms/AnimatedPressable';
 import {padding} from '../../styles/Padding';
 import {dimension} from '../../styles/Dimension';
 import {font} from '../../styles/Font';
+import FastImage from 'react-native-fast-image';
 
 interface Props {
   data?: BusinessPeople | ContentCreator;
   active?: boolean;
-  role: UserRoles;
+  role?: UserRole;
 }
 const AccountListCard = ({data, active = false, role}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -72,7 +68,7 @@ const AccountListCard = ({data, active = false, role}: Props) => {
             }),
         ]}>
         {isValidUser() ? (
-          <Image
+          <FastImage
             style={[dimension.full]}
             source={
               isValidUser() && data?.profilePicture

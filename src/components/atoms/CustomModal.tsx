@@ -1,10 +1,8 @@
 import {Modal, ModalProps} from 'react-native';
-import {View} from 'react-native';
 import {flex, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
-import {HorizontalPadding} from './ViewPadding';
 import {ReactNode, useEffect} from 'react';
 import {rounded} from '../../styles/BorderRadius';
 import Animated, {
@@ -12,12 +10,20 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import {padding} from '../../styles/Padding';
 
 interface CustomModalProps extends ModalProps {
   children: ReactNode;
+  removeDefaultBackground?: boolean;
+  removeDefaultPadding?: boolean;
 }
 
-export const CustomModal = ({children, ...props}: CustomModalProps) => {
+export const CustomModal = ({
+  children,
+  removeDefaultBackground = false,
+  removeDefaultPadding = false,
+  ...props
+}: CustomModalProps) => {
   const scale = useSharedValue(0.8);
   const opacity = useSharedValue(0);
 
@@ -39,28 +45,25 @@ export const CustomModal = ({children, ...props}: CustomModalProps) => {
   }, [props.visible, opacity, scale]);
 
   return (
-    <View style={[flex.flex1]}>
-      <Modal animationType="fade" {...props}>
+    <Modal animationType="fade" {...props}>
+      <Animated.View
+        style={[
+          flex.flex1,
+          justify.center,
+          gap.default,
+          animatedBackgroundStyle,
+          !removeDefaultPadding && padding.horizontal.xlarge,
+          background(`${COLOR.black[100]}d0`),
+        ]}>
         <Animated.View
           style={[
-            flex.flex1,
-            justify.center,
-            gap.default,
-            animatedBackgroundStyle,
-            background(`${COLOR.black[100]}d0`),
+            rounded.default,
+            animatedModalStyle,
+            !removeDefaultBackground && background(COLOR.black[0]),
           ]}>
-          <HorizontalPadding paddingSize="xlarge">
-            <Animated.View
-              style={[
-                rounded.default,
-                animatedModalStyle,
-                background(COLOR.black[0]),
-              ]}>
-              {children}
-            </Animated.View>
-          </HorizontalPadding>
+          {children}
         </Animated.View>
-      </Modal>
-    </View>
+      </Animated.View>
+    </Modal>
   );
 };
