@@ -23,6 +23,15 @@ export enum BasicStatus {
   rejected = 'Rejected',
 }
 
+// TODO: status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
+export enum PaymentStatus {
+  proofWaitingForVerification = 'Waiting For Verification',
+  proofApproved = 'Proof Approved',
+  proofRejected = 'Proof Rejected',
+  withdrawalRequested = 'Withdrawal Requested',
+  withdrawn = 'Withdrawn',
+}
+
 export enum TransactionStatus {
   // public
   notRegistered = 'Not Registered',
@@ -84,12 +93,24 @@ type BasicStatusMap = {
   [key in BasicStatus]: StatusType;
 };
 
+type PaymentStatusMap = {
+  [key in PaymentStatus]: StatusType;
+};
+
 export const rejectionTypeLabelMap: RejectionTypeLabelMap = {
   [RejectionType.contentMismatch]: "Content doesn't meet task requirements",
   [RejectionType.unreachableLink]:
     'Link cannot be opened (access, invalid link, etc)',
   [RejectionType.incompleteSubmission]:
     'Submission is missing required elements',
+};
+
+export const paymentStatusTypeMap: PaymentStatusMap = {
+  [PaymentStatus.proofWaitingForVerification]: StatusType.warning,
+  [PaymentStatus.proofApproved]: StatusType.success,
+  [PaymentStatus.proofRejected]: StatusType.danger,
+  [PaymentStatus.withdrawalRequested]: StatusType.warning,
+  [PaymentStatus.withdrawn]: StatusType.success,
 };
 
 export const basicStatusTypeMap: BasicStatusMap = {
@@ -224,9 +245,14 @@ interface Rejection {
   type: RejectionType;
 }
 
-interface Brainstorm {
+export interface BrainstormContent {
+  platform: SocialPlatform;
+  tasks: string[];
+}
+
+export interface Brainstorm {
   status: BasicStatus;
-  content: string;
+  content: BrainstormContent[];
   createdAt: number;
   rejection?: Rejection;
   updatedAt?: number; //either approved or rejected
@@ -249,6 +275,10 @@ export interface Content {
   updatedAt?: number; //either approved or rejected
 }
 
+export interface Payment {
+  proofImage?: string;
+  status: PaymentStatus;
+}
 interface EngagementTask {
   uri: string[];
   attachments: string[];
@@ -283,6 +313,7 @@ export class Transaction extends BaseModel {
   lastCheckedAt?: number;
   contentRevisionLimit?: number;
   platformTasks?: CampaignPlatform[];
+  payment?: Payment;
 
   constructor({
     contentCreatorId,
@@ -299,6 +330,7 @@ export class Transaction extends BaseModel {
     lastCheckedAt,
     contentRevisionLimit,
     platformTasks,
+    payment,
   }: Partial<Transaction>) {
     super();
     // this.id = id;
@@ -319,6 +351,7 @@ export class Transaction extends BaseModel {
     this.lastCheckedAt = lastCheckedAt;
     this.contentRevisionLimit = contentRevisionLimit;
     this.platformTasks = platformTasks;
+    this.payment = payment;
   }
 
   toString(): string {
@@ -359,6 +392,7 @@ export class Transaction extends BaseModel {
         lastCheckedAt: data.lastCheckedAt,
         contentRevisionLimit: data.contentRevisionLimit,
         platformTasks: data.platformTasks,
+        payment: data.payment,
       });
       transaction.updateTermination();
       return transaction;
@@ -523,6 +557,7 @@ export class Transaction extends BaseModel {
     role: UserRole | undefined,
     onComplete: (transactions: Transaction[]) => void,
   ) {
+    console.log(role + ' : ' + userId);
     try {
       const unsubscribe = Transaction.getCollectionReference()
         .where(
@@ -538,9 +573,35 @@ export class Transaction extends BaseModel {
           querySnapshot => {
             if (querySnapshot.empty) {
               onComplete([]);
+            } else {
+              onComplete(querySnapshot.docs.map(this.fromSnapshot));
             }
+          },
+          error => {
+            console.log(error);
+          },
+        );
 
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAllTransactionsWithPayment(
+    onComplete: (transactions: Transaction[]) => void,
+  ) {
+    try {
+      const unsubscribe = Transaction.getCollectionReference()
+        .orderBy('payment')
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete([]);
+            } else {
+              onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            }
           },
           error => {
             console.log(error);
@@ -648,7 +709,7 @@ export class Transaction extends BaseModel {
           )
         : 0;
       const isTerminated =
-        now.getTime() > campaign?.getTimelineEnd().end ||
+        now.getTime() > campaign?.getTimelineEnd()?.end ||
         transactionStatusIndexMap[status || TransactionStatus.notRegistered] <
           campaignIndexMap[activeStep] - indexOffset;
 
@@ -858,7 +919,7 @@ export class Transaction extends BaseModel {
     return -1;
   }
 
-  async submitBrainstorm(content: string): Promise<boolean> {
+  async submitBrainstorm(content: BrainstormContent[]): Promise<boolean> {
     const {id} = this;
     if (id) {
       const brainstorm: Brainstorm = {

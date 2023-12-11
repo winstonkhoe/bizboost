@@ -38,17 +38,16 @@ const UserDetailScreen = ({route}: Props) => {
     return <Text>Error</Text>;
   }
 
-  const onSuspendButtonClick = () => {
+  const onSuspendButtonClick = async () => {
     if (user.status === UserStatus.Active) {
-      user.status = UserStatus.Suspended;
-    } else {
-      user.status = UserStatus.Active;
+      await user.suspend();
     }
-
-    user.updateUserData();
+    if (user.status === UserStatus.Suspended) {
+      await user.activate();
+    }
   };
   return (
-    <PageWithBackButton>
+    <PageWithBackButton enableSafeAreaContainer>
       <ScrollView
         contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}>

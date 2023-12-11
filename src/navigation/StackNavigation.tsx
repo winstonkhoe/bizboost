@@ -43,7 +43,9 @@ import {Offer} from '../model/Offer';
 import PayCampaignScreen from '../screens/payment/PayCampaignScreen';
 import RejectTransactionScreen from '../screens/transaction/RejectTransactionScreen';
 import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
-import ModalSubmitEngagementResult from '../screens/campaign/timeline/ModalSubmitEngagementResult';
+import EditBankAccountInformationScreen from '../screens/profile/edit/EditBankAccountInformationScreen';
+import ModalSubmitResult from '../screens/campaign/timeline/ModalSubmitResult';
+import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrainstorm';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -65,7 +67,8 @@ export enum AuthenticatedNavigation {
   ChatList = 'Chat List',
   CampaignRegistrants = 'Campaign Registrants',
   CampaignTimeline = 'Campaign Timeline',
-  SubmitEngagementResult = 'Submit Engagement Result',
+  SubmitResult = 'Submit Result',
+  SubmitBrainstorm = 'Submit Brainstorm',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'My Transactions',
@@ -75,6 +78,7 @@ export enum AuthenticatedNavigation {
   EditMaxContentRevision = 'Edit Max Content Revision',
   EditPostingSchedule = 'Edit Posting Schedule',
   EditPreferences = 'Edit Preferences',
+  EditBankAccountInformationScreen = 'Edit Bank Account Information',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -126,7 +130,8 @@ export type AuthenticatedStack = {
     initialTransactionStatusFilter?: TransactionStatus;
   };
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
-  [AuthenticatedNavigation.SubmitEngagementResult]: {transactionId: string};
+  [AuthenticatedNavigation.SubmitResult]: {transactionId: string};
+  [AuthenticatedNavigation.SubmitBrainstorm]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MakeOffer]: {
@@ -141,6 +146,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
   [AuthenticatedNavigation.EditPostingSchedule]: undefined;
   [AuthenticatedNavigation.EditPreferences]: undefined;
+  [AuthenticatedNavigation.EditBankAccountInformationScreen]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
@@ -302,8 +308,12 @@ const StackNavigator = () => {
                   component={CampaignRegistrantsScreen}
                 />
                 <Stack.Screen
-                  name={AuthenticatedNavigation.SubmitEngagementResult}
-                  component={ModalSubmitEngagementResult}
+                  name={AuthenticatedNavigation.SubmitBrainstorm}
+                  component={ModalSubmitBrainstorm}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.SubmitResult}
+                  component={ModalSubmitResult}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.MyTransactions}
@@ -341,6 +351,12 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.EditPreferences}
                   component={EditPreferencesScreen}
+                />
+                <Stack.Screen
+                  name={
+                    AuthenticatedNavigation.EditBankAccountInformationScreen
+                  }
+                  component={EditBankAccountInformationScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.CreateAdditionalAccount}

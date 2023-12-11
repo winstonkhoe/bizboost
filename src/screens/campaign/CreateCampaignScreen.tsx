@@ -1256,7 +1256,13 @@ const SocialFieldArray = ({
               childName ? `.${childName}` : ''
             }`}
             render={({field: {value, onChange}}) => (
-              <View style={[flex.flex1, flex.flexCol, gap.medium]}>
+              <View
+                style={[
+                  flex.flex1,
+                  flex.flexCol,
+                  gap.medium,
+                  padding.horizontal.large,
+                ]}>
                 {currentTask && (
                   <View style={[flex.flexCol, gap.default]}>
                     <FormFieldHelper title="Task type" />

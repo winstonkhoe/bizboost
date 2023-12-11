@@ -1,6 +1,7 @@
 import {StyleSheet, TextStyle} from 'react-native';
 
 export type FontSizeType =
+  | 5
   | 10
   | 20
   | 30
@@ -14,7 +15,7 @@ export type FontSizeType =
   | 110
   | 120;
 
-export type LineHeightType = 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90;
+export type LineHeightType = 5 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90;
 
 type Size = {
   [key in FontSizeType]: number;
@@ -33,6 +34,7 @@ export type LineHeightStyle = {
 };
 
 export const fontSize: Size = {
+  5: 8,
   10: 10,
   20: 12,
   30: 14,
@@ -48,6 +50,7 @@ export const fontSize: Size = {
 };
 
 export const lineHeight: LineHeights = {
+  5: 12,
   10: 14,
   20: 16,
   30: 18,

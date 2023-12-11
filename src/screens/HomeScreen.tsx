@@ -35,6 +35,9 @@ import {textColor} from '../styles/Text';
 import {size} from '../styles/Size';
 import {Label} from '../components/atoms/Label';
 import {formatDateToDayMonthYear} from '../utils/date';
+import {Report} from '../model/Report';
+import {fetchReport} from '../helpers/report';
+import {ReportCard} from './report/ReportListScreen';
 
 const HomeScreen = () => {
   const {uid, activeRole} = useUser();
@@ -62,6 +65,7 @@ const HomeScreen = () => {
     );
   }, [nonUserCampaigns]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
   // TODO: kalo klik see all apa mending pindah page?
@@ -74,14 +78,29 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    console.log('homeScreen:getAllTransactionsByRole');
-    const unsubscribe = Transaction.getAllTransactionsByRole(
-      uid || '',
-      activeRole!!,
-      setTransactions,
-    );
+    return fetchReport({
+      isAdmin: isAdmin,
+      uid: uid,
+      onComplete: setReports,
+    });
+  }, [isAdmin, uid]);
 
-    return unsubscribe;
+  useEffect(() => {
+    console.log('homeScreen:getAllTransactionsByRole');
+    if (activeRole !== UserRole.Admin) {
+      const unsubscribe = Transaction.getAllTransactionsByRole(
+        uid || '',
+        activeRole!!,
+        setTransactions,
+      );
+
+      return unsubscribe;
+    } else {
+      const unsubscribe =
+        Transaction.getAllTransactionsWithPayment(setTransactions);
+
+      return unsubscribe;
+    }
   }, [uid, activeRole]);
 
   return (
@@ -230,7 +249,11 @@ const HomeScreen = () => {
             <View style={[flex.flexCol, gap.default]}>
               <HorizontalPadding>
                 <HomeSectionHeader
-                  header="Ongoing Transactions"
+                  header={
+                    activeRole === UserRole.Admin
+                      ? 'Payments'
+                      : 'Ongoing Transactions'
+                  }
                   link={'See All'}
                   // onPressLink={() =>
                   // setOngoingCampaignsLimit(
@@ -273,6 +296,24 @@ const HomeScreen = () => {
                     }}>
                     <UserListCard user={u} />
                   </Pressable>
+                ))}
+              </View>
+            </View>
+          </HorizontalPadding>
+        )}
+        {isAdmin && (
+          <HorizontalPadding>
+            <View className="my-4" style={[flex.flexCol]}>
+              <HomeSectionHeader
+                header="Reports"
+                link={'See All'}
+                onPressLink={() =>
+                  setUserLimit(userLimit === 3 ? users.length : 3)
+                }
+              />
+              <View style={[flex.flexCol, gap.medium]} className="mt-4">
+                {reports.slice(0, 3).map((report, index) => (
+                  <ReportCard key={index} report={report} />
                 ))}
               </View>
             </View>

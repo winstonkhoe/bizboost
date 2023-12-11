@@ -8,15 +8,17 @@ import {
   AnimatedPressable,
   AnimatedPressableProps,
 } from '../atoms/AnimatedPressable';
+import {ChevronRight} from '../atoms/Icon';
 
-interface Props extends Partial<AnimatedPressableProps> {
+export interface BackButtonPlaceholderProps
+  extends Partial<AnimatedPressableProps> {
   icon?: 'back' | 'close';
 }
 export const BackButtonPlaceholder = ({
   icon = 'back',
   scale = 0.95,
   ...props
-}: Props) => {
+}: BackButtonPlaceholderProps) => {
   return (
     <View
       style={[
@@ -28,7 +30,9 @@ export const BackButtonPlaceholder = ({
       ]}>
       <AnimatedPressable {...props} scale={scale}>
         {icon === 'back' ? (
-          <ChevronLeft width={25} height={25} color={COLOR.black[100]} />
+          <View className="rotate-180">
+            <ChevronRight size="xlarge" strokeWidth={1.2} />
+          </View>
         ) : (
           <CrossMarkThin width={30} height={30} color={COLOR.black[100]} />
         )}

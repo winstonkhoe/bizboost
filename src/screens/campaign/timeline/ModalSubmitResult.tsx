@@ -52,7 +52,7 @@ import {useNavigation} from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
-  AuthenticatedNavigation.SubmitEngagementResult
+  AuthenticatedNavigation.SubmitResult
 >;
 
 type SubmissionFormData = {
@@ -65,7 +65,7 @@ type SubmissionFormData = {
   }[];
 };
 
-const ModalSubmitEngagementResult = ({route}: Props) => {
+const ModalSubmitResult = ({route}: Props) => {
   const {transactionId} = route.params;
   const safeAreaInsets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(false);
@@ -442,4 +442,4 @@ const TaskFields = ({task, platformIndex, taskIndex}: TaskFieldsProps) => {
   );
 };
 
-export default ModalSubmitEngagementResult;
+export default ModalSubmitResult;

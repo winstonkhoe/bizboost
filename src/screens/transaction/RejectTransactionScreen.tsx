@@ -48,7 +48,11 @@ import {chunkArray} from '../../utils/array';
 import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
 import {FormlessCustomTextInput} from '../../components/atoms/Input';
 import {Seperator} from '../../components/atoms/Separator';
-import {ContentSubmissionCard} from './TransactionDetailScreen';
+import {
+  BrainstormSubmissionCard,
+  ContentSubmissionCard,
+  EngagementSubmissionCard,
+} from './TransactionDetailScreen';
 import {KeyboardAvoidingContainer} from '../../containers/KeyboardAvoidingContainer';
 import {useNavigation} from '@react-navigation/native';
 import {showToast} from '../../helpers/toast';
@@ -86,10 +90,6 @@ const rejectionTypes: rejectionTypesMap = {
   [CampaignStep.Brainstorming]: [
     {
       type: RejectionType.contentMismatch,
-      icon: <BrokenLinkIcon size="xlarge2" color={COLOR.green[60]} />,
-    },
-    {
-      type: RejectionType.incompleteSubmission,
       icon: (
         <MissingDocumentIcon
           size="xlarge"
@@ -343,11 +343,35 @@ const RejectTransactionScreen = ({route}: Props) => {
                     style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
                     {selectedRejectionType}
                   </Text>
-                  <ContentSubmissionCard
-                    hideStatus
-                    transaction={transaction}
-                    content={transaction.getLatestContentSubmission()!!}
-                  />
+                  {transaction.status &&
+                    transaction.status ===
+                      TransactionStatus.brainstormSubmitted && (
+                      <BrainstormSubmissionCard
+                        hideStatus
+                        transaction={transaction}
+                        content={transaction.getLatestBrainstorm()!!}
+                      />
+                    )}
+                  {transaction.status &&
+                    transaction.status ===
+                      TransactionStatus.contentSubmitted && (
+                      <ContentSubmissionCard
+                        hideStatus
+                        transaction={transaction}
+                        content={transaction.getLatestContentSubmission()!!}
+                      />
+                    )}
+                  {transaction.status &&
+                    transaction.status ===
+                      TransactionStatus.engagementSubmitted && (
+                      <EngagementSubmissionCard
+                        hideStatus
+                        transaction={transaction}
+                        engagement={
+                          transaction.getLatestEngagementSubmission()!!
+                        }
+                      />
+                    )}
                 </View>
                 <Seperator />
                 <View
