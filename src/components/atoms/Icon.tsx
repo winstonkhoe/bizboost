@@ -18,6 +18,8 @@ import PhotoRevision from '../../assets/vectors/photo-revision.svg';
 import Upload from '../../assets/vectors/upload.svg';
 import MissingDocument from '../../assets/vectors/document-missing.svg';
 import Report from '../../assets/vectors/report.svg';
+import Dashboard from '../../assets/vectors/dashboard.svg';
+import RatingStar from '../../assets/vectors/rating-star.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
@@ -335,5 +337,23 @@ export const ReportIcon = ({
       color={color}
       strokeWidth={strokeWidth}
     />
+  );
+};
+
+export const DashboardIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.red[60],
+}: IconProps) => {
+  return (
+    <Dashboard width={size[sizeType]} height={size[sizeType]} color={color} />
+  );
+};
+
+export const RatingStarIcon = ({
+  size: sizeType = 'default',
+  color = '#FFDB44',
+}: IconProps) => {
+  return (
+    <RatingStar width={size[sizeType]} height={size[sizeType]} color={color} />
   );
 };
