@@ -248,21 +248,27 @@ const OfferCard = ({offer, businessPeople, contentCreator}: OfferCardProps) => {
             : offer?.negotiatedPrice?.toLocaleString('en-ID')}
         </Text>
       </Text>
-      {offer.status === OfferStatus.negotiate ? (
+      {offer.status === OfferStatus.pending ? (
         <Text className="text-xs text-left">
           by{' '}
-          {offer.negotiatedBy === UserRole.BusinessPeople
-            ? businessPeople
-            : contentCreator}
+          {offer.negotiatedBy === UserRole.ContentCreator
+            ? contentCreator
+            : businessPeople}
         </Text>
       ) : (
         <View>
-          {offer.status === OfferStatus.negotiateRejected && (
+          {(offer.status === OfferStatus.negotiateRejected ||
+            offer.status === OfferStatus.negotiate) && (
             <Text className="text-xs text-left">
               Last Negotiation: {offer.negotiatedPrice}
             </Text>
           )}
-          <Text className="text-xs text-left">by {businessPeople}</Text>
+          <Text className="text-xs text-left">
+            by{' '}
+            {offer.negotiatedBy === UserRole.ContentCreator
+              ? contentCreator
+              : businessPeople}
+          </Text>
         </View>
       )}
     </View>
@@ -295,6 +301,8 @@ const CampaignCard = ({
   useEffect(() => {
     Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
   }, [offer]);
+
+  console.log('campaign', campaign);
 
   const openModalNegotiate = () => {
     openNegotiateModal({

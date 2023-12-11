@@ -203,7 +203,7 @@ const CreateCampaignScreen = () => {
         title: d.title,
         description: d.description,
         type: d.type,
-        fee: fee,
+        fee: d.type === CampaignType.Public ? fee : undefined,
         slot: d.slot,
         criterias: d.criterias?.map(getStringObjectValue) || [],
         platformTasks: d.platforms,
@@ -1111,7 +1111,7 @@ type SocialFieldArrayProps = {
   maxFieldLength?: number;
   helperText?: string;
 };
-const SocialFieldArray = ({
+export const SocialFieldArray = ({
   control,
   platform,
   title,

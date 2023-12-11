@@ -18,7 +18,12 @@ import {CustomButton} from '../../components/atoms/Button';
 import {closeModal} from '../../utils/modal';
 import {ScrollView} from 'react-native-gesture-handler';
 import {KeyboardAvoidingContainer} from '../../containers/KeyboardAvoidingContainer';
-import {FormProvider, useForm} from 'react-hook-form';
+import {
+  Controller,
+  FormProvider,
+  useFieldArray,
+  useForm,
+} from 'react-hook-form';
 import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import {CustomNumberInput, CustomTextInput} from '../../components/atoms/Input';
 import FastImage from 'react-native-fast-image';
@@ -29,10 +34,18 @@ import {font} from '../../styles/Font';
 import {COLOR} from '../../styles/Color';
 import {ChevronRight} from '../../components/atoms/Icon';
 import {useUser} from '../../hooks/user';
+import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
+import {useState} from 'react';
+import {SocialPlatform} from '../../model/User';
+import SelectableTag from '../../components/atoms/SelectableTag';
+import {CampaignPlatform} from '../../model/Campaign';
+import {padding} from '../../styles/Padding';
+import {SocialFieldArray} from '../campaign/CreateCampaignScreen';
 
 export type NegotiateFormData = {
   fee: number;
   importantNotes: string;
+  platforms: CampaignPlatform[];
 };
 
 type Props = StackScreenProps<
@@ -43,7 +56,16 @@ type Props = StackScreenProps<
 const ModalNegotiateScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const {offer, eventType, campaign} = route.params;
-  const methods = useForm<NegotiateFormData>();
+  const methods = useForm<NegotiateFormData>({
+    mode: 'all',
+    defaultValues: {
+      fee: offer.offeredPrice,
+      importantNotes: offer.importantNotes,
+      platforms: campaign.platformTasks,
+    },
+  });
+
+  const [modify, setModify] = useState(false);
 
   const {activeRole} = useUser();
 
@@ -58,6 +80,17 @@ const ModalNegotiateScreen = ({route}: Props) => {
       });
     });
   };
+
+  const {control, getValues} = methods;
+
+  const {
+    fields: fieldsPlatform,
+    append: appendPlatform,
+    remove: removePlatform,
+  } = useFieldArray({
+    name: 'platforms',
+    control,
+  });
 
   return (
     <SafeAreaContainer enable>
@@ -135,18 +168,124 @@ const ModalNegotiateScreen = ({route}: Props) => {
                       />
                     </View>
 
-                    <View style={[flex.flexCol, gap.default]}>
-                      <FormFieldHelper
-                        title="Important Notes"
-                        type="optional"
-                      />
-                      <CustomTextInput
-                        placeholder="Things to note for your offer"
-                        name="importantNotes"
-                        type="textarea"
-                        defaultValue={offer.importantNotes}
-                      />
+                    <View>
+                      <View
+                        style={flex.flexRow}
+                        className="items-center justify-between">
+                        <Text
+                          className="font-bold pb-2"
+                          style={[
+                            textColor(COLOR.text.neutral.high),
+                            font.size[50],
+                          ]}>
+                          {'Task Summary'}
+                        </Text>
+                        <Pressable onPress={() => setModify(!modify)}>
+                          <Text style={textColor(COLOR.green[50])}>
+                            {modify ? 'Done' : 'Modify'}
+                          </Text>
+                        </Pressable>
+                      </View>
+                      {!modify && campaign?.platformTasks && (
+                        <View style={flex.flexCol}>
+                          {fieldsPlatform.map((fp, index) => (
+                            <CampaignPlatformAccordion
+                              platform={{
+                                name: fp.name,
+                                tasks:
+                                  getValues(`platforms.${index}.tasks`) || [],
+                              }}
+                              key={index}
+                            />
+                          ))}
+                        </View>
+                      )}
+                      {modify && (
+                        <View style={[flex.flexCol, gap.medium]}>
+                          <Controller
+                            control={control}
+                            name="platforms"
+                            rules={{required: 'Platform is required!'}}
+                            render={({
+                              field: {value: platforms},
+                              fieldState: {error},
+                            }) => (
+                              <View style={[flex.flexCol, gap.default]}>
+                                <FormFieldHelper
+                                  title="Campaign platforms"
+                                  description="Choose platforms for the campaign tasks."
+                                />
+                                <View className="flex flex-row gap-2">
+                                  {Object.values(SocialPlatform).map(
+                                    (value: SocialPlatform, index) => (
+                                      <View key={index}>
+                                        <SelectableTag
+                                          text={value}
+                                          isSelected={
+                                            platforms.find(
+                                              p => p.name === value,
+                                            ) !== undefined
+                                          }
+                                          onPress={() => {
+                                            const searchIndex =
+                                              platforms.findIndex(
+                                                p => p.name === value,
+                                              );
+                                            if (searchIndex !== -1) {
+                                              removePlatform(searchIndex);
+                                            } else {
+                                              appendPlatform({
+                                                name: value,
+                                                tasks: [],
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      </View>
+                                    ),
+                                  )}
+                                </View>
+                                {error && (
+                                  <Text className="text-xs mt-2 font-medium text-red-500">
+                                    {/* {`${error}`} */}
+                                    Platform is required!
+                                  </Text>
+                                )}
+                              </View>
+                            )}
+                          />
+                          {fieldsPlatform.map((fp, index) => (
+                            <View key={fp.id}>
+                              <SocialFieldArray
+                                platform={fp.name}
+                                control={control}
+                                title={`${fp.name}'s Task`}
+                                fieldType="textarea"
+                                maxFieldLength={150}
+                                parentName={`platforms.${index}.tasks`}
+                                helperText='Ex. "minimum 30s / story"'
+                                placeholder="Add task"
+                              />
+                            </View>
+                          ))}
+                        </View>
+                      )}
                     </View>
+
+                    <VerticalPadding paddingSize="xlarge">
+                      <View style={[flex.flexCol, gap.default]}>
+                        <FormFieldHelper
+                          title="Important Notes"
+                          type="optional"
+                        />
+                        <CustomTextInput
+                          placeholder="Things to note for your offer"
+                          name="importantNotes"
+                          type="textarea"
+                          defaultValue={offer.importantNotes}
+                        />
+                      </View>
+                    </VerticalPadding>
                   </HorizontalPadding>
                 </View>
               </View>

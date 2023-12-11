@@ -148,7 +148,7 @@ const ChatScreen = ({route}: Props) => {
   };
 
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <View
         className="h-full w-full"
         style={[flex.flexCol, background(COLOR.white)]}>
