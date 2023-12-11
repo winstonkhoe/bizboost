@@ -16,9 +16,8 @@ import {ReportIcon} from '../../components/atoms/Icon';
 import {fetchReport} from '../../helpers/report';
 import {rounded} from '../../styles/BorderRadius';
 import StatusTag from '../../components/atoms/StatusTag';
-import {Transaction, transactionStatusTypeMap} from '../../model/Transaction';
+import {Transaction} from '../../model/Transaction';
 import {Campaign} from '../../model/Campaign';
-import {showToast} from '../../helpers/toast';
 import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
 import FastImage from 'react-native-fast-image';
 import {dimension} from '../../styles/Dimension';
@@ -26,9 +25,18 @@ import {formatDateToDayMonthYear} from '../../utils/date';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {background} from '../../styles/BackgroundColor';
 import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../../styles/Size';
+import {BackButtonLabel} from '../../components/atoms/Header';
 
 const ReportListScreen = () => {
   const {uid, activeRole} = useUser();
+  const safeAreaInsets = useSafeAreaInsets();
   const [reports, setReports] = useState<Report[]>([]);
   const isAdmin = UserRole.Admin === activeRole;
   useEffect(() => {
@@ -39,10 +47,22 @@ const ReportListScreen = () => {
     });
   }, [isAdmin, uid]);
   return (
-    <PageWithBackButton>
-      {reports.map(report => (
-        <ReportCard report={report} />
-      ))}
+    <PageWithBackButton
+      fullHeight
+      backButtonPlaceholder={<BackButtonLabel text="Report List" />}>
+      <View
+        style={[
+          flex.flexCol,
+          gap.default,
+          padding.horizontal.default,
+          {
+            paddingTop: Math.max(safeAreaInsets.top, size.xlarge4),
+          },
+        ]}>
+        {reports.map(report => (
+          <ReportCard key={report.id} report={report} />
+        ))}
+      </View>
     </PageWithBackButton>
   );
 };
@@ -52,6 +72,7 @@ interface ReportCardProps {
 }
 
 export const ReportCard = ({report}: ReportCardProps) => {
+  const navigation = useNavigation<NavigationStackProps>();
   const [reporterUser, setReporterUser] = useState<User | null>();
   const [reportedUser, setReportedUser] = useState<User | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
@@ -96,7 +117,13 @@ export const ReportCard = ({report}: ReportCardProps) => {
     <AnimatedPressable
       scale={0.95}
       style={[flex.flexCol, shadow.small, rounded.default]}
-      onPress={() => {}}>
+      onPress={() => {
+        if (report.id) {
+          navigation.navigate(AuthenticatedNavigation.ReportDetail, {
+            reportId: report.id,
+          });
+        }
+      }}>
       <View style={[flex.flexRow, items.center, padding.default]}>
         <SkeletonPlaceholder style={[flex.flex1]} isLoading={isLoading}>
           <View style={[flex.flexRow, gap.small, items.center]}>
