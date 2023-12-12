@@ -20,15 +20,19 @@ import MissingDocument from '../../assets/vectors/document-missing.svg';
 import Report from '../../assets/vectors/report.svg';
 import Dashboard from '../../assets/vectors/dashboard.svg';
 import RatingStar from '../../assets/vectors/rating-star.svg';
+import Campaign from '../../assets/vectors/campaign.svg';
+import Cooperation from '../../assets/vectors/cooperation.svg';
 import {SocialPlatform} from '../../model/User';
-import Svg, {Path} from 'react-native-svg';
+import Svg, {Path, SvgProps} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
 import {rounded} from '../../styles/BorderRadius';
+import {processColorsInProps} from 'react-native-reanimated/lib/typescript/reanimated2/Colors';
 
-interface IconProps {
+interface IconProps extends SvgProps {
   size?: SizeType;
   color?: string;
+  fill?: string;
   strokeWidth?: number;
 }
 
@@ -343,9 +347,17 @@ export const ReportIcon = ({
 export const DashboardIcon = ({
   size: sizeType = 'default',
   color = COLOR.red[60],
+  fill = color,
+  ...props
 }: IconProps) => {
   return (
-    <Dashboard width={size[sizeType]} height={size[sizeType]} color={color} />
+    <Dashboard
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      {...props}
+    />
   );
 };
 
@@ -355,5 +367,43 @@ export const RatingStarIcon = ({
 }: IconProps) => {
   return (
     <RatingStar width={size[sizeType]} height={size[sizeType]} color={color} />
+  );
+};
+
+export const CampaignIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  fill = COLOR.black[100],
+  strokeWidth = 0,
+  ...props
+}: IconProps) => {
+  return (
+    <Campaign
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      strokeWidth={strokeWidth}
+      {...props}
+    />
+  );
+};
+
+export const CooperationIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  fill = 'transparent',
+  strokeWidth = 1,
+  ...props
+}: IconProps) => {
+  return (
+    <Cooperation
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      strokeWidth={strokeWidth}
+      {...props}
+    />
   );
 };

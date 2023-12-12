@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+<svg width="800px" height="800px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g fill="none" fill-rule="evenodd" stroke="none">
+<g transform="translate(-250.000000, -15.000000)">
+<g transform="translate(249.000000, 15.000000)">
+<path d="M13,21.6666667 L19.5,15.1666667 L17.3333333,17.3333333 L15.1666667,19.5 L13,21.6666667 Z M13,21.6666667 L2.16666667,10.8333333 L8.66666667,4.33333333 L13,8.66666667" id="形状" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.20833333,12.4583333 L17.3333333,4.33333333 L23.8333333,10.8333333 L19.5,15.1666667 L15.1666667,10.8333333 L11.9166667,14.0833333 L9.20833333,12.4583333 Z M9.20833333,12.4583333 L13,8.66666667" id="形状" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" x1="15.1666667" x2="13.5416667" y1="19.5" y2="17.875"/>
+<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" x1="17.3333333" x2="15.7083333" y1="17.3333333" y2="15.7083333"/>
+</g>
+</g>
+</g>
+</svg>
