@@ -7,7 +7,10 @@ import {HorizontalScrollView} from '../components/molecules/HorizontalScrollView
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex, justify} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
+import {
+  PageWithSearchBar,
+  SearchAutocompletePlaceholder,
+} from '../components/templates/PageWithSearchBar';
 import {Campaign} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
 import {useNavigation} from '@react-navigation/native';
@@ -39,6 +42,7 @@ import {Report} from '../model/Report';
 import {fetchReport} from '../helpers/report';
 import {ReportCard} from './report/ReportListScreen';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SearchBar} from '../components/organisms/SearchBar';
 
 const HomeScreen = () => {
   const {uid, activeRole} = useUser();
@@ -108,177 +112,148 @@ const HomeScreen = () => {
   return (
     <View
       style={[
+        flex.flex1,
         {
-          paddingTop: Math.max(safeAreaInsets.top, size.large),
+          paddingTop: Math.max(safeAreaInsets.top, size.default),
         },
         background(COLOR.background.neutral.default),
       ]}>
-      <PageWithSearchBar>
-        <ScrollView
-          style={[flex.flex1]}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[padding.bottom.xlarge]}>
-          <>
-            <View style={[flex.flexCol, gap.large]}>
-              {isContentCreator && (
-                <View style={[flex.flexCol, gap.default]}>
-                  <HorizontalPadding>
-                    <HomeSectionHeader header="New This Week" link="See All" />
-                  </HorizontalPadding>
-                  <HorizontalScrollView>
-                    {thisWeekCampaign
-                      .slice(0, 5)
-                      .map((campaign: Campaign, index: number) => (
-                        <AnimatedPressable
-                          onPress={() => {
-                            if (campaign.id) {
-                              navigation.navigate(
-                                AuthenticatedNavigation.CampaignDetail,
-                                {
-                                  campaignId: campaign.id,
-                                },
-                              );
-                            }
-                          }}
-                          key={index}
-                          style={[flex.flexCol, dimension.square.xlarge9]}>
-                          <View
-                            className="overflow-hidden"
-                            style={[StyleSheet.absoluteFill, rounded.large]}>
-                            <FastImage
-                              style={[dimension.full]}
-                              source={{
-                                uri: campaign.image,
-                              }}
-                            />
-                          </View>
-                          <View
-                            className="overflow-hidden"
-                            style={[
-                              StyleSheet.absoluteFill,
-                              rounded.large,
-                              background(COLOR.black[100], 0.4),
-                            ]}
-                          />
-                          <View
-                            className="overflow-hidden"
-                            style={[
-                              StyleSheet.absoluteFill,
-                              flex.flexCol,
-                              justify.end,
-                              padding.default,
-                            ]}>
-                            <View
-                              style={[
-                                flex.flexCol,
-                                gap.xsmall,
-                                {
-                                  minHeight: size.xlarge2,
-                                },
-                                // padding.bottom.small,
-                              ]}>
-                              <Text
-                                className="font-bold"
-                                style={[
-                                  font.size[20],
-                                  textColor(COLOR.black[0]),
-                                ]}
-                                numberOfLines={1}>
-                                {campaign?.title}
-                              </Text>
-                              <Text
-                                className="font-medium"
-                                style={[
-                                  font.size[20],
-                                  textColor(COLOR.black[0]),
-                                ]}
-                                numberOfLines={2}>
-                                {campaign?.description}
-                              </Text>
-                            </View>
-                          </View>
-                          <View
-                            className="overflow-hidden"
-                            style={[
-                              padding.default,
-                              {
-                                position: 'absolute',
-                                top: size.xsmall2,
-                                right: size.xsmall2,
-                              },
-                            ]}>
-                            <Label
-                              radius="default"
-                              text={`Until ${formatDateToDayMonthYear(
-                                new Date(
-                                  new Campaign(campaign).getTimelineStart().end,
-                                ),
-                              )}`}
-                            />
-                          </View>
-                        </AnimatedPressable>
-                      ))}
-                  </HorizontalScrollView>
-                </View>
-              )}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={[
+          flex.flexCol,
+          padding.bottom.xlarge,
+          gap.default,
+        ]}>
+        <View
+          style={[
+            padding.horizontal.default,
+            background(COLOR.background.neutral.default),
+          ]}>
+          <SearchBar />
+        </View>
+        <SearchAutocompletePlaceholder>
+          <View style={[flex.flexCol, gap.large]}>
+            {isContentCreator && (
               <View style={[flex.flexCol, gap.default]}>
                 <HorizontalPadding>
-                  <HomeSectionHeader
-                    header="Recent Negotiations"
-                    link="See All"
-                  />
+                  <HomeSectionHeader header="New This Week" link="See All" />
                 </HorizontalPadding>
                 <HorizontalScrollView>
-                  {[...Array(10)].map((_item: any, index: number) => (
-                    <RecentNegotiationCard key={index} />
-                  ))}
+                  {thisWeekCampaign
+                    .slice(0, 5)
+                    .map((campaign: Campaign, index: number) => (
+                      <AnimatedPressable
+                        onPress={() => {
+                          if (campaign.id) {
+                            navigation.navigate(
+                              AuthenticatedNavigation.CampaignDetail,
+                              {
+                                campaignId: campaign.id,
+                              },
+                            );
+                          }
+                        }}
+                        key={index}
+                        style={[flex.flexCol, dimension.square.xlarge9]}>
+                        <View
+                          className="overflow-hidden"
+                          style={[StyleSheet.absoluteFill, rounded.large]}>
+                          <FastImage
+                            style={[dimension.full]}
+                            source={{
+                              uri: campaign.image,
+                            }}
+                          />
+                        </View>
+                        <View
+                          className="overflow-hidden"
+                          style={[
+                            StyleSheet.absoluteFill,
+                            rounded.large,
+                            background(COLOR.black[100], 0.4),
+                          ]}
+                        />
+                        <View
+                          className="overflow-hidden"
+                          style={[
+                            StyleSheet.absoluteFill,
+                            flex.flexCol,
+                            justify.end,
+                            padding.default,
+                          ]}>
+                          <View
+                            style={[
+                              flex.flexCol,
+                              gap.xsmall,
+                              {
+                                minHeight: size.xlarge2,
+                              },
+                              // padding.bottom.small,
+                            ]}>
+                            <Text
+                              className="font-bold"
+                              style={[font.size[20], textColor(COLOR.black[0])]}
+                              numberOfLines={1}>
+                              {campaign?.title}
+                            </Text>
+                            <Text
+                              className="font-medium"
+                              style={[font.size[20], textColor(COLOR.black[0])]}
+                              numberOfLines={2}>
+                              {campaign?.description}
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          className="overflow-hidden"
+                          style={[
+                            padding.default,
+                            {
+                              position: 'absolute',
+                              top: size.xsmall2,
+                              right: size.xsmall2,
+                            },
+                          ]}>
+                          <Label
+                            radius="default"
+                            text={`Until ${formatDateToDayMonthYear(
+                              new Date(
+                                new Campaign(campaign).getTimelineStart().end,
+                              ),
+                            )}`}
+                          />
+                        </View>
+                      </AnimatedPressable>
+                    ))}
                 </HorizontalScrollView>
               </View>
-              {isBusinessPeople && (
-                <View style={[flex.flexCol, gap.default]}>
-                  <HorizontalPadding>
-                    <HomeSectionHeader
-                      header="Ongoing Campaigns"
-                      link={
-                        ongoingCampaignsLimit === 3 ? 'See All' : 'Collapse'
-                      }
-                      onPressLink={() =>
-                        setOngoingCampaignsLimit(
-                          ongoingCampaignsLimit === 3
-                            ? userCampaigns.length
-                            : 3,
-                        )
-                      }
-                    />
-                  </HorizontalPadding>
-                  <View
-                    style={[
-                      flex.flexCol,
-                      gap.medium,
-                      padding.horizontal.default,
-                    ]}>
-                    {userCampaigns
-                      .slice(0, ongoingCampaignsLimit)
-                      .map((c: Campaign, index: number) => (
-                        <OngoingCampaignCard campaign={c} key={index} />
-                      ))}
-                  </View>
-                </View>
-              )}
+            )}
+            <View style={[flex.flexCol, gap.default]}>
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header="Recent Negotiations"
+                  link="See All"
+                />
+              </HorizontalPadding>
+              <HorizontalScrollView>
+                {[...Array(10)].map((_item: any, index: number) => (
+                  <RecentNegotiationCard key={index} />
+                ))}
+              </HorizontalScrollView>
+            </View>
+            {isBusinessPeople && (
               <View style={[flex.flexCol, gap.default]}>
                 <HorizontalPadding>
                   <HomeSectionHeader
-                    header={
-                      activeRole === UserRole.Admin
-                        ? 'Payments'
-                        : 'Ongoing Transactions'
+                    header="Ongoing Campaigns"
+                    link={ongoingCampaignsLimit === 3 ? 'See All' : 'Collapse'}
+                    onPressLink={() =>
+                      setOngoingCampaignsLimit(
+                        ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
+                      )
                     }
-                    link={'See All'}
-                    // onPressLink={() =>
-                    // setOngoingCampaignsLimit(
-                    //   ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
-                    // )
-                    // }
                   />
                 </HorizontalPadding>
                 <View
@@ -287,17 +262,42 @@ const HomeScreen = () => {
                     gap.medium,
                     padding.horizontal.default,
                   ]}>
-                  {transactions.map((t, index) => (
-                    <RegisteredUserListCard
-                      key={index}
-                      transaction={t}
-                      role={activeRole}
-                    />
-                  ))}
+                  {userCampaigns
+                    .slice(0, ongoingCampaignsLimit)
+                    .map((c: Campaign, index: number) => (
+                      <OngoingCampaignCard campaign={c} key={index} />
+                    ))}
                 </View>
               </View>
+            )}
+            <View style={[flex.flexCol, gap.default]}>
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header={
+                    activeRole === UserRole.Admin
+                      ? 'Payments'
+                      : 'Ongoing Transactions'
+                  }
+                  link={'See All'}
+                  // onPressLink={() =>
+                  // setOngoingCampaignsLimit(
+                  //   ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
+                  // )
+                  // }
+                />
+              </HorizontalPadding>
+              <View
+                style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
+                {transactions.map((t, index) => (
+                  <RegisteredUserListCard
+                    key={index}
+                    transaction={t}
+                    role={activeRole}
+                  />
+                ))}
+              </View>
             </View>
-          </>
+          </View>
           {isAdmin && (
             <HorizontalPadding>
               <View className="my-4" style={[flex.flexCol]}>
@@ -345,33 +345,33 @@ const HomeScreen = () => {
               </View>
             </HorizontalPadding>
           )}
-        </ScrollView>
-        {isBusinessPeople && (
-          <View
-            style={[
-              {
-                position: 'absolute',
-                bottom: 20,
-                right: 20,
-              },
-            ]}>
-            <AnimatedPressable
-              onPress={() =>
-                navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-              }>
-              <View
-                style={[
-                  shadow.large,
-                  background(COLOR.green[50]),
-                  padding.default,
-                  rounded.max,
-                ]}>
-                <Edit width={20} height={20} color={'white'} />
-              </View>
-            </AnimatedPressable>
-          </View>
-        )}
-      </PageWithSearchBar>
+        </SearchAutocompletePlaceholder>
+      </ScrollView>
+      {isBusinessPeople && (
+        <View
+          style={[
+            {
+              position: 'absolute',
+              bottom: 20,
+              right: 20,
+            },
+          ]}>
+          <AnimatedPressable
+            onPress={() =>
+              navigation.navigate(AuthenticatedNavigation.CreateCampaign)
+            }>
+            <View
+              style={[
+                shadow.large,
+                background(COLOR.green[50]),
+                padding.default,
+                rounded.max,
+              ]}>
+              <Edit width={20} height={20} color={'white'} />
+            </View>
+          </AnimatedPressable>
+        </View>
+      )}
     </View>
   );
 };

@@ -8,20 +8,35 @@ import {flex} from '../styles/Flex';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {Campaign} from '../model/Campaign';
 import {gap} from '../styles/Gap';
-import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
+import {
+  PageWithSearchBar,
+  SearchAutocompletePlaceholder,
+} from '../components/templates/PageWithSearchBar';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {getSimilarCampaigns} from '../validations/campaign';
 import {fetchNonUserCampaigns, useOngoingCampaign} from '../hooks/campaign';
-import {useCallback, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {useUser} from '../hooks/user';
 import {setNonUserCampaigns} from '../redux/slices/campaignSlice';
+import {background} from '../styles/BackgroundColor';
+import {COLOR} from '../styles/Color';
+import {padding} from '../styles/Padding';
+import {SearchBar} from '../components/organisms/SearchBar';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../styles/Size';
+import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
 
 const CampaignsScreen = () => {
   const {uid} = useUser();
+  const safeAreaInsets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const {nonUserCampaigns} = useOngoingCampaign();
   const {searchTerm} = useAppSelector(select => select.search);
   const [refreshing, setRefreshing] = useState(false);
+  const filteredCampaigns = useMemo(
+    () => getSimilarCampaigns(nonUserCampaigns, searchTerm),
+    [nonUserCampaigns, searchTerm],
+  );
 
   const onRefresh = useCallback(() => {
     if (uid) {
@@ -34,25 +49,43 @@ const CampaignsScreen = () => {
   }, [dispatch, uid]);
 
   return (
-    <PageWithSearchBar>
+    <View
+      style={[
+        flex.flex1,
+        background(COLOR.background.neutral.default),
+        {
+          paddingTop: Math.max(safeAreaInsets.top, size.default),
+        },
+      ]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
+        stickyHeaderIndices={[0]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <VerticalPadding>
-          <HorizontalPadding>
-            <View style={[flex.flexCol, gap.medium]}>
-              {getSimilarCampaigns(nonUserCampaigns, searchTerm).map(
-                (c: Campaign, index: number) => (
-                  <OngoingCampaignCard campaign={c} key={index} />
-                ),
-              )}
-            </View>
-          </HorizontalPadding>
-        </VerticalPadding>
+        }
+        contentContainerStyle={[flex.flexCol, padding.default]}>
+        <View
+          style={[
+            background(COLOR.background.neutral.default),
+            padding.bottom.default,
+          ]}>
+          <SearchBar />
+        </View>
+        <SearchAutocompletePlaceholder>
+          <View style={[flex.flexCol, gap.medium]}>
+            {filteredCampaigns?.length > 0 ? (
+              filteredCampaigns.map((c: Campaign, index: number) => (
+                <OngoingCampaignCard campaign={c} key={index} />
+              ))
+            ) : (
+              <View style={[padding.top.xlarge5]}>
+                <EmptyPlaceholder />
+              </View>
+            )}
+          </View>
+        </SearchAutocompletePlaceholder>
       </ScrollView>
-    </PageWithSearchBar>
+    </View>
   );
 };
 

@@ -65,8 +65,8 @@ const SearchBar = () => {
 
   return (
     <View
-      className="w-full h-10 flex flex-row justify-center items-center text-center"
-      style={[gap.small]}>
+      className="h-10"
+      style={[flex.flexRow, justify.center, gap.small, items.center]}>
       {isOnSearchPage && (
         <Pressable
           onPress={(event: GestureResponderEvent) => {
@@ -82,8 +82,8 @@ const SearchBar = () => {
         </Pressable>
       )}
       <Pressable
-        className="flex-1"
         style={[
+          flex.flex1,
           horizontalPadding.small,
           rounded.default,
           background(COLOR.black[5]),

@@ -13,12 +13,11 @@ import {getSimilarCampaigns} from '../../validations/campaign';
 import {getSimilarContentCreators} from '../../validations/user';
 import {User, UserRole} from '../../model/User';
 import {useUser} from '../../hooks/user';
+import { useOngoingCampaign } from '../../hooks/campaign';
 
-interface Props {
-  children: ReactNode;
-}
+interface Props {}
 
-export const PageWithSearchBar = ({children}: Props) => {
+export const PageWithSearchBar = ({}: Props) => {
   const {activeRole} = useUser();
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -34,42 +33,71 @@ export const PageWithSearchBar = ({children}: Props) => {
   }, []);
 
   return (
-    <View className="h-full text-center" style={[flex.flexCol]}>
-      <HorizontalPadding>
-        <SearchBar />
-      </HorizontalPadding>
-      <View className="mb-3" />
-      {isOnSearchPage ? (
-        <View className="h-full w-full" style={[flex.flexCol]}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={[flex.flexCol, gap.default]}>
-              {activeRole === UserRole.ContentCreator
-                ? searchTerm !== '' &&
-                  getSimilarCampaigns(campaigns, searchTerm).map(
-                    (campaign: Campaign) =>
-                      campaign.title && (
-                        <HorizontalPadding key={campaign.id}>
-                          <AutoCompleteSearchItem itemValue={campaign.title} />
-                        </HorizontalPadding>
-                      ),
-                  )
-                : searchTerm !== '' &&
-                  getSimilarContentCreators(contentCreators, searchTerm).map(
-                    (cc: User) =>
-                      cc.contentCreator?.fullname && (
-                        <HorizontalPadding key={cc.id}>
-                          <AutoCompleteSearchItem
-                            itemValue={cc.contentCreator?.fullname}
-                          />
-                        </HorizontalPadding>
-                      ),
-                  )}
-            </View>
-          </ScrollView>
-        </View>
-      ) : (
-        children
-      )}
-    </View>
+    <SearchBar />
+    // <View style={[flex.flex1, flex.flexCol, gap.default]}>
+    //   <HorizontalPadding>
+    //   </HorizontalPadding>
+    // </View>
   );
+};
+
+interface SearchAutocompletePlaceholderProps {
+  children: ReactNode;
+}
+
+export const SearchAutocompletePlaceholder = ({
+  ...props
+}: SearchAutocompletePlaceholderProps) => {
+  const {activeRole} = useUser();
+  const {isOnSearchPage, searchTerm} = useAppSelector(state => state.search);
+  const {nonUserCampaigns} = useOngoingCampaign();
+  const [contentCreators, setContentCreators] = useState<User[]>([]);
+
+  useEffect(() => {
+    console.log(
+      'page with search bar, fetch campaign get all, user get content creators',
+    );
+    User.getContentCreators().then(setContentCreators);
+  }, []);
+
+  return isOnSearchPage ? (
+    <View style={[flex.flex1, flex.flexCol]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={[flex.flexCol, gap.default]}>
+          {activeRole === UserRole.ContentCreator
+            ? searchTerm !== '' &&
+              getSimilarCampaigns(nonUserCampaigns, searchTerm).map(
+                (campaign: Campaign) =>
+                  campaign.title && (
+                    <HorizontalPadding key={campaign.id}>
+                      <AutoCompleteSearchItem itemValue={campaign.title} />
+                    </HorizontalPadding>
+                  ),
+              )
+            : searchTerm !== '' &&
+              getSimilarContentCreators(contentCreators, searchTerm).map(
+                (cc: User) =>
+                  cc.contentCreator?.fullname && (
+                    <HorizontalPadding key={cc.id}>
+                      <AutoCompleteSearchItem
+                        itemValue={cc.contentCreator?.fullname}
+                      />
+                    </HorizontalPadding>
+                  ),
+              )}
+        </View>
+      </ScrollView>
+    </View>
+  ) : (
+    props.children
+  );
+};
+
+interface HideOnActiveSearchProps {
+  children: ReactNode;
+}
+
+export const HideOnActiveSearch = ({...props}: HideOnActiveSearchProps) => {
+  const {isOnSearchPage} = useAppSelector(state => state.search);
+  return isOnSearchPage ? null : props.children;
 };

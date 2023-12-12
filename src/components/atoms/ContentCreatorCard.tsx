@@ -7,10 +7,14 @@ import {
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {useNavigation} from '@react-navigation/native';
-import {flex} from '../../styles/Flex';
-import StarIcon from '../../assets/vectors/star-filled.svg';
+import {flex, items} from '../../styles/Flex';
 import {FontWidth} from '@shopify/react-native-skia';
 import {font, fontSize} from '../../styles/Font';
+import {RatingStarIcon} from './Icon';
+import {textColor} from '../../styles/Text';
+import {COLOR} from '../../styles/Color';
+import {gap} from '../../styles/Gap';
+import {size} from '../../styles/Size';
 
 interface ContentCreatorCardProps {
   id: string;
@@ -67,38 +71,42 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
               width={Dimensions.get('window').width * 0.45}
             />
             <LinearGradient
-              colors={['transparent', 'rgba(0, 0, 0, 0.8)']}
+              colors={[
+                'transparent',
+                'rgba(0, 0, 0, 0.65)',
+                'rgba(0, 0, 0, 1)',
+              ]}
               style={styles.nameContainer}>
               <Text style={styles.name}>{name}</Text>
               <View style={flex.flexRow} className="items-center">
-                {rating && (
-                  <View style={flex.flexRow} className="items-center">
-                    <StarIcon width={8} height={8} fill={'rgb(245, 208, 27)'} />
+                {rating > 0 && (
+                  <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                    <RatingStarIcon
+                      width={8}
+                      height={8}
+                      fill={'rgb(245, 208, 27)'}
+                    />
                     <Text
-                      style={(flex.flexRow, styles.rating)}
-                      className="text-xs text-white items-center">
-                      {' '}
-                      {rating}
-                    </Text>
-                    <Text className="text-xs text-white" style={styles.rating}>
-                      {' '}
-                      •{' '}
+                      className="font-medium"
+                      style={[font.size[10], textColor(COLOR.black[0])]}>
+                      {`${rating} · `}
                     </Text>
                   </View>
                 )}
                 {categories && categories?.length > 0 && (
-                  <View style={flex.flexRow} className="items-center">
-                    <Text
-                      className="text-xs text-white"
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                      style={styles.rating}>
-                      {concatenatedCategories}
-                    </Text>
-                  </View>
+                  <Text
+                    className="font-medium"
+                    numberOfLines={1}
+                    style={[
+                      flex.flex1,
+                      font.size[10],
+                      textColor(COLOR.black[0]),
+                    ]}>
+                    {concatenatedCategories}
+                  </Text>
                 )}
               </View>
-              <Text style={styles.location}>Tangerang, Indonesia</Text>
+              {/* <Text style={styles.location}>Tangerang, Indonesia</Text> */}
             </LinearGradient>
           </View>
           {/* {renderCategories()} */}
@@ -125,6 +133,9 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
   },
   ratingContainer: {
     position: 'absolute',
@@ -154,8 +165,8 @@ const styles = StyleSheet.create({
   },
   name: {
     color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: fontSize[30],
+    fontWeight: '600',
     textAlign: 'left',
   },
   rating: {

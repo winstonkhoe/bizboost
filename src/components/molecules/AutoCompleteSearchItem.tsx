@@ -1,6 +1,5 @@
 import {Pressable, Text, View} from 'react-native';
 import {flex} from '../../styles/Flex';
-import Search from '../../assets/vectors/search.svg';
 import DiagonalArrow from '../../assets/vectors/diagonal-arrow.svg';
 import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
@@ -20,6 +19,7 @@ import {
 import React from 'react';
 import {useUser} from '../../hooks/user';
 import {UserRole} from '../../model/User';
+import {SearchIcon} from '../atoms/Icon';
 
 interface Props {
   itemValue: string;
@@ -66,7 +66,7 @@ const AutoCompleteSearchItem = ({itemValue}: Props) => {
             background(COLOR.black[100], 0.1),
             rounded.max,
           ]}>
-          <Search width={14} height={14} />
+          <SearchIcon width={14} height={14} color={COLOR.text.neutral.high} />
         </View>
         <View className="flex-1" style={[flex.flexRow]}>
           {splittedItemValues?.map((splitItemValue: string, index: number) => {
