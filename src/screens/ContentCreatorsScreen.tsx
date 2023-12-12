@@ -330,274 +330,263 @@ const ContentCreatorsScreen: React.FC = () => {
           </Animated.View>
         )}
 
-            {/* Search Bar */}
-            <PageWithSearchBar>
-              <View className="px-3">
-                <View
-                  style={flex.flexRow}
-                  className="gap-x-1 pb-2 items-center">
-                  <Pressable
-                    onPress={() => setFilterModalState(true)}
-                    style={flex.flexRow}
-                    className="rounded-md border border-zinc-500 justify-between items-center px-2 py-1">
-                    {selectedFilters.categories.length > 0 ||
-                    selectedFilters.locations.length > 0 ? (
-                      <Text className="px-2 text-white text-xs bg-primary rounded-lg">
-                        {selectedFilters.categories.length +
-                          selectedFilters.locations.length}
-                      </Text>
-                    ) : (
-                      <Filter
-                        width={15}
-                        height={15}
-                        color="rgb(113 113 122)"
-                        className="text-zinc-500"
-                      />
-                    )}
-                    <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleSortByRating(sortByRating === 0)}
-                    style={flex.flexRow}
-                    className={`${
-                      sortByRating === 0
-                        ? 'border-zinc-500 bg-transparent'
-                        : 'border-primary bg-primary '
-                    }   rounded-md border justify-between items-center px-2 py-1`}>
-                    <Text
-                      className={`${
-                        sortByRating === 0 ? 'text-zinc-500' : 'text-white'
-                      } pr-2 text-xs`}>
-                      Rating
-                    </Text>
-                    <Pressable
-                      onPress={() =>
-                        handleSortByRating(
-                          sortByRating === 1 || sortByRating === 2
-                            ? true
-                            : false,
-                        )
-                      }>
-                      {sortByRating === 0 && (
-                        <ArrowUpDown
-                          width={15}
-                          height={15}
-                          color="rgb(113, 113, 122)"
-                        />
-                      )}
-                      {sortByRating === 1 && (
-                        <ArrowDown width={15} height={15} color={COLOR.white} />
-                      )}
-                      {sortByRating === 2 && (
-                        <ArrowUp width={15} height={15} color={COLOR.white} />
-                      )}
-                    </Pressable>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleSortByInstagram(sortByInstagram === 0)}
-                    style={flex.flexRow}
-                    className={`${
-                      sortByInstagram === 0
-                        ? 'border-zinc-500 bg-transparent'
-                        : 'border-primary bg-primary '
-                    }   rounded-md border justify-between items-center px-2 py-1`}>
-                    <Text
-                      className={`${
-                        sortByInstagram === 0 ? 'text-zinc-500' : 'text-white'
-                      } pr-2 text-xs`}>
-                      Instagram
-                    </Text>
-                    <Pressable
-                      onPress={() =>
-                        handleSortByInstagram(
-                          sortByInstagram === 1 || sortByInstagram === 2
-                            ? true
-                            : false,
-                        )
-                      }>
-                      {sortByInstagram === 0 && (
-                        <ArrowUpDown
-                          width={15}
-                          height={15}
-                          color="rgb(113, 113, 122)"
-                        />
-                      )}
-                      {sortByInstagram === 1 && (
-                        <ArrowDown width={15} height={15} color={COLOR.white} />
-                      )}
-                      {sortByInstagram === 2 && (
-                        <ArrowUp width={15} height={15} color={COLOR.white} />
-                      )}
-                    </Pressable>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleSortByTiktok(sortByTiktok === 0)}
-                    style={flex.flexRow}
-                    className={`${
-                      sortByTiktok === 0
-                        ? 'border-zinc-500 bg-transparent'
-                        : 'border-primary bg-primary '
-                    }   rounded-md border justify-between items-center px-2 py-1`}>
-                    <Text
-                      className={`${
-                        sortByTiktok === 0 ? 'text-zinc-500' : 'text-white'
-                      } pr-2 text-xs`}>
-                      Tiktok
-                    </Text>
-                    <Pressable
-                      onPress={() =>
-                        handleSortByTiktok(
-                          sortByTiktok === 1 || sortByTiktok === 2
-                            ? true
-                            : false,
-                        )
-                      }>
-                      {sortByTiktok === 0 && (
-                        <ArrowUpDown
-                          width={15}
-                          height={15}
-                          color="rgb(113, 113, 122)"
-                        />
-                      )}
-                      {sortByTiktok === 1 && (
-                        <ArrowDown width={15} height={15} color={COLOR.white} />
-                      )}
-                      {sortByTiktok === 2 && (
-                        <ArrowUp width={15} height={15} color={COLOR.white} />
-                      )}
-                    </Pressable>
-                  </Pressable>
-                </View>
-
-                {filteredContentCreators.length > 0 ? (
-                  <View style={[flex.flexRow, justify.between]}>
-                    <View style={(flex.flexCol, gap.default)}>
-                      {filteredContentCreators.map((item, index) =>
-                        index % 2 === 0 ? (
-                          <ContentCreatorCard
-                            key={item.id}
-                            id={item.id?.toString()}
-                            name={item.contentCreator?.fullname ?? ''}
-                            categories={
-                              item.contentCreator?.specializedCategoryIds
-                            }
-                            rating={item.contentCreator?.rating}
-                            imageUrl={
-                              item.contentCreator?.profilePicture ||
-                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                            }
-                          />
-                        ) : null,
-                      )}
-                    </View>
-                    <View style={(flex.flexCol, gap.default)}>
-                      {filteredContentCreators.map((item, index) =>
-                        index % 2 !== 0 ? (
-                          <ContentCreatorCard
-                            key={item.id}
-                            id={item.id?.toString()}
-                            name={item.contentCreator?.fullname ?? ''}
-                            categories={
-                              item.contentCreator?.specializedCategoryIds
-                            }
-                            rating={item.contentCreator?.rating}
-                            imageUrl={
-                              item.contentCreator?.profilePicture ||
-                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                            }
-                          />
-                        ) : null,
-                      )}
-                    </View>
-                  </View>
+        {/* Search Bar */}
+        <PageWithSearchBar>
+          <View className="px-3">
+            <View style={flex.flexRow} className="gap-x-1 pb-2 items-center">
+              <Pressable
+                onPress={() => setFilterModalState(true)}
+                style={flex.flexRow}
+                className="rounded-md border border-zinc-500 justify-between items-center px-2 py-1">
+                {selectedFilters.categories.length > 0 ||
+                selectedFilters.locations.length > 0 ? (
+                  <Text className="px-2 text-white text-xs bg-primary rounded-lg">
+                    {selectedFilters.categories.length +
+                      selectedFilters.locations.length}
+                  </Text>
                 ) : (
-                  <View>
-                    <Text>No content creators</Text>
-                  </View>
-                )}
-              </View>
-            </PageWithSearchBar>
-          </VerticalPadding>
-        </ScrollView>
-
-       <SheetModal
-           open={filterModalState}
-           onDismiss={handleClosePress}
-           fullHeight
-           snapPoints={['90%', '100%']}
-           enableDynamicSizing={false}
-           enablePanDownToClose>
-          <BottomSheetScrollView>
-            <HorizontalPadding paddingSize="medium">
-              <Text className="text-2xl font-bold text-black">Set filters</Text>
-            </HorizontalPadding>
-            <HorizontalPadding paddingSize="medium">
-              <View style={flex.flexCol}>
-                <VerticalPadding>
-                  <Text className="text-lg font-bold text-black">
-                    Choose category
-                  </Text>
-
-                  <View style={flex.flexRow} className="py-2 flex-wrap gap-2">
-                    {categories.map((ct, idx) => (
-                      <Pressable
-                        key={idx}
-                        className={`border rounded-md p-2 ${
-                          selectedFilters.categories.includes(ct.id)
-                            ? 'border-primary bg-primary'
-                            : 'border-primary bg-white'
-                        }`}
-                        onPress={() => handleCategoryPress(ct.id)}>
-                        <Text
-                          className={`${
-                            selectedFilters.categories.includes(ct.id)
-                              ? 'text-white'
-                              : 'text-black'
-                          }`}>
-                          {ct.id}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </VerticalPadding>
-                <View>
-                  <Text className="text-lg font-bold text-black">
-                    Choose preferred location
-                  </Text>
-
-                  <View style={flex.flexRow} className="py-2 flex-wrap gap-2">
-                    {locations.map((loc, idx) => (
-                      <Pressable
-                        key={idx}
-                        className={`border rounded-md p-2 ${
-                          selectedFilters.locations.includes(loc.id)
-                            ? 'border-primary bg-primary'
-                            : 'border-primary bg-white'
-                        }`}
-                        onPress={() => handleLocationPress(loc.id)}>
-                        <Text
-                          className={`${
-                            selectedFilters.locations.includes(loc.id)
-                              ? 'text-white'
-                              : 'text-black'
-                          }`}>
-                          {loc.id}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </View>
-                <View className="py-4">
-                  <CustomButton
-                    onPress={handleClosePress}
-                    text="Apply filters"
-                    rounded="default"
+                  <Filter
+                    width={15}
+                    height={15}
+                    color="rgb(113 113 122)"
+                    className="text-zinc-500"
                   />
+                )}
+                <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleSortByRating(sortByRating === 0)}
+                style={flex.flexRow}
+                className={`${
+                  sortByRating === 0
+                    ? 'border-zinc-500 bg-transparent'
+                    : 'border-primary bg-primary '
+                }   rounded-md border justify-between items-center px-2 py-1`}>
+                <Text
+                  className={`${
+                    sortByRating === 0 ? 'text-zinc-500' : 'text-white'
+                  } pr-2 text-xs`}>
+                  Rating
+                </Text>
+                <Pressable
+                  onPress={() =>
+                    handleSortByRating(
+                      sortByRating === 1 || sortByRating === 2 ? true : false,
+                    )
+                  }>
+                  {sortByRating === 0 && (
+                    <ArrowUpDown
+                      width={15}
+                      height={15}
+                      color="rgb(113, 113, 122)"
+                    />
+                  )}
+                  {sortByRating === 1 && (
+                    <ArrowDown width={15} height={15} color={COLOR.white} />
+                  )}
+                  {sortByRating === 2 && (
+                    <ArrowUp width={15} height={15} color={COLOR.white} />
+                  )}
+                </Pressable>
+              </Pressable>
+              <Pressable
+                onPress={() => handleSortByInstagram(sortByInstagram === 0)}
+                style={flex.flexRow}
+                className={`${
+                  sortByInstagram === 0
+                    ? 'border-zinc-500 bg-transparent'
+                    : 'border-primary bg-primary '
+                }   rounded-md border justify-between items-center px-2 py-1`}>
+                <Text
+                  className={`${
+                    sortByInstagram === 0 ? 'text-zinc-500' : 'text-white'
+                  } pr-2 text-xs`}>
+                  Instagram
+                </Text>
+                <Pressable
+                  onPress={() =>
+                    handleSortByInstagram(
+                      sortByInstagram === 1 || sortByInstagram === 2
+                        ? true
+                        : false,
+                    )
+                  }>
+                  {sortByInstagram === 0 && (
+                    <ArrowUpDown
+                      width={15}
+                      height={15}
+                      color="rgb(113, 113, 122)"
+                    />
+                  )}
+                  {sortByInstagram === 1 && (
+                    <ArrowDown width={15} height={15} color={COLOR.white} />
+                  )}
+                  {sortByInstagram === 2 && (
+                    <ArrowUp width={15} height={15} color={COLOR.white} />
+                  )}
+                </Pressable>
+              </Pressable>
+              <Pressable
+                onPress={() => handleSortByTiktok(sortByTiktok === 0)}
+                style={flex.flexRow}
+                className={`${
+                  sortByTiktok === 0
+                    ? 'border-zinc-500 bg-transparent'
+                    : 'border-primary bg-primary '
+                }   rounded-md border justify-between items-center px-2 py-1`}>
+                <Text
+                  className={`${
+                    sortByTiktok === 0 ? 'text-zinc-500' : 'text-white'
+                  } pr-2 text-xs`}>
+                  Tiktok
+                </Text>
+                <Pressable
+                  onPress={() =>
+                    handleSortByTiktok(
+                      sortByTiktok === 1 || sortByTiktok === 2 ? true : false,
+                    )
+                  }>
+                  {sortByTiktok === 0 && (
+                    <ArrowUpDown
+                      width={15}
+                      height={15}
+                      color="rgb(113, 113, 122)"
+                    />
+                  )}
+                  {sortByTiktok === 1 && (
+                    <ArrowDown width={15} height={15} color={COLOR.white} />
+                  )}
+                  {sortByTiktok === 2 && (
+                    <ArrowUp width={15} height={15} color={COLOR.white} />
+                  )}
+                </Pressable>
+              </Pressable>
+            </View>
+
+            {filteredContentCreators.length > 0 ? (
+              <View style={[flex.flexRow, justify.between]}>
+                <View style={(flex.flexCol, gap.default)}>
+                  {filteredContentCreators.map((item, index) =>
+                    index % 2 === 0 ? (
+                      <ContentCreatorCard
+                        key={item.id}
+                        id={item.id?.toString()}
+                        name={item.contentCreator?.fullname ?? ''}
+                        categories={item.contentCreator?.specializedCategoryIds}
+                        rating={item.contentCreator?.rating}
+                        imageUrl={
+                          item.contentCreator?.profilePicture ||
+                          'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                        }
+                      />
+                    ) : null,
+                  )}
+                </View>
+                <View style={(flex.flexCol, gap.default)}>
+                  {filteredContentCreators.map((item, index) =>
+                    index % 2 !== 0 ? (
+                      <ContentCreatorCard
+                        key={item.id}
+                        id={item.id?.toString()}
+                        name={item.contentCreator?.fullname ?? ''}
+                        categories={item.contentCreator?.specializedCategoryIds}
+                        rating={item.contentCreator?.rating}
+                        imageUrl={
+                          item.contentCreator?.profilePicture ||
+                          'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                        }
+                      />
+                    ) : null,
+                  )}
                 </View>
               </View>
-            </HorizontalPadding>
-          </BottomSheetScrollView>
-        </SheetModal>
+            ) : (
+              <View>
+                <Text>No content creators</Text>
+              </View>
+            )}
+          </View>
+        </PageWithSearchBar>
+      </ScrollView>
+
+      <SheetModal
+        open={filterModalState}
+        onDismiss={handleClosePress}
+        fullHeight
+        snapPoints={['90%', '100%']}
+        enableDynamicSizing={false}
+        enablePanDownToClose>
+        <BottomSheetScrollView>
+          <HorizontalPadding paddingSize="medium">
+            <Text className="text-2xl font-bold text-black">Set filters</Text>
+          </HorizontalPadding>
+          <HorizontalPadding paddingSize="medium">
+            <View style={flex.flexCol}>
+              <VerticalPadding>
+                <Text className="text-lg font-bold text-black">
+                  Choose category
+                </Text>
+
+                <View style={flex.flexRow} className="py-2 flex-wrap gap-2">
+                  {categories.map((ct, idx) => (
+                    <Pressable
+                      key={idx}
+                      className={`border rounded-md p-2 ${
+                        selectedFilters.categories.includes(ct.id)
+                          ? 'border-primary bg-primary'
+                          : 'border-primary bg-white'
+                      }`}
+                      onPress={() => handleCategoryPress(ct.id)}>
+                      <Text
+                        className={`${
+                          selectedFilters.categories.includes(ct.id)
+                            ? 'text-white'
+                            : 'text-black'
+                        }`}>
+                        {ct.id}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </VerticalPadding>
+              <View>
+                <Text className="text-lg font-bold text-black">
+                  Choose preferred location
+                </Text>
+
+                <View style={flex.flexRow} className="py-2 flex-wrap gap-2">
+                  {locations.map((loc, idx) => (
+                    <Pressable
+                      key={idx}
+                      className={`border rounded-md p-2 ${
+                        selectedFilters.locations.includes(loc.id)
+                          ? 'border-primary bg-primary'
+                          : 'border-primary bg-white'
+                      }`}
+                      onPress={() => handleLocationPress(loc.id)}>
+                      <Text
+                        className={`${
+                          selectedFilters.locations.includes(loc.id)
+                            ? 'text-white'
+                            : 'text-black'
+                        }`}>
+                        {loc.id}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+              <View className="py-4">
+                <CustomButton
+                  onPress={handleClosePress}
+                  text="Apply filters"
+                  rounded="default"
+                />
+              </View>
+            </View>
+          </HorizontalPadding>
+        </BottomSheetScrollView>
+      </SheetModal>
     </>
   );
 };

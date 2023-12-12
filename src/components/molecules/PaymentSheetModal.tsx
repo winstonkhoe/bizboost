@@ -179,8 +179,7 @@ const PaymentSheetModal = ({
                         text="Reject"
                         scale={1}
                         onPress={onProofRejected}
-                        customTextSize={font.size[20]}
-                        type="alternate"
+                        customTextSize={20}
                       />
                     </View>
                     {/* {paymentStatus === */}
@@ -190,7 +189,7 @@ const PaymentSheetModal = ({
                         text="Accept"
                         scale={1}
                         onPress={onProofAccepted}
-                        customTextSize={font.size[20]}
+                        customTextSize={20}
                       />
                     </View>
                     {/* )} */}
@@ -203,7 +202,7 @@ const PaymentSheetModal = ({
                         text="I Have Paid This User"
                         scale={1}
                         onPress={onWithdrawalAccepted}
-                        customTextSize={font.size[20]}
+                        customTextSize={20}
                       />
                     </View>
                   )}
