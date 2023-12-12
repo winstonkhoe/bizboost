@@ -5,7 +5,7 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
-import {flex} from '../styles/Flex';
+import {flex, items} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {rounded} from '../styles/BorderRadius';
 import {CustomButton} from '../components/atoms/Button';
@@ -22,6 +22,10 @@ import {HomeSectionHeader} from '../components/molecules/SectionHeader';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TikTokLogo from '../assets/vectors/tiktok.svg';
 import FastImage from 'react-native-fast-image';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
+import {fontSize} from '../styles/Font';
+import {textColor} from '../styles/Text';
+import {dimension} from '../styles/Dimension';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -57,30 +61,60 @@ const UserDetailScreen = ({route}: Props) => {
           <View className="flex-1" style={[flex.flexCol]}>
             <HorizontalPadding>
               <View className="w-full" style={[flex.flexCol, gap.xlarge]}>
-                <View
-                  className="items-center"
-                  style={[flex.flexRow, gap.large]}>
-                  <View
-                    className="w-24 h-24 overflow-hidden"
-                    style={[rounded.max]}>
-                    <FastImage
-                      className="w-full flex-1"
-                      source={
-                        user.contentCreator?.profilePicture
-                          ? {uri: user.contentCreator.profilePicture}
-                          : require('../assets/images/bizboost-avatar.png')
-                      }
-                    />
+                <View style={[flex.flexRow, gap.large, items.center]}>
+                  <View className="relative">
+                    <View
+                      className="overflow-hidden bg-white"
+                      style={[rounded.max, dimension.square.xlarge4]}>
+                      <FastImage
+                        className="w-full flex-1"
+                        source={getSourceOrDefaultAvatar({
+                          uri: user.contentCreator?.profilePicture,
+                        })}
+                      />
+                    </View>
+                    <View
+                      className="overflow-hidden absolute left-5 bg-white"
+                      style={[rounded.max, dimension.square.xlarge4]}>
+                      <FastImage
+                        className="w-full flex-1"
+                        source={getSourceOrDefaultAvatar({
+                          uri: user.businessPeople?.profilePicture,
+                        })}
+                      />
+                    </View>
                   </View>
                   <View className="flex-1 items-start" style={[flex.flexCol]}>
-                    <Text className="text-base font-bold" numberOfLines={1}>
+                    <Text
+                      className="font-bold"
+                      style={[{fontSize: fontSize[30]}]}
+                      numberOfLines={1}>
                       {/* TODO: ini cuma buat cc, bikin kondisi buat bp */}
-                      {user.contentCreator?.fullname}
+                      {user.contentCreator?.fullname}・
+                      {user.businessPeople?.fullname}
                     </Text>
-                    <Text className="text-xs" numberOfLines={1}>
+                    <Text
+                      style={[
+                        {fontSize: fontSize[20]},
+                        textColor(COLOR.text.neutral.med),
+                      ]}
+                      numberOfLines={1}>
+                      Content Creator・Business People
+                    </Text>
+                    <Text
+                      style={[
+                        {fontSize: fontSize[20]},
+                        textColor(COLOR.text.neutral.med),
+                      ]}
+                      numberOfLines={1}>
                       {user?.phone}
                     </Text>
-                    <Text className="text-xs" numberOfLines={1}>
+                    <Text
+                      style={[
+                        {fontSize: fontSize[20]},
+                        textColor(COLOR.text.neutral.med),
+                      ]}
+                      numberOfLines={1}>
                       {user?.email}
                     </Text>
                   </View>
