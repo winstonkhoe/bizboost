@@ -308,51 +308,65 @@ const UserDetailScreen = ({route}: Props) => {
             </View>
           </>
         )}
-        {/* <HorizontalPadding>
-          <View className="flex flex-row items-center justify-around w-full">
-            <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
-              <View className="flex flex-row mb-2 items-center">
-                <InstagramLogo width={20} height={20} />
-                <Text className={'font-semibold ml-1'}>Instagram</Text>
-              </View>
-              <Text className="text-gray-500 mb-1">@username</Text>
-              <Text className="text-gray-500">
-                Followers: <Text className="font-bold">100</Text>
-              </Text>
-            </View>
 
-            <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
-              <View className="flex flex-row mb-2 items-center">
-                <TikTokLogo width={20} height={20} />
-                <Text className={'font-semibold ml-1'}>TikTok</Text>
+        <>
+          <View className="border-t border-gray-400 pt-4">
+            <HomeSectionHeader header="Transactions" />
+          </View>
+          <View className="flex flex-row items-center justify-between">
+            <Text
+              className="font-medium"
+              style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+              as a Content Creator
+            </Text>
+            <View
+              className="flex flex-row items-center justify-end"
+              style={[gap.default]}>
+              <View className="flex flex-row items-center justify-end">
+                <Text
+                  className="overflow-hidden text-right"
+                  numberOfLines={1}
+                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  xxx Ongoing, xxx Completed
+                </Text>
               </View>
-              <Text className="text-gray-500 mb-1">@username</Text>
-              <Text className="text-gray-500">
-                Followers: <Text className="font-bold">100</Text>
-              </Text>
+              {/* <ChevronRight color={COLOR.black[20]} /> */}
             </View>
           </View>
-        </HorizontalPadding> */}
-
-        <VerticalPadding>
-          <HorizontalPadding>
-            <CustomButton
-              onPress={onSuspendButtonClick}
-              customBackgroundColor={
-                user.status === UserStatus.Active
-                  ? {
-                      default: COLOR.background.danger.high,
-                      disabled: COLOR.background.danger.disabled,
-                    }
-                  : undefined
-              }
-              rounded="default"
-              text={
-                user.status === UserStatus.Active ? 'Suspend' : 'Reactivate'
-              }
-            />
-          </HorizontalPadding>
-        </VerticalPadding>
+          <View className="flex flex-row items-center justify-between">
+            <Text
+              className="font-medium"
+              style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+              as a Business People
+            </Text>
+            <View
+              className="flex flex-row items-center justify-end"
+              style={[gap.default]}>
+              <View className="flex flex-row items-center justify-end">
+                <Text
+                  className="overflow-hidden text-right"
+                  numberOfLines={1}
+                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  xxx Ongoing, xxx Completed
+                </Text>
+              </View>
+              {/* <ChevronRight color={COLOR.black[20]} /> */}
+            </View>
+          </View>
+        </>
+        <CustomButton
+          onPress={onSuspendButtonClick}
+          customBackgroundColor={
+            user.status === UserStatus.Active
+              ? {
+                  default: COLOR.background.danger.high,
+                  disabled: COLOR.background.danger.disabled,
+                }
+              : undefined
+          }
+          rounded="default"
+          text={user.status === UserStatus.Active ? 'Suspend' : 'Reactivate'}
+        />
       </View>
     </PageWithBackButton>
   );
