@@ -34,46 +34,42 @@ export const PageWithSearchBar = ({children}: Props) => {
   }, []);
 
   return (
-    <SafeAreaContainer customInsets={{bottom: 0}} enable>
-      <View className="h-full text-center" style={[flex.flexCol]}>
-        <HorizontalPadding>
-          <SearchBar />
-        </HorizontalPadding>
-        <View className="mb-3" />
-        {isOnSearchPage ? (
-          <View className="h-full w-full" style={[flex.flexCol]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={[flex.flexCol, gap.default]}>
-                {activeRole === UserRole.ContentCreator
-                  ? searchTerm !== '' &&
-                    getSimilarCampaigns(campaigns, searchTerm).map(
-                      (campaign: Campaign) =>
-                        campaign.title && (
-                          <HorizontalPadding key={campaign.id}>
-                            <AutoCompleteSearchItem
-                              itemValue={campaign.title}
-                            />
-                          </HorizontalPadding>
-                        ),
-                    )
-                  : searchTerm !== '' &&
-                    getSimilarContentCreators(contentCreators, searchTerm).map(
-                      (cc: User) =>
-                        cc.contentCreator?.fullname && (
-                          <HorizontalPadding key={cc.id}>
-                            <AutoCompleteSearchItem
-                              itemValue={cc.contentCreator?.fullname}
-                            />
-                          </HorizontalPadding>
-                        ),
-                    )}
-              </View>
-            </ScrollView>
-          </View>
-        ) : (
-          children
-        )}
-      </View>
-    </SafeAreaContainer>
+    <View className="h-full text-center" style={[flex.flexCol]}>
+      <HorizontalPadding>
+        <SearchBar />
+      </HorizontalPadding>
+      <View className="mb-3" />
+      {isOnSearchPage ? (
+        <View className="h-full w-full" style={[flex.flexCol]}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={[flex.flexCol, gap.default]}>
+              {activeRole === UserRole.ContentCreator
+                ? searchTerm !== '' &&
+                  getSimilarCampaigns(campaigns, searchTerm).map(
+                    (campaign: Campaign) =>
+                      campaign.title && (
+                        <HorizontalPadding key={campaign.id}>
+                          <AutoCompleteSearchItem itemValue={campaign.title} />
+                        </HorizontalPadding>
+                      ),
+                  )
+                : searchTerm !== '' &&
+                  getSimilarContentCreators(contentCreators, searchTerm).map(
+                    (cc: User) =>
+                      cc.contentCreator?.fullname && (
+                        <HorizontalPadding key={cc.id}>
+                          <AutoCompleteSearchItem
+                            itemValue={cc.contentCreator?.fullname}
+                          />
+                        </HorizontalPadding>
+                      ),
+                  )}
+            </View>
+          </ScrollView>
+        </View>
+      ) : (
+        children
+      )}
+    </View>
   );
 };

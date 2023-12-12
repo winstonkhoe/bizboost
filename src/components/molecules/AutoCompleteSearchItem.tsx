@@ -18,6 +18,8 @@ import {
   TabNavigationProps,
 } from '../../navigation/TabNavigation';
 import React from 'react';
+import {useUser} from '../../hooks/user';
+import {UserRole} from '../../model/User';
 
 interface Props {
   itemValue: string;
@@ -26,6 +28,9 @@ interface Props {
 const AutoCompleteSearchItem = ({itemValue}: Props) => {
   const navigation = useNavigation<TabNavigationProps>();
   const dispatch = useAppDispatch();
+  const {activeRole} = useUser();
+  const isContentCreator = activeRole === UserRole.ContentCreator;
+  const isBusinessPeople = activeRole === UserRole.BusinessPeople;
   const {searchTerm} = useAppSelector(state => state.search);
   const loweredItemValue = itemValue.toLocaleLowerCase();
   const loweredSearchTerm = searchTerm.toLocaleLowerCase();
@@ -38,7 +43,12 @@ const AutoCompleteSearchItem = ({itemValue}: Props) => {
   const pressItem = () => {
     dispatch(updateSearchTerm(loweredItemValue));
     dispatch(closeSearchPage());
-    navigation.navigate(TabNavigation.Campaigns);
+    if (isContentCreator) {
+      navigation.navigate(TabNavigation.Campaigns);
+    }
+    if (isBusinessPeople) {
+      navigation.navigate(TabNavigation.ContentCreators);
+    }
   };
 
   return (
