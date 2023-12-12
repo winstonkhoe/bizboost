@@ -14,7 +14,7 @@ import {
   AuthenticatedNavigation,
   AuthenticatedStack,
 } from '../navigation/StackNavigation';
-import {User, UserStatus} from '../model/User';
+import {User, UserRole, UserStatus} from '../model/User';
 import {COLOR} from '../styles/Color';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {ProfileItem} from '../components/molecules/ProfileItem';
@@ -31,6 +31,7 @@ import {formatDateToTime12Hrs} from '../utils/date';
 import {padding} from '../styles/Padding';
 import {Campaign} from '../model/Campaign';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
+import {Transaction, TransactionStatus} from '../model/Transaction';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -42,11 +43,30 @@ const UserDetailScreen = ({route}: Props) => {
   const {userId} = route.params;
   const [user, setUser] = useState<User | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [contentCreatorTransactions, setContentCreatorTransactions] =
+    useState<Transaction[]>();
+  const [businessPeopleTransactions, setBusinessPeopleTransactions] =
+    useState<Transaction[]>();
   useEffect(() => {
     Campaign.getUserCampaigns(userId).then(value => setCampaigns(value));
   }, [userId]);
   useEffect(() => {
     User.getUserDataReactive(userId, u => setUser(u));
+  }, [userId]);
+  useEffect(() => {
+    Transaction.getAllTransactionsByRole(
+      userId,
+      UserRole.ContentCreator,
+      setContentCreatorTransactions,
+    );
+  }, [userId]);
+
+  useEffect(() => {
+    Transaction.getAllTransactionsByRole(
+      userId,
+      UserRole.BusinessPeople,
+      setBusinessPeopleTransactions,
+    );
   }, [userId]);
 
   if (!user) {
@@ -327,10 +347,23 @@ const UserDetailScreen = ({route}: Props) => {
                   className="overflow-hidden text-right"
                   numberOfLines={1}
                   style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                  xxx Ongoing, xxx Completed
+                  {
+                    contentCreatorTransactions?.filter(
+                      t =>
+                        t.status !== TransactionStatus.completed &&
+                        t.status !== TransactionStatus.terminated,
+                    ).length
+                  }{' '}
+                  Ongoing,{' '}
+                  {
+                    contentCreatorTransactions?.filter(
+                      t => t.status === TransactionStatus.completed,
+                    ).length
+                  }{' '}
+                  Completed
                 </Text>
               </View>
-              {/* <ChevronRight color={COLOR.black[20]} /> */}
+              <ChevronRight color={COLOR.black[30]} />
             </View>
           </View>
           <View className="flex flex-row items-center justify-between">
@@ -347,10 +380,23 @@ const UserDetailScreen = ({route}: Props) => {
                   className="overflow-hidden text-right"
                   numberOfLines={1}
                   style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
-                  xxx Ongoing, xxx Completed
+                  {
+                    businessPeopleTransactions?.filter(
+                      t =>
+                        t.status !== TransactionStatus.completed &&
+                        t.status !== TransactionStatus.terminated,
+                    ).length
+                  }{' '}
+                  Ongoing,{' '}
+                  {
+                    businessPeopleTransactions?.filter(
+                      t => t.status === TransactionStatus.completed,
+                    ).length
+                  }{' '}
+                  Completed
                 </Text>
               </View>
-              {/* <ChevronRight color={COLOR.black[20]} /> */}
+              <ChevronRight color={COLOR.black[30]} />
             </View>
           </View>
         </>
