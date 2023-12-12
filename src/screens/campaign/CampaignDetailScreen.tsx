@@ -161,7 +161,7 @@ const CampaignDetailScreen = ({route}: Props) => {
               <View className="flex flex-row justify-between">
                 <Text className="font-bold text-xs">
                   {`${formatDateToDayMonthYear(
-                    new Date(new Campaign(campaign).getTimelineStart().start),
+                    new Date(new Campaign(campaign).getTimelineStart()?.start),
                   )} - ${formatDateToDayMonthYear(
                     // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
                     new Date(new Campaign(campaign).getTimelineEnd()?.end),

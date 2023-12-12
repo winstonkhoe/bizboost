@@ -17,6 +17,7 @@ import BrokenLink from '../../assets/vectors/broken-link.svg';
 import PhotoRevision from '../../assets/vectors/photo-revision.svg';
 import Upload from '../../assets/vectors/upload.svg';
 import MissingDocument from '../../assets/vectors/document-missing.svg';
+import Report from '../../assets/vectors/report.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
@@ -148,7 +149,7 @@ export const PlatformIcon = ({platform, ...props}: PlatformIconProps) => {
 export const ChevronRight = ({
   size: sizeType = 'default',
   color = COLOR.black[100],
-  strokeWidth = 2,
+  strokeWidth = 1,
 }: IconProps) => {
   const dimension = size[sizeType];
   return (
@@ -314,6 +315,21 @@ export const MissingDocumentIcon = ({
 }: IconProps) => {
   return (
     <MissingDocument
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      strokeWidth={strokeWidth}
+    />
+  );
+};
+
+export const ReportIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.red[60],
+  strokeWidth = 2,
+}: IconProps) => {
+  return (
+    <Report
       width={size[sizeType]}
       height={size[sizeType]}
       color={color}

@@ -1077,7 +1077,13 @@ const CampaignTimelineScreen = ({route}: Props) => {
             setIsContentSubmissionModalOpen(false);
           }}>
           <FormProvider {...contentSubmissionMethods}>
-            <View style={[flex.grow, flex.flexCol, gap.medium]}>
+            <View
+              style={[
+                flex.grow,
+                flex.flexCol,
+                gap.medium,
+                padding.horizontal.large,
+              ]}>
               <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
                 <View style={[flex.flex1, flex.flexCol, gap.xlarge2]}>
                   {transaction?.platformTasks?.map(

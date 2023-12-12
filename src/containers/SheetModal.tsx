@@ -20,6 +20,7 @@ interface SheetModalProps extends Partial<BottomSheetModalProps> {
   bottomInsetType?: 'auto' | 'default' | 'padding';
   maxHeight?: number;
   onDismiss?: () => void;
+  disableCloseOnClickBackground?: boolean;
   disablePanDownToClose?: boolean;
 }
 
@@ -32,6 +33,7 @@ export const SheetModal = ({
   maxHeight,
   children,
   bottomInsetType = 'auto',
+  disableCloseOnClickBackground = false,
   disablePanDownToClose = false,
   snapPoints,
   ...props
@@ -46,12 +48,13 @@ export const SheetModal = ({
     (props: any) => (
       <BottomSheetBackdrop
         {...props}
+        pressBehavior={disableCloseOnClickBackground ? 'none' : 'close'}
         disappearsOnIndex={-1}
         opacity={1}
         style={[props.style, background(COLOR.black[100])]}
       />
     ),
-    [],
+    [disableCloseOnClickBackground],
   );
 
   useEffect(() => {

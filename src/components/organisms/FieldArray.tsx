@@ -176,6 +176,7 @@ const FieldArray = ({
                   flex.flex1,
                   flex.flexCol,
                   padding.top.large,
+                  padding.horizontal.large,
                   gap.xlarge,
                 ]}>
                 <View style={[flex.flexCol, gap.small]}>
