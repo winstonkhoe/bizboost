@@ -354,10 +354,12 @@ const UserDetailScreen = ({route}: Props) => {
               className="flex flex-row items-center justify-end"
               style={[gap.default]}>
               <View className="flex flex-row items-center justify-end">
+                {/* TODO: bingung sih jumlahnya, perlu total apa ga ya */}
                 <Text
                   className="overflow-hidden text-right"
                   numberOfLines={1}
                   style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  {contentCreatorTransactions?.length} (
                   {
                     contentCreatorTransactions?.filter(
                       t =>
@@ -371,7 +373,7 @@ const UserDetailScreen = ({route}: Props) => {
                       t => t.status === TransactionStatus.completed,
                     ).length
                   }{' '}
-                  Completed
+                  Completed)
                 </Text>
               </View>
               <ChevronRight color={COLOR.black[30]} />
@@ -398,6 +400,7 @@ const UserDetailScreen = ({route}: Props) => {
                   className="overflow-hidden text-right"
                   numberOfLines={1}
                   style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  {businessPeopleTransactions?.length} (
                   {
                     businessPeopleTransactions?.filter(
                       t =>
@@ -411,7 +414,7 @@ const UserDetailScreen = ({route}: Props) => {
                       t => t.status === TransactionStatus.completed,
                     ).length
                   }{' '}
-                  Completed
+                  Completed)
                 </Text>
               </View>
               <ChevronRight color={COLOR.black[30]} />
