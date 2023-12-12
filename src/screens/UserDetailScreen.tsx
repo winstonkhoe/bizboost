@@ -13,6 +13,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
+  NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {User, UserRole, UserStatus} from '../model/User';
 import {COLOR} from '../styles/Color';
@@ -32,6 +33,7 @@ import {padding} from '../styles/Padding';
 import {Campaign} from '../model/Campaign';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {Transaction, TransactionStatus} from '../model/Transaction';
+import {useNavigation} from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -47,6 +49,8 @@ const UserDetailScreen = ({route}: Props) => {
     useState<Transaction[]>();
   const [businessPeopleTransactions, setBusinessPeopleTransactions] =
     useState<Transaction[]>();
+  const navigation = useNavigation<NavigationStackProps>();
+
   useEffect(() => {
     Campaign.getUserCampaigns(userId).then(value => setCampaigns(value));
   }, [userId]);
@@ -333,7 +337,14 @@ const UserDetailScreen = ({route}: Props) => {
           <View className="border-t border-gray-400 pt-4">
             <HomeSectionHeader header="Transactions" />
           </View>
-          <View className="flex flex-row items-center justify-between">
+          <Pressable
+            className="flex flex-row items-center justify-between"
+            onPress={() => {
+              navigation.navigate(AuthenticatedNavigation.MyTransactions, {
+                userId: userId,
+                role: UserRole.ContentCreator,
+              });
+            }}>
             <Text
               className="font-medium"
               style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
@@ -365,8 +376,15 @@ const UserDetailScreen = ({route}: Props) => {
               </View>
               <ChevronRight color={COLOR.black[30]} />
             </View>
-          </View>
-          <View className="flex flex-row items-center justify-between">
+          </Pressable>
+          <Pressable
+            className="flex flex-row items-center justify-between"
+            onPress={() => {
+              navigation.navigate(AuthenticatedNavigation.MyTransactions, {
+                userId: userId,
+                role: UserRole.BusinessPeople,
+              });
+            }}>
             <Text
               className="font-medium"
               style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
@@ -398,7 +416,7 @@ const UserDetailScreen = ({route}: Props) => {
               </View>
               <ChevronRight color={COLOR.black[30]} />
             </View>
-          </View>
+          </Pressable>
         </>
         <CustomButton
           onPress={onSuspendButtonClick}

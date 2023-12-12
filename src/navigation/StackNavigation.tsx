@@ -46,6 +46,7 @@ import ModalSubmitResult from '../screens/campaign/timeline/ModalSubmitResult';
 import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrainstorm';
 import ReportListScreen from '../screens/report/ReportListScreen';
 import ReportDetailScreen from '../screens/report/ReportDetailScreen';
+import {UserRole} from '../model/User';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -71,7 +72,7 @@ export enum AuthenticatedNavigation {
   SubmitBrainstorm = 'Submit Brainstorm',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
-  MyTransactions = 'My Transactions',
+  MyTransactions = 'Transactions',
   MyCampaigns = 'My Campaigns',
   AboutMe = 'About Me',
   ChangePassword = 'Change Password',
@@ -128,7 +129,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.SubmitBrainstorm]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
-  [AuthenticatedNavigation.MyTransactions]: undefined;
+  [AuthenticatedNavigation.MyTransactions]: {userId?: string; role?: UserRole};
   [AuthenticatedNavigation.MyCampaigns]: undefined;
   [AuthenticatedNavigation.AboutMe]: undefined;
   [AuthenticatedNavigation.ChangePassword]: undefined;

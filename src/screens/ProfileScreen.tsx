@@ -233,6 +233,7 @@ const ProfileScreen = () => {
                           handleOnClick={() => {
                             navigation.navigate(
                               AuthenticatedNavigation.MyTransactions,
+                              {userId: uid || '', role: activeRole},
                             );
                           }}
                           icon={
