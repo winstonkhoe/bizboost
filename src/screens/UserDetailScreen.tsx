@@ -29,16 +29,22 @@ import {dimension} from '../styles/Dimension';
 import {ChevronRight} from '../components/atoms/Icon';
 import {formatDateToTime12Hrs} from '../utils/date';
 import {padding} from '../styles/Padding';
+import {Campaign} from '../model/Campaign';
+import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.UserDetail
 >;
 
-// TODO: apa CC detail screen samain aja sm ini ya
+// TODO: apa CC & BP detail screen samain aja sm ini ya? tp jd banyak kondisi
 const UserDetailScreen = ({route}: Props) => {
   const {userId} = route.params;
   const [user, setUser] = useState<User | null>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  useEffect(() => {
+    Campaign.getUserCampaigns(userId).then(value => setCampaigns(value));
+  }, [userId]);
   useEffect(() => {
     User.getUserDataReactive(userId, u => setUser(u));
   }, [userId]);
@@ -59,7 +65,7 @@ const UserDetailScreen = ({route}: Props) => {
     <PageWithBackButton enableSafeAreaContainer>
       <View
         className="flex-1 justify-between pt-4"
-        style={[flex.flexCol, gap.default, padding.horizontal.default]}>
+        style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
         <View className="flex-1" style={[flex.flexCol]}>
           <View className="w-full" style={[flex.flexCol, gap.xlarge]}>
             <View style={[flex.flexRow, gap.large, items.center]}>
@@ -142,11 +148,7 @@ const UserDetailScreen = ({route}: Props) => {
         {user.contentCreator?.fullname && (
           <>
             <View className="border-t border-gray-400 pt-4">
-              <Text
-                className="font-bold"
-                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
-                Content Creator Information
-              </Text>
+              <HomeSectionHeader header="Content Creator Information" />
             </View>
 
             <View className="flex flex-row items-center justify-between">
@@ -285,6 +287,27 @@ const UserDetailScreen = ({route}: Props) => {
           </>
         )}
 
+        {user.businessPeople?.fullname && (
+          <>
+            <View className="border-t border-gray-400 pt-4">
+              <HomeSectionHeader
+                header="Business People Campaigns"
+                link={'See All'}
+                onPressLink={
+                  () => {}
+                  // setOngoingCampaignsLimit(
+                  //   ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
+                  // )
+                }
+              />
+            </View>
+            <View style={[flex.flexCol, gap.medium]}>
+              {campaigns.slice(0, 3).map((c, index) => (
+                <OngoingCampaignCard campaign={c} key={index} />
+              ))}
+            </View>
+          </>
+        )}
         {/* <HorizontalPadding>
           <View className="flex flex-row items-center justify-around w-full">
             <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
