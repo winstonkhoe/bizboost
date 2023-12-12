@@ -69,20 +69,27 @@ const UserDetailScreen = ({route}: Props) => {
                       <FastImage
                         className="w-full flex-1"
                         source={getSourceOrDefaultAvatar({
-                          uri: user.contentCreator?.profilePicture,
+                          uri: user.contentCreator?.fullname
+                            ? user.contentCreator?.profilePicture
+                            : user.businessPeople?.profilePicture,
                         })}
                       />
                     </View>
-                    <View
-                      className="overflow-hidden absolute left-5 bg-white"
-                      style={[rounded.max, dimension.square.xlarge4]}>
-                      <FastImage
-                        className="w-full flex-1"
-                        source={getSourceOrDefaultAvatar({
-                          uri: user.businessPeople?.profilePicture,
-                        })}
-                      />
-                    </View>
+                    {user.contentCreator?.fullname &&
+                    user.businessPeople?.fullname ? (
+                      <View
+                        className="overflow-hidden absolute left-5 bg-white"
+                        style={[rounded.max, dimension.square.xlarge4]}>
+                        <FastImage
+                          className="w-full flex-1"
+                          source={getSourceOrDefaultAvatar({
+                            uri: user.businessPeople?.profilePicture,
+                          })}
+                        />
+                      </View>
+                    ) : (
+                      <></>
+                    )}
                   </View>
                   <View className="flex-1 items-start" style={[flex.flexCol]}>
                     <Text
@@ -90,7 +97,11 @@ const UserDetailScreen = ({route}: Props) => {
                       style={[{fontSize: fontSize[30]}]}
                       numberOfLines={1}>
                       {/* TODO: ini cuma buat cc, bikin kondisi buat bp */}
-                      {user.contentCreator?.fullname}・
+                      {user.contentCreator?.fullname}
+                      {user.contentCreator?.fullname &&
+                      user.businessPeople?.fullname
+                        ? ' · '
+                        : ''}
                       {user.businessPeople?.fullname}
                     </Text>
                     <Text
@@ -99,7 +110,16 @@ const UserDetailScreen = ({route}: Props) => {
                         textColor(COLOR.text.neutral.med),
                       ]}
                       numberOfLines={1}>
-                      Content Creator・Business People
+                      {`${
+                        user.contentCreator?.fullname ? 'Content Creator' : ''
+                      }${
+                        user.contentCreator?.fullname &&
+                        user.businessPeople?.fullname
+                          ? ' · '
+                          : ''
+                      }${
+                        user.businessPeople?.fullname ? 'Business People' : ''
+                      }`}
                     </Text>
                     <Text
                       style={[
