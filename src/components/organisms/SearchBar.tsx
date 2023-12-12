@@ -7,9 +7,8 @@ import {
 } from 'react-native';
 import Search from '../../assets/vectors/search.svg';
 import CrossMark from '../../assets/vectors/cross-mark.svg';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {useEffect, useRef} from 'react';
-import ChevronLeft from '../../assets/vectors/chevron-left.svg';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {
   closeSearchPage,
@@ -19,7 +18,7 @@ import {
 import {gap} from '../../styles/Gap';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
-import {horizontalPadding} from '../../styles/Padding';
+import {horizontalPadding, padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
 import {background} from '../../styles/BackgroundColor';
 import {useNavigation} from '@react-navigation/native';
@@ -29,6 +28,8 @@ import {
 } from '../../navigation/TabNavigation';
 import {useUser} from '../../hooks/user';
 import {UserRole} from '../../model/User';
+import {ChevronLeft, SearchIcon} from '../atoms/Icon';
+import {font} from '../../styles/Font';
 
 const SearchBar = () => {
   const {activeRole} = useUser();
@@ -73,7 +74,11 @@ const SearchBar = () => {
             searchInputRef.current?.blur();
             clearInput(event);
           }}>
-          <ChevronLeft width={25} height={25} color={COLOR.black[100]} />
+          <ChevronLeft
+            size="xlarge"
+            strokeWidth={1.5}
+            color={COLOR.black[100]}
+          />
         </Pressable>
       )}
       <Pressable
@@ -88,10 +93,10 @@ const SearchBar = () => {
           searchInputRef.current?.focus();
         }}>
         <View className="flex-1 items-center" style={[flex.flexRow, gap.small]}>
-          <View className="h-full items-center" style={[flex.flexRow]}>
-            <Search width={14} />
+          <View style={[flex.flexRow, items.center]}>
+            <SearchIcon size="medium" color={COLOR.text.neutral.med} />
           </View>
-          <View className="flex-1 h-full items-center" style={flex.flexRow}>
+          <View className="flex-1 items-center" style={flex.flexRow}>
             <TextInput
               ref={searchInputRef}
               value={searchTerm}
@@ -120,9 +125,18 @@ const SearchBar = () => {
         </View>
       </Pressable>
       <Pressable
-        className="h-full px-3 flex justify-center items-center"
+        style={[
+          flex.flexRow,
+          justify.center,
+          items.center,
+          padding.horizontal.default,
+        ]}
         onPress={search}>
-        <Text className="text-black font-semibold text-xs">Search</Text>
+        <Text
+          className="font-semibold"
+          style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+          Search
+        </Text>
       </Pressable>
     </View>
   );

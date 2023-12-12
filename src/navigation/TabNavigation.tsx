@@ -4,13 +4,8 @@ import ChatListScreen from '../screens/ChatListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
-import CampaignLogoFilled from '../assets/vectors/campaign-filled.svg';
-import CampaignLogoOutline from '../assets/vectors/campaign-outline.svg';
 import ChatLogoFilled from '../assets/vectors/chat-filled.svg';
 import ChatLogoOutline from '../assets/vectors/chat-outline.svg';
-import ListLogoFilled from '../assets/vectors/list-box.svg';
-import ListLogoOutline from '../assets/vectors/list-box-line.svg';
-import SearchLogo from '../assets/vectors/search.svg';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
 import {ReactNode, useCallback} from 'react';
@@ -28,6 +23,7 @@ import {
   CampaignIcon,
   CooperationIcon,
   DashboardIcon,
+  SearchIcon,
 } from '../components/atoms/Icon';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
 import {flex, items, justify} from '../styles/Flex';
@@ -186,7 +182,7 @@ export const TabNavigator = () => {
   const searchIcon = useCallback(
     (focused: boolean) => (
       <TabIcon text="Explore" isFocused={focused}>
-        <SearchLogo
+        <SearchIcon
           width={logoSize}
           height={logoSize}
           color={focused ? color.logo.focus : color.logo.default}

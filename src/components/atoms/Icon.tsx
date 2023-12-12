@@ -22,6 +22,7 @@ import Dashboard from '../../assets/vectors/dashboard.svg';
 import RatingStar from '../../assets/vectors/rating-star.svg';
 import Campaign from '../../assets/vectors/campaign.svg';
 import Cooperation from '../../assets/vectors/cooperation.svg';
+import Search from '../../assets/vectors/search.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path, SvgProps} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
@@ -172,6 +173,23 @@ export const ChevronRight = ({
         fill="transparent"
       />
     </Svg>
+  );
+};
+
+export const ChevronLeft = ({...props}: IconProps) => {
+  return (
+    <View
+      style={[
+        {
+          transform: [
+            {
+              rotate: '180deg',
+            },
+          ],
+        },
+      ]}>
+      <ChevronRight {...props} />
+    </View>
   );
 };
 
@@ -398,6 +416,25 @@ export const CooperationIcon = ({
 }: IconProps) => {
   return (
     <Cooperation
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      strokeWidth={strokeWidth}
+      {...props}
+    />
+  );
+};
+
+export const SearchIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  fill = 'transparent',
+  strokeWidth = 1.5,
+  ...props
+}: IconProps) => {
+  return (
+    <Search
       width={size[sizeType]}
       height={size[sizeType]}
       color={color}
