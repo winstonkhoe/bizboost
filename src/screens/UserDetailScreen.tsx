@@ -27,6 +27,8 @@ type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.UserDetail
 >;
+
+// TODO: apa CC detail screen samain aja sm ini ya
 const UserDetailScreen = ({route}: Props) => {
   const {userId} = route.params;
   const [user, setUser] = useState<User | null>(null);

@@ -43,9 +43,10 @@ const UserListCard = ({user}: Props) => {
         uri: user?.contentCreator?.profilePicture,
       })}
       bodyText={
+        // TODO: admin liatnya bagusan email apa nama ya
+        user.email ||
         user.contentCreator?.fullname ||
         user.businessPeople?.fullname ||
-        user.email ||
         'User'
       }
       statusText={user.status}
