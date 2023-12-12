@@ -39,20 +39,22 @@ export const uploadFile = ({
   });
 };
 
-export const deleteFileByURL = (url: string) => {
-  if (!url.startsWith('http')) {
-    return;
-  }
+export const deleteFileByURL = (url: string): Promise<void> => {
+  return new Promise<void>((resolve, reject) => {
+    if (!url.startsWith('http')) {
+      reject('Invalid URL: ' + url);
+    }
 
-  const reference = storage().refFromURL(url);
-  console.log('masuk ref');
-  reference
-    .delete()
-    .then(() => {
-      console.log('File deleted successfully!');
-    })
-    .catch(error => {
-      console.log('File deletion error!');
-      console.log(error);
-    });
+    const reference = storage().refFromURL(url);
+    reference
+      .delete()
+      .then(() => {
+        console.log('File deleted successfully!');
+        resolve();
+      })
+      .catch(error => {
+        console.log(error);
+        reject('File deletion error!');
+      });
+  });
 };
