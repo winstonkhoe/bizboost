@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {View, ScrollView, Animated, Text, TouchableOpacity} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
@@ -12,16 +12,19 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
-import {Chat, ChatView, Message, MessageType} from '../model/Chat';
+import {Chat, ChatService, Message, MessageType} from '../model/Chat';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
+  NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Button} from 'react-native-elements';
 import FloatingOffer from '../components/chat/FloatingOffer';
 import {UserRole} from '../model/User';
+import {Offer} from '../model/Offer';
+import {useNavigation} from '@react-navigation/native';
+import {Pressable} from 'react-native';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -30,10 +33,12 @@ type Props = NativeStackScreenProps<
 const ChatScreen = ({route}: Props) => {
   const {chat} = route.params;
   const [chatData, setChatData] = useState<Chat>(chat.chat);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {uid, user, activeRole} = useUser();
 
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
+  const navigation = useNavigation<NavigationStackProps>();
 
   useEffect(() => {
     const chatRef = Chat.getDocumentReference(chat.chat.id ?? '');
@@ -48,8 +53,36 @@ const ChatScreen = ({route}: Props) => {
     return () => unsubscribe();
   }, [chat.chat.id]);
 
+  const businessPeopleId = chat.chat.participants.find(
+    participant => participant.role === UserRole.BusinessPeople,
+  );
+  const contentCreatorId = chat.chat.participants.find(
+    participant => participant.role === UserRole.BusinessPeople,
+  );
+
   useEffect(() => {
-    // Assuming that chat.messages is an array of Message objects
+    const unsubscribe = Offer.getPendingOffersbyCCBP(
+      businessPeopleId?.ref ?? '',
+      contentCreatorId?.ref ?? '',
+      res => {
+        console.log('fetch', res);
+
+        const sortedTransactions = res.sort(
+          (a, b) => b.createdAt - a.createdAt,
+        );
+        setOffers(sortedTransactions);
+      },
+    );
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [businessPeopleId, contentCreatorId]);
+
+  console.log(offers);
+  useEffect(() => {
     if (chatData.messages) {
       setChatMessages(chatData.messages);
     }
@@ -57,13 +90,11 @@ const ChatScreen = ({route}: Props) => {
 
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Handle sending a message
   const handleSendPress = async (message: string) => {
-    // Add the new message to the chatMessages state
     if (message !== '') {
       const newMessage: Message = {
         message: message,
-        sender: uid!!,
+        role: activeRole!!,
         type: MessageType.Text,
         createdAt: new Date().getTime(),
       };
@@ -91,7 +122,7 @@ const ChatScreen = ({route}: Props) => {
     const newMessage: Message = {
       message: downloadURL,
       type: MessageType.Photo,
-      sender: uid!!,
+      role: activeRole!!,
       createdAt: new Date().getTime(),
     };
 
@@ -105,15 +136,24 @@ const ChatScreen = ({route}: Props) => {
     }
   };
 
+  const handleMakeOffer = () => {
+    navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+      businessPeopleId: businessPeopleId?.ref ?? '',
+      contentCreatorId: contentCreatorId?.ref ?? '',
+    });
+  };
+
+  const handleNegotiationComplete = (fee: string) => {
+    ChatService.insertNegotiateMessage(chat.chat.id ?? '', fee, activeRole!!);
+  };
+
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <View
         className="h-full w-full"
         style={[flex.flexCol, background(COLOR.white)]}>
         {/* Chat Header */}
-        <View
-          className="absolute top-0 z-20 items-center justify-start"
-          style={[flex.flexRow]}>
+        <View className="items-center justify-start" style={[flex.flexRow]}>
           <ChatHeader
             recipientName={chat.recipient?.fullname ?? ''}
             recipientPicture={chat.recipient?.profilePicture ?? ''}
@@ -121,33 +161,42 @@ const ChatScreen = ({route}: Props) => {
         </View>
 
         {/* Floating Tab */}
-        {/* if there is offer then add margin top for the chats */}
-        <FloatingOffer />
+        {offers && offers.length > 0 && (
+          <FloatingOffer
+            offers={offers}
+            recipientName={chat.recipient?.fullname ?? ''}
+            businessPeopleId={businessPeopleId?.ref}
+            contentCreatorId={contentCreatorId?.ref}
+            onNegotiationComplete={handleNegotiationComplete}
+          />
+        )}
 
         {/* Chat Messages */}
         <ScrollView
+          className={`offers ${offers && offers.length > 0 ? 'mt-16' : ''}`}
           ref={scrollViewRef}
           onContentSizeChange={() => {
             if (scrollViewRef.current) {
               scrollViewRef.current?.scrollToEnd({animated: true});
             }
-          }}
-          className="mt-16">
-          <View style={[flex.flexCol, gap.default]} className="py-3">
-            {chatMessages &&
-              chatMessages.map((message: Message, index: number) => (
-                <HorizontalPadding key={index} paddingSize="xsmall2">
-                  <View className="w-full px-3">
-                    <ChatBubble
-                      key={index}
-                      message={message.message}
-                      isSender={message.sender === uid}
-                      type={message.type}
-                    />
-                  </View>
-                </HorizontalPadding>
-              ))}
-          </View>
+          }}>
+          <Pressable onPress={() => setIsWidgetVisible(false)}>
+            <View style={[flex.flexCol, gap.default]} className="py-3">
+              {chatMessages &&
+                chatMessages.map((message: Message, index: number) => (
+                  <HorizontalPadding key={index} paddingSize="xsmall2">
+                    <View className="w-full px-3">
+                      <ChatBubble
+                        key={index}
+                        message={message.message}
+                        isSender={message.role === activeRole}
+                        type={message.type}
+                      />
+                    </View>
+                  </HorizontalPadding>
+                ))}
+            </View>
+          </Pressable>
         </ScrollView>
 
         <View className="py-4 border-t-[0.5px]">
@@ -160,7 +209,7 @@ const ChatScreen = ({route}: Props) => {
 
           {/* Chat Widget */}
           {isWidgetVisible ? (
-            <View className="w-full">
+            <View className="w-full" style={{height: 100}}>
               <ChatWidget
                 options={{
                   width: 400,
@@ -168,16 +217,7 @@ const ChatScreen = ({route}: Props) => {
                   cropping: true,
                 }}
                 handleImageUpload={handleImageUpload}
-                businessPeopleId={
-                  chat.chat.participants.find(
-                    participant => participant.role === UserRole.BusinessPeople,
-                  )?.ref ?? ''
-                }
-                contentCreatorId={
-                  chat.chat.participants.find(
-                    participant => participant.role === UserRole.ContentCreator,
-                  )?.ref ?? ''
-                }
+                handleMakeOffer={handleMakeOffer}
               />
             </View>
           ) : null}

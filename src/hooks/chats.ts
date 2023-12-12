@@ -17,7 +17,7 @@ export const useUserChats = () => {
         async (chats: Chat[], unsubscribe: () => void) => {
           const updatedChats = await Promise.all(
             chats.map(async chat => {
-              return await chat.convertToChatView(uid);
+              return await chat.convertToChatView(activeRole);
             }),
           );
 

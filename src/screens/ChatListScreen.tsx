@@ -3,7 +3,7 @@ import {View, Text, ScrollView, TouchableWithoutFeedback} from 'react-native';
 import {useUserChats} from '../hooks/chats';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {getDate} from '../utils/date';
+import {getDate, getTimeAgo} from '../utils/date';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -71,15 +71,11 @@ const ChatListScreen = () => {
                         <Text>
                           {chat.messages.length > 0 &&
                           chat.messages[chat.messages.length - 1].createdAt
-                            ? getDate(
+                            ? getTimeAgo(
                                 chat.messages[chat.messages.length - 1]
-                                  .createdAt,
-                              ).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                              })
-                            : 'No timestamp available'}
+                                  .createdAt || 0,
+                              )
+                            : ''}
                         </Text>
                       </View>
                     )}

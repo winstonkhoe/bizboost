@@ -30,7 +30,7 @@ export const SelectCampaignOffer = ({
 }: SelectCampaignOfferProps) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
-  const openModalCategory = () => {
+  const openModalCampaign = () => {
     openCampaignModal({
       selectedCampaign: selectedCampaign,
       setSelectedCampaign: setSelectedCampaign,
@@ -60,7 +60,7 @@ export const SelectCampaignOffer = ({
               participate.
             </Text>
           </View>
-          <InternalLink text="Add" onPress={openModalCategory} />
+          <InternalLink text="Add" onPress={openModalCampaign} />
         </View>
         {selectedCampaign && (
           <View style={[flex.flexRow, flex.wrap, justify.around, gap.default]}>

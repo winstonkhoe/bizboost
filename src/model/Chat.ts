@@ -1,21 +1,26 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {User} from './User';
+import {User, UserRole} from './User';
 import {BaseModel} from './BaseModel';
-import {useUser} from '../hooks/user';
 
 export enum MessageType {
   Photo = 'Photo',
   Text = 'Text',
+  Offer = 'Offer',
+  Negotiation = 'Negotiation',
 }
 
-export type MessageTypes = MessageType.Photo | MessageType.Text;
+export type MessageTypes =
+  | MessageType.Photo
+  | MessageType.Text
+  | MessageType.Offer
+  | MessageType.Negotiation;
 
 export type Message = {
   message: string;
   type: MessageTypes;
-  sender: string;
+  role: UserRole;
   createdAt: number;
 };
 
@@ -48,7 +53,7 @@ export class Chat extends BaseModel {
       chat.messages?.map((messageData: any) => ({
         message: messageData.message,
         type: messageData.type,
-        sender: messageData.sender,
+        role: messageData.role,
         createdAt: messageData.createdAt,
       })) || [];
 
@@ -88,7 +93,7 @@ export class Chat extends BaseModel {
       const messages: Message[] = data.messages?.map((messageData: any) => ({
         message: messageData.message,
         type: messageData.type,
-        sender: messageData.sender,
+        role: messageData.role,
         createdAt: messageData.createdAt.seconds,
       }));
       console.log('[fromSnapshot] data.messages: ' + data.messages);
@@ -178,36 +183,18 @@ export class Chat extends BaseModel {
   }
 
   async insertMessage(newMessage: Message) {
-    try {
-      const chatRef = Chat.getDocumentReference(this.id ?? '');
-
-      const chatDoc = await chatRef.get();
-      if (chatDoc.exists) {
-        const chatData = chatDoc.data() as Chat;
-
-        const updatedMessages = chatData.messages || [];
-        updatedMessages.push(newMessage);
-
-        await chatRef.update({messages: updatedMessages});
-
-        console.log('Message inserted successfully');
-      } else {
-        console.error('Chat document does not exist');
-      }
-    } catch (error) {
-      console.error('Error inserting message:', error);
-    }
+    await ChatService.insertMessage(this.id || '', newMessage);
   }
 
-  async convertToChatView(currentUserId: string): Promise<ChatView> {
+  async convertToChatView(currentRole: UserRole): Promise<ChatView> {
     const cv: ChatView = {
-      chat: this.toJSON(),
+      chat: Chat.serialize(this),
       recipient: {},
     };
+    console.log('convertToChatView', this.toJSON());
 
     for (const participant of this.participants || []) {
-      if (participant.ref !== currentUserId) {
-        console.log('[chats.ts hook] participant:' + participant.ref);
+      if (participant.role !== currentRole) {
         const role = participant.role;
         const ref = participant.ref;
         console.log(ref);
@@ -230,7 +217,6 @@ export class Chat extends BaseModel {
         }
       }
     }
-
     return cv;
   }
 }
@@ -241,4 +227,58 @@ export interface ChatView {
     fullname?: string;
     profilePicture?: string;
   };
+}
+
+export class ChatService {
+  static async insertMessage(chatId: string, newMessage: Message) {
+    try {
+      const chatRef = Chat.getDocumentReference(chatId);
+
+      const chatDoc = await chatRef.get();
+      if (chatDoc.exists) {
+        const chatData = chatDoc.data() as Chat;
+
+        const updatedMessages = chatData.messages || [];
+        updatedMessages.push(newMessage);
+
+        await chatRef.update({messages: updatedMessages});
+
+        console.log('Message inserted successfully');
+      } else {
+        console.error('Chat document does not exist');
+      }
+    } catch (error) {
+      console.error('Error inserting message:', error);
+    }
+  }
+
+  static async insertOfferMessage(
+    chatId: string,
+    message: string,
+    activeRole: UserRole,
+  ) {
+    const newMessage: Message = {
+      message: message,
+      role: activeRole!!,
+      type: MessageType.Offer,
+      createdAt: new Date().getTime(),
+    };
+
+    this.insertMessage(chatId, newMessage);
+  }
+
+  static async insertNegotiateMessage(
+    chatId: string,
+    message: string,
+    activeRole: UserRole,
+  ) {
+    const newMessage: Message = {
+      message: message,
+      role: activeRole!!,
+      type: MessageType.Negotiation,
+      createdAt: new Date().getTime(),
+    };
+
+    this.insertMessage(chatId, newMessage);
+  }
 }

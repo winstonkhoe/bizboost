@@ -8,6 +8,7 @@ import {
 } from '../navigation/StackNavigation';
 import {DeviceEventEmitter} from 'react-native';
 import {Campaign} from '../model/Campaign';
+import {Offer} from '../model/Offer';
 
 interface LocationModalProps {
   preferredLocations: Location[];
@@ -64,27 +65,62 @@ export const openCategoryModal = ({
   });
 };
 
+interface NegotiateModalProps {
+  selectedOffer: Offer;
+  campaign: Campaign;
+  navigation: NavigationStackProps;
+  onNegotiationComplete: (fee: string) => void;
+}
+export const openNegotiateModal = ({
+  selectedOffer,
+  campaign,
+  navigation,
+  onNegotiationComplete,
+}: NegotiateModalProps) => {
+  const eventType = 'callback.negotiate';
+  navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
+    offer: selectedOffer,
+    eventType: eventType,
+    campaign: campaign,
+  });
+
+  const listener = DeviceEventEmitter.addListener(eventType, fee => {
+    onNegotiationComplete(fee);
+  });
+
+  const closeListener = DeviceEventEmitter.addListener(
+    'close.negotiate',
+    () => {
+      listener.remove();
+      closeListener.remove();
+    },
+  );
+};
+
 interface CampaignModalProps {
   selectedCampaign: Campaign;
   setSelectedCampaign: (campaign: Campaign) => void;
   navigation: NavigationStackProps;
+  contentCreatorToOfferId?: string;
 }
 export const openCampaignModal = ({
   selectedCampaign,
   setSelectedCampaign,
   navigation,
+  contentCreatorToOfferId,
 }: CampaignModalProps) => {
-  const eventType = 'callback.category';
+  const eventType = 'callback.campaign';
   navigation.navigate(AuthenticatedNavigation.CampaignModal, {
     initialSelectedCampaign: selectedCampaign,
     eventType: eventType,
+    contentCreatorToOfferId: contentCreatorToOfferId,
   });
 
   const listener = DeviceEventEmitter.addListener(eventType, campaign => {
     setSelectedCampaign(campaign);
   });
 
-  const closeListener = DeviceEventEmitter.addListener('close.category', () => {
+  const closeListener = DeviceEventEmitter.addListener('close.campaign', () => {
     listener.remove();
     closeListener.remove();
   });
