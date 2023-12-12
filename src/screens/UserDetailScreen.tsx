@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
-import {Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {
   HorizontalPadding,
   VerticalPadding,
@@ -23,9 +23,12 @@ import InstagramLogo from '../assets/vectors/instagram.svg';
 import TikTokLogo from '../assets/vectors/tiktok.svg';
 import FastImage from 'react-native-fast-image';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
-import {fontSize} from '../styles/Font';
+import {font, fontSize} from '../styles/Font';
 import {textColor} from '../styles/Text';
 import {dimension} from '../styles/Dimension';
+import {ChevronRight} from '../components/atoms/Icon';
+import {formatDateToTime12Hrs} from '../utils/date';
+import {padding} from '../styles/Padding';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -54,158 +57,280 @@ const UserDetailScreen = ({route}: Props) => {
   };
   return (
     <PageWithBackButton enableSafeAreaContainer>
-      <ScrollView
-        contentContainerStyle={{flexGrow: 1}}
-        showsVerticalScrollIndicator={false}>
-        <View className="flex-1 justify-between pt-4" style={[flex.flexCol]}>
-          <View className="flex-1" style={[flex.flexCol]}>
-            <HorizontalPadding>
-              <View className="w-full" style={[flex.flexCol, gap.xlarge]}>
-                <View style={[flex.flexRow, gap.large, items.center]}>
-                  <View className="relative">
-                    <View
-                      className="overflow-hidden bg-white"
-                      style={[rounded.max, dimension.square.xlarge4]}>
-                      <FastImage
-                        className="w-full flex-1"
-                        source={getSourceOrDefaultAvatar({
-                          uri: user.contentCreator?.fullname
-                            ? user.contentCreator?.profilePicture
-                            : user.businessPeople?.profilePicture,
-                        })}
-                      />
-                    </View>
-                    {user.contentCreator?.fullname &&
-                    user.businessPeople?.fullname ? (
-                      <View
-                        className="overflow-hidden absolute left-5 bg-white"
-                        style={[rounded.max, dimension.square.xlarge4]}>
-                        <FastImage
-                          className="w-full flex-1"
-                          source={getSourceOrDefaultAvatar({
-                            uri: user.businessPeople?.profilePicture,
-                          })}
-                        />
-                      </View>
-                    ) : (
-                      <></>
-                    )}
-                  </View>
-                  <View className="flex-1 items-start" style={[flex.flexCol]}>
-                    <Text
-                      className="font-bold"
-                      style={[{fontSize: fontSize[30]}]}
-                      numberOfLines={1}>
-                      {/* TODO: ini cuma buat cc, bikin kondisi buat bp */}
-                      {user.contentCreator?.fullname}
-                      {user.contentCreator?.fullname &&
-                      user.businessPeople?.fullname
-                        ? ' · '
-                        : ''}
-                      {user.businessPeople?.fullname}
-                    </Text>
-                    <Text
-                      style={[
-                        {fontSize: fontSize[20]},
-                        textColor(COLOR.text.neutral.med),
-                      ]}
-                      numberOfLines={1}>
-                      {`${
-                        user.contentCreator?.fullname ? 'Content Creator' : ''
-                      }${
-                        user.contentCreator?.fullname &&
-                        user.businessPeople?.fullname
-                          ? ' · '
-                          : ''
-                      }${
-                        user.businessPeople?.fullname ? 'Business People' : ''
-                      }`}
-                    </Text>
-                    <Text
-                      style={[
-                        {fontSize: fontSize[20]},
-                        textColor(COLOR.text.neutral.med),
-                      ]}
-                      numberOfLines={1}>
-                      {user?.phone}
-                    </Text>
-                    <Text
-                      style={[
-                        {fontSize: fontSize[20]},
-                        textColor(COLOR.text.neutral.med),
-                      ]}
-                      numberOfLines={1}>
-                      {user?.email}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </HorizontalPadding>
-          </View>
-
-          <VerticalPadding>
-            <HorizontalPadding>
-              <View className="w-full" style={[flex.flexCol]}>
-                <HomeSectionHeader header="Transactions" link="See All" />
-
-                {[...Array(6)].map((_item: any, index: number) => (
-                  <ProfileItem
-                    key={index}
-                    itemLabel="My Campaigns"
-                    itemAdditionalInfo="22 campaigns"
+      <View
+        className="flex-1 justify-between pt-4"
+        style={[flex.flexCol, gap.default, padding.horizontal.default]}>
+        <View className="flex-1" style={[flex.flexCol]}>
+          <View className="w-full" style={[flex.flexCol, gap.xlarge]}>
+            <View style={[flex.flexRow, gap.large, items.center]}>
+              <View className="relative">
+                <View
+                  className="overflow-hidden bg-white"
+                  style={[rounded.max, dimension.square.xlarge4]}>
+                  <FastImage
+                    className="w-full flex-1"
+                    source={getSourceOrDefaultAvatar({
+                      uri: user.contentCreator?.fullname
+                        ? user.contentCreator?.profilePicture
+                        : user.businessPeople?.profilePicture,
+                    })}
                   />
-                ))}
-              </View>
-            </HorizontalPadding>
-          </VerticalPadding>
-
-          <HorizontalPadding>
-            <View className="flex flex-row items-center justify-around w-full">
-              <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
-                <View className="flex flex-row mb-2 items-center">
-                  <InstagramLogo width={20} height={20} />
-                  <Text className={'font-semibold ml-1'}>Instagram</Text>
                 </View>
-                <Text className="text-gray-500 mb-1">@username</Text>
-                <Text className="text-gray-500">
-                  Followers: <Text className="font-bold">100</Text>
+                {user.contentCreator?.fullname &&
+                user.businessPeople?.fullname ? (
+                  <View
+                    className="overflow-hidden absolute left-5 bg-white"
+                    style={[rounded.max, dimension.square.xlarge4]}>
+                    <FastImage
+                      className="w-full flex-1"
+                      source={getSourceOrDefaultAvatar({
+                        uri: user.businessPeople?.profilePicture,
+                      })}
+                    />
+                  </View>
+                ) : (
+                  <></>
+                )}
+              </View>
+              <View className="flex-1 items-start" style={[flex.flexCol]}>
+                <Text
+                  className="font-bold"
+                  style={[{fontSize: fontSize[30]}]}
+                  numberOfLines={1}>
+                  {/* TODO: ini cuma buat cc, bikin kondisi buat bp */}
+                  {user.contentCreator?.fullname}
+                  {user.contentCreator?.fullname &&
+                  user.businessPeople?.fullname
+                    ? ' · '
+                    : ''}
+                  {user.businessPeople?.fullname}
                 </Text>
-              </View>
-
-              <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
-                <View className="flex flex-row mb-2 items-center">
-                  <TikTokLogo width={20} height={20} />
-                  <Text className={'font-semibold ml-1'}>TikTok</Text>
-                </View>
-                <Text className="text-gray-500 mb-1">@username</Text>
-                <Text className="text-gray-500">
-                  Followers: <Text className="font-bold">100</Text>
+                <Text
+                  style={[
+                    {fontSize: fontSize[20]},
+                    textColor(COLOR.text.neutral.med),
+                  ]}
+                  numberOfLines={1}>
+                  {`${user.contentCreator?.fullname ? 'Content Creator' : ''}${
+                    user.contentCreator?.fullname &&
+                    user.businessPeople?.fullname
+                      ? ' · '
+                      : ''
+                  }${user.businessPeople?.fullname ? 'Business People' : ''}`}
+                </Text>
+                <Text
+                  style={[
+                    {fontSize: fontSize[20]},
+                    textColor(COLOR.text.neutral.med),
+                  ]}
+                  numberOfLines={1}>
+                  {user?.phone}
+                </Text>
+                <Text
+                  style={[
+                    {fontSize: fontSize[20]},
+                    textColor(COLOR.text.neutral.med),
+                  ]}
+                  numberOfLines={1}>
+                  {user?.email}
                 </Text>
               </View>
             </View>
-          </HorizontalPadding>
-
-          <VerticalPadding>
-            <HorizontalPadding>
-              <CustomButton
-                onPress={onSuspendButtonClick}
-                customBackgroundColor={
-                  user.status === UserStatus.Active
-                    ? {
-                        default: COLOR.background.danger.high,
-                        disabled: COLOR.background.danger.disabled,
-                      }
-                    : undefined
-                }
-                rounded="default"
-                text={
-                  user.status === UserStatus.Active ? 'Suspend' : 'Reactivate'
-                }
-              />
-            </HorizontalPadding>
-          </VerticalPadding>
+          </View>
         </View>
-      </ScrollView>
+
+        {user.contentCreator?.fullname && (
+          <>
+            <View className="border-t border-gray-400 pt-4">
+              <Text
+                className="font-bold"
+                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                Content Creator Information
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Max Content Revisions
+              </Text>
+              <View
+                className="flex flex-row items-center"
+                style={[gap.default]}>
+                <Text
+                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  {user?.contentCreator?.contentRevisionLimit || 0} times
+                </Text>
+                {/* <ChevronRight color={COLOR.black[20]} /> */}
+              </View>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Posting Schedules
+              </Text>
+              <View
+                className="flex flex-row items-center"
+                style={[gap.default]}>
+                <Text
+                  style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                  {user?.contentCreator?.postingSchedules.at(0)
+                    ? formatDateToTime12Hrs(
+                        new Date(user?.contentCreator?.postingSchedules.at(0)!),
+                      )
+                    : 'None'}
+                  {(user?.contentCreator?.postingSchedules.length || -1) > 1 &&
+                    `, and ${
+                      user?.contentCreator?.postingSchedules.length! - 1
+                    } more`}
+                </Text>
+                {/* <ChevronRight color={COLOR.black[20]} /> */}
+              </View>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Preferences
+              </Text>
+              <View
+                className="flex flex-row items-center justify-end"
+                style={[gap.default]}>
+                <View className="w-1/2 flex flex-row items-center justify-end">
+                  <Text
+                    className="overflow-hidden text-right"
+                    numberOfLines={1}
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {user?.contentCreator?.preferences.at(0)
+                      ? user?.contentCreator?.preferences.at(0)
+                      : 'None'}
+                  </Text>
+                  <Text
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {(user?.contentCreator?.preferences.length || -1) > 1 &&
+                      `, and ${
+                        user?.contentCreator?.preferences.length! - 1
+                      } more`}
+                  </Text>
+                </View>
+                {/* <ChevronRight color={COLOR.black[20]} /> */}
+              </View>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Preferred Locations
+              </Text>
+              <View
+                className="flex flex-row items-center justify-end"
+                style={[gap.default]}>
+                <View className="w-1/2 flex flex-row items-center justify-end">
+                  <Text
+                    className="overflow-hidden text-right"
+                    numberOfLines={1}
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {user?.contentCreator?.preferredLocationIds.at(0)
+                      ? user?.contentCreator?.preferredLocationIds.at(0)
+                      : 'None'}
+                  </Text>
+                  <Text
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {(user?.contentCreator?.preferredLocationIds.length || -1) >
+                      1 &&
+                      `, and ${
+                        user?.contentCreator?.preferredLocationIds.length! - 1
+                      } more`}
+                  </Text>
+                </View>
+                {/* <ChevronRight color={COLOR.black[20]} /> */}
+              </View>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text
+                className="font-medium"
+                style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                Specialized Categories
+              </Text>
+              <View
+                className="flex flex-row items-center justify-end"
+                style={[gap.default]}>
+                <View className="w-1/2 flex flex-row items-center justify-end">
+                  <Text
+                    className="overflow-hidden text-right"
+                    numberOfLines={1}
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {user?.contentCreator?.specializedCategoryIds.at(0)
+                      ? user?.contentCreator?.specializedCategoryIds.at(0)
+                      : 'None'}
+                  </Text>
+                  <Text
+                    style={[textColor(COLOR.text.neutral.low), font.size[20]]}>
+                    {(user?.contentCreator?.specializedCategoryIds.length ||
+                      -1) > 1 &&
+                      `, and ${
+                        user?.contentCreator?.specializedCategoryIds.length! - 1
+                      } more`}
+                  </Text>
+                </View>
+                {/* <ChevronRight color={COLOR.black[20]} /> */}
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* <HorizontalPadding>
+          <View className="flex flex-row items-center justify-around w-full">
+            <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
+              <View className="flex flex-row mb-2 items-center">
+                <InstagramLogo width={20} height={20} />
+                <Text className={'font-semibold ml-1'}>Instagram</Text>
+              </View>
+              <Text className="text-gray-500 mb-1">@username</Text>
+              <Text className="text-gray-500">
+                Followers: <Text className="font-bold">100</Text>
+              </Text>
+            </View>
+
+            <View className=" flex flex-col border border-gray-200 py-4 px-8 rounded-lg">
+              <View className="flex flex-row mb-2 items-center">
+                <TikTokLogo width={20} height={20} />
+                <Text className={'font-semibold ml-1'}>TikTok</Text>
+              </View>
+              <Text className="text-gray-500 mb-1">@username</Text>
+              <Text className="text-gray-500">
+                Followers: <Text className="font-bold">100</Text>
+              </Text>
+            </View>
+          </View>
+        </HorizontalPadding> */}
+
+        <VerticalPadding>
+          <HorizontalPadding>
+            <CustomButton
+              onPress={onSuspendButtonClick}
+              customBackgroundColor={
+                user.status === UserStatus.Active
+                  ? {
+                      default: COLOR.background.danger.high,
+                      disabled: COLOR.background.danger.disabled,
+                    }
+                  : undefined
+              }
+              rounded="default"
+              text={
+                user.status === UserStatus.Active ? 'Suspend' : 'Reactivate'
+              }
+            />
+          </HorizontalPadding>
+        </VerticalPadding>
+      </View>
     </PageWithBackButton>
   );
 };
