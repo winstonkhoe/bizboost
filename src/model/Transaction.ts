@@ -1226,6 +1226,23 @@ export class Transaction extends BaseModel {
     );
   }
 
+  isApprovable() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.brainstormSubmitted,
+        TransactionStatus.contentSubmitted,
+        TransactionStatus.engagementSubmitted,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    );
+  }
+
+  isTerminated() {
+    const {status} = this;
+    return status === TransactionStatus.terminated;
+  }
+
   //   static async getTransactionStatusByContentCreator(
   //     campaignId: string,
   //     contentCreatorId: string,

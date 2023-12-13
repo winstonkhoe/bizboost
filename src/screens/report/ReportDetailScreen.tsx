@@ -32,7 +32,7 @@ import StatusTag, {StatusType} from '../../components/atoms/StatusTag';
 import {formatDateToDayMonthYearHourMinute} from '../../utils/date';
 import {User, UserRole} from '../../model/User';
 import {Campaign} from '../../model/Campaign';
-import {Transaction} from '../../model/Transaction';
+import {Transaction, TransactionStatus} from '../../model/Transaction';
 import {
   CampaignDetailSection,
   ContentCreatorDetailSection,
@@ -302,7 +302,7 @@ const ReportDetailScreen = ({route}: Props) => {
         enableHandlePanningGesture={false}
         enableOverDrag={false}
         overDragResistanceFactor={0}
-        snapPoints={reportIndex === 0 ? [300] : ['90%', '100%']}
+        snapPoints={reportIndex === 0 ? [350] : ['90%', '100%']}
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
           title={'Report'}
@@ -326,32 +326,71 @@ const ReportDetailScreen = ({route}: Props) => {
             }}>
             <View key={0} style={[flex.grow, flex.flexCol]}>
               <View style={[flex.flexCol]}>
-                {Object.values(ActionTaken).map(actionTaken => (
-                  <View key={actionTaken} style={[flex.flexCol]}>
-                    <AnimatedPressable
-                      scale={1}
-                      style={[
-                        flex.flexRow,
-                        justify.between,
-                        items.center,
-                        padding.default,
-                      ]}
-                      onPress={() => {
-                        selectActionTaken(actionTaken);
-                      }}>
-                      <Text
-                        className="font-medium"
+                {Object.values(ActionTaken).map(actionTaken => {
+                  const isTerminateTransactionDisabled =
+                    actionTaken === ActionTaken.terminateTransaction &&
+                    transaction.isTerminated();
+                  const isTransactionDisabled =
+                    actionTaken === ActionTaken.approveTransaction &&
+                    !transaction.isApprovable();
+                  const isActionDisabled =
+                    isTransactionDisabled || isTerminateTransactionDisabled;
+                  return (
+                    <View key={actionTaken} style={[flex.flexCol]}>
+                      <Pressable
                         style={[
-                          font.size[30],
-                          textColor(COLOR.text.neutral.high),
-                        ]}>
-                        {actionTaken}
-                      </Text>
-                      <ChevronRight strokeWidth={1} size="medium" />
-                    </AnimatedPressable>
-                    <View style={[styles.bottomBorder]} />
-                  </View>
-                ))}
+                          flex.flexRow,
+                          justify.between,
+                          items.center,
+                          padding.default,
+                          isActionDisabled && [
+                            background(COLOR.background.neutral.disabled),
+                          ],
+                        ]}
+                        onPress={() => {
+                          if (isTransactionDisabled) {
+                            showToast({
+                              type: ToastType.info,
+                              message:
+                                'Transaction is not approvable. Please check the transaction status',
+                            });
+                            return;
+                          }
+                          if (isTerminateTransactionDisabled) {
+                            showToast({
+                              type: ToastType.info,
+                              message:
+                                'Transaction is already terminated. Please check the transaction status',
+                            });
+                            return;
+                          }
+                          selectActionTaken(actionTaken);
+                        }}>
+                        <Text
+                          className="font-medium"
+                          style={[
+                            font.size[30],
+                            textColor(COLOR.text.neutral.high),
+                            isActionDisabled && [
+                              textColor(COLOR.text.neutral.disabled),
+                            ],
+                          ]}>
+                          {actionTaken}
+                        </Text>
+                        <ChevronRight
+                          strokeWidth={1}
+                          size="medium"
+                          color={
+                            isActionDisabled
+                              ? COLOR.text.neutral.disabled
+                              : COLOR.text.neutral.high
+                          }
+                        />
+                      </Pressable>
+                      <View style={[styles.bottomBorder]} />
+                    </View>
+                  );
+                })}
               </View>
             </View>
             <View

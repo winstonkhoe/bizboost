@@ -640,11 +640,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         </ScrollView>
         {isCampaignOwner &&
           transaction.status &&
-          [
-            TransactionStatus.brainstormSubmitted,
-            TransactionStatus.contentSubmitted,
-            TransactionStatus.engagementSubmitted,
-          ].find(status => transaction.status === status) && (
+          transaction.isApprovable() && (
             <View
               style={[
                 flex.flexRow,
