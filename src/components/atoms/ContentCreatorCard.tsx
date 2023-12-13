@@ -8,7 +8,6 @@ import {
 } from '../../navigation/StackNavigation';
 import {useNavigation} from '@react-navigation/native';
 import {flex, items} from '../../styles/Flex';
-import {FontWidth} from '@shopify/react-native-skia';
 import {font, fontSize} from '../../styles/Font';
 import {RatingStarIcon} from './Icon';
 import {textColor} from '../../styles/Text';
@@ -78,7 +77,7 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
               ]}
               style={styles.nameContainer}>
               <Text style={styles.name}>{name}</Text>
-              <View style={flex.flexRow} className="items-center">
+              <View style={[flex.flexRow, items.center]}>
                 {rating > 0 && (
                   <View style={[flex.flexRow, gap.xsmall, items.center]}>
                     <RatingStarIcon
@@ -88,7 +87,10 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
                     />
                     <Text
                       className="font-medium"
-                      style={[font.size[10], textColor(COLOR.black[0])]}>
+                      style={[
+                        font.size[10],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
                       {`${rating} · `}
                     </Text>
                   </View>
@@ -100,7 +102,7 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
                     style={[
                       flex.flex1,
                       font.size[10],
-                      textColor(COLOR.black[0]),
+                      textColor(COLOR.text.neutral.high),
                     ]}>
                     {concatenatedCategories}
                   </Text>

@@ -7,6 +7,8 @@ import EmptyIllustration from '../../assets/vectors/empty-illustration.svg';
 import {dimension} from '../../styles/Dimension';
 import {padding} from '../../styles/Padding';
 import {ReactNode} from 'react';
+import {textColor} from '../../styles/Text';
+import {COLOR} from '../../styles/Color';
 
 interface EmptyPlaceholderProps {
   title?: string;
@@ -31,10 +33,14 @@ export const EmptyPlaceholder = ({
       ]}>
       <EmptyIllustration style={[dimension.square.xlarge10]} />
       <View style={[flex.flexCol, gap.small]}>
-        <Text className="text-center font-bold" style={[font.size[40]]}>
+        <Text
+          className="text-center font-bold"
+          style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
           {title}
         </Text>
-        <Text className="text-center" style={[font.size[40]]}>
+        <Text
+          className="text-center"
+          style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
           {description}
         </Text>
       </View>

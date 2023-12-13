@@ -153,6 +153,10 @@ export class Campaign extends BaseModel {
     return this.getCollectionReference().doc(documentId);
   }
 
+  static sortByTimelineStart(a: Campaign, b: Campaign) {
+    return a.getTimelineStart()?.start - b.getTimelineStart()?.start || 0;
+  }
+
   static async getAll(): Promise<Campaign[]> {
     try {
       console.log('model:Campaign getAll');
@@ -329,5 +333,24 @@ export class Campaign extends BaseModel {
     return (
       this.timeline?.find(timeline => step === timeline.step) !== undefined
     );
+  }
+
+  isPublic() {
+    return this.type === CampaignType.Public;
+  }
+
+  isRegisterable() {
+    const now = new Date().getTime();
+    return this.getTimelineStart()?.end >= now;
+  }
+
+  isUpcoming() {
+    const now = new Date().getTime();
+    return this.getTimelineStart()?.start >= now;
+  }
+
+  isOngoing() {
+    const now = new Date().getTime();
+    return this.getTimelineEnd()?.end >= now;
   }
 }

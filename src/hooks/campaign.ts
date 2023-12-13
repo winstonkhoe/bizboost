@@ -1,19 +1,17 @@
 import {useEffect, useMemo} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {Campaign, CampaignType} from '../model/Campaign';
+import {Campaign} from '../model/Campaign';
 import {
   setNonUserCampaigns,
   setUserCampaigns,
 } from '../redux/slices/campaignSlice';
 
 export const fetchNonUserCampaigns = async (currentUserId: string) => {
-  const now = new Date();
   const campaigns = await Campaign.getAll();
   return campaigns
     .filter(c => c.userId !== currentUserId)
-    .filter(c => c.type === CampaignType.Public)
-    .filter(c => c.getTimelineStart().end >= now.getTime())
-    .sort((a, b) => a.getTimelineStart().end - b.getTimelineStart().end)
+    .filter(c => c.isPublic() && c.isRegisterable())
+    .sort(Campaign.sortByTimelineStart)
     .map(c => c.toJSON());
 };
 

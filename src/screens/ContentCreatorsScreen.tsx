@@ -46,7 +46,7 @@ import {textColor} from '../styles/Text';
 import {InternalLink} from '../components/atoms/Link';
 import {border} from '../styles/Border';
 import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
-import { SearchBar } from '../components/organisms/SearchBar';
+import {SearchBar} from '../components/organisms/SearchBar';
 
 interface SelectedFilters {
   locations: string[];
@@ -319,12 +319,20 @@ const ContentCreatorsScreen: React.FC = () => {
           {/* Navbar */}
           {navbarState && (
             <Animated.View
-              style={[flex.flexCol, navbarStyle]}
-              className="px-3 justify-start">
-              <Text className="text-black text-xl font-bold">
+              style={[
+                flex.flexCol,
+                navbarStyle,
+                padding.bottom.small,
+                padding.horizontal.default,
+              ]}>
+              <Text
+                className="font-bold"
+                style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
                 Perfect content creators
               </Text>
-              <Text className="text-black text-xl font-bold">
+              <Text
+                className="font-bold"
+                style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
                 for your campaigns
               </Text>
             </Animated.View>
