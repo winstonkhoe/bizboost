@@ -152,8 +152,11 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [campaign, uid]);
 
   useEffect(() => {
-    const unsubscribe = Transaction.getById(transactionId, setTransaction);
-    return unsubscribe;
+    Transaction.getById(transactionId)
+      .then(setTransaction)
+      .catch(() => {
+        setTransaction(null);
+      });
   }, [transactionId]);
 
   useEffect(() => {

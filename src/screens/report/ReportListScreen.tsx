@@ -82,7 +82,11 @@ export const ReportCard = ({report}: ReportCardProps) => {
 
   useEffect(() => {
     if (report?.transactionId) {
-      return Transaction.getById(report.transactionId, setTransaction);
+      Transaction.getById(report.transactionId)
+        .then(setTransaction)
+        .catch(() => {
+          setTransaction(null);
+        });
     }
   }, [report]);
 
