@@ -17,14 +17,12 @@ interface SheetModalProps extends Partial<BottomSheetModalProps> {
   open: boolean;
   fullHeight?: boolean;
   children: ReactNode;
-  bottomInsetType?: 'auto' | 'default' | 'padding';
+  bottomInsetType?: 'default' | 'padding';
   maxHeight?: number;
   onDismiss?: () => void;
   disableCloseOnClickBackground?: boolean;
   disablePanDownToClose?: boolean;
 }
-
-const safeKeyboardOffset = 10;
 
 export const SheetModal = ({
   open = false,
@@ -32,14 +30,13 @@ export const SheetModal = ({
   onDismiss,
   maxHeight,
   children,
-  bottomInsetType = 'auto',
+  bottomInsetType = 'default',
   disableCloseOnClickBackground = false,
   disablePanDownToClose = false,
   snapPoints,
   ...props
 }: SheetModalProps) => {
   const keyboardHeight = useKeyboard();
-  const [currentLayoutHeight, setCurrentLayoutHeight] = useState(0);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const windowDimensions = useWindowDimensions();
   const safeAreaInsets = useSafeAreaInsets();
@@ -65,15 +62,6 @@ export const SheetModal = ({
     bottomSheetModalRef.current?.close();
   }, [open]);
 
-  useEffect(() => {
-    console.log(
-      'currentLayoutHeight y',
-      currentLayoutHeight,
-      'currentWindowHeight',
-      windowDimensions.height,
-    );
-  }, [currentLayoutHeight, windowDimensions]);
-
   return (
     <BottomSheetModal
       {...props}
@@ -90,10 +78,7 @@ export const SheetModal = ({
       }
       topInset={safeAreaInsets.top}
       bottomInset={
-        ((bottomInsetType === 'auto' &&
-          currentLayoutHeight >= keyboardHeight - safeKeyboardOffset) ||
-          bottomInsetType === 'default') &&
-        Platform.OS !== 'android'
+        bottomInsetType === 'default' && Platform.OS !== 'android'
           ? keyboardHeight
           : undefined
       }
@@ -108,28 +93,16 @@ export const SheetModal = ({
             minHeight: keyboardHeight,
           },
         ]}>
-        <View
-          style={[fullHeight && flex.flex1]}
-          onLayout={e => {
-            const height = e.nativeEvent.layout.height;
-            if (currentLayoutHeight !== height) {
-              setCurrentLayoutHeight(height);
-            }
-          }}>
-          {children}
-        </View>
-        {((bottomInsetType === 'auto' &&
-          currentLayoutHeight < keyboardHeight - safeKeyboardOffset) ||
-          bottomInsetType === 'padding') &&
-          Platform.OS !== 'android' && (
-            <View
-              style={[
-                {
-                  paddingBottom: keyboardHeight,
-                },
-              ]}
-            />
-          )}
+        <View style={[fullHeight && flex.flex1]}>{children}</View>
+        {bottomInsetType === 'padding' && Platform.OS !== 'android' && (
+          <View
+            style={[
+              {
+                paddingBottom: keyboardHeight,
+              },
+            ]}
+          />
+        )}
       </BottomSheetView>
     </BottomSheetModal>
   );
