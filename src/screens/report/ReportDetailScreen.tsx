@@ -9,7 +9,6 @@ import {useEffect, useRef, useState} from 'react';
 import {
   ActionTaken,
   Report,
-  ReportStatus,
   actionTakenLabelMap,
   reportStatusTypeMap,
 } from '../../model/Report';
@@ -28,20 +27,14 @@ import {font} from '../../styles/Font';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {Pressable} from 'react-native';
-import StatusTag, {StatusType} from '../../components/atoms/StatusTag';
+import StatusTag from '../../components/atoms/StatusTag';
 import {formatDateToDayMonthYearHourMinute} from '../../utils/date';
 import {User, UserRole} from '../../model/User';
 import {Campaign} from '../../model/Campaign';
-import {Transaction, TransactionStatus} from '../../model/Transaction';
-import {
-  CampaignDetailSection,
-  ContentCreatorDetailSection,
-} from '../transaction/TransactionDetailScreen';
-import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
+import {Transaction} from '../../model/Transaction';
+import {CampaignDetailSection} from '../transaction/TransactionDetailScreen';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
-import {border} from '../../styles/Border';
-import {CustomAlert} from '../../components/molecules/CustomAlert';
 import {CustomButton} from '../../components/atoms/Button';
 import {SheetModal} from '../../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
@@ -270,7 +263,7 @@ const ReportDetailScreen = ({route}: Props) => {
             reporterUser={reporterUser!!}
           />
         </ScrollView>
-        {isAdmin && report.status === ReportStatus.pending && (
+        {isAdmin && report.isPending() && (
           <View
             style={[
               flex.flexRow,

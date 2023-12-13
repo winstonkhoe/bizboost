@@ -38,7 +38,7 @@ import {textColor} from '../styles/Text';
 import {size} from '../styles/Size';
 import {Label} from '../components/atoms/Label';
 import {formatDateToDayMonthYear} from '../utils/date';
-import {Report} from '../model/Report';
+import {Report, ReportStatus, reportStatusPrecendence} from '../model/Report';
 import {fetchReport} from '../helpers/report';
 import {ReportCard} from './report/ReportListScreen';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -350,9 +350,18 @@ const HomeScreen = () => {
                   }
                 />
                 <View style={[flex.flexCol, gap.medium]} className="mt-4">
-                  {reports.slice(0, 3).map((report, index) => (
-                    <ReportCard key={index} report={report} />
-                  ))}
+                  {reports
+                    .filter(report => report.isPending())
+                    .sort(
+                      (a, b) =>
+                        reportStatusPrecendence[a.status] -
+                        reportStatusPrecendence[b.status],
+                    )
+                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+                    .slice(0, 3)
+                    .map((report, index) => (
+                      <ReportCard key={index} report={report} />
+                    ))}
                 </View>
               </View>
             </HorizontalPadding>

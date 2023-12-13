@@ -1,7 +1,11 @@
 import {useEffect, useState} from 'react';
 import {useUser} from '../../hooks/user';
 import {User, UserRole} from '../../model/User';
-import {Report, reportStatusTypeMap} from '../../model/Report';
+import {
+  Report,
+  reportStatusPrecendence,
+  reportStatusTypeMap,
+} from '../../model/Report';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {StyleSheet, View} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
@@ -49,6 +53,7 @@ const ReportListScreen = () => {
   return (
     <PageWithBackButton
       fullHeight
+      threshold={0}
       backButtonPlaceholder={<BackButtonLabel text="Report List" />}>
       <View
         style={[
@@ -57,11 +62,19 @@ const ReportListScreen = () => {
           padding.horizontal.default,
           {
             paddingTop: Math.max(safeAreaInsets.top, size.xlarge4),
+            paddingBottom: safeAreaInsets.bottom + size.large,
           },
         ]}>
-        {reports.map(report => (
-          <ReportCard key={report.id} report={report} />
-        ))}
+        {reports
+          .sort(
+            (a, b) =>
+              reportStatusPrecendence[a.status] -
+              reportStatusPrecendence[b.status],
+          )
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+          .map(report => (
+            <ReportCard key={report.id} report={report} />
+          ))}
       </View>
     </PageWithBackButton>
   );

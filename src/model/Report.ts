@@ -89,6 +89,11 @@ export const actionTakenLabelMap: ActionTakenLabelMap = {
   [ActionTaken.approveTransaction]: 'The transaction will be approved.',
 };
 
+export const reportStatusPrecendence = {
+  [ReportStatus.pending]: 0,
+  [ReportStatus.resolved]: 1,
+};
+
 export class Report extends BaseModel {
   id?: string;
   transactionId?: string;
@@ -583,5 +588,9 @@ export class Report extends BaseModel {
         reject(Error('Report.approveTransaction err!'));
       }
     });
+  }
+
+  isPending() {
+    return this.status === ReportStatus.pending;
   }
 }
