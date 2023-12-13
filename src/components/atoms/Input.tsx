@@ -223,6 +223,7 @@ export const CustomTextInput = ({
                   autoCorrect={false}
                   autoCapitalize="none"
                   scrollEnabled={false}
+                  placeholderTextColor={COLOR.text.neutral.med}
                   keyboardType={
                     keyboardType
                       ? keyboardType

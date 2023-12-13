@@ -65,6 +65,8 @@ export const SheetModal = ({
   return (
     <BottomSheetModal
       {...props}
+      backgroundStyle={[background(COLOR.background.neutral.default)]}
+      handleIndicatorStyle={[background(COLOR.black[20])]}
       ref={bottomSheetModalRef}
       onDismiss={onDismiss}
       backdropComponent={renderBackdrop}

@@ -33,6 +33,8 @@ import {textColor} from '../styles/Text';
 import {dimension} from '../styles/Dimension';
 import {rounded} from '../styles/BorderRadius';
 import {SizeType, size} from '../styles/Size';
+import {background} from '../styles/BackgroundColor';
+import {padding} from '../styles/Padding';
 
 const Tab = createBottomTabNavigator();
 
@@ -63,7 +65,7 @@ const color = {
     default: COLOR.text.neutral.high,
   },
   text: {
-    focus: COLOR.green[60],
+    focus: COLOR.green[50],
     default: COLOR.text.neutral.high,
   },
 };
@@ -83,32 +85,46 @@ export const TabNavigator = () => {
     dispatch(closeSearchPage());
   };
 
-  const profileIcon = useCallback(() => {
-    const getUserProfile = () => {
-      if (activeRole === UserRole.ContentCreator) {
-        return user?.contentCreator?.profilePicture;
-      } else if (activeRole === UserRole.BusinessPeople) {
-        return user?.businessPeople?.profilePicture;
-      }
-      return undefined;
-    };
-    return (
-      <View style={[dimension.height.xlarge2, flex.flexRow, items.center]}>
+  const profileIcon = useCallback(
+    (focused: boolean) => {
+      const getUserProfile = () => {
+        if (activeRole === UserRole.ContentCreator) {
+          return user?.contentCreator?.profilePicture;
+        } else if (activeRole === UserRole.BusinessPeople) {
+          return user?.businessPeople?.profilePicture;
+        }
+        return undefined;
+      };
+      return (
         <View
-          className="overflow-hidden"
-          style={[dimension.square.xlarge, rounded.max]}>
-          <FastImage
-            source={
-              getUserProfile()
-                ? {uri: getUserProfile()}
-                : require('../assets/images/bizboost-avatar.png')
-            }
-            style={[dimension.full]}
-          />
+          style={[
+            rounded.max,
+            {
+              width: size.xlarge + 3,
+              height: size.xlarge + 3,
+            },
+            flex.flexRow,
+            items.center,
+            justify.center,
+            focused && [background(COLOR.text.neutral.high)],
+          ]}>
+          <View
+            className="overflow-hidden"
+            style={[dimension.square.xlarge, rounded.max]}>
+            <FastImage
+              source={
+                getUserProfile()
+                  ? {uri: getUserProfile()}
+                  : require('../assets/images/bizboost-avatar.png')
+              }
+              style={[dimension.full]}
+            />
+          </View>
         </View>
-      </View>
-    );
-  }, [activeRole, user]);
+      );
+    },
+    [activeRole, user],
+  );
 
   const homeIcon = useCallback(
     (focused: boolean) => (
@@ -220,7 +236,19 @@ export const TabNavigator = () => {
   }
 
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: [
+          background(COLOR.black[0]),
+          {
+            borderWidth: 0,
+            borderTopWidth: 0.2,
+            borderTopColor: COLOR.black[20],
+            borderColor: 'transparent',
+          },
+        ],
+        tabBarHideOnKeyboard: true,
+      }}>
       {isContentCreator && (
         <Tab.Group screenOptions={{headerShown: false, tabBarShowLabel: false}}>
           <Tab.Screen
@@ -270,7 +298,7 @@ export const TabNavigator = () => {
               },
             }}
             options={{
-              tabBarIcon: profileIcon,
+              tabBarIcon: ({focused}) => profileIcon(focused),
             }}
           />
         </Tab.Group>

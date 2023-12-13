@@ -1,6 +1,4 @@
-import {ScrollView, Text, View} from 'react-native';
-import {CloseModal} from '../../components/atoms/Close';
-import SafeAreaContainer from '../../containers/SafeAreaContainer';
+import {ScrollView, View} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
@@ -8,9 +6,14 @@ import {useEffect, useState} from 'react';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
 import {useUser} from '../../hooks/user';
 import RegisteredUserListCard from '../../components/molecules/RegisteredUserListCard';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import {BackButtonLabel} from '../../components/atoms/Header';
+import {size} from '../../styles/Size';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const WithdrawMoneyScreen = () => {
   const {uid, activeRole} = useUser();
+  const safeAreaInsets = useSafeAreaInsets();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   useEffect(() => {
     // TODO: filter completenya disini ga ya?
@@ -27,11 +30,18 @@ const WithdrawMoneyScreen = () => {
     return unsubscribe;
   }, [uid, activeRole]);
   return (
-    <SafeAreaContainer enable>
-      <CloseModal />
-      <ScrollView>
+    <PageWithBackButton
+      fullHeight
+      threshold={0}
+      backButtonPlaceholder={<BackButtonLabel text="Completed Transactions" />}>
+      <ScrollView
+        style={[flex.flex1]}
+        contentContainerStyle={[
+          {
+            paddingTop: safeAreaInsets.top + size.xlarge4,
+          },
+        ]}>
         <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-          <Text className="text-lg font-bold">Completed Transactions</Text>
           {transactions.map((t, index) => (
             <RegisteredUserListCard
               key={index}
@@ -41,7 +51,7 @@ const WithdrawMoneyScreen = () => {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaContainer>
+    </PageWithBackButton>
   );
 };
 

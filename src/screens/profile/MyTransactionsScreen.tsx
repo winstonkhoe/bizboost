@@ -13,12 +13,20 @@ import {
   AuthenticatedNavigation,
   AuthenticatedStack,
 } from '../../navigation/StackNavigation';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
+import {COLOR} from '../../styles/Color';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import {BackButtonLabel} from '../../components/atoms/Header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../../styles/Size';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.MyTransactions
 >;
 const MyTransactionsScreen = ({route}: Props) => {
   const {userId, role} = route.params;
+  const safeAreaInsets = useSafeAreaInsets();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   useEffect(() => {
     const unsubscribe = Transaction.getAllTransactionsByRole(
@@ -30,11 +38,18 @@ const MyTransactionsScreen = ({route}: Props) => {
     return unsubscribe;
   }, [userId, role]);
   return (
-    <SafeAreaContainer enable>
-      <CloseModal />
-      <ScrollView>
+    <PageWithBackButton
+      fullHeight
+      threshold={0}
+      backButtonPlaceholder={<BackButtonLabel text="Transactions" />}>
+      <ScrollView
+        style={[flex.flex1]}
+        contentContainerStyle={[
+          {
+            paddingTop: safeAreaInsets.top + size.xlarge4,
+          },
+        ]}>
         <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-          <Text className="text-lg font-bold">Transactions</Text>
           {transactions.length <= 0 ? (
             <Text>No transaction yet!</Text>
           ) : (
@@ -44,7 +59,7 @@ const MyTransactionsScreen = ({route}: Props) => {
           )}
         </View>
       </ScrollView>
-    </SafeAreaContainer>
+    </PageWithBackButton>
   );
 };
 

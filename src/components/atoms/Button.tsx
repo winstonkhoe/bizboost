@@ -56,8 +56,8 @@ export const CustomButton = ({
     disabled: COLOR.background.green.disabled,
   };
   const defaultTextColor = {
-    default: COLOR.black[1],
-    disabled: COLOR.black[1],
+    default: COLOR.absoluteBlack[1],
+    disabled: COLOR.absoluteBlack[1],
   };
 
   const getActiveBackgroundColor = (defaultColor: ColorProps) => {

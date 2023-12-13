@@ -1,6 +1,6 @@
 import {Pressable, View} from 'react-native';
 import {Text} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
   BasicStatus,
@@ -36,6 +36,9 @@ import PaymentSheetModal from './PaymentSheetModal';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {dimension} from '../../styles/Dimension';
+import {background} from '../../styles/BackgroundColor';
+import {StyleSheet} from 'react-native';
+import {padding} from '../../styles/Padding';
 
 type Props = {
   transaction: Transaction;
@@ -236,13 +239,30 @@ export const BaseCard = ({
 }: BaseCardProps) => {
   return (
     <View
-      className="bg-white flex flex-col pt-3 overflow-hidden border border-gray-200"
-      style={[rounded.medium]}>
+      className="overflow-hidden"
+      style={[
+        flex.flexCol,
+        rounded.medium,
+        background(COLOR.background.neutral.default),
+        border({
+          borderWidth: 1,
+          color: COLOR.black[20],
+        }),
+      ]}>
       <Pressable
         onPress={handleClickHeader}
-        className="flex flex-row justify-between items-center border-b pb-2 px-3 "
-        style={[border({color: COLOR.black[20]})]}>
-        <View className="flex flex-row items-center" style={[gap.xsmall]}>
+        style={[
+          padding.top.default,
+          padding.horizontal.default,
+          {
+            paddingBottom: 10,
+          },
+          flex.flexRow,
+          justify.between,
+          items.center,
+          styles.bottomBorder,
+        ]}>
+        <View style={[flex.flexRow, items.center, gap.xsmall]}>
           {icon}
           {/* {isPrivate && (
               <Private width={15} height={15} stroke={COLOR.black[40]} />
@@ -272,26 +292,24 @@ export const BaseCard = ({
       </Pressable>
       <Pressable
         onPress={handleClickBody}
-        className="flex flex-row items-center px-3 py-4 justify-between">
-        <View className="flex flex-row items-center">
+        style={[flex.flexRow, items.center, justify.between, padding.default]}>
+        <View style={[flex.flexRow, items.center]}>
           <View
             className="mr-2 items-center justify-center overflow-hidden"
             style={[flex.flexRow, rounded.default, imageDimension]}>
-            <FastImage
-              className="w-full h-full object-cover"
-              source={imageSource}
-            />
+            <FastImage style={[dimension.full]} source={imageSource} />
           </View>
           <View
-            className="flex flex-col items-start w-2/3"
-            style={[gap.xsmall]}>
-            <Text className="font-semibold text-base " numberOfLines={1}>
+            className="w-2/3"
+            style={[flex.flexCol, gap.xsmall, items.start]}>
+            <Text
+              className="font-semibold"
+              style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+              numberOfLines={1}>
               {bodyText}
             </Text>
             {statusText && (
-              <View>
-                <StatusTag status={statusText} statusType={statusType} />
-              </View>
+              <StatusTag status={statusText} statusType={statusType} />
             )}
             {bodyContent}
           </View>
@@ -342,3 +360,10 @@ const RegisteredUserListCard = ({transaction, role}: Props) => {
 };
 
 export default RegisteredUserListCard;
+
+const styles = StyleSheet.create({
+  bottomBorder: {
+    borderColor: COLOR.black[20],
+    borderBottomWidth: 1,
+  },
+});

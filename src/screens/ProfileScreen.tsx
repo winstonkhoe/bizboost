@@ -2,7 +2,7 @@ import {Pressable, Text, View} from 'react-native';
 import {User, UserRole} from '../model/User';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
-import {flex} from '../styles/Flex';
+import {flex, items, justify} from '../styles/Flex';
 import {useUser} from '../hooks/user';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {rounded} from '../styles/BorderRadius';
@@ -32,6 +32,8 @@ import {Content} from '../model/Content';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
 import {Campaign, CampaignType} from '../model/Campaign';
+import {textColor} from '../styles/Text';
+import {font} from '../styles/Font';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -156,14 +158,30 @@ const ProfileScreen = () => {
                       </View>
                     </MediaUploader>
 
-                    <View className="flex-1 items-start" style={[flex.flexCol]}>
-                      <Text className="text-base font-bold" numberOfLines={1}>
+                    <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
+                      <Text
+                        className="font-bold"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.high),
+                        ]}
+                        numberOfLines={1}>
                         {activeData?.fullname}
                       </Text>
-                      <Text className="text-xs" numberOfLines={1}>
+                      <Text
+                        style={[
+                          font.size[20],
+                          textColor(COLOR.text.neutral.high),
+                        ]}
+                        numberOfLines={1}>
                         {user?.email}
                       </Text>
-                      <Text className="text-xs text-gray-500" numberOfLines={1}>
+                      <Text
+                        style={[
+                          font.size[20],
+                          textColor(COLOR.text.neutral.med),
+                        ]}
+                        numberOfLines={1}>
                         {activeRole}
                       </Text>
                     </View>
@@ -194,10 +212,7 @@ const ProfileScreen = () => {
                         : 'border border-zinc-200'
                     } rounded-l-md p-2 justify-center items-center text-center w-1/2`}
                     onPress={goToInfoTab}>
-                    <Text
-                      className={`${
-                        selectedTab === 0 ? 'text-white' : 'text-black'
-                      }`}>
+                    <Text style={[textColor(COLOR.text.neutral.high)]}>
                       Info
                     </Text>
                   </Pressable>
@@ -209,10 +224,7 @@ const ProfileScreen = () => {
                         : 'border border-zinc-200'
                     } rounded-r-md p-2 justify-center items-center text-center w-1/2`}
                     onPress={goToPortfolioTab}>
-                    <Text
-                      className={`${
-                        selectedTab === 1 ? 'text-white' : 'text-black'
-                      }`}>
+                    <Text style={[textColor(COLOR.text.neutral.high)]}>
                       Portfolio
                     </Text>
                   </Pressable>
@@ -227,7 +239,13 @@ const ProfileScreen = () => {
                     setSelectedTab(e.nativeEvent.position);
                   }}>
                   <View key="1">
-                    <View className="flex flex-row flex-wrap justify-between items-center">
+                    <View
+                      style={[
+                        flex.flexRow,
+                        flex.wrap,
+                        justify.between,
+                        items.center,
+                      ]}>
                       {activeRole !== UserRole.Admin && (
                         <ProfileMenuCard
                           handleOnClick={() => {

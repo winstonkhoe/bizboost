@@ -22,7 +22,7 @@ const SafeAreaContainer = ({children, enable = false, customInsets}: Props) => {
           paddingRight: insets.right,
           paddingBottom: insets.bottom,
         },
-        background(COLOR.background.light),
+        background(COLOR.background.neutral.default),
       ]}>
       {children}
     </View>

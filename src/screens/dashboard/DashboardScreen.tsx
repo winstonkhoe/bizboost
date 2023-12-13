@@ -47,9 +47,14 @@ const DashboardScreen = () => {
   return (
     <>
       {isLoading && <LoadingScreen />}
-      <SafeAreaContainer enable>
+      <View style={[flex.flex1, background(COLOR.background.neutral.default)]}>
         <ScrollView
-          style={[flex.flex1]}
+          style={[
+            flex.flex1,
+            {
+              paddingTop: safeAreaInsets.top,
+            },
+          ]}
           contentContainerStyle={[flex.flexCol, gap.default]}>
           <DashboardPanel />
           <ScrollView
@@ -94,7 +99,7 @@ const DashboardScreen = () => {
             ))}
           </View>
         </ScrollView>
-      </SafeAreaContainer>
+      </View>
     </>
   );
 };
