@@ -23,18 +23,21 @@ import {Campaign} from '../../model/Campaign';
 
 interface SelectCampaignOfferProps {
   onCampaignChange: (campaign: Campaign) => void;
+  contentCreatorToOfferId: string;
 }
 
 export const SelectCampaignOffer = ({
   onCampaignChange,
+  contentCreatorToOfferId,
 }: SelectCampaignOfferProps) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
-  const openModalCategory = () => {
+  const openModalCampaign = () => {
     openCampaignModal({
       selectedCampaign: selectedCampaign,
       setSelectedCampaign: setSelectedCampaign,
       navigation: navigation,
+      contentCreatorToOfferId: contentCreatorToOfferId,
     });
   };
 
@@ -60,7 +63,7 @@ export const SelectCampaignOffer = ({
               participate.
             </Text>
           </View>
-          <InternalLink text="Add" onPress={openModalCategory} />
+          <InternalLink text="Add" onPress={openModalCampaign} />
         </View>
         {selectedCampaign && (
           <View style={[flex.flexRow, flex.wrap, justify.around, gap.default]}>

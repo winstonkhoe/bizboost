@@ -1,5 +1,11 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {View, ScrollView, Animated, Text, TouchableOpacity} from 'react-native';
+import {
+  View,
+  ScrollView,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
@@ -12,16 +18,29 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
-import {Chat, ChatView, Message, MessageType} from '../model/Chat';
+import {Chat, ChatService, Message, MessageType} from '../model/Chat';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
+  NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Button} from 'react-native-elements';
 import FloatingOffer from '../components/chat/FloatingOffer';
 import {UserRole} from '../model/User';
+import {Offer, OfferStatus} from '../model/Offer';
+import {useNavigation} from '@react-navigation/native';
+import {Pressable} from 'react-native';
+import {Animated} from 'react-native';
+import {Transaction} from '../model/Transaction';
+import Meatballs from '../assets/vectors/meatballs.svg';
+import ChevronUp from '../assets/vectors/chevron-up.svg';
+import ChevronDown from '../assets/vectors/chevron-down.svg';
+import {rounded} from '../styles/BorderRadius';
+import FastImage from 'react-native-fast-image';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
+import {Campaign} from '../model/Campaign';
+import {openNegotiateModal} from '../utils/modal';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -30,10 +49,12 @@ type Props = NativeStackScreenProps<
 const ChatScreen = ({route}: Props) => {
   const {chat} = route.params;
   const [chatData, setChatData] = useState<Chat>(chat.chat);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {uid, user, activeRole} = useUser();
 
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
+  const navigation = useNavigation<NavigationStackProps>();
 
   useEffect(() => {
     const chatRef = Chat.getDocumentReference(chat.chat.id ?? '');
@@ -48,8 +69,36 @@ const ChatScreen = ({route}: Props) => {
     return () => unsubscribe();
   }, [chat.chat.id]);
 
+  const businessPeopleId = chat.chat.participants.find(
+    participant => participant.role === UserRole.BusinessPeople,
+  );
+  const contentCreatorId = chat.chat.participants.find(
+    participant => participant.role === UserRole.BusinessPeople,
+  );
+
   useEffect(() => {
-    // Assuming that chat.messages is an array of Message objects
+    const unsubscribe = Offer.getPendingOffersbyCCBP(
+      businessPeopleId?.ref ?? '',
+      contentCreatorId?.ref ?? '',
+      res => {
+        console.log('fetch', res);
+
+        const sortedTransactions = res.sort(
+          (a, b) => b.createdAt - a.createdAt,
+        );
+        setOffers(sortedTransactions);
+      },
+    );
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [businessPeopleId, contentCreatorId]);
+
+  console.log(offers);
+  useEffect(() => {
     if (chatData.messages) {
       setChatMessages(chatData.messages);
     }
@@ -57,13 +106,11 @@ const ChatScreen = ({route}: Props) => {
 
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Handle sending a message
   const handleSendPress = async (message: string) => {
-    // Add the new message to the chatMessages state
     if (message !== '') {
       const newMessage: Message = {
         message: message,
-        sender: uid!!,
+        role: activeRole!!,
         type: MessageType.Text,
         createdAt: new Date().getTime(),
       };
@@ -91,7 +138,7 @@ const ChatScreen = ({route}: Props) => {
     const newMessage: Message = {
       message: downloadURL,
       type: MessageType.Photo,
-      sender: uid!!,
+      role: activeRole!!,
       createdAt: new Date().getTime(),
     };
 
@@ -105,15 +152,56 @@ const ChatScreen = ({route}: Props) => {
     }
   };
 
+  const handleMakeOffer = () => {
+    navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+      businessPeopleId: businessPeopleId?.ref ?? '',
+      contentCreatorId: contentCreatorId?.ref ?? '',
+    });
+  };
+
+  const handleNegotiationComplete = (fee: string) => {
+    ChatService.insertNegotiateMessage(chat.chat.id ?? '', fee, activeRole!!);
+  };
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const businessPeople =
+    activeRole === UserRole.BusinessPeople
+      ? user?.businessPeople?.fullname
+      : chat.recipient?.fullname ?? '';
+  const contentCreator =
+    activeRole === UserRole.ContentCreator
+      ? user?.contentCreator?.fullname
+      : chat.recipient?.fullname ?? '';
+
+  const animatedHeight = new Animated.Value(isExpanded ? 200 : 60);
+
+  const toggleExpansion = () => {
+    const targetHeight = isExpanded ? 60 : 200;
+    Animated.timing(animatedHeight, {
+      toValue: targetHeight,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+
+    setIsExpanded(!isExpanded);
+  };
+
+  const acceptOffer = (offer: Offer) => {
+    offer.accept();
+  };
+
+  const declineOffer = (offer: Offer) => {
+    offer.reject();
+  };
+
   return (
-    <SafeAreaContainer>
+    <SafeAreaContainer enable>
       <View
         className="h-full w-full"
         style={[flex.flexCol, background(COLOR.white)]}>
         {/* Chat Header */}
-        <View
-          className="absolute top-0 z-20 items-center justify-start"
-          style={[flex.flexRow]}>
+        <View className="items-center justify-start" style={[flex.flexRow]}>
           <ChatHeader
             recipientName={chat.recipient?.fullname ?? ''}
             recipientPicture={chat.recipient?.profilePicture ?? ''}
@@ -121,33 +209,96 @@ const ChatScreen = ({route}: Props) => {
         </View>
 
         {/* Floating Tab */}
-        {/* if there is offer then add margin top for the chats */}
-        <FloatingOffer />
+        {offers && offers.length > 0 && (
+          <View className="w-full relative z-10">
+            <View>
+              <ScrollView
+                scrollEnabled={isExpanded}
+                style={[flex.flexCol, isExpanded ? styles.scroll : null]}>
+                <View
+                  style={flex.flexCol}
+                  className="px-1 pt-1 rounded-t-md z-50">
+                  <View
+                    style={flex.flexCol}
+                    className="bg-gray-100 pt-3 pb-1 z-30 rounded-md">
+                    <OfferCard
+                      offer={offers[0]}
+                      businessPeople={businessPeople || ''}
+                      contentCreator={contentCreator || ''}
+                      toggleExpansion={toggleExpansion}
+                      handleClickAccept={() => acceptOffer(offers[0])}
+                      handleClickReject={() => declineOffer(offers[0])}
+                      onNegotiationComplete={handleNegotiationComplete}
+                      isExpanded={isExpanded}
+                    />
+
+                    {isExpanded &&
+                      offers.length > 1 &&
+                      offers
+                        .slice(1)
+                        .map(
+                          offer =>
+                            activeRole && (
+                              <OfferCard
+                                key={offer.id}
+                                offer={offer}
+                                businessPeople={businessPeople || ''}
+                                contentCreator={contentCreator || ''}
+                                handleClickAccept={() => acceptOffer(offer)}
+                                handleClickReject={() => declineOffer(offer)}
+                                onNegotiationComplete={
+                                  handleNegotiationComplete
+                                }
+                              />
+                            ),
+                        )}
+                  </View>
+                </View>
+              </ScrollView>
+              {isExpanded && offers.length > 1 && (
+                <View className="px-1 rounded-b-md">
+                  <TouchableOpacity
+                    style={flex.flexRow}
+                    className="bg-gray-100 border-t border-t-zinc-300 justify-end items-center px-3 py-3"
+                    onPress={toggleExpansion}>
+                    <ChevronUp
+                      width={20}
+                      height={10}
+                      color={COLOR.black[100]}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Chat Messages */}
         <ScrollView
+          // className={`offers ${offers && offers.length > 0 ? 'mt-24' : ''}`}
           ref={scrollViewRef}
           onContentSizeChange={() => {
             if (scrollViewRef.current) {
               scrollViewRef.current?.scrollToEnd({animated: true});
             }
-          }}
-          className="mt-16">
-          <View style={[flex.flexCol, gap.default]} className="py-3">
-            {chatMessages &&
-              chatMessages.map((message: Message, index: number) => (
-                <HorizontalPadding key={index} paddingSize="xsmall2">
-                  <View className="w-full px-3">
-                    <ChatBubble
-                      key={index}
-                      message={message.message}
-                      isSender={message.sender === uid}
-                      type={message.type}
-                    />
-                  </View>
-                </HorizontalPadding>
-              ))}
-          </View>
+          }}>
+          <Pressable onPress={() => setIsWidgetVisible(false)}>
+            <View style={[flex.flexCol, gap.default]} className="py-3">
+              {chatMessages &&
+                chatMessages.map((message: Message, index: number) => (
+                  <HorizontalPadding key={index} paddingSize="xsmall2">
+                    <View className="w-full px-3">
+                      <ChatBubble
+                        key={index}
+                        message={message.message}
+                        isSender={message.role === activeRole}
+                        type={message.type}
+                      />
+                    </View>
+                  </HorizontalPadding>
+                ))}
+            </View>
+          </Pressable>
         </ScrollView>
 
         <View className="py-4 border-t-[0.5px]">
@@ -160,7 +311,7 @@ const ChatScreen = ({route}: Props) => {
 
           {/* Chat Widget */}
           {isWidgetVisible ? (
-            <View className="w-full">
+            <View className="w-full" style={{height: 100}}>
               <ChatWidget
                 options={{
                   width: 400,
@@ -168,16 +319,7 @@ const ChatScreen = ({route}: Props) => {
                   cropping: true,
                 }}
                 handleImageUpload={handleImageUpload}
-                businessPeopleId={
-                  chat.chat.participants.find(
-                    participant => participant.role === UserRole.BusinessPeople,
-                  )?.ref ?? ''
-                }
-                contentCreatorId={
-                  chat.chat.participants.find(
-                    participant => participant.role === UserRole.ContentCreator,
-                  )?.ref ?? ''
-                }
+                handleMakeOffer={handleMakeOffer}
               />
             </View>
           ) : null}
@@ -188,3 +330,129 @@ const ChatScreen = ({route}: Props) => {
 };
 
 export default ChatScreen;
+
+const styles = StyleSheet.create({
+  scroll: {
+    maxHeight: 300,
+  },
+  meatball: {
+    width: 100,
+    backgroundColor: 'red',
+    position: 'absolute',
+    top: 20,
+    right: 5,
+    zIndex: 1,
+  },
+});
+
+type OfferCardProps = {
+  offer: Offer;
+  businessPeople: string;
+  contentCreator: string;
+  isExpanded?: boolean;
+  handleClickAccept: () => void;
+  handleClickReject: () => void;
+  toggleExpansion?: () => void;
+  onNegotiationComplete: (fee: string) => void;
+};
+
+const OfferCard = ({
+  offer,
+  businessPeople,
+  contentCreator,
+  isExpanded = true,
+  toggleExpansion,
+  handleClickAccept,
+  handleClickReject,
+  onNegotiationComplete,
+}: OfferCardProps) => {
+  const [campaign, setCampaign] = useState<Campaign>();
+  const navigation = useNavigation<NavigationStackProps>();
+
+  useEffect(() => {
+    Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
+  }, [offer]);
+
+  console.log('campaign', campaign);
+
+  const openModalNegotiate = () => {
+    openNegotiateModal({
+      selectedOffer: offer,
+      campaign: campaign,
+      navigation: navigation,
+      onNegotiationComplete: onNegotiationComplete,
+    });
+  };
+
+  return (
+    <View className="px-3 pb-2 justify-between" style={flex.flexRow}>
+      <View
+        style={flex.flexRow}
+        className="flex-1 justify-between items-center py-1">
+        <Pressable
+          style={flex.flexRow}
+          className="items-start"
+          onPress={() => {
+            navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+              offerId: offer?.id || '',
+            });
+          }}>
+          <View
+            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
+            style={[flex.flexRow, rounded.default]}>
+            <FastImage
+              className="w-full h-full object-cover"
+              source={getSourceOrDefaultAvatar({uri: campaign?.image})}
+            />
+          </View>
+          <View>
+            <Text className="text-md text-left text-black">
+              {offer.status === OfferStatus.negotiate
+                ? 'Negotiation: '
+                : 'Offer: '}
+              <Text className="font-bold">
+                {offer.status === OfferStatus.pending ||
+                offer.status === OfferStatus.negotiateRejected
+                  ? offer?.offeredPrice?.toLocaleString('en-ID')
+                  : offer?.negotiatedPrice?.toLocaleString('en-ID')}
+              </Text>
+            </Text>
+            {offer.status === OfferStatus.pending ? (
+              <Text className="text-xs text-left">
+                by{' '}
+                {offer.negotiatedBy === UserRole.ContentCreator
+                  ? contentCreator
+                  : businessPeople}
+              </Text>
+            ) : (
+              <View>
+                {(offer.status === OfferStatus.negotiateRejected ||
+                  offer.status === OfferStatus.negotiate) && (
+                  <Text className="text-xs text-left">
+                    Last Negotiation: {offer.negotiatedPrice}
+                  </Text>
+                )}
+                <Text className="text-xs text-left">
+                  by{' '}
+                  {offer.negotiatedBy === UserRole.ContentCreator
+                    ? contentCreator
+                    : businessPeople}
+                </Text>
+              </View>
+            )}
+          </View>
+        </Pressable>
+        {!isExpanded && (
+          <TouchableOpacity onPress={toggleExpansion}>
+            <ChevronDown width={20} height={10} color={COLOR.black[100]} />
+          </TouchableOpacity>
+        )}
+      </View>
+      {isExpanded && (
+        <Pressable>
+          <Meatballs width={20} height={20} />
+        </Pressable>
+      )}
+    </View>
+  );
+};

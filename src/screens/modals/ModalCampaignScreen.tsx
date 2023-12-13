@@ -33,6 +33,7 @@ import {SimpleImageCard} from '../../components/molecules/ImageCard';
 import {ImageCounterChip} from '../../components/atoms/Chip';
 import FastImage from 'react-native-fast-image';
 import {useUser} from '../../hooks/user';
+import {Offer} from '../../model/Offer';
 
 type Props = StackScreenProps<
   AuthenticatedStack,
@@ -41,18 +42,23 @@ type Props = StackScreenProps<
 
 const ModalCampaignScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const {initialSelectedCampaign, eventType} = route.params;
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign>(
-    initialSelectedCampaign,
-  );
+  const {initialSelectedCampaign, eventType, contentCreatorToOfferId} =
+    route.params;
+  const [selectedCampaign, setSelectedCampaign] = useState<
+    Campaign | undefined
+  >(initialSelectedCampaign);
   const {uid} = useUser();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    Campaign.getUserCampaigns(uid).then(setCampaigns);
+    Campaign.getRegistrationCampaignByUser(uid).then(setCampaigns);
   }, [uid]);
+  console.log(campaigns);
 
   const toggleCampaignSelection = (campaign: Campaign) => {
+    if (selectedCampaign && selectedCampaign.id === campaign.id) {
+      setSelectedCampaign(undefined);
+    }
     setSelectedCampaign(campaign);
   };
 
@@ -68,18 +74,15 @@ const ModalCampaignScreen = ({route}: Props) => {
     return campaigns
       .filter((_, index) => index % 2 === (parityType === 'even' ? 0 : 1))
       .map((campaign: Campaign, index) => {
-        const selectedIndex = selectedCampaign
-          ? selectedCampaign.id === campaign.id
-            ? index
-            : -1
-          : -1;
         return (
           <CampaignItem
             key={index}
             campaign={campaign}
             isReachLimit={selectedCampaign === null}
-            isSelected={selectedIndex !== -1}
-            selectedIndex={selectedIndex}
+            isSelected={
+              selectedCampaign ? campaign.id === selectedCampaign.id : false
+            }
+            contentCreatorToOfferId={contentCreatorToOfferId}
             onPress={() => {
               toggleCampaignSelection(campaign);
             }}
@@ -90,48 +93,52 @@ const ModalCampaignScreen = ({route}: Props) => {
 
   return (
     <SafeAreaContainer enable>
-      <View className="flex-1" style={[flex.flexCol, gap.small]}>
-        <View className="items-center" style={[flex.flexRow, gap.default]}>
-          <CloseModal closeEventType="campaign" />
-          <Text className="text-lg font-bold">Campaigns</Text>
-        </View>
-        <ScrollView contentContainerStyle={{flexGrow: 1}}>
-          <VerticalPadding paddingSize="xlarge">
-            <HorizontalPadding paddingSize="medium">
-              <View style={[flex.flexRow, gap.default]}>
-                <View
-                  className="flex-1 justify-start"
-                  style={[flex.flexCol, gap.default]}>
-                  {getFilteredCampaignsByParity('even')}
+      {campaigns ? (
+        <View className="flex-1" style={[flex.flexCol, gap.small]}>
+          <View className="items-center" style={[flex.flexRow, gap.default]}>
+            <CloseModal closeEventType="campaign" />
+            <Text className="text-lg font-bold">Campaigns</Text>
+          </View>
+          <ScrollView contentContainerStyle={{flexGrow: 1}}>
+            <VerticalPadding paddingSize="xlarge">
+              <HorizontalPadding paddingSize="medium">
+                <View style={[flex.flexRow, gap.default]}>
+                  <View
+                    className="flex-1 justify-start"
+                    style={[flex.flexCol, gap.default]}>
+                    {getFilteredCampaignsByParity('even')}
+                  </View>
+                  <View
+                    className="flex-1 justify-start"
+                    style={[flex.flexCol, gap.default]}>
+                    {getFilteredCampaignsByParity('odd')}
+                  </View>
                 </View>
-                <View
-                  className="flex-1 justify-start"
-                  style={[flex.flexCol, gap.default]}>
-                  {getFilteredCampaignsByParity('odd')}
-                </View>
-              </View>
-            </HorizontalPadding>
-          </VerticalPadding>
-        </ScrollView>
-        <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <HorizontalPadding>
-              <View style={[flex.flexRow, gap.default]}>
-                {selectedCampaign && (
-                  <CampaignSelectedPreview campaign={selectedCampaign} />
-                )}
-              </View>
-            </HorizontalPadding>
+              </HorizontalPadding>
+            </VerticalPadding>
           </ScrollView>
-          <HorizontalPadding>
-            <CustomButton
-              text="Choose"
-              disabled={selectedCampaign === null}
-              onPress={emitChangesAndClose}
-            />
-          </HorizontalPadding>
+          <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <HorizontalPadding>
+                <View style={[flex.flexRow, gap.default]}>
+                  {selectedCampaign && (
+                    <CampaignSelectedPreview campaign={selectedCampaign} />
+                  )}
+                </View>
+              </HorizontalPadding>
+            </ScrollView>
+            <HorizontalPadding>
+              <CustomButton
+                text="Choose"
+                disabled={selectedCampaign === null}
+                onPress={emitChangesAndClose}
+              />
+            </HorizontalPadding>
+          </View>
         </View>
-      </View>
+      ) : (
+        <Text>No campaigns yet</Text>
+      )}
     </SafeAreaContainer>
   );
 };
@@ -140,17 +147,39 @@ interface CampaignItemProps extends PressableProps {
   campaign: Campaign;
   isSelected: boolean;
   isReachLimit: boolean;
-  selectedIndex: number;
+  contentCreatorToOfferId: string;
 }
 
 const CampaignItem = ({
   campaign,
   isSelected,
   isReachLimit,
-  selectedIndex,
+  contentCreatorToOfferId,
   ...props
 }: CampaignItemProps) => {
-  return (
+  const [isOffered, setIsOffered] = useState(false);
+
+  useEffect(() => {
+    const fetchOfferStatus = () => {
+      try {
+        Offer.hasOfferForContentCreatorAndCampaign(
+          contentCreatorToOfferId,
+          campaign.id,
+        ).then(offer => {
+          setIsOffered(offer);
+        });
+      } catch (error) {
+        console.error('Error fetching offer:', error);
+        setIsOffered(false);
+      }
+    };
+
+    fetchOfferStatus();
+  }, [contentCreatorToOfferId, campaign.id]);
+
+  console.log(isSelected);
+
+  return !isOffered ? (
     <Pressable {...props}>
       <Animated.View
         className="relative overflow-hidden"
@@ -175,6 +204,22 @@ const CampaignItem = ({
         />
       </Animated.View>
     </Pressable>
+  ) : (
+    <Animated.View
+      className="relative overflow-hidden"
+      style={[flex.flexCol, gap.small, rounded.default]}>
+      <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0 bg-black opacity-50"></View>
+      <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0">
+        <Text className="z-50 text-white opacity-100 font-bold">Offered</Text>
+      </View>
+      <SimpleImageCard
+        width="full"
+        height="xlarge6"
+        image={campaign.image || ''}
+        text={campaign.title || ''}
+        dim={isSelected ? 66 : 0}
+      />
+    </Animated.View>
   );
 };
 

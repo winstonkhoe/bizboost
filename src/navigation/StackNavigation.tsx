@@ -38,14 +38,17 @@ import EditPreferencesScreen from '../screens/profile/edit/EditPreferencesScreen
 import {Campaign} from '../model/Campaign';
 import ModalCampaignScreen from '../screens/modals/ModalCampaignScreen';
 import {TransactionStatus} from '../model/Transaction';
+import ModalNegotiateScreen from '../screens/modals/ModalNegotiateScreen';
+import {Offer} from '../model/Offer';
 import PayCampaignScreen from '../screens/payment/PayCampaignScreen';
-import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
 import RejectTransactionScreen from '../screens/transaction/RejectTransactionScreen';
+import TransactionDetailScreen from '../screens/transaction/TransactionDetailScreen';
 import EditBankAccountInformationScreen from '../screens/profile/edit/EditBankAccountInformationScreen';
 import ModalSubmitResult from '../screens/campaign/timeline/ModalSubmitResult';
 import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrainstorm';
 import ReportListScreen from '../screens/report/ReportListScreen';
 import ReportDetailScreen from '../screens/report/ReportDetailScreen';
+import {OfferDetailScreen} from '../screens/OfferDetailScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -85,9 +88,11 @@ export enum AuthenticatedNavigation {
   SpecificExploreModal = 'Specific Explore Modal',
   MakeOffer = 'Make Offer',
   CampaignModal = 'Campaign Modal',
+  NegotiateModal = 'Negotiate Modal',
   PayCampaign = 'Pay Campaign',
   ReportList = 'Report List',
   ReportDetail = 'Report Detail',
+  OfferDetail = 'Offer Detail',
 }
 
 export enum GeneralNavigation {
@@ -105,6 +110,13 @@ export type GuestStack = {
 interface CampaignModalProps {
   initialSelectedCampaign: Campaign;
   eventType: string;
+  contentCreatorToOfferId: string;
+}
+
+interface NegotiateModalProps {
+  offer: Offer;
+  eventType: string;
+  campaign: Campaign;
 }
 
 export type AuthenticatedStack = {
@@ -128,6 +140,11 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.SubmitBrainstorm]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
+  [AuthenticatedNavigation.MakeOffer]: {
+    contentCreatorId: string;
+    businessPeopleId: string;
+  };
+  [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
   [AuthenticatedNavigation.MyTransactions]: undefined;
   [AuthenticatedNavigation.MyCampaigns]: undefined;
   [AuthenticatedNavigation.AboutMe]: undefined;
@@ -148,10 +165,14 @@ export type AuthenticatedStack = {
     contentCreatorId: string;
     targetContentId?: string;
   };
+  [AuthenticatedNavigation.NegotiateModal]: NegotiateModalProps;
   [AuthenticatedNavigation.PayCampaign]: undefined;
   [AuthenticatedNavigation.ReportList]: undefined;
   [AuthenticatedNavigation.ReportDetail]: {
     reportId: string;
+  };
+  [AuthenticatedNavigation.OfferDetail]: {
+    offerId: string;
   };
 };
 
@@ -283,6 +304,10 @@ const StackNavigator = () => {
                   name={AuthenticatedNavigation.ReportDetail}
                   component={ReportDetailScreen}
                 />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.OfferDetail}
+                  component={OfferDetailScreen}
+                />
               </Stack.Group>
 
               <Stack.Group
@@ -394,6 +419,10 @@ const StackNavigator = () => {
               <Stack.Screen
                 name={AuthenticatedNavigation.CampaignModal}
                 component={ModalCampaignScreen}
+              />
+              <Stack.Screen
+                name={AuthenticatedNavigation.NegotiateModal}
+                component={ModalNegotiateScreen}
               />
             </Stack.Group>
           </Stack.Group>

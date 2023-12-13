@@ -41,8 +41,8 @@ export enum TransactionStatus {
 
   // private
   offering = 'Offering',
-  offeringApproved = 'Offering Approved',
-  offerRejected = 'Offering Rejected', // soft delete
+  offerApproved = 'Offer Approved',
+  offerRejected = 'Offer Rejected',
 
   // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
 
@@ -132,7 +132,7 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
   [TransactionStatus.offering]: campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.offerRejected]:
     campaignIndexMap[CampaignStep.Registration],
-  [TransactionStatus.offeringApproved]:
+  [TransactionStatus.offerApproved]:
     campaignIndexMap[CampaignStep.Brainstorming],
 
   [TransactionStatus.brainstormSubmitted]:
@@ -168,7 +168,7 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.registrationApproved]: StatusType.success,
 
   [TransactionStatus.offering]: StatusType.warning,
-  [TransactionStatus.offeringApproved]: StatusType.success,
+  [TransactionStatus.offerApproved]: StatusType.success,
   [TransactionStatus.offerRejected]: StatusType.danger,
 
   [TransactionStatus.brainstormSubmitted]: StatusType.warning,
@@ -302,7 +302,7 @@ export class Transaction extends BaseModel {
   contentCreatorId?: string;
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
-  offeredPrice?: number;
+  transactionAmount?: number;
   importantNotes?: string[];
   brainstorms?: Brainstorm[];
   contents?: Content[];
@@ -319,7 +319,7 @@ export class Transaction extends BaseModel {
     contentCreatorId,
     campaignId,
     businessPeopleId,
-    offeredPrice,
+    transactionAmount,
     importantNotes,
     brainstorms,
     contents,
@@ -340,7 +340,7 @@ export class Transaction extends BaseModel {
     this.contentCreatorId = contentCreatorId;
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
-    this.offeredPrice = offeredPrice;
+    this.transactionAmount = transactionAmount;
     this.importantNotes = importantNotes;
     this.brainstorms = brainstorms;
     this.contents = contents;
@@ -352,6 +352,21 @@ export class Transaction extends BaseModel {
     this.contentRevisionLimit = contentRevisionLimit;
     this.platformTasks = platformTasks;
     this.payment = payment;
+  }
+
+  toString(): string {
+    return `
+      Transaction ID: ${this.id}
+      Content Creator ID: ${this.contentCreatorId}
+      Campaign ID: ${this.campaignId}
+      Business People ID: ${this.businessPeopleId}
+      Offered Price: ${this.transactionAmount}
+      Important Notes: ${this.importantNotes?.join(', ') || 'N/A'}
+      Status: ${this.status}
+      Updated At: ${
+        this.updatedAt ? new Date(this.updatedAt).toLocaleString() : 'N/A'
+      }
+    `;
   }
 
   private static fromSnapshot(
@@ -366,6 +381,8 @@ export class Transaction extends BaseModel {
         contentCreatorId: data.contentCreatorId?.id,
         businessPeopleId: data.businessPeopleId?.id,
         campaignId: data.campaignId.id,
+        transactionAmount: data.transactionAmount,
+        importantNotes: data.importantNotes,
         brainstorms: data.brainstorms,
         contents: data.contents,
         engagements: data.engagements,
@@ -382,6 +399,19 @@ export class Transaction extends BaseModel {
     }
 
     throw Error("Error, document doesn't exist!");
+  }
+
+  static async getById(id: string): Promise<Transaction> {
+    try {
+      const snapshot = await this.getDocumentReference(id).get();
+      if (!snapshot.exists) {
+        throw Error('Transaction not found!');
+      }
+
+      const transaction = this.fromSnapshot(snapshot);
+      return transaction;
+    } catch (error) {}
+    throw Error('Error!');
   }
 
   static getCollectionReference = () => {
@@ -413,7 +443,7 @@ export class Transaction extends BaseModel {
       };
       await Transaction.getDocumentReference(id).set(data);
     } catch (error) {
-      console.log(error);
+      console.error('Error in Transaction.insert:', error);
       throw Error('Transaction.insert err!');
     }
   }
@@ -453,33 +483,6 @@ export class Transaction extends BaseModel {
     }
   }
 
-  static getById(
-    id: string,
-    onComplete: (transaction: Transaction | null) => void,
-  ) {
-    try {
-      const unsubscribe = Transaction.getCollectionReference()
-        .doc(id)
-        .onSnapshot(
-          docSnapshot => {
-            if (docSnapshot.exists) {
-              onComplete && onComplete(Transaction.fromSnapshot(docSnapshot));
-              return;
-            }
-            onComplete && onComplete(null);
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
   static getAllTransactionsByCampaign(
     campaignId: string,
     onComplete: (transactions: Transaction[]) => void,
@@ -498,6 +501,44 @@ export class Transaction extends BaseModel {
             } else {
               onComplete(querySnapshot.docs.map(this.fromSnapshot));
             }
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAllTransactionsByCCBP(
+    businessPeopleId: string,
+    contentCreatorId: string,
+    onComplete: (transactions: Transaction[]) => void,
+  ) {
+    try {
+      const unsubscribe = firestore()
+        .collection(TRANSACTION_COLLECTION)
+        .where(
+          'businessPeopleId',
+          '==',
+          firestore().collection('users').doc(businessPeopleId),
+        )
+        .where(
+          'contentCreatorId',
+          '==',
+          firestore().collection('users').doc(contentCreatorId),
+        )
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete([]);
+            }
+
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -628,6 +669,11 @@ export class Transaction extends BaseModel {
       );
 
     return unsubscribe;
+  }
+
+  async acceptOffer(transactionAmount: number) {
+    this.transactionAmount = transactionAmount;
+    return await this.updateStatus(TransactionStatus.offerApproved);
   }
 
   async updateTermination(): Promise<boolean> {

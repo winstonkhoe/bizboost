@@ -1,4 +1,3 @@
-import SafeAreaContainer from '../../containers/SafeAreaContainer';
 import {Text, View} from 'react-native';
 import {
   AuthenticatedNavigation,

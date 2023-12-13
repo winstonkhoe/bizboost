@@ -234,6 +234,26 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                       )}
                     </View>
                   )}
+                {contentCreator?.contentCreator?.specializedCategoryIds &&
+                  contentCreator?.contentCreator?.specializedCategoryIds
+                    .length > 0 && (
+                    <View>
+                      <Text className="text-black font-bold">
+                        Specialized Categories
+                      </Text>
+                      <ScrollView horizontal style={flex.flexRow}>
+                        {contentCreator?.contentCreator?.specializedCategoryIds?.map(
+                          (cat, idx) => (
+                            <Text
+                              className="bg-primary py-1 px-2 rounded-md text-white"
+                              key={idx}>
+                              {cat}
+                            </Text>
+                          ),
+                        )}
+                      </ScrollView>
+                    </View>
+                  )}
               </ScrollView>
             </View>
             <View key="2">
