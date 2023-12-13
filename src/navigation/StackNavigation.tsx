@@ -46,6 +46,8 @@ import TransactionDetailScreen from '../screens/transaction/TransactionDetailScr
 import EditBankAccountInformationScreen from '../screens/profile/edit/EditBankAccountInformationScreen';
 import ModalSubmitResult from '../screens/campaign/timeline/ModalSubmitResult';
 import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrainstorm';
+import ReportListScreen from '../screens/report/ReportListScreen';
+import ReportDetailScreen from '../screens/report/ReportDetailScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -87,6 +89,8 @@ export enum AuthenticatedNavigation {
   CampaignModal = 'Campaign Modal',
   NegotiateModal = 'Negotiate Modal',
   PayCampaign = 'Pay Campaign',
+  ReportList = 'Report List',
+  ReportDetail = 'Report Detail',
 }
 
 export enum GeneralNavigation {
@@ -161,6 +165,10 @@ export type AuthenticatedStack = {
   };
   [AuthenticatedNavigation.NegotiateModal]: NegotiateModalProps;
   [AuthenticatedNavigation.PayCampaign]: undefined;
+  [AuthenticatedNavigation.ReportList]: undefined;
+  [AuthenticatedNavigation.ReportDetail]: {
+    reportId: string;
+  };
 };
 
 interface LocationModalProps {
@@ -282,6 +290,14 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.AboutMe}
                   component={AboutMeScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.ReportList}
+                  component={ReportListScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.ReportDetail}
+                  component={ReportDetailScreen}
                 />
               </Stack.Group>
 

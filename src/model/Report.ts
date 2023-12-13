@@ -30,19 +30,12 @@ export enum ReportType {
   other = 'Other',
 }
 
-export enum ActionTaken {
-  warningIssued = 'Warning Issued',
-  terminateTransaction = 'Terminate Transaction',
-  suspendUser = 'Suspend User',
-  reject = 'Reject',
-  approveTransaction = 'Approve Transaction',
-}
-
 type ReportTypeLabelMap = {
   [type in ReportType]: {
     [key in UserRole]?: string;
   };
 };
+
 export const reportTypeLabelMap: ReportTypeLabelMap = {
   [ReportType.cheating]: {
     [UserRole.ContentCreator]:
@@ -74,6 +67,26 @@ export const reportTypeLabelMap: ReportTypeLabelMap = {
     [UserRole.BusinessPeople]:
       'If none of the above categories apply to issues with a content creator, use this option and provide a detailed description of the issue.',
   },
+};
+
+export enum ActionTaken {
+  warningIssued = 'Warning Issued',
+  terminateTransaction = 'Terminate Transaction',
+  suspendUser = 'Suspend User',
+  reject = 'Reject',
+  approveTransaction = 'Approve Transaction',
+}
+
+type ActionTakenLabelMap = {
+  [action in ActionTaken]: string;
+};
+
+export const actionTakenLabelMap: ActionTakenLabelMap = {
+  [ActionTaken.warningIssued]: 'A warning will be issued to the user.',
+  [ActionTaken.terminateTransaction]: 'The transaction will be terminated.',
+  [ActionTaken.suspendUser]: 'The user will be suspended.',
+  [ActionTaken.reject]: 'The report will be rejected.',
+  [ActionTaken.approveTransaction]: 'The transaction will be approved.',
 };
 
 export class Report extends BaseModel {
@@ -194,8 +207,8 @@ export class Report extends BaseModel {
       });
     } catch (error) {
       console.log(error);
+      throw Error('Report.update err!');
     }
-    throw Error('Report.update err!');
   }
 
   async resolveReport(
@@ -206,14 +219,14 @@ export class Report extends BaseModel {
     if (!id) {
       throw Error('Missing id');
     }
-    await Report.getDocumentReference(id).update({
+    await this.update({
       status: ReportStatus.resolved,
       actionTaken,
       actionTakenReason: reason,
     });
   }
 
-  static getById(id: string, onComplete: (transaction: Report | null) => void) {
+  static getById(id: string, onComplete: (report: Report | null) => void) {
     try {
       const unsubscribe = Report.getCollectionReference()
         .doc(id)
@@ -239,7 +252,7 @@ export class Report extends BaseModel {
 
   static getByTransactionId(
     transactionId: string,
-    onComplete: (transaction: Report[]) => void,
+    onComplete: (reports: Report[]) => void,
   ) {
     try {
       const unsubscribe = Report.getCollectionReference()
@@ -269,7 +282,41 @@ export class Report extends BaseModel {
     }
   }
 
-  static getAll(onComplete: (transactions: Report[]) => void) {
+  static getByTransactionIdAndReporterId(
+    transactionId: string,
+    reporterId: string,
+    onComplete: (reports: Report[]) => void,
+  ) {
+    try {
+      const unsubscribe = Report.getCollectionReference()
+        .where(
+          'transactionId',
+          '==',
+          Transaction.getDocumentReference(transactionId),
+        )
+        .where('reporterId', '==', User.getDocumentReference(reporterId))
+        .onSnapshot(
+          querySnapshot => {
+            if (querySnapshot.empty) {
+              onComplete && onComplete([]);
+              return;
+            }
+            onComplete &&
+              onComplete(querySnapshot.docs.map(Report.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAll(onComplete: (reports: Report[]) => void) {
     try {
       const unsubscribe = Report.getCollectionReference().onSnapshot(
         querySnapshot => {
@@ -293,7 +340,7 @@ export class Report extends BaseModel {
 
   static getAllByTransactionId(
     transactionId: string,
-    onComplete: (transactions: Report[]) => void,
+    onComplete: (reports: Report[]) => void,
   ) {
     try {
       const unsubscribe = Report.getCollectionReference()
@@ -324,7 +371,7 @@ export class Report extends BaseModel {
 
   static getAllByReporterId(
     reporterId: string,
-    onComplete: (transactions: Report[]) => void,
+    onComplete: (reports: Report[]) => void,
   ) {
     try {
       const unsubscribe = Report.getCollectionReference()
@@ -347,6 +394,48 @@ export class Report extends BaseModel {
       console.error(error);
       throw Error('Error!');
     }
+  }
+
+  async resolve(action: ActionTaken, reason?: string): Promise<void> {
+    switch (action) {
+      case ActionTaken.warningIssued:
+        return this.issueWarning(reason);
+      case ActionTaken.terminateTransaction:
+        return this.terminateTransaction(reason);
+      case ActionTaken.suspendUser:
+        return this.suspendUser(reason);
+      case ActionTaken.reject:
+        return this.rejectReport(reason);
+      case ActionTaken.approveTransaction:
+        return this.approveTransaction(reason);
+      default:
+        throw Error('Invalid action!');
+    }
+  }
+
+  async issueWarning(reason?: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      try {
+        const {transactionId} = this;
+        if (!transactionId) {
+          throw Error('Missing transaction identifier');
+        }
+        const unsubscribe = Transaction.getById(
+          transactionId,
+          async transaction => {
+            if (transaction) {
+              // await transaction.issueWarning();
+              await this.resolveReport(ActionTaken.warningIssued, reason);
+              unsubscribe();
+              resolve();
+            }
+          },
+        );
+      } catch (error) {
+        console.log(error);
+        reject(Error('Report.issueWarning err!'));
+      }
+    });
   }
 
   async terminateTransaction(reason?: string): Promise<void> {

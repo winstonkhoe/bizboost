@@ -129,7 +129,7 @@ const OngoingCampaignCard = ({campaign}: Props) => {
               </View>
             ))}
             <View style={[flex.flexRow, gap.small]}>
-              {campaign?.platforms?.map(platform => (
+              {campaign?.platformTasks?.map(platform => (
                 <Label
                   key={platform.name}
                   type="neutral"
@@ -138,15 +138,13 @@ const OngoingCampaignCard = ({campaign}: Props) => {
                 />
               ))}
             </View>
-            <View style={[flex.flexCol, gap.small]}>
-              {campaign.fee && (
-                <Text
-                  className="font-semibold"
-                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                  {formatToRupiah(campaign.fee)}
-                </Text>
-              )}
-            </View>
+            {campaign?.fee && (
+              <Text
+                className="font-semibold"
+                style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                {formatToRupiah(campaign.fee)}
+              </Text>
+            )}
           </View>
         </View>
       </View>

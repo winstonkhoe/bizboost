@@ -308,7 +308,7 @@ const HomeScreen = () => {
                 header="Reports"
                 link={'See All'}
                 onPressLink={() =>
-                  setUserLimit(userLimit === 3 ? users.length : 3)
+                  navigation.navigate(AuthenticatedNavigation.ReportList)
                 }
               />
               <View style={[flex.flexCol, gap.medium]} className="mt-4">
