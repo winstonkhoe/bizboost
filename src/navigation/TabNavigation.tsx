@@ -35,6 +35,7 @@ import {rounded} from '../styles/BorderRadius';
 import {SizeType, size} from '../styles/Size';
 import {background} from '../styles/BackgroundColor';
 import {padding} from '../styles/Padding';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
 
 const Tab = createBottomTabNavigator();
 
@@ -98,25 +99,29 @@ export const TabNavigator = () => {
       return (
         <View
           style={[
-            rounded.max,
+            flex.flexRow,
+            items.center,
+            justify.center,
             {
               width: size.xlarge + 3,
               height: size.xlarge + 3,
             },
-            flex.flexRow,
-            items.center,
-            justify.center,
-            focused && [background(COLOR.text.neutral.high)],
+            focused
+              ? [background(COLOR.absoluteBlack[10])]
+              : [
+                  {
+                    backgroundColor: 'transparent',
+                  },
+                ],
+            rounded.max,
           ]}>
           <View
             className="overflow-hidden"
             style={[dimension.square.xlarge, rounded.max]}>
             <FastImage
-              source={
-                getUserProfile()
-                  ? {uri: getUserProfile()}
-                  : require('../assets/images/bizboost-avatar.png')
-              }
+              source={getSourceOrDefaultAvatar({
+                uri: getUserProfile(),
+              })}
               style={[dimension.full]}
             />
           </View>

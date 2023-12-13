@@ -626,10 +626,10 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     <View style={[flex.flexCol, gap.default]}>
                       <View style={[flex.flexRow, justify.between]}>
                         <Text
-                          className="font-medium"
+                          className="font-semibold"
                           style={[
                             font.size[30],
-                            textColor(COLOR.text.neutral.med),
+                            textColor(COLOR.text.neutral.high),
                           ]}>
                           💡 Things to highlight
                         </Text>
@@ -651,14 +651,23 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           )}
                       </View>
                       <View style={[flex.flexCol, gap.xsmall]}>
-                        <Text style={[font.size[30]]}>
+                        <Text
+                          style={[
+                            font.size[30],
+                            textColor(COLOR.text.neutral.default),
+                          ]}>
                           {campaign?.description}
                         </Text>
                         {campaign.importantInformation &&
                           campaign.importantInformation?.length > 0 &&
                           campaign.importantInformation.map((info, index) => {
                             return (
-                              <Text key={index} style={[font.size[30]]}>
+                              <Text
+                                key={index}
+                                style={[
+                                  font.size[30],
+                                  textColor(COLOR.text.neutral.default),
+                                ]}>
                                 {info}
                               </Text>
                             );

@@ -307,7 +307,7 @@ export class Transaction extends BaseModel {
   brainstorms?: Brainstorm[];
   contents?: Content[];
   engagements?: Engagement[];
-  status?: TransactionStatus;
+  status: TransactionStatus;
   createdAt?: number;
   updatedAt?: number;
   lastCheckedAt?: number;
@@ -345,7 +345,7 @@ export class Transaction extends BaseModel {
     this.brainstorms = brainstorms;
     this.contents = contents;
     this.engagements = engagements;
-    this.status = status;
+    this.status = status || TransactionStatus.notRegistered;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.lastCheckedAt = lastCheckedAt;
@@ -643,7 +643,6 @@ export class Transaction extends BaseModel {
           new Transaction({
             campaignId,
             contentCreatorId,
-            status: TransactionStatus.notRegistered,
           }),
         );
       },
@@ -1241,6 +1240,30 @@ export class Transaction extends BaseModel {
   isTerminated() {
     const {status} = this;
     return status === TransactionStatus.terminated;
+  }
+
+  isOngoing() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.terminated,
+        TransactionStatus.reported,
+        TransactionStatus.completed,
+      ].findIndex(transactionStatus => transactionStatus === status) === -1
+    );
+  }
+
+  isWaitingContentCreatorAction() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.brainstormRejected,
+        TransactionStatus.contentRejected,
+        TransactionStatus.engagementRejected,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    );
   }
 
   //   static async getTransactionStatusByContentCreator(

@@ -3,18 +3,18 @@ import {Pressable, Text} from 'react-native';
 import {CampaignPlatform} from '../../model/Campaign';
 import {View} from 'react-native';
 import Checkmark from '../../assets/vectors/checkmark.svg';
-import InstagramLogo from '../../assets/vectors/instagram.svg';
-import TikTokLogo from '../../assets/vectors/tiktok.svg';
-import ChevronDown from '../../assets/vectors/chevron-down.svg';
-import ChevronUp from '../../assets/vectors/chevron-up.svg';
 import {COLOR} from '../../styles/Color';
 import {textColor} from '../../styles/Text';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
+import {ChevronRight, PlatformIcon} from '../atoms/Icon';
+import {background} from '../../styles/BackgroundColor';
+import {border} from '../../styles/Border';
+import {rounded} from '../../styles/BorderRadius';
+import {padding} from '../../styles/Padding';
+import {font} from '../../styles/Font';
+import {gap} from '../../styles/Gap';
+import {campaignTaskToString} from '../../utils/campaign';
 
-const logo = {
-  Instagram: <InstagramLogo width={20} height={20} />,
-  TikTok: <TikTokLogo width={20} height={20} />,
-};
 type Props = {
   platform: CampaignPlatform;
 };
@@ -24,47 +24,63 @@ const CampaignPlatformAccordion = ({platform}: Props) => {
 
   return (
     <View
-      className={`${
-        isOpen ? 'bg-white border-gray-200' : 'bg-gray-100 border-white'
-      } mb-3 p-3 rounded-lg border`}>
+      style={[
+        flex.flexCol,
+        gap.small,
+        padding.default,
+        rounded.default,
+        isOpen
+          ? [
+              background(COLOR.background.neutral.default),
+              border({
+                borderWidth: 1,
+                color: COLOR.black[20],
+              }),
+            ]
+          : [
+              background(COLOR.background.neutral.low),
+              border({
+                borderWidth: 1,
+                color: COLOR.black[0],
+              }),
+            ],
+      ]}>
       <Pressable onPress={() => setIsOpen(value => !value)}>
-        <View className="flex flex-row justify-between items-center">
-          <View className="flex flex-row items-center">
-            {logo[platform.name as keyof typeof logo]}
+        <View style={[flex.flexRow, justify.between, items.center]}>
+          <View style={[flex.flexRow, items.center, gap.xsmall]}>
+            <PlatformIcon platform={platform.name} />
             <Text
-              style={textColor(COLOR.black[100])}
-              className={`${isOpen ? 'font-semibold' : 'font-normal'} ml-1`}>
+              className="font-semibold"
+              style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
               {platform.name}
             </Text>
           </View>
-          {isOpen ? (
-            <ChevronUp width={10} height={10} fill={COLOR.black[100]} />
-          ) : (
-            <ChevronDown width={10} height={10} fill={COLOR.black[100]} />
-          )}
+          <View
+            style={[
+              {
+                transform: [
+                  {
+                    rotate: !isOpen ? '90deg' : '-90deg',
+                  },
+                ],
+              },
+            ]}>
+            <ChevronRight />
+          </View>
         </View>
       </Pressable>
       {isOpen &&
-        platform.tasks.map((t, idx) => (
-          <View key={idx}>
-            <View className="flex flex-row items-center ml-2 mt-1">
-              <Checkmark color={COLOR.black[100]} width={20} height={20} />
-              {/* TODO: fix, show desc etc */}
-              <Text style={textColor(COLOR.black[100])} className="ml-1">
-                {t.name}
+        platform.tasks.map((task, idx) => (
+          <View key={idx} style={[flex.flexRow, items.start, gap.xsmall]}>
+            <Checkmark color={COLOR.green[50]} width={20} height={20} />
+            <View style={[flex.flexCol, gap.xsmall2]}>
+              <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                {campaignTaskToString(task)}
               </Text>
-              <View style={flex.flexRow}>
-                <Text style={textColor(COLOR.green[50])} className="ml-1">
-                  x
-                </Text>
-                <Text style={textColor(COLOR.green[50])} className="ml-1">
-                  {t.quantity}
-                </Text>
-              </View>
+              <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                {task.description}
+              </Text>
             </View>
-            <Text className="ml-7" numberOfLines={2}>
-              {t.description}
-            </Text>
           </View>
         ))}
     </View>

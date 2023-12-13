@@ -23,6 +23,7 @@ import RatingStar from '../../assets/vectors/rating-star.svg';
 import Campaign from '../../assets/vectors/campaign.svg';
 import Cooperation from '../../assets/vectors/cooperation.svg';
 import Search from '../../assets/vectors/search.svg';
+import Date from '../../assets/vectors/date.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path, SvgProps} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
@@ -440,6 +441,21 @@ export const SearchIcon = ({
       color={color}
       fill={fill}
       strokeWidth={strokeWidth}
+      {...props}
+    />
+  );
+};
+
+export const DateIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  ...props
+}: IconProps) => {
+  return (
+    <Date
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
       {...props}
     />
   );

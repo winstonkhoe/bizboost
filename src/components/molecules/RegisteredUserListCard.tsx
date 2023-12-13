@@ -39,6 +39,8 @@ import {dimension} from '../../styles/Dimension';
 import {background} from '../../styles/BackgroundColor';
 import {StyleSheet} from 'react-native';
 import {padding} from '../../styles/Padding';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {SkeletonPlaceholder} from './SkeletonPlaceholder';
 
 type Props = {
   transaction: Transaction;
@@ -155,15 +157,27 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
 
 const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const [campaign, setCampaign] = useState<Campaign>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(setCampaign);
+    if (transaction.campaignId) {
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => {
+          setCampaign(null);
+        });
+    }
   }, [transaction]);
 
   const [businessPeople, setBusinessPeople] = useState<User | null>();
 
   useEffect(() => {
-    User.getById(transaction.businessPeopleId || '').then(setBusinessPeople);
+    if (transaction.businessPeopleId) {
+      User.getById(transaction.businessPeopleId)
+        .then(setBusinessPeople)
+        .catch(() => {
+          setBusinessPeople(null);
+        });
+    }
   }, [transaction]);
 
   return (
@@ -183,13 +197,9 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
           });
         }
       }}
-      imageSource={
-        campaign?.image
-          ? {
-              uri: campaign?.image,
-            }
-          : require('../../assets/images/bizboost-avatar.png')
-      }
+      imageSource={getSourceOrDefaultAvatar({
+        uri: campaign?.image,
+      })}
       bodyText={campaign?.title || ''}
       statusText={transaction.status}
       statusType={
@@ -237,6 +247,7 @@ export const BaseCard = ({
   handleClickAccept,
   bodyContent,
 }: BaseCardProps) => {
+  const isLoading = !headerTextLeading || !bodyText;
   return (
     <View
       className="overflow-hidden"
@@ -262,59 +273,63 @@ export const BaseCard = ({
           items.center,
           styles.bottomBorder,
         ]}>
-        <View style={[flex.flexRow, items.center, gap.xsmall]}>
-          {icon}
-          {/* {isPrivate && (
-              <Private width={15} height={15} stroke={COLOR.black[40]} />
-            )} */}
-          <Text
-            style={[
-              textColor(
-                handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
-              ),
-              font.size[20],
-            ]}
-            className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
-            numberOfLines={1}>
-            {headerTextLeading}
-          </Text>
-        </View>
-        {typeof headerTextTrailing === 'string' ? (
-          <Text
-            style={[textColor(COLOR.text.neutral.med), font.size[20]]}
-            className="max-w-[33%]"
-            numberOfLines={1}>
-            {headerTextTrailing}
-          </Text>
-        ) : (
-          headerTextTrailing
-        )}
+        <SkeletonPlaceholder isLoading={isLoading}>
+          <View style={[flex.flexRow, items.center, gap.xsmall]}>
+            {icon}
+            {/* {isPrivate && (
+            <Private width={15} height={15} stroke={COLOR.black[40]} />
+          )} */}
+            <Text
+              style={[
+                textColor(
+                  handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
+                ),
+                font.size[20],
+              ]}
+              className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
+              numberOfLines={1}>
+              {headerTextLeading}
+            </Text>
+          </View>
+        </SkeletonPlaceholder>
+        <SkeletonPlaceholder isLoading={isLoading}>
+          {typeof headerTextTrailing === 'string' ? (
+            <Text
+              style={[textColor(COLOR.text.neutral.med), font.size[20]]}
+              numberOfLines={1}>
+              {headerTextTrailing}
+            </Text>
+          ) : (
+            headerTextTrailing
+          )}
+        </SkeletonPlaceholder>
       </Pressable>
       <Pressable
         onPress={handleClickBody}
         style={[flex.flexRow, items.center, justify.between, padding.default]}>
-        <View style={[flex.flexRow, items.center]}>
-          <View
-            className="mr-2 items-center justify-center overflow-hidden"
-            style={[flex.flexRow, rounded.default, imageDimension]}>
-            <FastImage style={[dimension.full]} source={imageSource} />
-          </View>
-          <View
-            className="w-2/3"
-            style={[flex.flexCol, gap.xsmall, items.start]}>
-            <Text
-              className="font-semibold"
-              style={[font.size[30], textColor(COLOR.text.neutral.high)]}
-              numberOfLines={1}>
-              {bodyText}
-            </Text>
-            {statusText && (
-              <StatusTag status={statusText} statusType={statusType} />
-            )}
-            {bodyContent}
-          </View>
+        <View style={[flex.flexRow, gap.default, items.center]}>
+          <SkeletonPlaceholder isLoading={isLoading}>
+            <View
+              className="items-center justify-center overflow-hidden"
+              style={[flex.flexRow, rounded.default, imageDimension]}>
+              <FastImage style={[dimension.full]} source={imageSource} />
+            </View>
+          </SkeletonPlaceholder>
+          <SkeletonPlaceholder isLoading={isLoading}>
+            <View style={[flex.flexCol, gap.xsmall, items.start]}>
+              <Text
+                className="font-semibold"
+                style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+                numberOfLines={1}>
+                {bodyText}
+              </Text>
+              {statusText && (
+                <StatusTag status={statusText} statusType={statusType} />
+              )}
+              {bodyContent}
+            </View>
+          </SkeletonPlaceholder>
         </View>
-        <ChevronRight fill={COLOR.black[20]} />
       </Pressable>
       {doesNeedApproval && (
         <View style={[flex.flexRow]}>

@@ -5,8 +5,10 @@ const isDarkMode = colorScheme === 'dark';
 
 const black = {
   100: '#000000',
-  90: '#12171D', //importance text. heading, title
-  80: '#19222A',
+  90: '#0C0C0F', //importance text. heading, title
+  // 90: '#12171D', //importance text. heading, title
+  80: '#101014',
+  // 80: '#19222A',
   70: '#28323B',
   60: '#3B444C',
   50: '#4E565E',
@@ -102,9 +104,9 @@ export const COLOR = {
   background: {
     neutral: {
       default: `${black[isDarkMode ? 90 : 0]}`,
-      low: `${black[isDarkMode ? 90 : 1]}`,
-      med: `${black[isDarkMode ? 80 : 5]}`,
-      high: `${black[isDarkMode ? 80 : 20]}`,
+      low: `${black[isDarkMode ? 80 : 1]}`,
+      med: `${black[isDarkMode ? 70 : 5]}`,
+      high: `${black[isDarkMode ? 60 : 20]}`,
       disabled: `${black[isDarkMode ? 90 : 10]}`,
     },
     green: {
