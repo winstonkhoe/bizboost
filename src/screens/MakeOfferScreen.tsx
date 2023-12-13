@@ -11,7 +11,7 @@ import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {FormFieldHelper} from '../components/atoms/FormLabel';
 import {gap} from '../styles/Gap';
 import {CustomNumberInput, CustomTextInput} from '../components/atoms/Input';
-import {SelectCampaignOffer} from './makeOffer/SelectCampaignOffer';
+import {SelectCampaignOffer} from './offers/SelectCampaignOffer';
 import {Campaign} from '../model/Campaign';
 import {
   HorizontalPadding,

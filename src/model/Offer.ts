@@ -117,11 +117,25 @@ export class Offer extends BaseModel {
   static getDocumentReference(
     documentId: string,
   ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    //TODO: tidy up, move somewhere else neater
     firestore().settings({
       ignoreUndefinedProperties: true,
     });
     return this.getCampaignCollections().doc(documentId);
+  }
+
+  static async getById(id: string): Promise<Offer> {
+    try {
+      const snapshot = await this.getDocumentReference(id).get();
+      if (!snapshot.exists) {
+        throw Error('Transaction not found!');
+      }
+
+      const offer = this.fromSnapshot(snapshot);
+      return offer;
+    } catch (error) {
+      console.error('Error in getById:', error);
+    }
+    throw Error('Error!');
   }
 
   async insert() {

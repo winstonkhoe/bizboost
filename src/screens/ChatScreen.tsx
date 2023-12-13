@@ -187,32 +187,8 @@ const ChatScreen = ({route}: Props) => {
     setIsExpanded(!isExpanded);
   };
 
-  useEffect(() => {
-    if (offers.length < 2) {
-      setIsExpanded(true);
-    }
-  }, [offers.length]);
-
   const acceptOffer = (offer: Offer) => {
-    offer.accept().then(async () => {
-      const rejectedOffers = Offer.filterByCampaignId(
-        offers,
-        offer.campaignId ?? '',
-      );
-
-      for (let i = 0; i < rejectedOffers.length; i++) {
-        console.log('Rejected offer:', rejectedOffers[i].toString());
-        await rejectedOffers[i].reject();
-      }
-
-      Transaction.getById(offer.campaignId ?? '' + offer.contentCreatorId).then(
-        transaction => {
-          if (transaction) {
-            transaction.acceptOffer(offer.offeredPrice ?? 0);
-          }
-        },
-      );
-    });
+    offer.accept();
   };
 
   const declineOffer = (offer: Offer) => {
@@ -234,12 +210,11 @@ const ChatScreen = ({route}: Props) => {
 
         {/* Floating Tab */}
         {offers && offers.length > 0 && (
-          <View className="w-full">
+          <View className="w-full relative z-10">
             <View>
               <ScrollView
                 scrollEnabled={isExpanded}
-                className={`${!isExpanded ?? 'h-16'}`}
-                style={(flex.flexCol, isExpanded ?? styles.scroll)}>
+                style={[flex.flexCol, isExpanded ? styles.scroll : null]}>
                 <View
                   style={flex.flexCol}
                   className="px-1 pt-1 rounded-t-md z-50">
@@ -358,7 +333,7 @@ export default ChatScreen;
 
 const styles = StyleSheet.create({
   scroll: {
-    height: 60,
+    maxHeight: 300,
   },
   meatball: {
     width: 100,
@@ -366,7 +341,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 20,
     right: 5,
-    zIndex: 300,
+    zIndex: 1,
   },
 });
 
@@ -410,18 +385,16 @@ const OfferCard = ({
   };
 
   return (
-    <View
-      className="px-3 pb-2 justify-between items-center"
-      style={flex.flexRow}>
+    <View className="px-3 pb-2 justify-between" style={flex.flexRow}>
       <View
         style={flex.flexRow}
-        className="flex-1 justify-between items-start py-1">
+        className="flex-1 justify-between items-center py-1">
         <Pressable
           style={flex.flexRow}
           className="items-start"
           onPress={() => {
-            navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
-              campaignId: offer?.campaignId || '',
+            navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+              offerId: offer?.id || '',
             });
           }}>
           <View

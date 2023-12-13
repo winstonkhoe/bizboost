@@ -97,6 +97,32 @@ export const openNegotiateModal = ({
   );
 };
 
+interface OfferActionProps {
+  offer: Offer;
+  navigation: NavigationStackProps;
+  onNegotiationComplete: (fee: string) => void;
+}
+export const openOfferActionModal = ({
+  offer,
+  navigation,
+  onNegotiationComplete,
+}: OfferActionProps) => {
+  const eventType = 'callback.action';
+  navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
+    offer: selectedOffer,
+    eventType: eventType,
+  });
+
+  const listener = DeviceEventEmitter.addListener(eventType, fee => {
+    onNegotiationComplete(fee);
+  });
+
+  const closeListener = DeviceEventEmitter.addListener('close.action', () => {
+    listener.remove();
+    closeListener.remove();
+  });
+};
+
 interface CampaignModalProps {
   selectedCampaign: Campaign;
   setSelectedCampaign: (campaign: Campaign) => void;
