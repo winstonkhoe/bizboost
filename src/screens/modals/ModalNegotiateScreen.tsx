@@ -59,9 +59,13 @@ const ModalNegotiateScreen = ({route}: Props) => {
   const methods = useForm<NegotiateFormData>({
     mode: 'all',
     defaultValues: {
-      fee: offer.offeredPrice,
-      importantNotes: offer.importantNotes,
-      platforms: campaign.platformTasks,
+      fee: offer.negotiatedPrice ? offer.negotiatedPrice : offer.offeredPrice,
+      importantNotes: offer.negotiatedNotes
+        ? offer.negotiatedNotes
+        : offer.importantNotes,
+      platforms: offer.negotiatedTasks
+        ? offer.negotiatedTasks
+        : campaign.platformTasks,
     },
   });
 
@@ -162,7 +166,6 @@ const ModalNegotiateScreen = ({route}: Props) => {
                       <CustomNumberInput
                         name="fee"
                         type="field"
-                        defaultValue={offer.offeredPrice}
                         rules={{
                           required: 'Fee is required',
                           min: 500000,
@@ -298,7 +301,6 @@ const ModalNegotiateScreen = ({route}: Props) => {
           <VerticalPadding>
             <CustomButton
               text="Negotiate"
-              // disabled={selectedCampaign === null}
               onPress={methods.handleSubmit(onSubmit)}
             />
           </VerticalPadding>

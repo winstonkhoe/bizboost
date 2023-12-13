@@ -299,6 +299,12 @@ export class User extends BaseModel {
     return unsubscribe;
   }
 
+  static extractIdFromRef(ref: string): string {
+    const parts = ref.split('/');
+    const id = parts[parts.length - 1];
+    return id;
+  }
+
   static async getByIds(documentIds: string[]): Promise<User[]> {
     try {
       const users = await this.getCollectionReference()
