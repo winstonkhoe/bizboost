@@ -74,6 +74,7 @@ const ReportDetailScreen = ({route}: Props) => {
   const [isReportSheetModalOpen, setIsReportSheetModalOpen] =
     useState<boolean>(false);
   const [actionTakenReason, setActionTakenReason] = useState<string>('');
+  const [warningNotes, setWarningNotes] = useState<string>('');
   const [selectedActionTaken, setSelectedActionTaken] = useState<ActionTaken>();
   const reportViewPagerRef = useRef<PagerView>(null);
   const [report, setReport] = useState<Report | null>(null);
@@ -143,6 +144,7 @@ const ReportDetailScreen = ({route}: Props) => {
       .resolve(
         selectedActionTaken,
         actionTakenReason.length > 0 ? actionTakenReason : undefined,
+        warningNotes.length > 0 ? warningNotes : undefined,
       )
       .then(() => {
         setIsLoading(false);
@@ -300,7 +302,7 @@ const ReportDetailScreen = ({route}: Props) => {
         enableHandlePanningGesture={false}
         enableOverDrag={false}
         overDragResistanceFactor={0}
-        snapPoints={reportIndex === 0 ? [300] : ['90%']}
+        snapPoints={reportIndex === 0 ? [300] : ['90%', '100%']}
         enableDynamicSizing={false}>
         <BottomSheetModalWithTitle
           title={'Report'}
@@ -354,42 +356,14 @@ const ReportDetailScreen = ({route}: Props) => {
             </View>
             <View
               key={1}
-              style={[
-                flex.grow,
-                flex.flexCol,
-                gap.medium,
-                padding.top.medium,
-                padding.horizontal.default,
-              ]}>
-              <View style={[flex.flexRow, gap.small, items.start]}>
-                <View
-                  className="overflow-hidden"
-                  style={[dimension.square.large, rounded.max]}>
-                  <FastImage
-                    source={getSourceOrDefaultAvatar({
-                      uri: isReporterCampaignOwner
-                        ? reporterUser.businessPeople?.profilePicture
-                        : reporterUser.contentCreator?.profilePicture,
-                    })}
-                    style={[dimension.full]}
-                  />
-                </View>
-                <View style={[flex.flex1, flex.flexCol, gap.xsmall]}>
-                  <Text
-                    className="font-medium"
-                    style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                    Report to be resolved
-                  </Text>
-                  <ReportCard
-                    isReporterCampaignOwner={isReporterCampaignOwner}
-                    reportedUser={reportedUser}
-                    reporterUser={reporterUser}
-                    report={report}
-                  />
-                </View>
-              </View>
+              style={[flex.grow, flex.flexCol, gap.medium, padding.top.medium]}>
               {selectedActionTaken && (
-                <View style={[flex.flexCol, gap.xsmall]}>
+                <View
+                  style={[
+                    flex.flexCol,
+                    gap.xsmall,
+                    padding.horizontal.default,
+                  ]}>
                   <Text
                     className="font-bold"
                     style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
@@ -402,26 +376,101 @@ const ReportDetailScreen = ({route}: Props) => {
                 </View>
               )}
               <View style={[flex.flex1, flex.flexCol, gap.small]}>
-                <FormFieldHelper title="Describe your reason" titleSize={30} />
-                <BottomSheetScrollView style={[flex.flex1, flex.flexCol]}>
-                  <FormlessCustomTextInput
-                    type="textarea"
-                    rules={{
-                      required: 'Reason for the action taken is required',
-                    }}
-                    counter
-                    description="Min. 30 character, Max. 500 character"
-                    placeholder="Describe your reason here"
-                    max={500}
-                    onChange={setActionTakenReason}
-                  />
+                <BottomSheetScrollView
+                  style={[flex.flex1, flex.flexCol]}
+                  contentContainerStyle={[
+                    flex.flexCol,
+                    gap.small,
+                    padding.horizontal.default,
+                  ]}
+                  stickyHeaderIndices={[1, 3]}>
+                  <View style={[flex.flexRow, gap.small, items.start]}>
+                    <View
+                      className="overflow-hidden"
+                      style={[dimension.square.large, rounded.max]}>
+                      <FastImage
+                        source={getSourceOrDefaultAvatar({
+                          uri: isReporterCampaignOwner
+                            ? reporterUser.businessPeople?.profilePicture
+                            : reporterUser.contentCreator?.profilePicture,
+                        })}
+                        style={[dimension.full]}
+                      />
+                    </View>
+                    <View style={[flex.flex1, flex.flexCol, gap.xsmall]}>
+                      <Text
+                        className="font-medium"
+                        style={[
+                          font.size[20],
+                          textColor(COLOR.text.neutral.med),
+                        ]}>
+                        Report to be resolved
+                      </Text>
+                      <ReportCard
+                        isReporterCampaignOwner={isReporterCampaignOwner}
+                        reportedUser={reportedUser}
+                        reporterUser={reporterUser}
+                        report={report}
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={[
+                      background(COLOR.background.neutral.default),
+                      padding.top.medium,
+                      padding.bottom.xsmall,
+                    ]}>
+                    <FormFieldHelper
+                      title="Describe your reason"
+                      titleSize={30}
+                    />
+                  </View>
+                  <View style={[padding.bottom.medium]}>
+                    <FormlessCustomTextInput
+                      type="textarea"
+                      rules={{
+                        required: 'Reason for the action taken is required',
+                      }}
+                      counter
+                      description="Min. 30 character, Max. 500 character"
+                      placeholder="Describe your reason here"
+                      max={500}
+                      onChange={setActionTakenReason}
+                    />
+                  </View>
+                  {selectedActionTaken === ActionTaken.warningIssued && (
+                    <FormFieldHelper
+                      title="Warning Notes"
+                      description="Reported user will see the notes when they open the app"
+                      titleSize={30}
+                    />
+                  )}
+                  {selectedActionTaken === ActionTaken.warningIssued && (
+                    <FormlessCustomTextInput
+                      type="textarea"
+                      rules={{
+                        required: 'Reason for the action taken is required',
+                      }}
+                      counter
+                      description="Min. 30 character, Max. 500 character"
+                      placeholder="Describe your reason here"
+                      max={500}
+                      onChange={setWarningNotes}
+                    />
+                  )}
                 </BottomSheetScrollView>
               </View>
-              <CustomButton
-                text="Submit"
-                disabled={actionTakenReason.length < 30}
-                onPress={resolveReport}
-              />
+              <View style={[padding.horizontal.default]}>
+                <CustomButton
+                  text="Submit"
+                  disabled={
+                    actionTakenReason.length < 30 ||
+                    (selectedActionTaken === ActionTaken.warningIssued &&
+                      warningNotes.length < 30)
+                  }
+                  onPress={resolveReport}
+                />
+              </View>
             </View>
           </PagerView>
         </BottomSheetModalWithTitle>

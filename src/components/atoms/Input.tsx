@@ -220,6 +220,9 @@ export const CustomTextInput = ({
                   </View>
                 )}
                 <TextInput
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  scrollEnabled={false}
                   keyboardType={
                     keyboardType
                       ? keyboardType
