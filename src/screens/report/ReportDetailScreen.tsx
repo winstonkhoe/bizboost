@@ -91,11 +91,7 @@ const ReportDetailScreen = ({route}: Props) => {
 
   useEffect(() => {
     if (report?.transactionId) {
-      Transaction.getById(report.transactionId)
-        .then(setTransaction)
-        .catch(() => {
-          setTransaction(null);
-        });
+      return Transaction.getById(report.transactionId, setTransaction);
     }
   }, [report]);
 

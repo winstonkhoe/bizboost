@@ -152,11 +152,7 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [campaign, uid]);
 
   useEffect(() => {
-    Transaction.getById(transactionId)
-      .then(setTransaction)
-      .catch(() => {
-        setTransaction(null);
-      });
+    return Transaction.getById(transactionId, setTransaction);
   }, [transactionId]);
 
   useEffect(() => {

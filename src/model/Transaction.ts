@@ -401,17 +401,29 @@ export class Transaction extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  static async getById(id: string): Promise<Transaction> {
+  static getById(
+    id: string,
+    onComplete: (transaction: Transaction | null) => void,
+  ) {
     try {
-      const snapshot = await this.getDocumentReference(id).get();
-      if (!snapshot.exists) {
-        throw Error('Transaction not found!');
-      }
+      const unsubscribe = Transaction.getDocumentReference(id).onSnapshot(
+        docSnapshot => {
+          if (docSnapshot.exists) {
+            onComplete(Transaction.fromSnapshot(docSnapshot));
+            return;
+          }
+          onComplete(null);
+        },
+        error => {
+          console.log(error);
+        },
+      );
 
-      const transaction = this.fromSnapshot(snapshot);
-      return transaction;
-    } catch (error) {}
-    throw Error('Error!');
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Transaction.getById Error: ' + error);
+    }
   }
 
   static getCollectionReference = () => {

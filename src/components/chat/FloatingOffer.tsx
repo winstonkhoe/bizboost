@@ -75,7 +75,8 @@ const FloatingOffer = ({
         await rejectedOffers[i].reject();
       }
 
-      Transaction.getById(offer.campaignId ?? '' + offer.contentCreatorId).then(
+      Transaction.getById(
+        offer.campaignId ?? '' + offer.contentCreatorId,
         transaction => {
           if (transaction) {
             transaction.acceptOffer(offer.offeredPrice ?? 0);

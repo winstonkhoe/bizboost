@@ -85,7 +85,7 @@ const ModalSubmitBrainstorm = ({route}: Props) => {
   }, [transaction, resetOriginalField]);
 
   useEffect(() => {
-    Transaction.getById(transactionId, setTransaction);
+    return Transaction.getById(transactionId, setTransaction);
   }, [transactionId]);
 
   const submitBrainstorm = () => {

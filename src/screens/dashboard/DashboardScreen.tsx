@@ -50,11 +50,7 @@ const DashboardScreen = () => {
       <SafeAreaContainer enable>
         <ScrollView
           style={[flex.flex1]}
-          contentContainerStyle={[
-            flex.flexCol,
-            gap.default,
-            padding.top.medium,
-          ]}>
+          contentContainerStyle={[flex.flexCol, gap.default]}>
           <DashboardPanel />
           <ScrollView
             horizontal
