@@ -22,7 +22,7 @@ import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import Private from '../../assets/vectors/private.svg';
 import Public from '../../assets/vectors/public.svg';
 import Business from '../../assets/vectors/business.svg';
-import StatusTag from '../atoms/StatusTag';
+import StatusTag, {StatusType} from '../atoms/StatusTag';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -35,6 +35,7 @@ import {ImageRequireSource} from 'react-native';
 import PaymentSheetModal from './PaymentSheetModal';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
+import {dimension} from '../../styles/Dimension';
 
 type Props = {
   transaction: Transaction;
@@ -90,7 +91,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           )
         }
         headerTextLeading={campaign?.title || ''}
-        headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+        // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
         handleClickBody={() => {
           console.log('open transaction ', transaction.id, ' detail');
           if (transaction.id) {
@@ -108,6 +109,11 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         }
         bodyText={contentCreator?.contentCreator?.fullname || ''}
         statusText={transaction.status}
+        statusType={
+          transactionStatusTypeMap[
+            transaction.status || TransactionStatus.terminated
+          ]
+        }
         doesNeedApproval={
           transaction.status === TransactionStatus.registrationPending &&
           transaction.payment === undefined
@@ -166,7 +172,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       }}
       icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
       headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
-      headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+      // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
         if (transaction.id) {
           navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
@@ -183,36 +189,50 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       }
       bodyText={campaign?.title || ''}
       statusText={transaction.status}
+      statusType={
+        transactionStatusTypeMap[
+          transaction.status || TransactionStatus.terminated
+        ]
+      }
     />
   );
 };
 
 // MARK: kalo mau edit base card dari sini
 type BaseCardProps = {
-  handleClickHeader: () => void;
+  handleClickHeader?: () => void;
   icon?: ReactNode;
   headerTextLeading: string;
-  headerTextTrailing: string;
+  headerTextTrailing?: string | ReactNode;
   handleClickBody: () => void;
   imageSource: Source | ImageRequireSource;
+  imageDimension?: typeof dimension.square.xlarge3;
   bodyText: string;
-  statusText?: TransactionStatus;
+
+  // TODO: kalo sempet rapihin bodycontent sama status
+  bodyContent?: ReactNode;
+  statusText?: string;
+  statusType?: StatusType;
+
   doesNeedApproval?: boolean;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
 };
-const BaseCard = ({
+export const BaseCard = ({
   handleClickHeader,
   icon,
   headerTextLeading,
   headerTextTrailing,
   handleClickBody,
   imageSource = require('../../assets/images/bizboost-avatar.png'),
+  imageDimension = dimension.square.xlarge3,
   bodyText,
   statusText,
+  statusType,
   doesNeedApproval = false,
   handleClickReject,
   handleClickAccept,
+  bodyContent,
 }: BaseCardProps) => {
   return (
     <View
@@ -228,37 +248,52 @@ const BaseCard = ({
               <Private width={15} height={15} stroke={COLOR.black[40]} />
             )} */}
           <Text
-            style={[textColor(COLOR.green[50]), font.size[20]]}
-            numberOfLines={1}
-            className="w-2/3">
+            style={[
+              textColor(
+                handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
+              ),
+              font.size[20],
+            ]}
+            className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
+            numberOfLines={1}>
             {headerTextLeading}
           </Text>
         </View>
+        {typeof headerTextTrailing === 'string' ? (
+          <Text
+            style={[textColor(COLOR.text.neutral.med), font.size[20]]}
+            className="max-w-[33%]"
+            numberOfLines={1}>
+            {headerTextTrailing}
+          </Text>
+        ) : (
+          headerTextTrailing
+        )}
       </Pressable>
       <Pressable
         onPress={handleClickBody}
         className="flex flex-row items-center px-3 py-4 justify-between">
         <View className="flex flex-row items-center">
           <View
-            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-            style={[flex.flexRow, rounded.default]}>
+            className="mr-2 items-center justify-center overflow-hidden"
+            style={[flex.flexRow, rounded.default, imageDimension]}>
             <FastImage
               className="w-full h-full object-cover"
               source={imageSource}
             />
           </View>
-          <View className="flex flex-col items-start w-3/4">
+          <View
+            className="flex flex-col items-start w-2/3"
+            style={[gap.xsmall]}>
             <Text className="font-semibold text-base " numberOfLines={1}>
               {bodyText}
             </Text>
             {statusText && (
               <View>
-                <StatusTag
-                  status={`${statusText}`}
-                  statusType={transactionStatusTypeMap[statusText]}
-                />
+                <StatusTag status={statusText} statusType={statusType} />
               </View>
             )}
+            {bodyContent}
           </View>
         </View>
         <ChevronRight fill={COLOR.black[20]} />

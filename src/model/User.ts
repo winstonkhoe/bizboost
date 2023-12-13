@@ -17,6 +17,7 @@ import {AuthMethod, Provider, Providers} from './AuthMethod';
 import {Category} from './Category';
 import {Location} from './Location';
 import {deleteFileByURL} from '../helpers/storage';
+import {StatusType} from '../components/atoms/StatusTag';
 
 const USER_COLLECTION = 'users';
 
@@ -36,6 +37,13 @@ export enum UserStatus {
   Suspended = 'Suspended',
 }
 
+type UserStatusMap = {
+  [key in UserStatus]: StatusType;
+};
+export const userStatusTypeMap: UserStatusMap = {
+  [UserStatus.Active]: StatusType.success,
+  [UserStatus.Suspended]: StatusType.danger,
+};
 export interface BankAccountInformation {
   bankName: string;
   accountHolderName: string;

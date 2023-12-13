@@ -310,36 +310,34 @@ const HomeScreen = () => {
               </View>
             </View>
           </View>
-          {isAdmin && (
-            <HorizontalPadding>
-              <View className="my-4" style={[flex.flexCol]}>
-                <HomeSectionHeader
-                  header="Users"
-                  link={userLimit === 3 ? 'See All' : 'Collapse'}
-                  onPressLink={() =>
-                    setUserLimit(userLimit === 3 ? users.length : 3)
-                  }
-                />
-                <View style={[flex.flexCol, gap.medium]} className="mt-4">
-                  {users.slice(0, userLimit).map((u, index) => (
-                    <Pressable
-                      key={index}
-                      onPress={() => {
-                        navigation.navigate(
-                          AuthenticatedNavigation.UserDetail,
-                          {
-                            userId: u.id || '',
-                          },
-                        );
-                      }}>
-                      <UserListCard user={u} />
-                    </Pressable>
-                  ))}
-                </View>
+        </>
+        {isAdmin && (
+          <HorizontalPadding>
+            <View className="my-4" style={[flex.flexCol]}>
+              <HomeSectionHeader
+                header="Users"
+                link={userLimit === 3 ? 'See All' : 'Collapse'}
+                onPressLink={() =>
+                  setUserLimit(userLimit === 3 ? users.length : 3)
+                }
+              />
+              <View style={[flex.flexCol, gap.medium]} className="mt-4">
+                {users.slice(0, userLimit).map((u, index) => (
+                  // <Pressable
+                  //   key={index}
+                  //   onPress={() => {
+                  //     navigation.navigate(AuthenticatedNavigation.UserDetail, {
+                  //       userId: u.id || '',
+                  //     });
+                  //   }}>
+                  <UserListCard user={u} key={index} />
+                  // </Pressable>
+                ))}
               </View>
-            </HorizontalPadding>
-          )}
-          {isAdmin && (
+            </View>
+          </HorizontalPadding>
+        )}
+        {isAdmin && (
             <HorizontalPadding>
               <View className="my-4" style={[flex.flexCol]}>
                 <HomeSectionHeader
@@ -366,7 +364,7 @@ const HomeScreen = () => {
               </View>
             </HorizontalPadding>
           )}
-        </SearchAutocompletePlaceholder>
+          </SearchAutocompletePlaceholder>
       </ScrollView>
       {isBusinessPeople && (
         <View

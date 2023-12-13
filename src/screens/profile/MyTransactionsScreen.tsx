@@ -8,34 +8,38 @@ import {useUser} from '../../hooks/user';
 import {useEffect, useState} from 'react';
 import {Transaction} from '../../model/Transaction';
 import {padding} from '../../styles/Padding';
-
-const MyTransactionsScreen = () => {
-  const {uid, activeRole} = useUser();
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {
+  AuthenticatedNavigation,
+  AuthenticatedStack,
+} from '../../navigation/StackNavigation';
+type Props = NativeStackScreenProps<
+  AuthenticatedStack,
+  AuthenticatedNavigation.MyTransactions
+>;
+const MyTransactionsScreen = ({route}: Props) => {
+  const {userId, role} = route.params;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   useEffect(() => {
     const unsubscribe = Transaction.getAllTransactionsByRole(
-      uid || '',
-      activeRole,
+      userId || '',
+      role,
       t => setTransactions(t),
     );
 
     return unsubscribe;
-  }, [uid, activeRole]);
+  }, [userId, role]);
   return (
     <SafeAreaContainer enable>
       <CloseModal />
       <ScrollView>
         <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-          <Text className="text-lg font-bold">My Transactions</Text>
+          <Text className="text-lg font-bold">Transactions</Text>
           {transactions.length <= 0 ? (
             <Text>No transaction yet!</Text>
           ) : (
             transactions.map((t, index) => (
-              <RegisteredUserListCard
-                key={index}
-                transaction={t}
-                role={activeRole}
-              />
+              <RegisteredUserListCard key={index} transaction={t} role={role} />
             ))
           )}
         </View>

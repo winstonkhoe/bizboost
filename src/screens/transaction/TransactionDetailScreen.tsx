@@ -1809,6 +1809,7 @@ interface CollapsiblePanelProps {
   children: ReactNode;
 }
 
+// TODO: pindah file
 export const CollapsiblePanel = ({
   visibleText = 'Show less',
   hiddenText = 'Show more',

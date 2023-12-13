@@ -228,24 +228,27 @@ const ProfileScreen = () => {
                   }}>
                   <View key="1">
                     <View className="flex flex-row flex-wrap justify-between items-center">
-                      <ProfileMenuCard
-                        handleOnClick={() => {
-                          navigation.navigate(
-                            AuthenticatedNavigation.MyTransactions,
-                          );
-                        }}
-                        icon={
-                          <TransactionIcon
-                            fill={'#72B3FF'}
-                            height={80}
-                            width={80}
-                          />
-                        }
-                        title="My Transactions"
-                        subtitle={`${ongoingTransactionsCount} Ongoing\n${
-                          transactions.length - ongoingTransactionsCount
-                        } Finished`}
-                      />
+                      {activeRole !== UserRole.Admin && (
+                        <ProfileMenuCard
+                          handleOnClick={() => {
+                            navigation.navigate(
+                              AuthenticatedNavigation.MyTransactions,
+                              {userId: uid || '', role: activeRole},
+                            );
+                          }}
+                          icon={
+                            <TransactionIcon
+                              fill={'#72B3FF'}
+                              height={80}
+                              width={80}
+                            />
+                          }
+                          title="My Transactions"
+                          subtitle={`${ongoingTransactionsCount} Ongoing\n${
+                            transactions.length - ongoingTransactionsCount
+                          } Finished`}
+                        />
+                      )}
                       <ProfileMenuCard
                         handleOnClick={() => {
                           navigation.navigate(AuthenticatedNavigation.AboutMe);
