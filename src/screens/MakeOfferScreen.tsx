@@ -147,7 +147,10 @@ const MakeOfferScreen = ({route}: Props) => {
             <View style={flex.flexCol} className="flex-1 justify-between">
               <View style={flex.flexCol}>
                 <HorizontalPadding paddingSize="large">
-                  <SelectCampaignOffer onCampaignChange={setSelectedCampaign} />
+                  <SelectCampaignOffer
+                    onCampaignChange={setSelectedCampaign}
+                    contentCreatorToOfferId={contentCreatorId}
+                  />
 
                   <View style={[flex.flexCol, gap.default]}>
                     <FormFieldHelper title="Offered Fee" />

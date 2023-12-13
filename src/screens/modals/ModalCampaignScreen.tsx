@@ -44,9 +44,9 @@ const ModalCampaignScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const {initialSelectedCampaign, eventType, contentCreatorToOfferId} =
     route.params;
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign>(
-    initialSelectedCampaign,
-  );
+  const [selectedCampaign, setSelectedCampaign] = useState<
+    Campaign | undefined
+  >(initialSelectedCampaign);
   const {uid} = useUser();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
@@ -56,6 +56,9 @@ const ModalCampaignScreen = ({route}: Props) => {
   console.log(campaigns);
 
   const toggleCampaignSelection = (campaign: Campaign) => {
+    if (selectedCampaign && selectedCampaign.id === campaign.id) {
+      setSelectedCampaign(undefined);
+    }
     setSelectedCampaign(campaign);
   };
 
@@ -71,32 +74,15 @@ const ModalCampaignScreen = ({route}: Props) => {
     return campaigns
       .filter((_, index) => index % 2 === (parityType === 'even' ? 0 : 1))
       .map((campaign: Campaign, index) => {
-        const selectedIndex = selectedCampaign
-          ? selectedCampaign.id === campaign.id
-            ? index
-            : -1
-          : -1;
-
-        let isOffered = false;
-        if (contentCreatorToOfferId) {
-          Offer.hasOfferForContentCreatorAndCampaign(
-            contentCreatorToOfferId,
-            campaign.id,
-          ).then(offer => {
-            isOffered = offer;
-          });
-        }
-
-        console.log(isOffered);
-
         return (
           <CampaignItem
             key={index}
             campaign={campaign}
             isReachLimit={selectedCampaign === null}
-            isSelected={selectedIndex !== -1}
-            selectedIndex={selectedIndex}
-            isOffered={isOffered}
+            isSelected={
+              selectedCampaign ? campaign.id === selectedCampaign.id : false
+            }
+            contentCreatorToOfferId={contentCreatorToOfferId}
             onPress={() => {
               toggleCampaignSelection(campaign);
             }}
@@ -161,18 +147,39 @@ interface CampaignItemProps extends PressableProps {
   campaign: Campaign;
   isSelected: boolean;
   isReachLimit: boolean;
-  isOffered: boolean;
-  selectedIndex: number;
+  contentCreatorToOfferId: string;
 }
 
 const CampaignItem = ({
   campaign,
   isSelected,
   isReachLimit,
-  isOffered,
+  contentCreatorToOfferId,
   ...props
 }: CampaignItemProps) => {
-  return isOffered ? (
+  const [isOffered, setIsOffered] = useState(false);
+
+  useEffect(() => {
+    const fetchOfferStatus = () => {
+      try {
+        Offer.hasOfferForContentCreatorAndCampaign(
+          contentCreatorToOfferId,
+          campaign.id,
+        ).then(offer => {
+          setIsOffered(offer);
+        });
+      } catch (error) {
+        console.error('Error fetching offer:', error);
+        setIsOffered(false);
+      }
+    };
+
+    fetchOfferStatus();
+  }, [contentCreatorToOfferId, campaign.id]);
+
+  console.log(isSelected);
+
+  return !isOffered ? (
     <Pressable {...props}>
       <Animated.View
         className="relative overflow-hidden"
@@ -185,8 +192,8 @@ const CampaignItem = ({
               opacity: 0.5,
             },
         ]}>
-        <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0">
-          <Text className="z-50 text-white opacity-100 font-bold">Offered</Text>
+        <View className="absolute z-20 top-2 right-2">
+          <ImageCounterChip selected={isSelected} size="large" />
         </View>
         <SimpleImageCard
           width="full"
@@ -201,9 +208,7 @@ const CampaignItem = ({
     <Animated.View
       className="relative overflow-hidden"
       style={[flex.flexCol, gap.small, rounded.default]}>
-      <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0 bg-black opacity-50">
-        <Text className="z-50 text-white opacity-100">Offered</Text>
-      </View>
+      <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0 bg-black opacity-50"></View>
       <View className="absolute flex justify-center items-center z-50 top-0 right-0 left-0 bottom-0">
         <Text className="z-50 text-white opacity-100 font-bold">Offered</Text>
       </View>
