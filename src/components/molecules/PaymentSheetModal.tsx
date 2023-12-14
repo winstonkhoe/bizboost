@@ -63,7 +63,6 @@ const PaymentSheetModal = ({
     <>
       <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
         <View
-          className="bg-red-500"
           style={[
             flex.flexCol,
             gap.default,
