@@ -54,6 +54,7 @@ import PagerView from 'react-native-pager-view';
 import {CustomButton} from '../components/atoms/Button';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
+import {Offer} from '../model/Offer';
 
 const HomeScreen = () => {
   const {uid, activeRole} = useUser();
@@ -84,6 +85,7 @@ const HomeScreen = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
 
   // TODO: kalo klik see all apa mending pindah page?
   const [userLimit, setUserLimit] = useState(3);
@@ -92,6 +94,15 @@ const HomeScreen = () => {
     console.log('homeScreen:userGetall');
     const unsubscribe = User.getAll(setUsers);
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    console.log('homeScreen:Offer.getPendingOffersbyUser');
+    try {
+      Offer.getPendingOffersbyUser(uid, activeRole, data => {
+        setOffers(data);
+      });
+    } catch (error) {}
   }, []);
 
   useEffect(() => {
@@ -250,8 +261,12 @@ const HomeScreen = () => {
                 />
               </HorizontalPadding>
               <HorizontalScrollView>
-                {[...Array(10)].map((_item: any, index: number) => (
-                  <RecentNegotiationCard key={index} />
+                {offers.map((offer: any, index: number) => (
+                  <RecentNegotiationCard
+                    key={index}
+                    offer={offer}
+                    navigation={navigation}
+                  />
                 ))}
               </HorizontalScrollView>
             </View>

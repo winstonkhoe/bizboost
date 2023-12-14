@@ -1,12 +1,38 @@
-import {Text, View} from 'react-native';
+import {Pressable, PressableProps, Text, View} from 'react-native';
 import {Label} from '../atoms/Label';
 import {currencyFormat} from '../../utils/currency';
 import {shadow} from '../../styles/Shadow';
 import FastImage from 'react-native-fast-image';
+import {Offer} from '../../model/Offer';
+import {useEffect, useState} from 'react';
+import {Campaign} from '../../model/Campaign';
+import {User} from '../../model/User';
+import {AuthenticatedNavigation, NavigationStackProps} from '../../navigation/StackNavigation';
 
-const RecentNegotiationCard = () => {
+interface RecentNegotiationCardProps extends PressableProps {
+  offer: Offer;
+  navigation: NavigationStackProps;
+}
+
+const RecentNegotiationCard = ({
+  offer,
+  navigation,
+}: RecentNegotiationCardProps) => {
+  const [campaign, setCampaign] = useState<Campaign>();
+  const [businessPeople, setBusinessPeople] = useState<User>();
+
+  useEffect(() => {
+    Campaign.getByIdReactive(offer.campaignId || '', c => setCampaign(c));
+    User.getById(offer.businessPeopleId || '').then(u => setBusinessPeople(u));
+  }, []);
+
   return (
-    <View
+    <Pressable
+      onPress={() => {
+        navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+          offerId: offer?.id || '',
+        });
+      }}
       className="relative w-64 h-40 flex flex-col p-4 my-0.5 rounded-xl bg-white"
       style={[shadow.default]}>
       <View className="w-full flex flex-row">
@@ -19,17 +45,21 @@ const RecentNegotiationCard = () => {
         <View className="flex-1 flex flex-col items-end justify-between">
           <Label text="Offered You" />
           <Text className="font-bold text-base">
-            {currencyFormat(1132500000)}
+            {offer.negotiatedPrice
+              ? currencyFormat(offer.negotiatedPrice)
+              : currencyFormat(offer.offeredPrice)}
           </Text>
         </View>
       </View>
       <View className="mt-4 w-full flex-1 flex flex-col min-w-0">
-        <Text className="font-bold text-xs">Nako Team</Text>
+        <Text className="font-bold text-xs">
+          {businessPeople?.businessPeople?.fullname}
+        </Text>
         <Text numberOfLines={2} className="font-medium">
           Kopi Nako BSD City: The New Destination for Coffee Lovers to hangout
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 };
 

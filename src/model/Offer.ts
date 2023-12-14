@@ -207,6 +207,78 @@ export class Offer extends BaseModel {
     }
   }
 
+  static getPendingOffersbyUser(
+    userId: string,
+    activeRole: UserRole,
+    onComplete: (offers: Offer[]) => void,
+  ) {
+    try {
+      if (activeRole === UserRole.BusinessPeople) {
+        const unsubscribe = firestore()
+          .collection(OFFER_COLLECTION)
+          .where(
+            'businessPeopleId',
+            '==',
+            firestore().collection('users').doc(userId),
+          )
+          .where('status', '==', OfferStatus.negotiate)
+          .where('negotiatedBy', '==', UserRole.ContentCreator)
+          .onSnapshot(
+            querySnapshot => {
+              if (querySnapshot.empty) {
+                onComplete([]);
+              }
+
+              onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            },
+            error => {
+              console.log(error);
+            },
+          );
+
+        return unsubscribe;
+      } else if (activeRole === UserRole.ContentCreator) {
+        const unsubscribe = firestore()
+          .collection(OFFER_COLLECTION)
+          .where(
+            'contentCreatorId',
+            '==',
+            firestore().collection('users').doc(userId),
+          )
+          .where('status', '==', OfferStatus.pending)
+          .get()
+          .then(querySnapshot1 => {
+            const docs1 = querySnapshot1.docs.map(this.fromSnapshot);
+
+            return firestore()
+              .collection(OFFER_COLLECTION)
+              .where('status', '==', OfferStatus.negotiate)
+              .where('negotiatedBy', '==', UserRole.BusinessPeople)
+              .get()
+              .then(querySnapshot2 => {
+                if (querySnapshot1.empty && querySnapshot2.empty) {
+                  onComplete([]);
+                  return;
+                }
+
+                const docs2 = querySnapshot2.docs.map(this.fromSnapshot);
+
+                const combinedDocs = [...docs1, ...docs2];
+                onComplete(combinedDocs);
+              });
+          })
+          .catch(error => {
+            console.log(error);
+          });
+
+        return unsubscribe;
+      }
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
   async accept(): Promise<Offer> {
     this.offeredPrice = this.negotiatedPrice;
     this.importantNotes = this.negotiatedNotes;

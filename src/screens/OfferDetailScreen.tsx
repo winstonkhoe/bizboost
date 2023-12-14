@@ -69,8 +69,10 @@ export const OfferDetailScreen = ({route}: Props) => {
 
   const acceptOffer = () => {
     if (offer) {
-      offer.accept().then(() => {
+      offer.accept().then(acc => {
         const transaction = new Transaction({
+          transactionAmount: acc.offeredPrice,
+          platformTasks: acc.platformTasks,
           contentCreatorId: offer.contentCreatorId ?? '',
           businessPeopleId: offer.businessPeopleId ?? '',
           campaignId: campaign?.id ?? '',
