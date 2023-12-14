@@ -154,31 +154,62 @@ export class Chat extends BaseModel {
     }
   }
 
+  // static getUserChatsReactive(
+  //   userId: string,
+  //   activeRole: string,
+  //   callback: (chats: Chat[], unsubscribe: () => void) => void,
+  // ): void {
+  //   try {
+  //     const userRef = User.getDocumentReference(userId);
+  //     const subscriber = this.getCollectionReference()
+  //       .where('participants', 'array-contains', {
+  //         ref: userRef,
+  //         role: activeRole,
+  //       })
+  //       .onSnapshot(
+  //         (
+  //           querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
+  //         ) => {
+  //           const userChats = this.fromQuerySnapshot(querySnapshots);
+  //           callback(userChats, subscriber);
+  //         },
+  //         (error: Error) => {
+  //           console.log('getUserChatsReactive error', error.message);
+  //         },
+  //       );
+  //   } catch (error) {
+  //     console.log('no access', error);
+  //   }
+  // }
+
   static getUserChatsReactive(
     userId: string,
     activeRole: string,
-    callback: (chats: Chat[], unsubscribe: () => void) => void,
-  ): void {
+    callback: (chats: Chat[]) => void,
+  ) {
     try {
       const userRef = User.getDocumentReference(userId);
-      const subscriber = this.getCollectionReference()
+      const unsubscribe = this.getCollectionReference()
         .where('participants', 'array-contains', {
           ref: userRef,
           role: activeRole,
         })
         .onSnapshot(
-          (
-            querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
-          ) => {
-            const userChats = this.fromQuerySnapshot(querySnapshots);
-            callback(userChats, subscriber);
+          querySnapshots => {
+            if (querySnapshots.empty) {
+              callback([]);
+              return;
+            }
+            callback(this.fromQuerySnapshot(querySnapshots));
           },
           (error: Error) => {
             console.log('getUserChatsReactive error', error.message);
           },
         );
+      return unsubscribe;
     } catch (error) {
       console.log('no access', error);
+      return () => {};
     }
   }
 
