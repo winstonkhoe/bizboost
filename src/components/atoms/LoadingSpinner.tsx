@@ -22,7 +22,7 @@ interface LoadingSpinnerProps {
 export const LoadingSpinner = ({
   primaryColor = COLOR.green[70],
   secondaryColor = COLOR.green[50],
-  size: sizeType = size.xlarge,
+  size: sizeType = 'xlarge2',
 }: LoadingSpinnerProps) => {
   const rotation1 = useSharedValue(0);
   const rotation2 = useSharedValue(180);
