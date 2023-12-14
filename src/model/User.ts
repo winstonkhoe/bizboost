@@ -59,14 +59,14 @@ export interface ContentCreatorPreference {
 export type BaseUserData = {
   fullname: string;
   profilePicture?: string;
+  rating: number;
+  ratedCount: number;
 };
 
 export type ContentCreator = BaseUserData &
   ContentCreatorPreference & {
     specializedCategoryIds: string[];
     preferredLocationIds: string[];
-    rating: number;
-    ratedCount: number;
   };
 
 export type BusinessPeople = BaseUserData;
@@ -124,8 +124,22 @@ export class User extends BaseModel {
     this.email = email;
     this.password = password;
     this.phone = phone;
-    this.contentCreator = contentCreator;
-    this.businessPeople = businessPeople;
+    this.contentCreator = {
+      ...contentCreator,
+      postingSchedules: contentCreator?.postingSchedules || [],
+      preferences: contentCreator?.preferences || [],
+      specializedCategoryIds: contentCreator?.specializedCategoryIds || [],
+      preferredLocationIds: contentCreator?.preferredLocationIds || [],
+      fullname: contentCreator?.fullname || '',
+      rating: contentCreator?.rating || 0,
+      ratedCount: contentCreator?.ratedCount || 0,
+    };
+    this.businessPeople = {
+      ...businessPeople,
+      fullname: businessPeople?.fullname || '',
+      rating: businessPeople?.rating || 0,
+      ratedCount: businessPeople?.ratedCount || 0,
+    };
     this.joinedAt = joinedAt;
     this.isAdmin = isAdmin;
     this.status = status;
@@ -645,6 +659,51 @@ export class User extends BaseModel {
 
   async activate() {
     this.status = UserStatus.Active;
+    await this.updateUserData();
+  }
+
+  async updateRating(newRating: number, role: UserRole) {
+    const {contentCreator, businessPeople} = this;
+    const getNewRating = (
+      currentRating: number,
+      currentRatedCount: number,
+      newRatedCount: number,
+    ) => {
+      return (
+        (currentRating * currentRatedCount) / newRatedCount +
+        newRating / currentRatedCount
+      );
+    };
+    if (role === UserRole.ContentCreator && contentCreator) {
+      const currentRating = contentCreator?.rating;
+      const currentRatedCount = contentCreator.ratedCount;
+      const newRatedCount = currentRatedCount + 1;
+      const calculatedRating = getNewRating(
+        currentRating,
+        currentRatedCount,
+        newRatedCount,
+      );
+      this.contentCreator = {
+        ...contentCreator,
+        rating: calculatedRating,
+        ratedCount: newRatedCount,
+      };
+    }
+    if (role === UserRole.BusinessPeople && businessPeople) {
+      const currentRating = businessPeople?.rating;
+      const currentRatedCount = businessPeople.ratedCount;
+      const newRatedCount = currentRatedCount + 1;
+      const calculatedRating = getNewRating(
+        currentRating,
+        currentRatedCount,
+        newRatedCount,
+      );
+      this.businessPeople = {
+        ...businessPeople,
+        rating: calculatedRating,
+        ratedCount: newRatedCount,
+      };
+    }
     await this.updateUserData();
   }
 
