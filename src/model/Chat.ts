@@ -9,13 +9,15 @@ export enum MessageType {
   Text = 'Text',
   Offer = 'Offer',
   Negotiation = 'Negotiation',
+  System = 'System',
 }
 
 export type MessageTypes =
   | MessageType.Photo
   | MessageType.Text
   | MessageType.Offer
-  | MessageType.Negotiation;
+  | MessageType.Negotiation
+  | MessageType.System;
 
 export type Message = {
   message: string;
@@ -39,9 +41,31 @@ export class Chat extends BaseModel {
   constructor(data: Partial<Chat>) {
     super();
     console.log('constructor:' + data.id);
-    this.id = data.id || '';
+
     this.participants = data.participants || [];
     this.messages = data.messages || [];
+    if (!this.id) {
+      this.id = this.generateId(this.participants);
+    }
+  }
+
+  private generateId(participants: Participant[]): string {
+    const businessPeopleRef =
+      participants.find(
+        participant => participant.role === UserRole.BusinessPeople,
+      )?.ref || '';
+
+    const contentCreatorRef =
+      participants.find(
+        participant => participant.role === UserRole.ContentCreator,
+      )?.ref || '';
+
+    const businessPeopleId = User.extractIdFromRef(businessPeopleRef);
+    const contentCreatorId = User.extractIdFromRef(contentCreatorRef);
+
+    const generatedId = `${businessPeopleId}${contentCreatorId}`;
+
+    return generatedId;
   }
 
   static serialize(chat: Chat): any {
@@ -132,6 +156,9 @@ export class Chat extends BaseModel {
   async insert() {
     try {
       const {id, ...rest} = this;
+      if (!id) {
+        throw Error('Missing id');
+      }
 
       const participantRefs = this.participants.map(
         (participant: Participant) => ({
@@ -145,8 +172,7 @@ export class Chat extends BaseModel {
         participants: participantRefs,
       };
 
-      const docRef = await firestore().collection(CHAT_COLLECTION).add(data);
-      this.id = docRef.id;
+      await Chat.getDocumentReference(id).set(data);
       return true;
     } catch (error) {
       console.error(error);
@@ -252,6 +278,36 @@ export class ChatService {
     }
   }
 
+  static async insertOrdinaryMessage(
+    chatId: string,
+    message: string,
+    activeRole: UserRole,
+  ) {
+    const newMessage: Message = {
+      message: message,
+      role: activeRole,
+      type: MessageType.Text,
+      createdAt: new Date().getTime(),
+    };
+
+    this.insertMessage(chatId, newMessage);
+  }
+
+  static async insertSystemMessage(
+    chatId: string,
+    message: string,
+    activeRole: UserRole,
+  ) {
+    const newMessage: Message = {
+      message: message,
+      role: activeRole,
+      type: MessageType.System,
+      createdAt: new Date().getTime(),
+    };
+
+    this.insertMessage(chatId, newMessage);
+  }
+
   static async insertOfferMessage(
     chatId: string,
     message: string,
@@ -259,7 +315,7 @@ export class ChatService {
   ) {
     const newMessage: Message = {
       message: message,
-      role: activeRole!!,
+      role: activeRole,
       type: MessageType.Offer,
       createdAt: new Date().getTime(),
     };
@@ -274,7 +330,7 @@ export class ChatService {
   ) {
     const newMessage: Message = {
       message: message,
-      role: activeRole!!,
+      role: activeRole,
       type: MessageType.Negotiation,
       createdAt: new Date().getTime(),
     };

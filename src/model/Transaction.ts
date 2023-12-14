@@ -196,7 +196,7 @@ export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap 
     [TransactionStatus.registrationApproved]: StepperState.success,
 
     [TransactionStatus.offering]: StepperState.warning,
-    [TransactionStatus.offeringApproved]: StepperState.success,
+    [TransactionStatus.offerApproved]: StepperState.success,
     [TransactionStatus.offerRejected]: StepperState.danger,
 
     [TransactionStatus.brainstormSubmitted]: StepperState.warning,

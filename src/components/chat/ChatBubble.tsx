@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
-import {flex, items} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {Message, MessageType} from '../../model/Chat';
 import FastImage from 'react-native-fast-image';
 
@@ -11,7 +11,9 @@ const ChatBubble = ({message, isSender, type}: Message) => {
     <View
       className="w-full"
       style={[
-        isSender
+        type === MessageType.System
+          ? {...flex.flexRow, ...justify.center, ...items.center}
+          : isSender
           ? {...flex.flexRowReverse, ...items.end}
           : {...flex.flexRow, ...items.start},
       ]}>
@@ -46,6 +48,13 @@ const ChatBubble = ({message, isSender, type}: Message) => {
           <Text style={[textColor(COLOR.black[100])]}>{message}</Text>
         </View>
       )}
+      {type === MessageType.System && (
+        <View>
+          <Text style={[textColor(COLOR.black[100]), styles.system]}>
+            {message}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -59,6 +68,9 @@ const styles = StyleSheet.create({
   image: {
     width: 200,
     height: 200,
+  },
+  system: {
+    fontWeight: 'bold',
   },
   chat: isSender => ({
     borderRadius: 10,

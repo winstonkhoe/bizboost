@@ -81,6 +81,7 @@ const MakeOfferScreen = ({route}: Props) => {
             {ref: businessPeopleId, role: UserRole.BusinessPeople},
             {ref: contentCreatorId, role: UserRole.ContentCreator},
           ];
+
           const matchingChatView = chatViews.find(chatView => {
             const chatParticipants = chatView.chat.participants || [];
 
@@ -95,7 +96,6 @@ const MakeOfferScreen = ({route}: Props) => {
               );
             });
           });
-          console.log('matchingChatView: ', matchingChatView);
 
           if (matchingChatView !== undefined) {
             console.log('ada chat');
@@ -115,11 +115,15 @@ const MakeOfferScreen = ({route}: Props) => {
             });
             chat.insert().then(success => {
               if (success) {
-                console.log('onsubmit chat:', chat);
-                chat.convertToChatView(activeRole).then(cv => {
-                  console.log('cv:', cv);
-                  navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                    chat: cv,
+                ChatService.insertOfferMessage(
+                  businessPeopleId + contentCreatorId,
+                  data.fee.toString(),
+                  activeRole,
+                ).then(() => {
+                  chat.convertToChatView(activeRole).then(cv => {
+                    navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+                      chat: cv,
+                    });
                   });
                 });
               }
