@@ -7,7 +7,11 @@ import {Offer} from '../../model/Offer';
 import {useEffect, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
 import {User} from '../../model/User';
-import {AuthenticatedNavigation, NavigationStackProps} from '../../navigation/StackNavigation';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
 
 interface RecentNegotiationCardProps extends PressableProps {
   offer: Offer;
@@ -39,7 +43,9 @@ const RecentNegotiationCard = ({
         <View className="w-16 h-16 rounded-full overflow-hidden">
           <FastImage
             className="w-full h-full object-cover"
-            source={require('../../assets/images/kopi-nako-logo.jpeg')}
+            source={getSourceOrDefaultAvatar({
+              uri: campaign?.image,
+            })}
           />
         </View>
         <View className="flex-1 flex flex-col items-end justify-between">
@@ -56,7 +62,7 @@ const RecentNegotiationCard = ({
           {businessPeople?.businessPeople?.fullname}
         </Text>
         <Text numberOfLines={2} className="font-medium">
-          Kopi Nako BSD City: The New Destination for Coffee Lovers to hangout
+          {campaign?.title}
         </Text>
       </View>
     </Pressable>

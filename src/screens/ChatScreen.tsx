@@ -74,7 +74,7 @@ const ChatScreen = ({route}: Props) => {
     participant => participant.role === UserRole.BusinessPeople,
   );
   const contentCreatorId = chat.chat.participants.find(
-    participant => participant.role === UserRole.BusinessPeople,
+    participant => participant.role === UserRole.ContentCreator,
   );
 
   useEffect(() => {
@@ -102,7 +102,9 @@ const ChatScreen = ({route}: Props) => {
     };
   }, [businessPeopleId, contentCreatorId]);
 
-  console.log(offers);
+  console.log('ChatScreen:offers:', offers);
+  console.log('ChatScreen:businessPeopleId:', businessPeopleId?.ref ?? '');
+  console.log('ChatScreen:contentCreatorId:', contentCreatorId?.ref ?? '');
 
   useEffect(() => {
     if (chatData.messages) {

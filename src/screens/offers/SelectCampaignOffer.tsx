@@ -44,12 +44,14 @@ export const SelectCampaignOffer = ({
 
   return (
     <View style={[flex.flexCol, gap.large]}>
-      <View style={[flex.flexRow, items.center, gap.xlarge]}>
-        <FormFieldHelper
-          title="Campaign"
-          titleSize={40}
-          description="Please select the campaign in which you want the creator to participate."
-        />
+      <View style={[flex.flexRow, items.center, justify.between]}>
+        <View style={flex.flex1}>
+          <FormFieldHelper
+            title="Campaign"
+            titleSize={40}
+            description="Please select the campaign in which you want the creator to participate."
+          />
+        </View>
         <InternalLink text="Add" onPress={openModalCampaign} />
       </View>
       {selectedCampaign && (

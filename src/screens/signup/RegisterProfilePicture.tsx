@@ -52,29 +52,31 @@ export const RegisterProfilePicture = ({
                 You can always change it later
               </Text>
             </View>
-            <MediaUploader
-              targetFolder="profile-pictures"
-              showUploadProgress
-              options={{
-                width: 400,
-                height: 400,
-                cropping: true,
-              }}
-              onUploadSuccess={setUploadedImage}
-              onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-              <View
-                className="overflow-hidden"
-                style={[dimension.square.xlarge7, rounded.medium]}>
-                <FastImage
-                  style={[dimension.full]}
-                  source={
-                    uploadedImage
-                      ? {uri: uploadedImage}
-                      : require('../../assets/images/bizboost-avatar.png')
-                  }
-                />
-              </View>
-            </MediaUploader>
+            <View style={[dimension.square.xlarge7]}>
+              <MediaUploader
+                targetFolder="profile-pictures"
+                showUploadProgress
+                options={{
+                  width: 400,
+                  height: 400,
+                  cropping: true,
+                }}
+                onUploadSuccess={setUploadedImage}
+                onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
+                <View
+                  className="overflow-hidden"
+                  style={[dimension.square.xlarge7, rounded.medium]}>
+                  <FastImage
+                    style={[flex.flex1]}
+                    source={
+                      uploadedImage
+                        ? {uri: uploadedImage}
+                        : require('../../assets/images/bizboost-avatar.png')
+                    }
+                  />
+                </View>
+              </MediaUploader>
+            </View>
           </View>
         </View>
       </HorizontalPadding>
