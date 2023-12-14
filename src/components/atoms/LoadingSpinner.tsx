@@ -10,8 +10,20 @@ import Animated, {
 } from 'react-native-reanimated';
 import {COLOR} from '../../styles/Color';
 import Svg, {Path, SvgProps} from 'react-native-svg';
+import {SizeType, size} from '../../styles/Size';
+import {dimension} from '../../styles/Dimension';
 
-export const LoadingSpinner = () => {
+interface LoadingSpinnerProps {
+  primaryColor?: string;
+  secondaryColor?: string;
+  size?: SizeType;
+}
+
+export const LoadingSpinner = ({
+  primaryColor = COLOR.green[70],
+  secondaryColor = COLOR.green[50],
+  size: sizeType = size.xlarge,
+}: LoadingSpinnerProps) => {
   const rotation1 = useSharedValue(0);
   const rotation2 = useSharedValue(180);
 
@@ -43,12 +55,12 @@ export const LoadingSpinner = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, dimension.square[sizeType]]}>
       <Animated.View style={[styles.spinner, animatedStyles1]}>
-        <HalfCircle stroke={COLOR.green[70]} />
+        <HalfCircle stroke={primaryColor} />
       </Animated.View>
       <Animated.View style={[styles.innerSpinner, animatedStyles2]}>
-        <HalfCircle stroke={COLOR.green[50]} />
+        <HalfCircle stroke={secondaryColor} />
       </Animated.View>
     </View>
   );
@@ -69,8 +81,6 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     position: 'relative',
-    width: 35,
-    height: 35,
   },
   spinner: {
     position: 'absolute',
