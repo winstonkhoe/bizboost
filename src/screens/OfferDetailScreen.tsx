@@ -85,8 +85,10 @@ export const OfferDetailScreen = ({route}: Props) => {
             name +
             ' ' +
             (offer.negotiatedBy
-              ? 'accepted a negotiation'
-              : 'accepted an offer');
+              ? 'accepted negotiation for'
+              : 'accepted offer for') +
+            ' ' +
+            campaign?.title;
           ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
             () => {
               navigation.goBack();
@@ -115,8 +117,10 @@ export const OfferDetailScreen = ({route}: Props) => {
             name +
             ' ' +
             (offer.negotiatedBy
-              ? 'rejected a negotiation'
-              : 'rejected an offer');
+              ? 'rejected negotiation for'
+              : 'rejected offer for') +
+            ' ' +
+            campaign?.title;
 
           ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
             () => {

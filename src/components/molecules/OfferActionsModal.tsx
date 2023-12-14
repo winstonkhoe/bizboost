@@ -65,8 +65,10 @@ const OfferActionModal = ({
             name +
             ' ' +
             (offer.negotiatedBy
-              ? 'accepted a negotiation'
-              : 'accepted an offer');
+              ? 'accepted negotiation for'
+              : 'accepted offer for') +
+            ' ' +
+            campaign?.title;
           ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
             () => {
               onModalDismiss();
@@ -95,8 +97,10 @@ const OfferActionModal = ({
             name +
             ' ' +
             (offer.negotiatedBy
-              ? 'rejected a negotiation'
-              : 'rejected an offer');
+              ? 'rejected negotiation for'
+              : 'rejected offer for') +
+            ' ' +
+            campaign?.title;
           ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
             () => {
               onModalDismiss();
