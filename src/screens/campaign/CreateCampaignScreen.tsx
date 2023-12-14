@@ -55,7 +55,10 @@ import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {InternalLink} from '../../components/atoms/Link';
 import {openCategoryModal, openLocationModal} from '../../utils/modal';
 import {RemovableChip} from '../../components/atoms/Chip';
-import {NavigationStackProps} from '../../navigation/StackNavigation';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 import DatePicker, {
   DefaultDatePickerPlaceholder,
 } from '../../components/atoms/DatePicker';
@@ -72,6 +75,8 @@ import {LoadingScreen} from '../LoadingScreen';
 import {useWindowDimensions} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {BackButtonLabel} from '../../components/atoms/Header';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 export type CampaignFormData = {
   title: string;
@@ -194,21 +199,24 @@ const CreateCampaignScreen = () => {
     setIsUploading(true);
 
     try {
+      if (!uid) {
+        throw Error('invalid uid');
+      }
+
       const fee = parseInt(`${d.fee}`, 10);
       if (d.type === CampaignType.Public && isNaN(fee)) {
         throw Error('invalid fee');
       }
       const campaign = new Campaign({
-        userId: uid ?? '',
+        userId: uid,
         title: d.title,
         description: d.description,
         type: d.type,
-        fee: d.type === CampaignType.Public ? fee : undefined,
+        fee: fee,
         slot: d.slot,
-        criterias: d.criterias?.map(getStringObjectValue) || [],
+        criterias: d.criterias?.map(getStringObjectValue),
         platformTasks: d.platforms,
-        importantInformation:
-          d.importantInformation?.map(getStringObjectValue) || [],
+        importantInformation: d.importantInformation?.map(getStringObjectValue),
         locations: d.locations
           .map(loc => loc.id)
           .filter((loc): loc is string => loc !== undefined),
@@ -222,9 +230,15 @@ const CreateCampaignScreen = () => {
       console.log(campaign);
       campaign
         .insert()
-        .then(isSuccess => {
-          if (isSuccess) {
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'Campaign created',
+          });
+          if (navigation.canGoBack()) {
             navigation.goBack();
+          } else {
+            navigation.navigate(AuthenticatedNavigation.Home);
           }
         })
         .finally(() => {
@@ -232,6 +246,10 @@ const CreateCampaignScreen = () => {
         });
     } catch (e) {
       console.log(e);
+      showToast({
+        type: ToastType.danger,
+        message: 'Failed to create campaign',
+      });
       setIsUploading(false);
     }
   };

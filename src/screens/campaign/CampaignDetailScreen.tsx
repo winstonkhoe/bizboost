@@ -316,92 +316,79 @@ const CampaignDetailScreen = ({route}: Props) => {
                 </Pressable>
               )}
 
-              <CollapsiblePanel
-                hiddenText="Read More Information"
-                visibleText="Hide Information">
-                <View className="flex flex-col" style={[gap.medium]}>
-                  <View style={[flex.flexCol, gap.xsmall]}>
-                    <Text
-                      className="font-semibold pb-2"
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.neutral.high),
-                      ]}>
-                      Important Information
-                    </Text>
-                    {campaign.importantInformation &&
-                      campaign.importantInformation.map(
-                        (importantInfo: string, index: number) => (
+              <View className="flex flex-col" style={[gap.medium]}>
+                <View style={[flex.flexCol, gap.xsmall]}>
+                  <Text
+                    className="font-semibold pb-2"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                    Important Information
+                  </Text>
+                  {campaign.importantInformation &&
+                    campaign.importantInformation.map(
+                      (importantInfo: string, index: number) => (
+                        <View
+                          key={index}
+                          style={[flex.flexRow, items.center, gap.default]}>
                           <View
-                            key={index}
-                            style={[flex.flexRow, items.center, gap.default]}>
-                            <View
-                              style={[
-                                flex.flexRow,
-                                justify.center,
-                                items.center,
-                                background(COLOR.background.neutral.med),
-                                dimension.square.large,
-                                rounded.max,
-                              ]}>
-                              <Text
-                                className="font-bold"
-                                style={[
-                                  font.size[20],
-                                  textColor(COLOR.text.neutral.high),
-                                ]}>
-                                i
-                              </Text>
-                            </View>
+                            style={[
+                              flex.flexRow,
+                              justify.center,
+                              items.center,
+                              background(COLOR.background.neutral.med),
+                              dimension.square.large,
+                              rounded.max,
+                            ]}>
                             <Text
+                              className="font-bold"
                               style={[
                                 font.size[20],
                                 textColor(COLOR.text.neutral.high),
                               ]}>
-                              {importantInfo}
+                              i
                             </Text>
                           </View>
+                          <Text
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.high),
+                            ]}>
+                            {importantInfo}
+                          </Text>
+                        </View>
+                      ),
+                    )}
+                </View>
+
+                <View style={[flex.flexCol, gap.small]}>
+                  <Text
+                    className="font-semibold"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                    Task Summary
+                  </Text>
+                  {campaign.platformTasks && (
+                    <View style={[flex.flexCol]}>
+                      {campaign.platformTasks.map((p, index) => (
+                        <CampaignPlatformAccordion platform={p} key={index} />
+                      ))}
+                    </View>
+                  )}
+                </View>
+                <View style={[flex.flexCol, gap.small]}>
+                  <Text
+                    className="font-semibold"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                    Location
+                  </Text>
+                  <View style={[flex.flexRow, flex.wrap, gap.small]}>
+                    {campaign.locations &&
+                      campaign.locations.map(
+                        (location: string, index: number) => (
+                          <TagCard key={index} text={location} />
                         ),
                       )}
                   </View>
-
-                  <View style={[flex.flexCol, gap.small]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.neutral.high),
-                      ]}>
-                      Task Summary
-                    </Text>
-                    {campaign.platformTasks && (
-                      <View style={[flex.flexCol]}>
-                        {campaign.platformTasks.map((p, index) => (
-                          <CampaignPlatformAccordion platform={p} key={index} />
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                  <View style={[flex.flexCol, gap.small]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.neutral.high),
-                      ]}>
-                      Location
-                    </Text>
-                    <View style={[flex.flexRow, flex.wrap, gap.small]}>
-                      {campaign.locations &&
-                        campaign.locations.map(
-                          (location: string, index: number) => (
-                            <TagCard key={index} text={location} />
-                          ),
-                        )}
-                    </View>
-                  </View>
                 </View>
-              </CollapsiblePanel>
+              </View>
               {/* {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
               <View className="pb-2">
                 <CustomButton
