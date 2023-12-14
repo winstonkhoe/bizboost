@@ -34,19 +34,15 @@ export type Participant = {
 const CHAT_COLLECTION = 'chats';
 
 export class Chat extends BaseModel {
-  id?: string = '';
-  participants: Participant[] = [];
-  messages?: Message[] = [];
+  id: string;
+  participants: Participant[];
+  messages: Message[];
 
   constructor(data: Partial<Chat>) {
     super();
-    console.log('constructor:' + data.id);
-
     this.participants = data.participants || [];
     this.messages = data.messages || [];
-    if (!this.id) {
-      this.id = this.generateId(this.participants);
-    }
+    this.id = this.generateId(this.participants);
   }
 
   private generateId(participants: Participant[]): string {
@@ -173,7 +169,6 @@ export class Chat extends BaseModel {
       };
 
       await Chat.getDocumentReference(id).set(data);
-      return true;
     } catch (error) {
       console.error(error);
       throw new Error('Error!');

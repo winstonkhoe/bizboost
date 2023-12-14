@@ -1,22 +1,13 @@
 import React, {useState} from 'react';
-import {View, TouchableOpacity, ScrollView} from 'react-native';
-import {Text} from 'react-native-elements';
+import {View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useForm, FormProvider} from 'react-hook-form';
-import BackNav from '../assets/vectors/chevron-left.svg';
-import {COLOR} from '../styles/Color';
 import {flex} from '../styles/Flex';
-import {StringObject, getStringObjectValue} from '../utils/stringObject';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {FormFieldHelper} from '../components/atoms/FormLabel';
 import {gap} from '../styles/Gap';
-import {CustomNumberInput, CustomTextInput} from '../components/atoms/Input';
+import {CustomTextInput} from '../components/atoms/Input';
 import {SelectCampaignOffer} from './offers/SelectCampaignOffer';
 import {Campaign} from '../model/Campaign';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../components/atoms/ViewPadding';
 import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
 import {Transaction} from '../model/Transaction';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -25,7 +16,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Chat, ChatService, Message, MessageType} from '../model/Chat';
+import {Chat, ChatService} from '../model/Chat';
 import {UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
@@ -57,7 +48,7 @@ const MakeOfferScreen = ({route}: Props) => {
     mode: 'all',
   });
 
-  const {uid, user, activeRole} = useUser();
+  const {activeRole} = useUser();
   const chatViews = useUserChats().chats;
 
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
@@ -140,7 +131,7 @@ const MakeOfferScreen = ({route}: Props) => {
             // });
             console.log('matchingChatView: ', matchingChatView);
 
-            if (matchingChatView !== undefined) {
+            if (matchingChatView !== undefined && matchingChatView.chat?.id) {
               console.log('ada chat');
               ChatService.insertOfferMessage(
                 matchingChatView.chat?.id,
@@ -164,28 +155,43 @@ const MakeOfferScreen = ({route}: Props) => {
               const chat = new Chat({
                 participants: participants,
               });
-              chat.insert().then(success => {
-                if (success) {
+              chat
+                .insert()
+                .then(() => {
                   ChatService.insertOfferMessage(
                     businessPeopleId + contentCreatorId,
                     data.fee.toString(),
                     activeRole,
-                  ).then(() => {
-                    chat.convertToChatView(activeRole).then(cv => {
-                      navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                        chat: cv,
-                      })
-                    }).catch(() => {
+                  )
+                    .then(() => {
+                      chat
+                        .convertToChatView(activeRole)
+                        .then(cv => {
+                          navigation.navigate(
+                            AuthenticatedNavigation.ChatDetail,
+                            {
+                              chat: cv,
+                            },
+                          );
+                        })
+                        .catch(() => {
+                          showToast({
+                            type: ToastType.danger,
+                            message: 'Something went wrong',
+                          });
+                        })
+                        .finally(() => {
+                          setIsLoading(false);
+                        });
+                    })
+                    .catch(() => {
                       showToast({
                         type: ToastType.danger,
                         message: 'Something went wrong',
                       });
                       setIsLoading(false);
                     });
-                    }
-                     setIsLoading(false);
-                    })
-              })
+                })
                 .catch(() => {
                   showToast({
                     type: ToastType.danger,
