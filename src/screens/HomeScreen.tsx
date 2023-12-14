@@ -5,17 +5,20 @@ import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
 import {HorizontalScrollView} from '../components/molecules/HorizontalScrollView';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
-import {flex, justify} from '../styles/Flex';
+import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
+import {
+  PageWithSearchBar,
+  SearchAutocompletePlaceholder,
+} from '../components/templates/PageWithSearchBar';
 import {Campaign} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import UserListCard from '../components/molecules/UserListCard';
@@ -35,12 +38,26 @@ import {textColor} from '../styles/Text';
 import {size} from '../styles/Size';
 import {Label} from '../components/atoms/Label';
 import {formatDateToDayMonthYear} from '../utils/date';
-import {Report} from '../model/Report';
+import {Report, ReportStatus, reportStatusPrecendence} from '../model/Report';
 import {fetchReport} from '../helpers/report';
 import {ReportCard} from './report/ReportListScreen';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SearchBar} from '../components/organisms/SearchBar';
+import {CustomModal} from '../components/atoms/CustomModal';
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleIcon,
+  ReportIcon,
+} from '../components/atoms/Icon';
+import PagerView from 'react-native-pager-view';
+import {CustomButton} from '../components/atoms/Button';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 
 const HomeScreen = () => {
   const {uid, activeRole} = useUser();
+  const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const isAdmin = UserRole.Admin === activeRole;
   const isBusinessPeople = UserRole.BusinessPeople === activeRole;
@@ -87,29 +104,48 @@ const HomeScreen = () => {
 
   useEffect(() => {
     console.log('homeScreen:getAllTransactionsByRole');
-    if (activeRole !== UserRole.Admin) {
+    if (!isAdmin && uid && activeRole) {
       const unsubscribe = Transaction.getAllTransactionsByRole(
-        uid || '',
-        activeRole!!,
+        uid,
+        activeRole,
         setTransactions,
       );
 
       return unsubscribe;
-    } else {
-      const unsubscribe =
-        Transaction.getAllTransactionsWithPayment(setTransactions);
-
-      return unsubscribe;
     }
-  }, [uid, activeRole]);
+  }, [isAdmin, uid, activeRole]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      return Transaction.getAllTransactionsWithPayment(setTransactions);
+    }
+  }, [isAdmin]);
 
   return (
-    <PageWithSearchBar>
+    <View
+      style={[
+        flex.flex1,
+        {
+          paddingTop: Math.max(safeAreaInsets.top, size.default),
+        },
+        background(COLOR.background.neutral.default),
+      ]}>
       <ScrollView
-        style={[flex.flex1]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[padding.bottom.xlarge]}>
-        <>
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={[
+          flex.flexCol,
+          padding.bottom.xlarge,
+          gap.default,
+        ]}>
+        <View
+          style={[
+            padding.horizontal.default,
+            background(COLOR.background.neutral.default),
+          ]}>
+          <SearchBar />
+        </View>
+        <SearchAutocompletePlaceholder>
           <View style={[flex.flexCol, gap.large]}>
             {isContentCreator && (
               <View style={[flex.flexCol, gap.default]}>
@@ -264,61 +300,72 @@ const HomeScreen = () => {
               </HorizontalPadding>
               <View
                 style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-                {transactions.map((t, index) => (
-                  <RegisteredUserListCard
-                    key={index}
-                    transaction={t}
-                    role={activeRole}
-                  />
-                ))}
+                {transactions
+                  .filter(transaction => transaction.isOngoing())
+                  .map((t, index) => (
+                    <RegisteredUserListCard
+                      key={index}
+                      transaction={t}
+                      role={activeRole}
+                    />
+                  ))}
               </View>
             </View>
           </View>
-        </>
-        {isAdmin && (
-          <HorizontalPadding>
-            <View className="my-4" style={[flex.flexCol]}>
-              <HomeSectionHeader
-                header="Users"
-                link={userLimit === 3 ? 'See All' : 'Collapse'}
-                onPressLink={() =>
-                  setUserLimit(userLimit === 3 ? users.length : 3)
-                }
-              />
-              <View style={[flex.flexCol, gap.medium]} className="mt-4">
-                {users.slice(0, userLimit).map((u, index) => (
-                  <Pressable
-                    key={index}
-                    onPress={() => {
-                      navigation.navigate(AuthenticatedNavigation.UserDetail, {
-                        userId: u.id || '',
-                      });
-                    }}>
-                    <UserListCard user={u} />
-                  </Pressable>
-                ))}
+          {isAdmin && (
+            <HorizontalPadding>
+              <View className="my-4" style={[flex.flexCol]}>
+                <HomeSectionHeader
+                  header="Users"
+                  link={userLimit === 3 ? 'See All' : 'Collapse'}
+                  onPressLink={() =>
+                    setUserLimit(userLimit === 3 ? users.length : 3)
+                  }
+                />
+                <View style={[flex.flexCol, gap.medium]} className="mt-4">
+                  {users.slice(0, userLimit).map((u, index) => (
+                    // <Pressable
+                    //   key={index}
+                    //   onPress={() => {
+                    //     navigation.navigate(AuthenticatedNavigation.UserDetail, {
+                    //       userId: u.id || '',
+                    //     });
+                    //   }}>
+                    <UserListCard user={u} key={index} />
+                    // </Pressable>
+                  ))}
+                </View>
               </View>
-            </View>
-          </HorizontalPadding>
-        )}
-        {isAdmin && (
-          <HorizontalPadding>
-            <View className="my-4" style={[flex.flexCol]}>
-              <HomeSectionHeader
-                header="Reports"
-                link={'See All'}
-                onPressLink={() =>
-                  navigation.navigate(AuthenticatedNavigation.ReportList)
-                }
-              />
-              <View style={[flex.flexCol, gap.medium]} className="mt-4">
-                {reports.slice(0, 3).map((report, index) => (
-                  <ReportCard key={index} report={report} />
-                ))}
+            </HorizontalPadding>
+          )}
+          {isAdmin && (
+            <HorizontalPadding>
+              <View className="my-4" style={[flex.flexCol]}>
+                <HomeSectionHeader
+                  header="Reports"
+                  link={'See All'}
+                  onPressLink={() =>
+                    navigation.navigate(AuthenticatedNavigation.ReportList)
+                  }
+                />
+                <View style={[flex.flexCol, gap.medium]} className="mt-4">
+                  {reports
+                    .filter(report => report.isPending())
+                    .sort(
+                      (a, b) =>
+                        reportStatusPrecendence[a.status] -
+                        reportStatusPrecendence[b.status],
+                    )
+                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+                    .slice(0, 3)
+                    .map((report, index) => (
+                      <ReportCard key={index} report={report} />
+                    ))}
+                </View>
               </View>
-            </View>
-          </HorizontalPadding>
-        )}
+            </HorizontalPadding>
+          )}
+        </SearchAutocompletePlaceholder>
       </ScrollView>
       {isBusinessPeople && (
         <View
@@ -345,8 +392,141 @@ const HomeScreen = () => {
           </AnimatedPressable>
         </View>
       )}
-    </PageWithSearchBar>
+      <WarningModal />
+    </View>
   );
 };
+
+const WarningModal = () => {
+  const pagerViewRef = useRef<PagerView>(null);
+  const {uid} = useUser();
+  const [warningReports, setWarningReports] = useState<Report[]>([]);
+  const [index, setIndex] = useState(0);
+  const isInFocus = useIsFocused();
+
+  useEffect(() => {
+    if (uid && isInFocus) {
+      // TODO: its better if we can fetch / role, so the warning context will be more clear
+      Report.getAllWarnings(uid)
+        .then(reports =>
+          setWarningReports(
+            reports.filter(report => report.warningClosedAt === undefined),
+          ),
+        )
+        .catch(() => {
+          setWarningReports([]);
+        });
+    }
+  }, [uid, isInFocus]);
+
+  const handleUnderstand = () => {
+    Report.closeAllWarnings(
+      warningReports
+        .map(report => report.id)
+        .filter(id => id !== undefined) as string[],
+    )
+      .then(() => {
+        setWarningReports([]);
+      })
+      .catch(() =>
+        showToast({
+          message: "There's an error. Please try again.",
+          type: ToastType.danger,
+        }),
+      );
+  };
+
+  return (
+    <CustomModal visible={warningReports.length > 0}>
+      <View
+        style={[
+          flex.flexCol,
+          {
+            aspectRatio: 1 / 1.4,
+          },
+          padding.large,
+          gap.large,
+        ]}>
+        <View style={[flex.flexRow, justify.center, items.center, gap.small]}>
+          <ReportIcon size="large" />
+          <Text
+            className="font-bold"
+            style={[font.size[40], textColor(COLOR.red[70])]}>
+            Warning
+          </Text>
+        </View>
+        <View style={[styles.bottomBorder]} />
+        <PagerView
+          ref={pagerViewRef}
+          style={[flex.flex1]}
+          onPageSelected={e => {
+            console.log(e.nativeEvent.position);
+            const newIndex = e.nativeEvent.position;
+            if (index !== newIndex) {
+              setIndex(newIndex);
+            }
+          }}>
+          {warningReports.map(report => (
+            <View
+              key={report.id}
+              style={[flex.flex1, flex.flexCol, justify.center, gap.default]}>
+              <Text
+                className="font-bold text-center"
+                style={[
+                  self.center,
+                  font.size[30],
+                  textColor(COLOR.text.neutral.high),
+                ]}>
+                {report.type}
+              </Text>
+              <Text
+                className="text-center"
+                style={[
+                  self.center,
+                  font.size[30],
+                  textColor(COLOR.text.neutral.high),
+                ]}>
+                {report.warningNotes}
+              </Text>
+            </View>
+          ))}
+        </PagerView>
+        {/* <View style={[flex.flexRow, justify.center]}>
+          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>{`${
+            index + 1
+          } / ${warningReports.length}`}</Text>
+        </View> */}
+        {warningReports.length > 1 && (
+          <View style={[flex.flexRow, gap.xsmall, justify.center]}>
+            {warningReports.map((report, reportIndex) => (
+              <CircleIcon
+                key={report.id}
+                size="small"
+                color={
+                  index === reportIndex
+                    ? COLOR.green[50]
+                    : COLOR.text.neutral.low
+                }
+              />
+            ))}
+          </View>
+        )}
+        <CustomButton
+          scale={0.95}
+          text="Understand"
+          disabled={index < warningReports.length - 1}
+          onPress={handleUnderstand}
+        />
+      </View>
+    </CustomModal>
+  );
+};
+
+const styles = StyleSheet.create({
+  bottomBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLOR.black[15],
+  },
+});
 
 export default HomeScreen;

@@ -1,8 +1,9 @@
 import {ReactNode} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import {EdgeInsets, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
+import {size} from '../styles/Size';
 type Props = {
   children: ReactNode;
   customInsets?: Partial<EdgeInsets>;
@@ -11,18 +12,17 @@ type Props = {
 const SafeAreaContainer = ({children, enable = false, customInsets}: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const insets = {...safeAreaInsets, ...customInsets};
-  const additionalOffset = Platform.OS === 'android' ? 15 : 0;
   return (
     <View
       className="flex-1"
       style={[
         enable && {
-          paddingTop: insets.top + additionalOffset,
+          paddingTop: Math.max(insets.top, size.default),
           paddingLeft: insets.left,
           paddingRight: insets.right,
           paddingBottom: insets.bottom,
         },
-        background(COLOR.background.light),
+        background(COLOR.background.neutral.default),
       ]}>
       {children}
     </View>

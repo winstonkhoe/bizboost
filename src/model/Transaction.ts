@@ -307,7 +307,7 @@ export class Transaction extends BaseModel {
   brainstorms?: Brainstorm[];
   contents?: Content[];
   engagements?: Engagement[];
-  status?: TransactionStatus;
+  status: TransactionStatus;
   createdAt?: number;
   updatedAt?: number;
   lastCheckedAt?: number;
@@ -345,7 +345,7 @@ export class Transaction extends BaseModel {
     this.brainstorms = brainstorms;
     this.contents = contents;
     this.engagements = engagements;
-    this.status = status;
+    this.status = status || TransactionStatus.notRegistered;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.lastCheckedAt = lastCheckedAt;
@@ -401,17 +401,29 @@ export class Transaction extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  static async getById(id: string): Promise<Transaction> {
+  static getById(
+    id: string,
+    onComplete: (transaction: Transaction | null) => void,
+  ) {
     try {
-      const snapshot = await this.getDocumentReference(id).get();
-      if (!snapshot.exists) {
-        throw Error('Transaction not found!');
-      }
+      const unsubscribe = Transaction.getDocumentReference(id).onSnapshot(
+        docSnapshot => {
+          if (docSnapshot.exists) {
+            onComplete(Transaction.fromSnapshot(docSnapshot));
+            return;
+          }
+          onComplete(null);
+        },
+        error => {
+          console.log(error);
+        },
+      );
 
-      const transaction = this.fromSnapshot(snapshot);
-      return transaction;
-    } catch (error) {}
-    throw Error('Error!');
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Transaction.getById Error: ' + error);
+    }
   }
 
   static getCollectionReference = () => {
@@ -631,7 +643,6 @@ export class Transaction extends BaseModel {
           new Transaction({
             campaignId,
             contentCreatorId,
-            status: TransactionStatus.notRegistered,
           }),
         );
       },
@@ -1211,6 +1222,47 @@ export class Transaction extends BaseModel {
           c => c.rejection?.type === RejectionType.contentMismatch,
         ).length,
       0,
+    );
+  }
+
+  isApprovable() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.brainstormSubmitted,
+        TransactionStatus.contentSubmitted,
+        TransactionStatus.engagementSubmitted,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    );
+  }
+
+  isTerminated() {
+    const {status} = this;
+    return status === TransactionStatus.terminated;
+  }
+
+  isOngoing() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.terminated,
+        TransactionStatus.reported,
+        TransactionStatus.completed,
+      ].findIndex(transactionStatus => transactionStatus === status) === -1
+    );
+  }
+
+  isWaitingContentCreatorAction() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.brainstormRejected,
+        TransactionStatus.contentRejected,
+        TransactionStatus.engagementRejected,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
     );
   }
 

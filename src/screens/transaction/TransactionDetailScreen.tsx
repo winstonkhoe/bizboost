@@ -152,8 +152,7 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [campaign, uid]);
 
   useEffect(() => {
-    const unsubscribe = Transaction.getById(transactionId, setTransaction);
-    return unsubscribe;
+    return Transaction.getById(transactionId, setTransaction);
   }, [transactionId]);
 
   useEffect(() => {
@@ -641,11 +640,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         </ScrollView>
         {isCampaignOwner &&
           transaction.status &&
-          [
-            TransactionStatus.brainstormSubmitted,
-            TransactionStatus.contentSubmitted,
-            TransactionStatus.engagementSubmitted,
-          ].find(status => transaction.status === status) && (
+          transaction.isApprovable() && (
             <View
               style={[
                 flex.flexRow,
@@ -1814,6 +1809,7 @@ interface CollapsiblePanelProps {
   children: ReactNode;
 }
 
+// TODO: pindah file
 export const CollapsiblePanel = ({
   visibleText = 'Show less',
   hiddenText = 'Show more',

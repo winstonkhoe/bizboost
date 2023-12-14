@@ -1,7 +1,14 @@
+import {Appearance} from 'react-native';
+
+const colorScheme = Appearance.getColorScheme();
+const isDarkMode = colorScheme === 'dark';
+
 const black = {
   100: '#000000',
-  90: '#12171D', //importance text. heading, title
-  80: '#19222A',
+  90: '#0C0C0F', //importance text. heading, title
+  // 90: '#12171D', //importance text. heading, title
+  80: '#101014',
+  // 80: '#19222A',
   70: '#28323B',
   60: '#3B444C',
   50: '#4E565E',
@@ -65,6 +72,10 @@ const yellow = {
   1: '#fff8e0',
 };
 
+const getColorValue = (value: number, max: number) => {
+  return isDarkMode ? max - value : value;
+};
+
 export const COLOR = {
   primary: {
     100: '',
@@ -72,11 +83,11 @@ export const COLOR = {
   white: '#ffffff',
   text: {
     neutral: {
-      default: `${black[90]}`,
-      high: `${black[90]}`,
-      med: `${black[90]}b3`,
-      low: `${black[90]}66`,
-      disabled: `${black[90]}33`,
+      default: `${black[isDarkMode ? 10 : 90]}`,
+      high: `${black[isDarkMode ? 10 : 90]}`,
+      med: `${black[isDarkMode ? 10 : 90]}b3`,
+      low: `${black[isDarkMode ? 10 : 90]}66`,
+      disabled: `${black[isDarkMode ? 10 : 90]}33`,
     },
     green: {
       default: `${green[60]}`,
@@ -92,11 +103,11 @@ export const COLOR = {
   },
   background: {
     neutral: {
-      default: `${black[0]}`,
-      low: `${black[1]}`,
-      med: `${black[5]}`,
-      high: `${black[80]}`,
-      disabled: `${black[10]}`,
+      default: `${black[isDarkMode ? 90 : 0]}`,
+      low: `${black[isDarkMode ? 80 : 1]}`,
+      med: `${black[isDarkMode ? 70 : 5]}`,
+      high: `${black[isDarkMode ? 60 : 20]}`,
+      disabled: `${black[isDarkMode ? 90 : 10]}`,
     },
     green: {
       default: `${green[1]}`,
@@ -118,12 +129,28 @@ export const COLOR = {
       high: `${red[50]}`,
       disabled: `${red[50]}66`,
     },
-    light: '#ffffff',
   },
   yellow: {
     ...yellow,
   },
   black: {
+    100: isDarkMode ? black[0] : black[100],
+    90: isDarkMode ? black[1] : black[90],
+    80: isDarkMode ? black[5] : black[80],
+    70: isDarkMode ? black[10] : black[70],
+    60: isDarkMode ? black[15] : black[60],
+    50: isDarkMode ? black[20] : black[50],
+    40: isDarkMode ? black[25] : black[40],
+    30: isDarkMode ? black[30] : black[30],
+    25: isDarkMode ? black[40] : black[25],
+    20: isDarkMode ? black[50] : black[20],
+    15: isDarkMode ? black[60] : black[15],
+    10: isDarkMode ? black[70] : black[10],
+    5: isDarkMode ? black[80] : black[5],
+    1: isDarkMode ? black[90] : black[1],
+    0: isDarkMode ? black[100] : black[0],
+  },
+  absoluteBlack: {
     ...black,
   },
   blue: {
@@ -131,6 +158,19 @@ export const COLOR = {
     200: 'rgba(31, 117, 197, 1)',
   },
   green: {
+    // 95: isDarkMode ? green[1] : green[95],
+    // 90: isDarkMode ? green[5] : green[90],
+    // 80: isDarkMode ? green[10] : green[80],
+    // 70: isDarkMode ? green[15] : green[70],
+    // 60: isDarkMode ? green[20] : green[60],
+    // 50: isDarkMode ? green[30] : green[50],
+    // 40: isDarkMode ? green[40] : green[40],
+    // 30: isDarkMode ? green[50] : green[30],
+    // 20: isDarkMode ? green[60] : green[20],
+    // 15: isDarkMode ? green[70] : green[15],
+    // 10: isDarkMode ? green[80] : green[10],
+    // 5: isDarkMode ? green[90] : green[5],
+    // 1: isDarkMode ? green[95] : green[1],
     ...green,
   },
   red: {

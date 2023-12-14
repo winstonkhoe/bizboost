@@ -83,7 +83,9 @@ const AboutMeScreen = () => {
             },
           ]}>
           <View style={[flex.flexCol, gap.medium]}>
-            <Text className="font-bold" style={[font.size[40]]}>
+            <Text
+              className="font-bold"
+              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
               About Me
             </Text>
 

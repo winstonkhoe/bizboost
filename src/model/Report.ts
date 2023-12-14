@@ -89,6 +89,11 @@ export const actionTakenLabelMap: ActionTakenLabelMap = {
   [ActionTaken.approveTransaction]: 'The transaction will be approved.',
 };
 
+export const reportStatusPrecendence = {
+  [ReportStatus.pending]: 0,
+  [ReportStatus.resolved]: 1,
+};
+
 export class Report extends BaseModel {
   id?: string;
   transactionId?: string;
@@ -102,6 +107,8 @@ export class Report extends BaseModel {
   reportedId?: string;
   createdAt?: number;
   updatedAt?: number;
+  warningNotes?: string;
+  warningClosedAt?: number;
 
   constructor({
     id,
@@ -116,6 +123,8 @@ export class Report extends BaseModel {
     reportedId,
     createdAt,
     updatedAt,
+    warningNotes,
+    warningClosedAt,
   }: Partial<Report>) {
     super();
     this.id = id;
@@ -130,6 +139,8 @@ export class Report extends BaseModel {
     this.reportedId = reportedId;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.warningNotes = warningNotes;
+    this.warningClosedAt = warningClosedAt;
   }
 
   private static fromSnapshot(
@@ -152,6 +163,8 @@ export class Report extends BaseModel {
         reportedId: data.reportedId.id,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
+        warningNotes: data.warningNotes,
+        warningClosedAt: data.warningClosedAt,
       });
     }
 
@@ -214,6 +227,7 @@ export class Report extends BaseModel {
   async resolveReport(
     actionTaken: ActionTaken,
     reason?: string,
+    extraFields?: Partial<Report>,
   ): Promise<void> {
     const {id} = this;
     if (!id) {
@@ -223,6 +237,7 @@ export class Report extends BaseModel {
       status: ReportStatus.resolved,
       actionTaken,
       actionTakenReason: reason,
+      ...extraFields,
     });
   }
 
@@ -396,10 +411,47 @@ export class Report extends BaseModel {
     }
   }
 
-  async resolve(action: ActionTaken, reason?: string): Promise<void> {
+  static async closeAllWarnings(reports: string[]): Promise<void> {
+    try {
+      const batch = firestore().batch();
+      const warningClosedAt = new Date().getTime();
+      reports.forEach(reportId => {
+        batch.update(Report.getDocumentReference(reportId), {
+          warningClosedAt,
+        });
+      });
+      await batch.commit();
+    } catch (error) {
+      console.log(error);
+      throw Error('Report.closeAllWarnings err! ' + error);
+    }
+  }
+
+  static async getAllWarnings(reportedId: string): Promise<Report[]> {
+    try {
+      const querySnapshot = await Report.getCollectionReference()
+        .where('reportedId', '==', User.getDocumentReference(reportedId))
+        .where('warningNotes', '!=', null)
+        .get();
+      console.log('getAllWarnings', querySnapshot);
+      if (querySnapshot.empty) {
+        return [];
+      }
+      return querySnapshot.docs.map(this.fromSnapshot);
+    } catch (error) {
+      console.log(error);
+      throw Error('Report.getAllWarnings err!');
+    }
+  }
+
+  async resolve(
+    action: ActionTaken,
+    reason?: string,
+    warningNotes?: string,
+  ): Promise<void> {
     switch (action) {
       case ActionTaken.warningIssued:
-        return this.issueWarning(reason);
+        return this.issueWarning(reason, warningNotes);
       case ActionTaken.terminateTransaction:
         return this.terminateTransaction(reason);
       case ActionTaken.suspendUser:
@@ -413,7 +465,7 @@ export class Report extends BaseModel {
     }
   }
 
-  async issueWarning(reason?: string): Promise<void> {
+  async issueWarning(reason?: string, warningNotes?: string): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         const {transactionId} = this;
@@ -424,8 +476,9 @@ export class Report extends BaseModel {
           transactionId,
           async transaction => {
             if (transaction) {
-              // await transaction.issueWarning();
-              await this.resolveReport(ActionTaken.warningIssued, reason);
+              await this.resolveReport(ActionTaken.warningIssued, reason, {
+                warningNotes: warningNotes,
+              });
               unsubscribe();
               resolve();
             }
@@ -535,5 +588,9 @@ export class Report extends BaseModel {
         reject(Error('Report.approveTransaction err!'));
       }
     });
+  }
+
+  isPending() {
+    return this.status === ReportStatus.pending;
   }
 }

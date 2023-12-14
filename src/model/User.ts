@@ -17,6 +17,7 @@ import {AuthMethod, Provider, Providers} from './AuthMethod';
 import {Category} from './Category';
 import {Location} from './Location';
 import {deleteFileByURL} from '../helpers/storage';
+import {StatusType} from '../components/atoms/StatusTag';
 
 const USER_COLLECTION = 'users';
 
@@ -36,6 +37,13 @@ export enum UserStatus {
   Suspended = 'Suspended',
 }
 
+type UserStatusMap = {
+  [key in UserStatus]: StatusType;
+};
+export const userStatusTypeMap: UserStatusMap = {
+  [UserStatus.Active]: StatusType.success,
+  [UserStatus.Suspended]: StatusType.danger,
+};
 export interface BankAccountInformation {
   bankName: string;
   accountHolderName: string;
@@ -204,11 +212,12 @@ export class User extends BaseModel {
     });
   }
 
-  // TODO: ganti jadi ga static
   async updateUserData(): Promise<void> {
-    await User.getDocumentReference(this.id || '').update(
-      User.mappingUserFields(this),
-    );
+    const {id} = this;
+    if (!id) {
+      throw Error('User id is not defined!');
+    }
+    await User.getDocumentReference(id).update(User.mappingUserFields(this));
   }
 
   async updateProfilePicture(
@@ -216,22 +225,40 @@ export class User extends BaseModel {
     profilePictureUrl: string,
   ): Promise<void> {
     if (activeRole === UserRole.BusinessPeople) {
-      deleteFileByURL(this.businessPeople?.profilePicture || '');
+      const {businessPeople} = this;
+      if (!businessPeople) {
+        throw Error('Business people is not defined!');
+      }
+
+      const {profilePicture} = businessPeople;
+      if (!profilePicture) {
+        throw Error('Profile picture is not defined!');
+      }
+      await deleteFileByURL(profilePicture);
 
       this.businessPeople = {
-        ...this.businessPeople!,
+        ...businessPeople,
         profilePicture: profilePictureUrl,
       };
     } else if (activeRole === UserRole.ContentCreator) {
-      deleteFileByURL(this.contentCreator?.profilePicture || '');
+      const {contentCreator} = this;
+      if (!contentCreator) {
+        throw Error('Business people is not defined!');
+      }
+
+      const {profilePicture} = contentCreator;
+      if (!profilePicture) {
+        throw Error('Profile picture is not defined!');
+      }
+      await deleteFileByURL(profilePicture);
 
       this.contentCreator = {
-        ...this.contentCreator!,
+        ...contentCreator,
         profilePicture: profilePictureUrl,
       };
     }
 
-    this.updateUserData().then(() => console.log('Profile picture updated'));
+    await this.updateUserData();
   }
 
   async updatePassword(
@@ -354,7 +381,6 @@ export class User extends BaseModel {
     }
   }
 
-  // TODO: fix callback and unsubscribe return
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null) => void,

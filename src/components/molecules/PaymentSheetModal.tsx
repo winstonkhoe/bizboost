@@ -20,6 +20,8 @@ import {useUser} from '../../hooks/user';
 import {BankAccountInformation, UserRole} from '../../model/User';
 import {PaymentStatus, paymentStatusTypeMap} from '../../model/Transaction';
 import StatusTag, {StatusType} from '../atoms/StatusTag';
+import {border} from '../../styles/Border';
+import {background} from '../../styles/BackgroundColor';
 
 type Props = {
   isModalOpened: boolean;
@@ -59,7 +61,10 @@ const PaymentSheetModal = ({
   // TODO: kalo reupload, apus yang lama
   return (
     <>
-      <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
+      <SheetModal
+        snapPoints={['60%']}
+        open={isModalOpened}
+        onDismiss={onModalDismiss}>
         <View
           style={[
             flex.flexCol,
@@ -157,15 +162,26 @@ const PaymentSheetModal = ({
                   </Text>
                 ) : (
                   <View
-                    className="border-dashed border"
                     style={[
                       dimension.square.xlarge12,
                       rounded.medium,
                       flex.flexRow,
                       justify.center,
                       items.center,
+                      {
+                        borderStyle: 'dashed',
+                      },
+                      border({
+                        borderWidth: 1,
+                        color: COLOR.black[20],
+                      }),
+                      background(COLOR.black[5]),
                     ]}>
-                    <PhotosIcon width={30} height={30} />
+                    <PhotosIcon
+                      width={30}
+                      height={30}
+                      color={COLOR.text.neutral.high}
+                    />
                   </View>
                 )}
               </MediaUploader>
@@ -179,8 +195,7 @@ const PaymentSheetModal = ({
                         text="Reject"
                         scale={1}
                         onPress={onProofRejected}
-                        customTextSize={font.size[20]}
-                        type="alternate"
+                        customTextSize={20}
                       />
                     </View>
                     {/* {paymentStatus === */}
@@ -190,7 +205,7 @@ const PaymentSheetModal = ({
                         text="Accept"
                         scale={1}
                         onPress={onProofAccepted}
-                        customTextSize={font.size[20]}
+                        customTextSize={20}
                       />
                     </View>
                     {/* )} */}
@@ -203,7 +218,7 @@ const PaymentSheetModal = ({
                         text="I Have Paid This User"
                         scale={1}
                         onPress={onWithdrawalAccepted}
-                        customTextSize={font.size[20]}
+                        customTextSize={20}
                       />
                     </View>
                   )}

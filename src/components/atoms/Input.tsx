@@ -220,6 +220,10 @@ export const CustomTextInput = ({
                   </View>
                 )}
                 <TextInput
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  scrollEnabled={false}
+                  placeholderTextColor={COLOR.text.neutral.med}
                   keyboardType={
                     keyboardType
                       ? keyboardType
@@ -343,7 +347,7 @@ export const FormlessCustomTextInput = ({
   const value = watch('value');
 
   // // Create a debounced version of onChange
-  const debouncedOnChange = debounce(onChange, 300);
+  const debouncedOnChange = debounce(onChange, 100);
 
   useEffect(() => {
     debouncedOnChange(value);

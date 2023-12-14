@@ -1,6 +1,7 @@
 import React from 'react';
 import {Text} from 'react-native';
 import {View} from 'react-native';
+import {font} from '../../styles/Font';
 
 type Props = {
   text: string;
@@ -8,7 +9,9 @@ type Props = {
 const TagCard = ({text}: Props) => {
   return (
     <View className="border border-green-700 bg-green-50 py-1 px-2 rounded-md">
-      <Text className="text-green-700">{text}</Text>
+      <Text className="text-green-700" style={[font.size[30]]}>
+        {text}
+      </Text>
     </View>
   );
 };

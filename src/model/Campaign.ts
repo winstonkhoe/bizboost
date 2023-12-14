@@ -52,19 +52,19 @@ export const CAMPAIGN_COLLECTION = 'campaigns';
 export class Campaign extends BaseModel {
   id?: string;
   userId?: string;
-  title?: string;
-  description?: string;
-  type?: CampaignType;
-  locations?: string[];
-  categories?: string[];
-  platformTasks?: CampaignPlatform[];
+  title: string;
+  description: string;
+  type: CampaignType;
+  locations: string[];
+  categories: string[];
+  platformTasks: CampaignPlatform[];
   fee?: number;
-  criterias?: string[];
-  slot?: number;
+  criterias: string[];
+  slot: number;
   image?: string;
-  timeline?: CampaignTimeline[];
+  timeline: CampaignTimeline[];
   createdAt?: number;
-  importantInformation?: string[];
+  importantInformation: string[];
 
   constructor({
     id,
@@ -86,19 +86,19 @@ export class Campaign extends BaseModel {
     super();
     this.id = id;
     this.userId = userId;
-    this.title = title;
-    this.description = description;
-    this.type = type;
-    this.locations = locations;
-    this.categories = categories;
-    this.platformTasks = platformTasks;
+    this.title = title || '';
+    this.description = description || '';
+    this.type = type || CampaignType.Public;
+    this.locations = locations || [];
+    this.categories = categories || [];
+    this.platformTasks = platformTasks || [];
     this.fee = fee;
-    this.criterias = criterias;
-    this.slot = slot;
+    this.criterias = criterias || [];
+    this.slot = slot || 1;
     this.image = image;
-    this.timeline = timeline;
+    this.timeline = timeline || [];
     this.createdAt = createdAt;
-    this.importantInformation = importantInformation;
+    this.importantInformation = importantInformation || [];
   }
 
   private static fromSnapshot(
@@ -151,6 +151,10 @@ export class Campaign extends BaseModel {
   static getDocumentReference(documentId: string) {
     this.setFirestoreSettings();
     return this.getCollectionReference().doc(documentId);
+  }
+
+  static sortByTimelineStart(a: Campaign, b: Campaign) {
+    return a.getTimelineStart()?.start - b.getTimelineStart()?.start || 0;
   }
 
   static async getAll(): Promise<Campaign[]> {
@@ -272,19 +276,22 @@ export class Campaign extends BaseModel {
   }
 
   //todo: GATAU namanya yang bagus apa
-  toMapObject() {
+  toFirestore() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {id, ...rest} = this;
+    const {id, fee, userId, ...rest} = this;
+    if (!userId) {
+      throw Error('Campaign userId is undefined');
+    }
     const data = {
       ...rest,
-      userId: User.getDocumentReference(this.userId ?? ''),
+      fee: rest.type === CampaignType.Public ? fee : undefined,
+      userId: User.getDocumentReference(userId),
       locations: this.locations?.map(locId =>
         Location.getDocumentReference(locId),
       ),
       categories: this.categories?.map(categoryId =>
         Category.getDocumentReference(categoryId),
       ),
-      createdAt: new Date().getTime(),
     };
 
     return data;
@@ -292,42 +299,67 @@ export class Campaign extends BaseModel {
 
   async insert() {
     try {
-      const data = this.toMapObject();
-
-      await Campaign.getCollectionReference().add(data);
-      return true;
+      const data = this.toFirestore();
+      await Campaign.getCollectionReference().add({
+        ...data,
+        createdAt: new Date().getTime(),
+      });
     } catch (error) {
       console.log(error);
+      throw Error('Error!');
     }
-    throw Error('Error!');
   }
 
   async update() {
-    Campaign.getDocumentReference(this.id || '').update(this.toMapObject());
+    const {id} = this;
+    if (!id) {
+      throw Error('Campaign id is undefined');
+    }
+    Campaign.getDocumentReference(id).update({
+      ...this.toFirestore(),
+      updatedAt: new Date().getTime(),
+    });
   }
 
   getActiveTimeline(): CampaignTimeline {
     const now = new Date().getTime();
-    return this.timeline?.find(
+    return this.timeline.find(
       timeline => timeline.start <= now && now <= timeline.end,
     )!!;
   }
 
   getTimelineStart(): CampaignTimeline {
-    return this.timeline?.find(
+    return this.timeline.find(
       timeline => CampaignStep.Registration === timeline.step,
     )!!;
   }
 
   getTimelineEnd(): CampaignTimeline {
-    return this.timeline?.find(
+    return this.timeline.find(
       timeline => CampaignStep.ResultSubmission === timeline.step,
     )!!;
   }
 
   isTimelineAvailable(step: CampaignStep): boolean {
-    return (
-      this.timeline?.find(timeline => step === timeline.step) !== undefined
-    );
+    return this.timeline.find(timeline => step === timeline.step) !== undefined;
+  }
+
+  isPublic() {
+    return this.type === CampaignType.Public;
+  }
+
+  isRegisterable() {
+    const now = new Date().getTime();
+    return this.getTimelineStart()?.end >= now;
+  }
+
+  isUpcoming() {
+    const now = new Date().getTime();
+    return this.getTimelineStart()?.start >= now;
+  }
+
+  isOngoing() {
+    const now = new Date().getTime();
+    return this.getTimelineEnd()?.end >= now;
   }
 }

@@ -28,7 +28,7 @@ const Label = ({
       ]}>
       <Text
         className="font-bold"
-        style={[textColor(COLOR.black[0]), font.size[fontSize]]}>
+        style={[textColor(COLOR.absoluteBlack[5]), font.size[fontSize]]}>
         {text}
       </Text>
     </View>

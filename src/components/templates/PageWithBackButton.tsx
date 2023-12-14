@@ -21,6 +21,7 @@ import Animated, {
 import {gap} from '../../styles/Gap';
 import {border} from '../../styles/Border';
 import {size} from '../../styles/Size';
+import {AuthenticatedNavigation, NavigationStackProps} from '../../navigation/StackNavigation';
 
 interface Props extends PressableProps {
   children: ReactNode;
@@ -50,7 +51,7 @@ export const PageWithBackButton = ({
 }: Props) => {
   const [exceedThreshold, setExceedThreshold] = useState(threshold === 0);
   const topMenuOpacity = useSharedValue(exceedThreshold ? 1 : 0);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationStackProps>();
   const insets = useSafeAreaInsets();
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -124,7 +125,11 @@ export const PageWithBackButton = ({
                 disableDefaultOnPress
                   ? props.onPress
                   : () => {
-                      navigation.goBack();
+                      if (navigation.canGoBack()) {
+                        navigation.goBack();
+                      } else {
+                        navigation.navigate(AuthenticatedNavigation.Home);
+                      }
                     }
               }
             />
