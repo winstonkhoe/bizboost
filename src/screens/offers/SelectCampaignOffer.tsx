@@ -23,10 +23,12 @@ import {Campaign} from '../../model/Campaign';
 
 interface SelectCampaignOfferProps {
   onCampaignChange: (campaign: Campaign) => void;
+  contentCreatorToOfferId: string;
 }
 
 export const SelectCampaignOffer = ({
   onCampaignChange,
+  contentCreatorToOfferId,
 }: SelectCampaignOfferProps) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
@@ -35,6 +37,7 @@ export const SelectCampaignOffer = ({
       selectedCampaign: selectedCampaign,
       setSelectedCampaign: setSelectedCampaign,
       navigation: navigation,
+      contentCreatorToOfferId: contentCreatorToOfferId,
     });
   };
 

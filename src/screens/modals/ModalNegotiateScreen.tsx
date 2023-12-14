@@ -72,13 +72,15 @@ const ModalNegotiateScreen = ({route}: Props) => {
   const onSubmit = (data: NegotiateFormData) => {
     console.log('onsubmit:', data);
 
-    offer.negotiate(data.fee, data.importantNotes, activeRole).then(() => {
-      DeviceEventEmitter.emit(eventType, data.fee.toString());
-      closeModal({
-        navigation: navigation,
-        triggerEventOnClose: 'close.negotiate',
+    offer
+      .negotiate(data.fee, data.importantNotes, data.platforms, activeRole)
+      .then(() => {
+        DeviceEventEmitter.emit(eventType, data.fee.toString());
+        closeModal({
+          navigation: navigation,
+          triggerEventOnClose: 'close.negotiate',
+        });
       });
-    });
   };
 
   const {control, getValues} = methods;
@@ -178,7 +180,7 @@ const ModalNegotiateScreen = ({route}: Props) => {
                             textColor(COLOR.text.neutral.high),
                             font.size[50],
                           ]}>
-                          {'Task Summary'}
+                          {'Campaign Task'}
                         </Text>
                         <Pressable onPress={() => setModify(!modify)}>
                           <Text style={textColor(COLOR.green[50])}>

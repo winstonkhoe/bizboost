@@ -48,6 +48,7 @@ import ModalSubmitResult from '../screens/campaign/timeline/ModalSubmitResult';
 import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrainstorm';
 import ReportListScreen from '../screens/report/ReportListScreen';
 import ReportDetailScreen from '../screens/report/ReportDetailScreen';
+import {OfferDetailScreen} from '../screens/OfferDetailScreen';
 import {UserRole} from '../model/User';
 
 export enum GuestNavigation {
@@ -92,6 +93,7 @@ export enum AuthenticatedNavigation {
   PayCampaign = 'Pay Campaign',
   ReportList = 'Report List',
   ReportDetail = 'Report Detail',
+  OfferDetail = 'Offer Detail',
 }
 
 export enum GeneralNavigation {
@@ -169,6 +171,9 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.ReportList]: undefined;
   [AuthenticatedNavigation.ReportDetail]: {
     reportId: string;
+  };
+  [AuthenticatedNavigation.OfferDetail]: {
+    offerId: string;
   };
 };
 
@@ -299,6 +304,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.ReportDetail}
                   component={ReportDetailScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.OfferDetail}
+                  component={OfferDetailScreen}
                 />
               </Stack.Group>
 

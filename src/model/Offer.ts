@@ -3,7 +3,7 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
-import {Campaign} from './Campaign';
+import {Campaign, CampaignPlatform, CampaignTask} from './Campaign';
 
 export const OFFER_COLLECTION = 'offers';
 
@@ -22,6 +22,8 @@ export class Offer extends BaseModel {
   businessPeopleId?: string;
   offeredPrice?: number;
   negotiatedPrice?: number;
+  platformTasks?: CampaignPlatform[];
+  negotiatedTasks?: CampaignPlatform[];
   importantNotes?: string;
   negotiatedNotes?: string;
   negotiatedBy?: string;
@@ -35,6 +37,8 @@ export class Offer extends BaseModel {
     businessPeopleId,
     offeredPrice,
     negotiatedPrice,
+    platformTasks,
+    negotiatedTasks,
     importantNotes,
     negotiatedNotes,
     negotiatedBy,
@@ -50,6 +54,8 @@ export class Offer extends BaseModel {
     this.campaignId = campaignId;
     this.offeredPrice = offeredPrice;
     this.negotiatedPrice = negotiatedPrice;
+    this.platformTasks = platformTasks;
+    this.negotiatedTasks = negotiatedTasks;
     this.importantNotes = importantNotes;
     this.negotiatedNotes = negotiatedNotes;
     this.negotiatedBy = negotiatedBy;
@@ -90,6 +96,8 @@ export class Offer extends BaseModel {
         campaignId: data.campaignId.id,
         offeredPrice: data.offeredPrice,
         negotiatedPrice: data.negotiatedPrice,
+        platformTasks: data.platformTasks,
+        negotiatedTasks: data.negotiatedTasks,
         importantNotes: data.importantNotes,
         negotiatedNotes: data.negotiatedNotes,
         negotiatedBy: data.negotiatedBy,
@@ -109,11 +117,25 @@ export class Offer extends BaseModel {
   static getDocumentReference(
     documentId: string,
   ): FirebaseFirestoreTypes.DocumentReference<FirebaseFirestoreTypes.DocumentData> {
-    //TODO: tidy up, move somewhere else neater
     firestore().settings({
       ignoreUndefinedProperties: true,
     });
     return this.getCampaignCollections().doc(documentId);
+  }
+
+  static async getById(id: string): Promise<Offer> {
+    try {
+      const snapshot = await this.getDocumentReference(id).get();
+      if (!snapshot.exists) {
+        throw Error('Transaction not found!');
+      }
+
+      const offer = this.fromSnapshot(snapshot);
+      return offer;
+    } catch (error) {
+      console.error('Error in getById:', error);
+    }
+    throw Error('Error!');
   }
 
   async insert() {
@@ -134,7 +156,7 @@ export class Offer extends BaseModel {
         createdAt: new Date().getTime(),
       };
 
-      await firestore().collection(OFFER_COLLECTION).add(data);
+      await firestore().collection(OFFER_COLLECTION).doc(id).set(data);
       return true;
     } catch (error) {
       console.log(error);
@@ -218,10 +240,16 @@ export class Offer extends BaseModel {
     throw Error('Error!');
   }
 
-  async negotiate(fee: number, importantNotes: string, negotiatedBy: UserRole) {
+  async negotiate(
+    fee: number,
+    importantNotes: string,
+    platformTasks: CampaignPlatform[],
+    negotiatedBy: UserRole,
+  ) {
     try {
       this.negotiatedPrice = fee;
       this.negotiatedNotes = importantNotes;
+      this.platformTasks = platformTasks;
       this.negotiatedBy = negotiatedBy;
 
       const {id, ...rest} = this;

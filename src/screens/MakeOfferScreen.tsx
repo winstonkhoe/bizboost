@@ -11,7 +11,7 @@ import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {FormFieldHelper} from '../components/atoms/FormLabel';
 import {gap} from '../styles/Gap';
 import {CustomNumberInput, CustomTextInput} from '../components/atoms/Input';
-import {SelectCampaignOffer} from './makeOffer/SelectCampaignOffer';
+import {SelectCampaignOffer} from './offers/SelectCampaignOffer';
 import {Campaign} from '../model/Campaign';
 import {
   HorizontalPadding,
@@ -147,7 +147,10 @@ const MakeOfferScreen = ({route}: Props) => {
             <View style={flex.flexCol} className="flex-1 justify-between">
               <View style={flex.flexCol}>
                 <HorizontalPadding paddingSize="large">
-                  <SelectCampaignOffer onCampaignChange={setSelectedCampaign} />
+                  <SelectCampaignOffer
+                    onCampaignChange={setSelectedCampaign}
+                    contentCreatorToOfferId={contentCreatorId}
+                  />
 
                   <View style={[flex.flexCol, gap.default]}>
                     <FormFieldHelper title="Offered Fee" />
