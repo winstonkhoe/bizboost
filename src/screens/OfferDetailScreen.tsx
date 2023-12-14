@@ -69,8 +69,10 @@ export const OfferDetailScreen = ({route}: Props) => {
 
   const acceptOffer = () => {
     if (offer) {
-      offer.accept().then(() => {
+      offer.accept().then(acc => {
         const transaction = new Transaction({
+          transactionAmount: acc.offeredPrice,
+          platformTasks: acc.platformTasks,
           contentCreatorId: offer.contentCreatorId ?? '',
           businessPeopleId: offer.businessPeopleId ?? '',
           campaignId: campaign?.id ?? '',
@@ -325,7 +327,16 @@ export const OfferDetailScreen = ({route}: Props) => {
                   <CustomAlert
                     confirmationText={
                       <View>
-                        <Text>Are you sure you want to reject this offer?</Text>
+                        <Text
+                          style={[
+                            textColor(COLOR.text.neutral.high),
+                            font.size[30],
+                          ]}>
+                          Are you sure you want to reject this offer?
+                        </Text>
+                        <Text style={[textColor(COLOR.red[50]), font.size[20]]}>
+                          You can't exchange offer again for this campaign
+                        </Text>
                         <View
                           style={[
                             flex.flexRow,

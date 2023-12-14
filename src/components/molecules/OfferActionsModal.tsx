@@ -178,7 +178,16 @@ const OfferActionModal = ({
               <CustomAlert
                 confirmationText={
                   <View>
-                    <Text>Are you sure you want to reject this offer?</Text>
+                    <Text
+                      style={[
+                        textColor(COLOR.text.neutral.high),
+                        font.size[30],
+                      ]}>
+                      Are you sure you want to reject this offer?
+                    </Text>
+                    <Text style={[textColor(COLOR.red[50]), font.size[20]]}>
+                      You can't exchange offer again for this campaign
+                    </Text>
                     <View
                       style={[
                         flex.flexRow,

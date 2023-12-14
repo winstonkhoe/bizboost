@@ -48,7 +48,7 @@ const ChatListScreen = () => {
                     });
                   }}>
                   <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
-                    <View style={gap.medium} className="flex flex-row h-full">
+                    <View style={gap.default} className="flex flex-row h-full">
                       <View className="w-12 h-12 rounded-full overflow-hidden">
                         <FastImage
                           source={
@@ -65,7 +65,7 @@ const ChatListScreen = () => {
                         <Text className="text-lg font-bold">
                           {recipient.fullname || 'User'}
                         </Text>
-                        <Text>
+                        <Text numberOfLines={1}>
                           {chat.messages && chat.messages.length > 0
                             ? chat.messages[chat.messages.length - 1].message
                             : ''}
