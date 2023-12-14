@@ -41,6 +41,8 @@ import {StyleSheet} from 'react-native';
 import {padding} from '../../styles/Padding';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {SkeletonPlaceholder} from './SkeletonPlaceholder';
+import ReviewSheetModal from './ReviewSheetModal';
+import {Review} from '../../model/Review';
 
 type Props = {
   transaction: Transaction;
@@ -157,7 +159,11 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
 
 const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [review, setReview] = useState<Review | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
+
   useEffect(() => {
     if (transaction.campaignId) {
       Campaign.getById(transaction.campaignId)
@@ -168,8 +174,6 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
-  const [businessPeople, setBusinessPeople] = useState<User | null>();
-
   useEffect(() => {
     if (transaction.businessPeopleId) {
       User.getById(transaction.businessPeopleId)
@@ -177,6 +181,16 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         .catch(() => {
           setBusinessPeople(null);
         });
+    }
+  }, [transaction]);
+
+  useEffect(() => {
+    if (transaction.id && transaction.contentCreatorId) {
+      return Review.getReviewByTransactionIdAndReviewerId(
+        transaction.id,
+        transaction.contentCreatorId,
+        setReview,
+      );
     }
   }, [transaction]);
 
@@ -200,7 +214,29 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       imageSource={getSourceOrDefaultAvatar({
         uri: campaign?.image,
       })}
+      // bodyText={campaign?.title}
       bodyText={campaign?.title}
+      bodyContent={
+        review === null &&
+        transaction.isCompleted() && (
+          <>
+            <View style={[flex.flex1, flex.flexRow, justify.end]}>
+              <CustomButton
+                text="Review"
+                verticalPadding="xsmall"
+                onPress={() => {
+                  setIsReviewModalOpen(true);
+                }}
+              />
+            </View>
+            <ReviewSheetModal
+              isModalOpened={isReviewModalOpen}
+              onModalDismiss={() => setIsReviewModalOpen(false)}
+              transaction={transaction}
+            />
+          </>
+        )
+      }
       statusText={transaction.status}
       statusType={
         transactionStatusTypeMap[
@@ -307,7 +343,7 @@ export const BaseCard = ({
       <Pressable
         onPress={handleClickBody}
         style={[flex.flexRow, items.center, justify.between, padding.default]}>
-        <View style={[flex.flexRow, gap.default, items.center]}>
+        <View style={[flex.flex1, flex.flexRow, gap.default, items.center]}>
           <SkeletonPlaceholder isLoading={isLoading}>
             <View
               className="items-center justify-center overflow-hidden"
@@ -315,8 +351,8 @@ export const BaseCard = ({
               <FastImage style={[dimension.full]} source={imageSource} />
             </View>
           </SkeletonPlaceholder>
-          <SkeletonPlaceholder isLoading={isLoading}>
-            <View style={[flex.flexCol, gap.xsmall, items.start]}>
+          <SkeletonPlaceholder style={[flex.flex1]} isLoading={isLoading}>
+            <View style={[flex.flex1, flex.flexCol, gap.xsmall]}>
               <Text
                 className="font-semibold"
                 style={[font.size[30], textColor(COLOR.text.neutral.high)]}
@@ -324,7 +360,9 @@ export const BaseCard = ({
                 {bodyText}
               </Text>
               {statusText && (
-                <StatusTag status={statusText} statusType={statusType} />
+                <View style={[flex.flexRow, justify.start]}>
+                  <StatusTag status={statusText} statusType={statusType} />
+                </View>
               )}
               {bodyContent}
             </View>

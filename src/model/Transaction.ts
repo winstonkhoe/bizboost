@@ -1264,6 +1264,11 @@ export class Transaction extends BaseModel {
     );
   }
 
+  isCompleted() {
+    const {status} = this;
+    return status === TransactionStatus.completed;
+  }
+
   isWaitingContentCreatorAction() {
     const {status} = this;
     return (

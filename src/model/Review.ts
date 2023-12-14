@@ -108,7 +108,7 @@ export class Review extends BaseModel {
     }
     const data = {
       ...this.toFirestore(),
-      createdAt: firestore.FieldValue.serverTimestamp(),
+      createdAt: new Date().getTime(),
     };
     await Review.getCollectionReference().add(data);
     const campaign = await Campaign.getById(campaignId);
@@ -129,5 +129,32 @@ export class Review extends BaseModel {
     } catch (error) {
       throw Error('Review.getReviewsByRevieweeId err: ' + error);
     }
+  }
+
+  static getReviewByTransactionIdAndReviewerId(
+    transactionId: string,
+    reviewerId: string,
+    onComplete: (review: Review | null) => void,
+  ) {
+    return this.getCollectionReference()
+      .where(
+        'transactionId',
+        '==',
+        Transaction.getDocumentReference(transactionId),
+      )
+      .where('reviewerId', '==', User.getDocumentReference(reviewerId))
+      .onSnapshot(
+        querySnapshot => {
+          if (querySnapshot.empty) {
+            onComplete(null);
+          } else {
+            onComplete(this.fromSnapshot(querySnapshot.docs[0]));
+          }
+        },
+        error => {
+          onComplete(null);
+          console.log(error.message);
+        },
+      );
   }
 }

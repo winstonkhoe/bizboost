@@ -49,7 +49,7 @@ const ReviewSheetModal = ({
           : transaction.businessPeopleId,
       campaignId: transaction.campaignId,
       transactionId: transaction.id,
-      rating: rating,
+      rating: rating + 1,
       content: reviewContent,
     });
     setIsLoading(true);
@@ -76,11 +76,15 @@ const ReviewSheetModal = ({
 
   return (
     <>
-      <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
+      <SheetModal
+        open={isModalOpened}
+        onDismiss={onModalDismiss}
+        snapPoints={['60%']}
+        enableDynamicSizing={false}>
         <View
           style={[
             flex.flexCol,
-            gap.medium,
+            gap.xlarge,
             padding.top.default,
             padding.bottom.xlarge,
             {
@@ -89,41 +93,44 @@ const ReviewSheetModal = ({
             padding.horizontal.medium,
           ]}>
           <BackButtonPlaceholder onPress={onModalDismiss} icon="close" />
-          <View style={[flex.flex1]}>
+          {/* <View style={[flex.flex1]}>
             <RegisteredUserListCard
               transaction={transaction}
               role={activeRole}
             />
-          </View>
-          <View style={[flex.flexRow, justify.center, gap.medium]}>
-            {[...Array(5)].map((_, ratingIndex) => (
-              <AnimatedPressable
-                key={ratingIndex}
-                onPress={() => {
-                  setRating(ratingIndex);
-                }}>
-                <RatingStarIcon
-                  size="xlarge5"
-                  color={
-                    ratingIndex > rating ? COLOR.absoluteBlack[20] : undefined
-                  }
-                />
-              </AnimatedPressable>
-            ))}
-          </View>
-          <View style={[flex.flexCol, gap.default]}>
-            <FormFieldHelper
-              title="Tell us more about your experience."
-              type="optional"
-            />
-            <FormlessCustomTextInput
-              onChange={setReviewContent}
-              max={500}
-              description="Maximum 500 characters"
-              counter
-            />
-          </View>
-          <View style={[flex.flex1]}>
+          </View> */}
+          <View style={[flex.flexCol, gap.large]}>
+            <View style={[flex.flexRow, justify.center, gap.medium]}>
+              {[...Array(5)].map((_, ratingIndex) => (
+                <AnimatedPressable
+                  key={ratingIndex}
+                  onPress={() => {
+                    setRating(ratingIndex);
+                  }}>
+                  <RatingStarIcon
+                    size="xlarge"
+                    color={
+                      ratingIndex > rating ? COLOR.absoluteBlack[20] : undefined
+                    }
+                  />
+                </AnimatedPressable>
+              ))}
+            </View>
+            <View style={[flex.flexCol, gap.default]}>
+              <FormFieldHelper
+                title="Tell us about your experience."
+                titleSize={40}
+                type="optional"
+              />
+              <FormlessCustomTextInput
+                onChange={setReviewContent}
+                type="textarea"
+                placeholder='e.g. "I love it, clear instructions and the business people is very responsive"'
+                max={200}
+                description="Maximum 200 characters"
+                counter
+              />
+            </View>
             <CustomButton
               text="Submit Review"
               onPress={submitReview}
