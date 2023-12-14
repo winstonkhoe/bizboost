@@ -15,6 +15,7 @@ import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {useEffect, useState} from 'react';
 import FastImage from 'react-native-fast-image';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
 
 interface RegisterProfilePictureProps {
   defaultProfile?: string;
@@ -52,29 +53,27 @@ export const RegisterProfilePicture = ({
                 You can always change it later
               </Text>
             </View>
-            <MediaUploader
-              targetFolder="profile-pictures"
-              showUploadProgress
-              options={{
-                width: 400,
-                height: 400,
-                cropping: true,
-              }}
-              onUploadSuccess={setUploadedImage}
-              onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-              <View
-                className="overflow-hidden"
-                style={[dimension.square.xlarge7, rounded.medium]}>
+            <View
+              className="overflow-hidden"
+              style={[dimension.square.xlarge7, rounded.medium]}>
+              <MediaUploader
+                targetFolder="profile-pictures"
+                showUploadProgress
+                options={{
+                  width: 400,
+                  height: 400,
+                  cropping: true,
+                }}
+                onUploadSuccess={setUploadedImage}
+                onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
                 <FastImage
                   style={[dimension.full]}
-                  source={
-                    uploadedImage
-                      ? {uri: uploadedImage}
-                      : require('../../assets/images/bizboost-avatar.png')
-                  }
+                  source={getSourceOrDefaultAvatar({
+                    uri: uploadedImage,
+                  })}
                 />
-              </View>
-            </MediaUploader>
+              </MediaUploader>
+            </View>
           </View>
         </View>
       </HorizontalPadding>
