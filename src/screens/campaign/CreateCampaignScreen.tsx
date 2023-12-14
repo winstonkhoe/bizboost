@@ -453,7 +453,11 @@ const CreateCampaignScreen = () => {
                                             COLOR.background.danger.default,
                                         }),
                                     ]}>
-                                    <PhotosIcon width={30} height={30} />
+                                    <PhotosIcon
+                                      width={30}
+                                      height={30}
+                                      color={COLOR.text.neutral.high}
+                                    />
                                   </View>
                                 )}
                               </View>
@@ -1318,7 +1322,7 @@ export const SocialFieldArray = ({
                   </View>
                 )}
                 <View style={[flex.flexCol, gap.default, items.start]}>
-                  <FormFieldHelper title="Description" />
+                  <FormFieldHelper title="Description" type="optional" />
                   <View style={[flex.flexRow, gap.default, items.end]}>
                     <View style={[flex.flex1, padding.top.default]}>
                       <FormlessCustomTextInput

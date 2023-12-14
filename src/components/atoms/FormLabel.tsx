@@ -35,7 +35,7 @@ export const FormFieldHelper = ({
   ...props
 }: FormFieldHelperProps) => {
   return title || description ? (
-    <View style={[flex.flex1, flex.flexCol, gap.small]}>
+    <View style={[flex.flexCol, gap.small]}>
       {title && (
         <Text
           className="font-bold"
