@@ -129,7 +129,7 @@ export const openOfferActionModal = ({
 };
 
 interface CampaignModalProps {
-  selectedCampaign: Campaign;
+  selectedCampaign?: Campaign;
   setSelectedCampaign: (campaign: Campaign) => void;
   navigation: NavigationStackProps;
   contentCreatorToOfferId?: string;

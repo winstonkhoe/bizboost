@@ -132,6 +132,10 @@ const HomeScreen = () => {
     }
   }, [isAdmin]);
 
+  if (isAdmin) {
+    console.log('admin transactions', transactions);
+  }
+
   return (
     <View
       style={[
@@ -300,11 +304,7 @@ const HomeScreen = () => {
             <View style={[flex.flexCol, gap.default]}>
               <HorizontalPadding>
                 <HomeSectionHeader
-                  header={
-                    activeRole === UserRole.Admin
-                      ? 'Payments'
-                      : 'Ongoing Transactions'
-                  }
+                  header={isAdmin ? 'Payments' : 'Ongoing Transactions'}
                   link={'See All'}
                   // onPressLink={() =>
                   // setOngoingCampaignsLimit(
@@ -316,7 +316,9 @@ const HomeScreen = () => {
               <View
                 style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
                 {transactions
-                  .filter(transaction => transaction.isOngoing())
+                  .filter(transaction =>
+                    isAdmin ? true : transaction.isOngoing(),
+                  )
                   .map((t, index) => (
                     <RegisteredUserListCard
                       key={index}

@@ -48,7 +48,7 @@ const PaymentSheetModal = ({
   paymentStatus,
   contentCreatorBankAccount = undefined,
 }: Props) => {
-  const {activeRole} = useUser();
+  const {isBusinessPeople, isAdmin} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
 
@@ -61,11 +61,9 @@ const PaymentSheetModal = ({
   // TODO: kalo reupload, apus yang lama
   return (
     <>
-      <SheetModal
-        snapPoints={['60%']}
-        open={isModalOpened}
-        onDismiss={onModalDismiss}>
+      <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
         <View
+          className="bg-red-500"
           style={[
             flex.flexCol,
             gap.default,
@@ -73,10 +71,8 @@ const PaymentSheetModal = ({
             padding.bottom.xlarge,
             padding.horizontal.medium,
           ]}>
-          <View style={[flex.flexCol, items.center, gap.default]}>
-            <View
-              style={[flex.flexRow, items.center, justify.between]}
-              className="w-full">
+          <View style={[flex.flexCol, gap.default]}>
+            <View style={[flex.flexRow, items.center, justify.between]}>
               <Text
                 className="font-bold"
                 style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
@@ -94,12 +90,12 @@ const PaymentSheetModal = ({
             <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
               {/* TODO: fix copywriting */}
               {/* TODO: taro bank account admin */}
-              {activeRole === UserRole.BusinessPeople &&
+              {isBusinessPeople &&
                 `You need to pay ${formatToRupiah(
                   amount,
                 )} to Account Number xxxxxxxxxx [admin bank account] by [End Date regis]. Upload your payment proof here.`}
 
-              {activeRole === UserRole.Admin && (
+              {isAdmin && (
                 <>
                   {paymentStatus ===
                     PaymentStatus.proofWaitingForVerification &&
@@ -133,7 +129,7 @@ const PaymentSheetModal = ({
                 </View>
               </TouchableOpacity>
             )}
-            {activeRole === UserRole.BusinessPeople &&
+            {isBusinessPeople &&
             (paymentStatus === PaymentStatus.proofWaitingForVerification ||
               paymentStatus === PaymentStatus.proofRejected ||
               paymentStatus === undefined) ? (
@@ -193,6 +189,8 @@ const PaymentSheetModal = ({
                     <View style={[flex.flex1]}>
                       <CustomButton
                         text="Reject"
+                        type="tertiary"
+                        customTextColor={COLOR.text.danger}
                         scale={1}
                         onPress={onProofRejected}
                         customTextSize={20}
@@ -212,7 +210,7 @@ const PaymentSheetModal = ({
                   </>
                 )}
                 {paymentStatus === PaymentStatus.withdrawalRequested &&
-                  activeRole === UserRole.Admin && (
+                  isAdmin && (
                     <View style={[flex.flex1]}>
                       <CustomButton
                         text="I Have Paid This User"

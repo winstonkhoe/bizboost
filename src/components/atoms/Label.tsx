@@ -24,7 +24,7 @@ const Label = ({
         rounded[radius],
         type === 'success' && background(COLOR.green[50]),
         type === 'danger' && background(COLOR.red[50]),
-        type === 'neutral' && background(COLOR.background.neutral.high),
+        type === 'neutral' && background(COLOR.absoluteBlack[70]),
       ]}>
       <Text
         className="font-bold"

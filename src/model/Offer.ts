@@ -157,11 +157,10 @@ export class Offer extends BaseModel {
       };
 
       await firestore().collection(OFFER_COLLECTION).doc(id).set(data);
-      return true;
     } catch (error) {
       console.log(error);
+      throw Error('Error!');
     }
-    throw Error('Error!');
   }
 
   static getPendingOffersbyCCBP(

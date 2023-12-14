@@ -47,8 +47,8 @@ export const SheetModal = ({
         {...props}
         pressBehavior={disableCloseOnClickBackground ? 'none' : 'close'}
         disappearsOnIndex={-1}
-        opacity={1}
-        style={[props.style, background(COLOR.black[100])]}
+        opacity={0.7}
+        style={[props.style, background(COLOR.absoluteBlack[100])]}
       />
     ),
     [disableCloseOnClickBackground],

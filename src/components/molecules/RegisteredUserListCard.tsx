@@ -188,7 +188,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         });
       }}
       icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
-      headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
+      headerTextLeading={businessPeople?.businessPeople?.fullname}
       // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
         if (transaction.id) {
@@ -200,7 +200,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       imageSource={getSourceOrDefaultAvatar({
         uri: campaign?.image,
       })}
-      bodyText={campaign?.title || ''}
+      bodyText={campaign?.title}
       statusText={transaction.status}
       statusType={
         transactionStatusTypeMap[
@@ -215,12 +215,12 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
 type BaseCardProps = {
   handleClickHeader?: () => void;
   icon?: ReactNode;
-  headerTextLeading: string;
+  headerTextLeading?: string; //essential
   headerTextTrailing?: string | ReactNode;
   handleClickBody: () => void;
   imageSource: Source | ImageRequireSource;
   imageDimension?: typeof dimension.square.xlarge3;
-  bodyText: string;
+  bodyText?: string; //essential
 
   // TODO: kalo sempet rapihin bodycontent sama status
   bodyContent?: ReactNode;

@@ -39,15 +39,24 @@ export const SimpleImageCard = ({
         className="absolute z-10 top-0 left-0"
         style={[
           dimension.full,
-          background(`${COLOR.background.neutral.high}${dim}`),
+          background(COLOR.background.neutral.high),
+          {
+            opacity: dim / 100,
+          },
         ]}
       />
       {text && (
         <LinearGradient
           className="absolute z-20 bottom-0 left-0"
-          colors={[`${COLOR.black[60]}11`, `${COLOR.black[100]}`]}
+          colors={[
+            'transparent',
+            `${COLOR.absoluteBlack[40]}`,
+            `${COLOR.absoluteBlack[100]}`,
+          ]}
           style={[dimension.width.full, padding.small, padding.top.large]}>
-          <Text className="font-bold" style={[textColor(COLOR.black[0])]}>
+          <Text
+            className="font-bold"
+            style={[textColor(COLOR.absoluteBlack[0])]}>
             {text}
           </Text>
         </LinearGradient>

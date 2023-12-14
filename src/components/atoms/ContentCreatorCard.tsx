@@ -89,7 +89,7 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
                       className="font-medium"
                       style={[
                         font.size[10],
-                        textColor(COLOR.text.neutral.high),
+                        textColor(COLOR.absoluteBlack[0]),
                       ]}>
                       {`${rating} · `}
                     </Text>
@@ -102,7 +102,7 @@ const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
                     style={[
                       flex.flex1,
                       font.size[10],
-                      textColor(COLOR.text.neutral.high),
+                      textColor(COLOR.absoluteBlack[0]),
                     ]}>
                     {concatenatedCategories}
                   </Text>

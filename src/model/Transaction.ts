@@ -437,19 +437,29 @@ export class Transaction extends BaseModel {
 
   async insert(status: TransactionStatus) {
     try {
-      const {id, ...rest} = this;
+      const {id, contentCreatorId, businessPeopleId, campaignId, ...rest} =
+        this;
       if (!id) {
         throw Error('Missing id');
       }
+
+      if (!contentCreatorId) {
+        throw Error('Missing content creator id');
+      }
+
+      if (!businessPeopleId) {
+        throw Error('Missing business people id');
+      }
+
+      if (!campaignId) {
+        throw Error('Missing campaign id');
+      }
+
       const data = {
         ...rest,
-        contentCreatorId: User.getDocumentReference(
-          this.contentCreatorId ?? '',
-        ),
-        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
-        businessPeopleId: User.getDocumentReference(
-          this.businessPeopleId ?? '',
-        ),
+        contentCreatorId: User.getDocumentReference(contentCreatorId),
+        campaignId: Campaign.getDocumentReference(campaignId),
+        businessPeopleId: User.getDocumentReference(businessPeopleId),
         status: status,
         createdAt: new Date().getTime(),
       };
@@ -906,7 +916,7 @@ export class Transaction extends BaseModel {
   }
 
   async offer() {
-    return await this.insert(TransactionStatus.offering);
+    return this.insert(TransactionStatus.offering);
   }
 
   getLatestBrainstorm(): Brainstorm | null {

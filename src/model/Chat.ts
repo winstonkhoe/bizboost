@@ -34,19 +34,15 @@ export type Participant = {
 const CHAT_COLLECTION = 'chats';
 
 export class Chat extends BaseModel {
-  id?: string = '';
-  participants: Participant[] = [];
-  messages?: Message[] = [];
+  id: string;
+  participants: Participant[];
+  messages: Message[];
 
   constructor(data: Partial<Chat>) {
     super();
-    console.log('constructor:' + data.id);
-
     this.participants = data.participants || [];
     this.messages = data.messages || [];
-    if (!this.id) {
-      this.id = this.generateId(this.participants);
-    }
+    this.id = this.generateId(this.participants);
   }
 
   private generateId(participants: Participant[]): string {
@@ -173,38 +169,68 @@ export class Chat extends BaseModel {
       };
 
       await Chat.getDocumentReference(id).set(data);
-      return true;
     } catch (error) {
       console.error(error);
       throw new Error('Error!');
     }
   }
 
+  // static getUserChatsReactive(
+  //   userId: string,
+  //   activeRole: string,
+  //   callback: (chats: Chat[], unsubscribe: () => void) => void,
+  // ): void {
+  //   try {
+  //     const userRef = User.getDocumentReference(userId);
+  //     const subscriber = this.getCollectionReference()
+  //       .where('participants', 'array-contains', {
+  //         ref: userRef,
+  //         role: activeRole,
+  //       })
+  //       .onSnapshot(
+  //         (
+  //           querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
+  //         ) => {
+  //           const userChats = this.fromQuerySnapshot(querySnapshots);
+  //           callback(userChats, subscriber);
+  //         },
+  //         (error: Error) => {
+  //           console.log('getUserChatsReactive error', error.message);
+  //         },
+  //       );
+  //   } catch (error) {
+  //     console.log('no access', error);
+  //   }
+  // }
+
   static getUserChatsReactive(
     userId: string,
     activeRole: string,
-    callback: (chats: Chat[], unsubscribe: () => void) => void,
-  ): void {
+    callback: (chats: Chat[]) => void,
+  ) {
     try {
       const userRef = User.getDocumentReference(userId);
-      const subscriber = this.getCollectionReference()
+      const unsubscribe = this.getCollectionReference()
         .where('participants', 'array-contains', {
           ref: userRef,
           role: activeRole,
         })
         .onSnapshot(
-          (
-            querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
-          ) => {
-            const userChats = this.fromQuerySnapshot(querySnapshots);
-            callback(userChats, subscriber);
+          querySnapshots => {
+            if (querySnapshots.empty) {
+              callback([]);
+              return;
+            }
+            callback(this.fromQuerySnapshot(querySnapshots));
           },
           (error: Error) => {
             console.log('getUserChatsReactive error', error.message);
           },
         );
+      return unsubscribe;
     } catch (error) {
       console.log('no access', error);
+      return () => {};
     }
   }
 
