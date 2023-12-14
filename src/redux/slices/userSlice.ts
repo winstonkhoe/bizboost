@@ -6,12 +6,18 @@ interface UserState {
   uid: string | null;
   user: User | null | undefined;
   activeRole?: UserRole;
+  isAdmin: boolean;
+  isBusinessPeople: boolean;
+  isContentCreator: boolean;
 }
 
 const initialState = {
   uid: null,
   user: undefined,
   activeRole: undefined,
+  isAdmin: false,
+  isBusinessPeople: false,
+  isContentCreator: false,
 } as UserState;
 
 export const switchRole = createAction<UserRole | undefined>('switchRole');
@@ -42,10 +48,17 @@ const userSlice = createSlice({
   },
   extraReducers(builder) {
     builder.addCase(switchRole, (state, action) => {
-      showToast({
-        message: `Switched to ${action.payload}`,
-      });
-      state.activeRole = action.payload;
+      const newRole = action.payload;
+      if (newRole) {
+        showToast({
+          message: `Switched to ${newRole}`,
+        });
+      }
+
+      state.activeRole = newRole;
+      state.isAdmin = newRole === UserRole.Admin;
+      state.isBusinessPeople = newRole === UserRole.BusinessPeople;
+      state.isContentCreator = newRole === UserRole.ContentCreator;
     });
   },
 });

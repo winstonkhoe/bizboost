@@ -5,7 +5,8 @@ import {BusinessPeople, ContentCreator, User, UserRole} from '../model/User';
 
 export const useUser = () => {
   const unsubscribe = useRef<(() => void) | undefined>(undefined);
-  const {user, activeRole, uid} = useAppSelector(state => state.user);
+  const {user, activeRole, uid, isAdmin, isBusinessPeople, isContentCreator} =
+    useAppSelector(state => state.user);
   const dispatch = useAppDispatch();
   const getData = (
     user: User | null | undefined,
@@ -69,5 +70,13 @@ export const useUser = () => {
       dispatch(setUser(null));
     }
   }, [user, uid, dispatch, activeRole]);
-  return {uid, user, activeRole, activeData};
+  return {
+    uid,
+    user,
+    activeRole,
+    activeData,
+    isAdmin,
+    isBusinessPeople,
+    isContentCreator,
+  };
 };

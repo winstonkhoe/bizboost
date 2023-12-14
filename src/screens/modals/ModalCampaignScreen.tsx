@@ -127,13 +127,13 @@ const ModalCampaignScreen = ({route}: Props) => {
                 </View>
               </HorizontalPadding>
             </ScrollView>
-            <HorizontalPadding>
+            <View style={[padding.horizontal.default]}>
               <CustomButton
                 text="Choose"
                 disabled={selectedCampaign === null}
                 onPress={emitChangesAndClose}
               />
-            </HorizontalPadding>
+            </View>
           </View>
         </View>
       ) : (

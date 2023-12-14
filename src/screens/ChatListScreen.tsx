@@ -1,9 +1,9 @@
 import React from 'react';
-import {View, Text, ScrollView, TouchableWithoutFeedback} from 'react-native';
+import {View, Text, ScrollView, Pressable} from 'react-native';
 import {useUserChats} from '../hooks/chats';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {getDate, getTimeAgo} from '../utils/date';
+import {getTimeAgo} from '../utils/date';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -11,6 +11,10 @@ import {
 } from '../navigation/StackNavigation';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import FastImage from 'react-native-fast-image';
+import {font} from '../styles/Font';
+import {textColor} from '../styles/Text';
+import {COLOR} from '../styles/Color';
+import {padding} from '../styles/Padding';
 
 const ChatListScreen = () => {
   const chats = useUserChats();
@@ -20,21 +24,23 @@ const ChatListScreen = () => {
   const profilePictureSource = require('../assets/images/sample-influencer.jpeg');
 
   return (
-    <SafeAreaContainer>
-      <View style={flex.flexCol} className="bg-white">
-        <Text className="text-black text-2xl font-bold p-4">Chat List</Text>
-        <ScrollView style={flex.flexCol}>
+    <SafeAreaContainer enable>
+      <View style={[flex.flex1, flex.flexCol, gap.default, padding.top.medium]}>
+        <View style={[padding.horizontal.medium]}>
+          <Text
+            className="font-bold"
+            style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+            Chats
+          </Text>
+        </View>
+        <ScrollView style={[flex.flex1, flex.flexCol]}>
           {chats.chats ? (
             chats.chats.map((item, idx) => {
               const recipient = item.recipient;
               const chat = item.chat;
 
-              if (!recipient) {
-                return;
-              }
-
-              return (
-                <TouchableWithoutFeedback
+              return !recipient ? null : (
+                <Pressable
                   key={idx}
                   onPress={() => {
                     navigation.navigate(AuthenticatedNavigation.ChatDetail, {
@@ -80,7 +86,7 @@ const ChatListScreen = () => {
                       </View>
                     )}
                   </View>
-                </TouchableWithoutFeedback>
+                </Pressable>
               );
             })
           ) : (

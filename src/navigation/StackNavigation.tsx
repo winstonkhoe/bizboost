@@ -109,7 +109,7 @@ export type GuestStack = {
 };
 
 interface CampaignModalProps {
-  initialSelectedCampaign: Campaign;
+  initialSelectedCampaign?: Campaign;
   eventType: string;
   contentCreatorToOfferId: string;
 }
