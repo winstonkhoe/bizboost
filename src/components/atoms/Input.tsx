@@ -347,7 +347,7 @@ export const FormlessCustomTextInput = ({
   const value = watch('value');
 
   // // Create a debounced version of onChange
-  const debouncedOnChange = debounce(onChange, 300);
+  const debouncedOnChange = debounce(onChange, 100);
 
   useEffect(() => {
     debouncedOnChange(value);
