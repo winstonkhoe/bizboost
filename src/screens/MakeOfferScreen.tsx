@@ -164,20 +164,28 @@ const MakeOfferScreen = ({route}: Props) => {
               const chat = new Chat({
                 participants: participants,
               });
-              chat
-                .insert()
-                .then(success => {
-                  if (success) {
-                    console.log('onsubmit chat:', chat);
+              chat.insert().then(success => {
+                if (success) {
+                  ChatService.insertOfferMessage(
+                    businessPeopleId + contentCreatorId,
+                    data.fee.toString(),
+                    activeRole,
+                  ).then(() => {
                     chat.convertToChatView(activeRole).then(cv => {
-                      console.log('cv:', cv);
                       navigation.navigate(AuthenticatedNavigation.ChatDetail, {
                         chat: cv,
+                      })
+                    }).catch(() => {
+                      showToast({
+                        type: ToastType.danger,
+                        message: 'Something went wrong',
                       });
+                      setIsLoading(false);
                     });
-                  }
-                  setIsLoading(false);
-                })
+                    }
+                     setIsLoading(false);
+                    })
+              })
                 .catch(() => {
                   showToast({
                     type: ToastType.danger,

@@ -26,21 +26,19 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import FloatingOffer from '../components/chat/FloatingOffer';
 import {UserRole} from '../model/User';
 import {Offer, OfferStatus} from '../model/Offer';
 import {useNavigation} from '@react-navigation/native';
 import {Pressable} from 'react-native';
 import {Animated} from 'react-native';
-import {Transaction} from '../model/Transaction';
-import Meatballs from '../assets/vectors/meatballs.svg';
 import ChevronUp from '../assets/vectors/chevron-up.svg';
 import ChevronDown from '../assets/vectors/chevron-down.svg';
 import {rounded} from '../styles/BorderRadius';
 import FastImage from 'react-native-fast-image';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {Campaign} from '../model/Campaign';
-import {openNegotiateModal} from '../utils/modal';
+import OfferActionModal from '../components/molecules/OfferActionsModal';
+import {MeatballMenuIcon} from '../components/atoms/Icon';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -51,10 +49,13 @@ const ChatScreen = ({route}: Props) => {
   const [chatData, setChatData] = useState<Chat>(chat.chat);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
-  const {uid, user, activeRole} = useUser();
+  const {user, activeRole} = useUser();
 
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
   const navigation = useNavigation<NavigationStackProps>();
+  const [isModalOpened, setIsModalOpened] = useState<boolean>(true);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<Offer>();
 
   useEffect(() => {
     const chatRef = Chat.getDocumentReference(chat.chat.id ?? '');
@@ -77,12 +78,16 @@ const ChatScreen = ({route}: Props) => {
   );
 
   useEffect(() => {
+    if (offers.length === 1) {
+      setIsExpanded(true);
+    }
+  }, [offers.length]);
+
+  useEffect(() => {
     const unsubscribe = Offer.getPendingOffersbyCCBP(
       businessPeopleId?.ref ?? '',
       contentCreatorId?.ref ?? '',
       res => {
-        console.log('fetch', res);
-
         const sortedTransactions = res.sort(
           (a, b) => b.createdAt - a.createdAt,
         );
@@ -98,6 +103,7 @@ const ChatScreen = ({route}: Props) => {
   }, [businessPeopleId, contentCreatorId]);
 
   console.log(offers);
+
   useEffect(() => {
     if (chatData.messages) {
       setChatMessages(chatData.messages);
@@ -110,7 +116,7 @@ const ChatScreen = ({route}: Props) => {
     if (message !== '') {
       const newMessage: Message = {
         message: message,
-        role: activeRole!!,
+        role: activeRole,
         type: MessageType.Text,
         createdAt: new Date().getTime(),
       };
@@ -130,7 +136,6 @@ const ChatScreen = ({route}: Props) => {
   // Handle opening the widget
   const handleOpenWidgetPress = () => {
     setIsWidgetVisible(!isWidgetVisible);
-    console.log(`Opening widget: ${isWidgetVisible}`);
   };
 
   const handleImageUpload = async (downloadURL: string) => {
@@ -138,7 +143,7 @@ const ChatScreen = ({route}: Props) => {
     const newMessage: Message = {
       message: downloadURL,
       type: MessageType.Photo,
-      role: activeRole!!,
+      role: activeRole,
       createdAt: new Date().getTime(),
     };
 
@@ -157,10 +162,6 @@ const ChatScreen = ({route}: Props) => {
       businessPeopleId: businessPeopleId?.ref ?? '',
       contentCreatorId: contentCreatorId?.ref ?? '',
     });
-  };
-
-  const handleNegotiationComplete = (fee: string) => {
-    ChatService.insertNegotiateMessage(chat.chat.id ?? '', fee, activeRole!!);
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -185,14 +186,6 @@ const ChatScreen = ({route}: Props) => {
     }).start();
 
     setIsExpanded(!isExpanded);
-  };
-
-  const acceptOffer = (offer: Offer) => {
-    offer.accept();
-  };
-
-  const declineOffer = (offer: Offer) => {
-    offer.reject();
   };
 
   return (
@@ -226,9 +219,8 @@ const ChatScreen = ({route}: Props) => {
                       businessPeople={businessPeople || ''}
                       contentCreator={contentCreator || ''}
                       toggleExpansion={toggleExpansion}
-                      handleClickAccept={() => acceptOffer(offers[0])}
-                      handleClickReject={() => declineOffer(offers[0])}
-                      onNegotiationComplete={handleNegotiationComplete}
+                      setIsModalOpened={setIsModalOpened}
+                      setSelectedOffer={setSelectedOffer}
                       isExpanded={isExpanded}
                     />
 
@@ -244,11 +236,8 @@ const ChatScreen = ({route}: Props) => {
                                 offer={offer}
                                 businessPeople={businessPeople || ''}
                                 contentCreator={contentCreator || ''}
-                                handleClickAccept={() => acceptOffer(offer)}
-                                handleClickReject={() => declineOffer(offer)}
-                                onNegotiationComplete={
-                                  handleNegotiationComplete
-                                }
+                                setIsModalOpened={setIsModalOpened}
+                                setSelectedOffer={setSelectedOffer}
                               />
                             ),
                         )}
@@ -325,6 +314,17 @@ const ChatScreen = ({route}: Props) => {
           ) : null}
         </View>
       </View>
+      {isModalOpened && selectedOffer && (
+        <OfferActionModal
+          isModalOpened={isModalOpened}
+          onModalDismiss={() => {
+            setIsModalOpened(false);
+            console.log('ondismissed', isModalOpened);
+          }}
+          offer={selectedOffer}
+          navigation={navigation}
+        />
+      )}
     </SafeAreaContainer>
   );
 };
@@ -350,10 +350,9 @@ type OfferCardProps = {
   businessPeople: string;
   contentCreator: string;
   isExpanded?: boolean;
-  handleClickAccept: () => void;
-  handleClickReject: () => void;
   toggleExpansion?: () => void;
-  onNegotiationComplete: (fee: string) => void;
+  setIsModalOpened: (isModalOpened: boolean) => void;
+  setSelectedOffer: (offer: Offer) => void;
 };
 
 const OfferCard = ({
@@ -362,30 +361,21 @@ const OfferCard = ({
   contentCreator,
   isExpanded = true,
   toggleExpansion,
-  handleClickAccept,
-  handleClickReject,
-  onNegotiationComplete,
+  setIsModalOpened,
+  setSelectedOffer,
 }: OfferCardProps) => {
   const [campaign, setCampaign] = useState<Campaign>();
   const navigation = useNavigation<NavigationStackProps>();
+  const {activeRole} = useUser();
 
   useEffect(() => {
     Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
   }, [offer]);
 
-  console.log('campaign', campaign);
-
-  const openModalNegotiate = () => {
-    openNegotiateModal({
-      selectedOffer: offer,
-      campaign: campaign,
-      navigation: navigation,
-      onNegotiationComplete: onNegotiationComplete,
-    });
-  };
-
   return (
-    <View className="px-3 pb-2 justify-between" style={flex.flexRow}>
+    <View
+      className="px-3 pb-2 justify-between items-center"
+      style={flex.flexRow}>
       <View
         style={flex.flexRow}
         className="flex-1 justify-between items-center py-1">
@@ -429,7 +419,7 @@ const OfferCard = ({
                 {(offer.status === OfferStatus.negotiateRejected ||
                   offer.status === OfferStatus.negotiate) && (
                   <Text className="text-xs text-left">
-                    Last Negotiation: {offer.negotiatedPrice}
+                    Last Offer: {offer.offeredPrice}
                   </Text>
                 )}
                 <Text className="text-xs text-left">
@@ -448,11 +438,17 @@ const OfferCard = ({
           </TouchableOpacity>
         )}
       </View>
-      {isExpanded && (
-        <Pressable>
-          <Meatballs width={20} height={20} />
-        </Pressable>
-      )}
+      {isExpanded &&
+        ((offer.negotiatedBy && offer.negotiatedBy !== activeRole) ||
+          (!offer.negotiatedBy && activeRole === UserRole.ContentCreator)) && (
+          <Pressable
+            onPress={() => {
+              setIsModalOpened(true);
+              setSelectedOffer(offer);
+            }}>
+            <MeatballMenuIcon size="xsmall" />
+          </Pressable>
+        )}
     </View>
   );
 };

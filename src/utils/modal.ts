@@ -9,6 +9,9 @@ import {
 import {DeviceEventEmitter} from 'react-native';
 import {Campaign} from '../model/Campaign';
 import {Offer} from '../model/Offer';
+import {ChatService} from '../model/Chat';
+import {useUser} from '../hooks/user';
+import {User, UserRole} from '../model/User';
 
 interface LocationModalProps {
   preferredLocations: Location[];
@@ -68,14 +71,14 @@ export const openCategoryModal = ({
 interface NegotiateModalProps {
   selectedOffer: Offer;
   campaign: Campaign;
+  activeRole: UserRole;
   navigation: NavigationStackProps;
-  onNegotiationComplete: (fee: string) => void;
 }
 export const openNegotiateModal = ({
   selectedOffer,
   campaign,
+  activeRole,
   navigation,
-  onNegotiationComplete,
 }: NegotiateModalProps) => {
   const eventType = 'callback.negotiate';
   navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
@@ -85,7 +88,9 @@ export const openNegotiateModal = ({
   });
 
   const listener = DeviceEventEmitter.addListener(eventType, fee => {
-    onNegotiationComplete(fee);
+    const bpId = User.extractIdFromRef(selectedOffer.businessPeopleId ?? '');
+    const ccId = User.extractIdFromRef(selectedOffer.contentCreatorId ?? '');
+    ChatService.insertNegotiateMessage(bpId + ccId, fee, activeRole);
   });
 
   const closeListener = DeviceEventEmitter.addListener(

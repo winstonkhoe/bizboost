@@ -206,11 +206,19 @@ export class Offer extends BaseModel {
     }
   }
 
-  async accept() {
+  async accept(): Promise<Offer> {
+    this.offeredPrice = this.negotiatedPrice;
+    this.importantNotes = this.negotiatedNotes;
+    this.platformTasks = this.negotiatedTasks;
     await this.updateStatus(OfferStatus.approved);
+
+    return this;
   }
 
   async reject() {
+    this.offeredPrice = this.negotiatedPrice;
+    this.importantNotes = this.negotiatedNotes;
+    this.platformTasks = this.negotiatedTasks;
     await this.updateStatus(OfferStatus.rejected);
   }
 
@@ -246,9 +254,15 @@ export class Offer extends BaseModel {
     negotiatedBy: UserRole,
   ) {
     try {
+      if (this.negotiatedBy) {
+        this.offeredPrice = this.negotiatedPrice;
+        this.importantNotes = this.negotiatedNotes;
+        this.platformTasks = this.negotiatedTasks;
+      }
+
       this.negotiatedPrice = fee;
       this.negotiatedNotes = importantNotes;
-      this.platformTasks = platformTasks;
+      this.negotiatedTasks = platformTasks;
       this.negotiatedBy = negotiatedBy;
 
       const {id, ...rest} = this;
@@ -304,6 +318,7 @@ export class Offer extends BaseModel {
           '==',
           firestore().collection('campaigns').doc(campaignId),
         )
+        .where('status', '!=', OfferStatus.rejected)
         .get();
 
       return !querySnapshot.empty;

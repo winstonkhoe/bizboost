@@ -19,7 +19,7 @@ const ChatHeader = ({recipientName, recipientPicture}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
 
   const handleBackButtonPress = () => {
-    navigation.goBack();
+    navigation.navigate(AuthenticatedNavigation.Main);
   };
 
   let profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
