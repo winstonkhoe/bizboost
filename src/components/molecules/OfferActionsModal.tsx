@@ -56,32 +56,26 @@ const OfferActionModal = ({
           businessPeopleId: offer.businessPeopleId ?? '',
           campaignId: campaign?.id ?? '',
         });
-
-        if (activeRole === UserRole.BusinessPeople) {
-          // Kalo business people yang approve, langsung prompt buat bayar
-        } else {
-          // Kalo CC yang approve, update status jadi offerWaitingForPayment -> ini nanti BP tau hrs dibayar
-        }
-
-        transaction.insert(TransactionStatus.offerApproved).then(() => {
-          const name =
-            activeRole === UserRole.BusinessPeople
-              ? user?.businessPeople?.fullname
-              : user?.contentCreator?.fullname;
-          const text =
-            name +
-            ' ' +
-            (offer.negotiatedBy
-              ? 'accepted negotiation for'
-              : 'accepted offer for') +
-            ' ' +
-            campaign?.title;
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
-              onModalDismiss();
-            },
-          );
-        });
+        transaction
+          .insert(TransactionStatus.offerWaitingForPayment)
+          .then(() => {
+            const name =
+              activeRole === UserRole.BusinessPeople
+                ? user?.businessPeople?.fullname
+                : user?.contentCreator?.fullname;
+            const text = `${name} ${
+              offer.negotiatedBy
+                ? 'accepted negotiation for'
+                : 'accepted offer for'
+            } ${
+              campaign?.title
+            }. Transaction will begin after Business People have finished payment.`;
+            ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
+              () => {
+                onModalDismiss();
+              },
+            );
+          });
       });
     }
   };

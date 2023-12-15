@@ -78,25 +78,26 @@ export const OfferDetailScreen = ({route}: Props) => {
           campaignId: campaign?.id ?? '',
         });
 
-        transaction.updateStatus(TransactionStatus.offerApproved).then(() => {
-          const name =
-            activeRole === UserRole.BusinessPeople
-              ? user?.businessPeople?.fullname
-              : user?.contentCreator?.fullname;
-          const text =
-            name +
-            ' ' +
-            (offer.negotiatedBy
-              ? 'accepted negotiation for'
-              : 'accepted offer for') +
-            ' ' +
-            campaign?.title;
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
-              navigation.goBack();
-            },
-          );
-        });
+        transaction
+          .updateStatus(TransactionStatus.offerWaitingForPayment)
+          .then(() => {
+            const name =
+              activeRole === UserRole.BusinessPeople
+                ? user?.businessPeople?.fullname
+                : user?.contentCreator?.fullname;
+            const text = `${name} ${
+              offer.negotiatedBy
+                ? 'accepted negotiation for'
+                : 'accepted offer for'
+            } ${
+              campaign?.title
+            }. Transaction will begin after Business People have finished payment.`;
+            ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
+              () => {
+                navigation.goBack();
+              },
+            );
+          });
       });
     }
   };
