@@ -51,6 +51,8 @@ type Props = {
 const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
+  const [review, setReview] = useState<Review | null>();
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
     User.getById(transaction.contentCreatorId || '').then(setContentCreator);
@@ -81,6 +83,17 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         });
       });
   };
+
+  useEffect(() => {
+    if (transaction.id && transaction.contentCreatorId) {
+      return Review.getReviewByTransactionIdAndReviewerId(
+        transaction.id,
+        transaction.contentCreatorId,
+        setReview,
+      );
+    }
+  }, [transaction]);
+
   return (
     <>
       <BaseCard
@@ -115,6 +128,27 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
             : require('../../assets/images/bizboost-avatar.png')
         }
         bodyText={contentCreator?.contentCreator?.fullname || ''}
+        bodyContent={
+          review === null &&
+          transaction.isCompleted() && (
+            <>
+              <View style={[flex.flex1, flex.flexRow, justify.end]}>
+                <CustomButton
+                  text="Review"
+                  verticalPadding="xsmall"
+                  onPress={() => {
+                    setIsReviewModalOpen(true);
+                  }}
+                />
+              </View>
+              <ReviewSheetModal
+                isModalOpened={isReviewModalOpen}
+                onModalDismiss={() => setIsReviewModalOpen(false)}
+                transaction={transaction}
+              />
+            </>
+          )
+        }
         statusText={transaction.status}
         statusType={
           transactionStatusTypeMap[
