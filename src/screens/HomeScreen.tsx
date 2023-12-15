@@ -199,7 +199,7 @@ const HomeScreen = () => {
                           style={[
                             StyleSheet.absoluteFill,
                             rounded.large,
-                            background(COLOR.black[100], 0.4),
+                            background(COLOR.absoluteBlack[100], 0.4),
                           ]}
                         />
                         <View
@@ -213,21 +213,22 @@ const HomeScreen = () => {
                           <View
                             style={[
                               flex.flexCol,
-                              gap.xsmall,
-                              {
-                                minHeight: size.xlarge2,
-                              },
                               // padding.bottom.small,
                             ]}>
                             <Text
                               className="font-bold"
-                              style={[font.size[20], textColor(COLOR.black[0])]}
+                              style={[
+                                font.size[20],
+                                textColor(COLOR.absoluteBlack[0]),
+                              ]}
                               numberOfLines={1}>
                               {campaign?.title}
                             </Text>
                             <Text
-                              className="font-medium"
-                              style={[font.size[20], textColor(COLOR.black[0])]}
+                              style={[
+                                font.size[20],
+                                textColor(COLOR.absoluteBlack[10]),
+                              ]}
                               numberOfLines={2}>
                               {campaign?.description}
                             </Text>
