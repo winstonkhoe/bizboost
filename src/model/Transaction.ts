@@ -41,6 +41,7 @@ export enum TransactionStatus {
 
   // private
   offering = 'Offering',
+  offerWaitingForPayment = 'Offer Approved (Waiting For Payment)', // Jadi di tampilanya ttp "offering" textnya, tapi ini buat penanda kalo CC uda approved, tapi BP tinggal bayar. Nah kalo yang approve BP duluan, BP bisa lgsg bayar aja gausah pindah2 status
   offerApproved = 'Offer Approved',
   offerRejected = 'Offer Rejected',
 
@@ -130,6 +131,8 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
     campaignIndexMap[CampaignStep.Brainstorming],
 
   [TransactionStatus.offering]: campaignIndexMap[CampaignStep.Registration],
+  [TransactionStatus.offerWaitingForPayment]:
+    campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.offerRejected]:
     campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.offerApproved]:
@@ -168,6 +171,7 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.registrationApproved]: StatusType.success,
 
   [TransactionStatus.offering]: StatusType.warning,
+  [TransactionStatus.offerWaitingForPayment]: StatusType.warning,
   [TransactionStatus.offerApproved]: StatusType.success,
   [TransactionStatus.offerRejected]: StatusType.danger,
 
@@ -196,6 +200,7 @@ export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap 
     [TransactionStatus.registrationApproved]: StepperState.success,
 
     [TransactionStatus.offering]: StepperState.warning,
+    [TransactionStatus.offerWaitingForPayment]: StepperState.warning,
     [TransactionStatus.offerApproved]: StepperState.success,
     [TransactionStatus.offerRejected]: StepperState.danger,
 
@@ -223,7 +228,7 @@ export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap 
     [TransactionStatus.registrationApproved]: CampaignStep.Registration,
 
     [TransactionStatus.offering]: CampaignStep.Registration,
-    [TransactionStatus.offeringApproved]: CampaignStep.Registration,
+    [TransactionStatus.offerApproved]: CampaignStep.Registration,
     [TransactionStatus.offerRejected]: CampaignStep.Registration,
 
     [TransactionStatus.brainstormSubmitted]: CampaignStep.Brainstorming,
@@ -403,7 +408,7 @@ export class Transaction extends BaseModel {
 
   static getById(
     id: string,
-    onComplete: (transaction: Transaction | null) => void,
+    onComplete: (transaction: Transaction | undefined) => void,
   ) {
     try {
       const unsubscribe = Transaction.getDocumentReference(id).onSnapshot(
@@ -412,7 +417,7 @@ export class Transaction extends BaseModel {
             onComplete(Transaction.fromSnapshot(docSnapshot));
             return;
           }
-          onComplete(null);
+          onComplete(undefined);
         },
         error => {
           console.log(error);
@@ -889,6 +894,7 @@ export class Transaction extends BaseModel {
     }
   }
 
+  // Approve regis abis bayar, sekalian offer yg dibayar jg
   async approveRegistration(): Promise<boolean> {
     const {campaignId, contentCreatorId} = this;
     if (!campaignId) {
@@ -901,7 +907,14 @@ export class Transaction extends BaseModel {
       const contentCreator = await User.getById(contentCreatorId);
       const campaign = await Campaign.getById(campaignId);
       if (contentCreator && campaign) {
-        await this.updateStatus(TransactionStatus.registrationApproved, {
+        let newStatus: TransactionStatus;
+        // TODO: ditest lagi
+        if (this.status === TransactionStatus.registrationPending) {
+          newStatus = TransactionStatus.registrationApproved;
+        } else {
+          newStatus = TransactionStatus.offerApproved;
+        }
+        await this.updateStatus(newStatus, {
           contentRevisionLimit:
             contentCreator.contentCreator?.contentRevisionLimit,
           platformTasks: campaign.platformTasks,

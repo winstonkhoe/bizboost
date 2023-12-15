@@ -65,7 +65,7 @@ const ChatListScreen = () => {
                         <Text className="text-lg font-bold">
                           {recipient.fullname || 'User'}
                         </Text>
-                        <Text numberOfLines={1}>
+                        <Text numberOfLines={1} className="w-[70vw]">
                           {chat.messages && chat.messages.length > 0
                             ? chat.messages[chat.messages.length - 1].message
                             : ''}

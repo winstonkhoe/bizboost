@@ -688,6 +688,7 @@ export const MediaUploader = ({
     };
   }, [uploadProgress]);
   const handleImageUpload = () => {
+    console.log('masuk');
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
         onMediaSelected && onMediaSelected(media);
@@ -712,8 +713,8 @@ export const MediaUploader = ({
 
   return (
     <TouchableOpacity
-      style={[flex.flex1]}
-      containerStyle={[flex.flex1, flex.flexCol]}
+      // style={[flex.flex1]}
+      // containerStyle={[flex.flex1, flex.flexCol]}
       onPress={handleImageUpload}>
       {/* TODO: ini custom buttonnya ga bisa @win, keknya si AnimatedPressable punya CustomButton tu nimpa touchable opacity nya ini^  */}
       {children || <CustomButton text="Upload image" rounded={'small'} />}

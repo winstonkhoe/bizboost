@@ -64,6 +64,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
 
+  // TODO: redundant, kalo sempet refactor
   const onProofUploaded = (url: string) => {
     console.log('url: ' + url);
     //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
@@ -156,7 +157,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           ]
         }
         doesNeedApproval={
-          transaction.status === TransactionStatus.registrationPending &&
+          transaction.status === TransactionStatus.ding &&
           transaction.payment === undefined
         }
         handleClickReject={() => {
@@ -181,7 +182,8 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          amount={campaign?.fee || -1}
+          // amount={campaign?.fee || -1}
+          amount={transaction.transactionAmount || -1}
           onProofUploaded={onProofUploaded}
           defaultImage={transaction.payment?.proofImage}
           paymentStatus={transaction.payment?.status}

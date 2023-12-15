@@ -47,6 +47,7 @@ const OfferActionModal = ({
 
   const acceptOffer = () => {
     if (offer) {
+      // TODO: prompt buat bayar dulu, baru approve (OfferActionsModal + OfferDetailScreen)
       offer.accept().then(acc => {
         const transaction = new Transaction({
           transactionAmount: acc.offeredPrice,
@@ -55,26 +56,26 @@ const OfferActionModal = ({
           businessPeopleId: offer.businessPeopleId ?? '',
           campaignId: campaign?.id ?? '',
         });
-
-        transaction.insert(TransactionStatus.offerApproved).then(() => {
-          const name =
-            activeRole === UserRole.BusinessPeople
-              ? user?.businessPeople?.fullname
-              : user?.contentCreator?.fullname;
-          const text =
-            name +
-            ' ' +
-            (offer.negotiatedBy
-              ? 'accepted negotiation for'
-              : 'accepted offer for') +
-            ' ' +
-            campaign?.title;
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
-              onModalDismiss();
-            },
-          );
-        });
+        transaction
+          .insert(TransactionStatus.offerWaitingForPayment)
+          .then(() => {
+            const name =
+              activeRole === UserRole.BusinessPeople
+                ? user?.businessPeople?.fullname
+                : user?.contentCreator?.fullname;
+            const text = `${name} ${
+              offer.negotiatedBy
+                ? 'accepted negotiation for'
+                : 'accepted offer for'
+            } ${
+              campaign?.title
+            }. Transaction will begin after Business People have finished payment.`;
+            ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
+              () => {
+                onModalDismiss();
+              },
+            );
+          });
       });
     }
   };
