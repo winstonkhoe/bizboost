@@ -890,6 +890,7 @@ export class Transaction extends BaseModel {
     }
   }
 
+  // Approve regis abis bayar, sekalian offer yg dibayar jg
   async approveRegistration(): Promise<boolean> {
     const {campaignId, contentCreatorId} = this;
     if (!campaignId) {
@@ -902,7 +903,14 @@ export class Transaction extends BaseModel {
       const contentCreator = await User.getById(contentCreatorId);
       const campaign = await Campaign.getById(campaignId);
       if (contentCreator && campaign) {
-        await this.updateStatus(TransactionStatus.registrationApproved, {
+        let newStatus: TransactionStatus;
+        // TODO: ditest lagi
+        if (this.status === TransactionStatus.registrationPending) {
+          newStatus = TransactionStatus.registrationApproved;
+        } else {
+          newStatus = TransactionStatus.offerApproved;
+        }
+        await this.updateStatus(newStatus, {
           contentRevisionLimit:
             contentCreator.contentCreator?.contentRevisionLimit,
           platformTasks: campaign.platformTasks,

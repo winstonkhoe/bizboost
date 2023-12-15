@@ -123,7 +123,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           ]
         }
         doesNeedApproval={
-          transaction.status === TransactionStatus.registrationPending &&
+          transaction.status === TransactionStatus.ding &&
           transaction.payment === undefined
         }
         handleClickReject={() => {
@@ -216,7 +216,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         uri: campaign?.image,
       })}
       // bodyText={campaign?.title}
-      bodyText={campaign?.title}
+      bodyText={campaign?.title + `${transaction.transactionAmount}`}
       bodyContent={
         review === null &&
         transaction.isCompleted() && (

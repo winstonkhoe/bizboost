@@ -39,8 +39,10 @@ const userSlice = createSlice({
       } else if (action.payload?.businessPeople.fullname) {
         state.activeRole = UserRole.BusinessPeople;
       }
-      console.log('role: ' + state.activeRole);
-      console.log(action.payload?.contentCreator);
+
+      state.isAdmin = state.activeRole === UserRole.Admin;
+      state.isBusinessPeople = state.activeRole === UserRole.BusinessPeople;
+      state.isContentCreator = state.activeRole === UserRole.ContentCreator;
     },
     setUserUid(state, action) {
       state.uid = action.payload;

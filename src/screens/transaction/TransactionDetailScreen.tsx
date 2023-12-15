@@ -461,58 +461,67 @@ const TransactionDetailScreen = ({route}: Props) => {
               </View>
             )}
 
-            {transaction.payment && activeRole !== UserRole.ContentCreator && (
-              <>
-                <View style={[styles.bottomBorder]} />
+            {(transaction.payment !== undefined ||
+              transaction.status ===
+                TransactionStatus.offerWaitingForPayment) &&
+              activeRole !== UserRole.ContentCreator && (
+                <>
+                  <View style={[styles.bottomBorder]} />
 
-                <Pressable
-                  onPress={() => setIsPaymentModalOpened(true)}
-                  style={[flex.flexRow, justify.between, items.center]}>
-                  <View style={[flex.flexRow, items.center, gap.default]}>
+                  <Pressable
+                    onPress={() => setIsPaymentModalOpened(true)}
+                    style={[flex.flexRow, justify.between, items.center]}>
+                    <View style={[flex.flexRow, items.center, gap.default]}>
+                      <Text
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.med),
+                        ]}>
+                        Payment
+                      </Text>
+                      {transaction.payment?.status ===
+                      PaymentStatus.proofRejected ? (
+                        <CrossIcon
+                          width={14}
+                          height={14}
+                          fill={COLOR.red[50]}
+                        />
+                      ) : transaction.payment?.status ===
+                          PaymentStatus.proofWaitingForVerification ||
+                        transaction.payment?.status === undefined ||
+                        // Tujuannya supaya tanda warning kl withdrawal requested tu dari admin aja sih keliatannya
+                        (transaction.payment?.status ===
+                          PaymentStatus.withdrawalRequested &&
+                          activeRole === UserRole.Admin) ? (
+                        <WarningIcon
+                          width={14}
+                          height={14}
+                          fill={COLOR.yellow[20]}
+                        />
+                      ) : transaction.payment?.status ===
+                          PaymentStatus.proofApproved ||
+                        transaction.payment?.status ===
+                          PaymentStatus.withdrawn ||
+                        activeRole === UserRole.BusinessPeople ? (
+                        <CheckmarkIcon
+                          width={14}
+                          height={14}
+                          fill={COLOR.green[40]}
+                        />
+                      ) : (
+                        <></>
+                      )}
+                    </View>
                     <Text
                       style={[
                         font.size[30],
-                        textColor(COLOR.text.neutral.med),
+                        textColor(COLOR.text.green.default),
                       ]}>
-                      Payment
+                      {activeRole !== UserRole.Admin ? 'Proof' : 'Manage'}
                     </Text>
-                    {transaction.payment.status ===
-                    PaymentStatus.proofRejected ? (
-                      <CrossIcon width={14} height={14} fill={COLOR.red[50]} />
-                    ) : transaction.payment.status ===
-                        PaymentStatus.proofWaitingForVerification ||
-                      // Tujuannya supaya tanda warning kl withdrawal requested tu dari admin aja sih keliatannya
-                      (transaction.payment.status ===
-                        PaymentStatus.withdrawalRequested &&
-                        activeRole === UserRole.Admin) ? (
-                      <WarningIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.yellow[20]}
-                      />
-                    ) : transaction.payment.status ===
-                        PaymentStatus.proofApproved ||
-                      transaction.payment.status === PaymentStatus.withdrawn ||
-                      activeRole === UserRole.BusinessPeople ? (
-                      <CheckmarkIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.green[40]}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      font.size[30],
-                      textColor(COLOR.text.green.default),
-                    ]}>
-                    {activeRole !== UserRole.Admin ? 'View Proof' : 'Manage'}
-                  </Text>
-                </Pressable>
-              </>
-            )}
+                  </Pressable>
+                </>
+              )}
             {/* TODO: jadi satu deh ama yg atas abis ini */}
             {transaction.payment && activeRole === UserRole.ContentCreator && (
               <>

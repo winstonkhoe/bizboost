@@ -116,6 +116,7 @@ const CampaignDetailScreen = ({route}: Props) => {
         contentCreatorId: uid,
         campaignId: campaignId,
         businessPeopleId: campaign?.userId,
+        transactionAmount: campaign?.fee,
       });
 
       setIsLoading(true);

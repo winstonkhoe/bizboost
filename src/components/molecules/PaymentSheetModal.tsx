@@ -48,10 +48,13 @@ const PaymentSheetModal = ({
   paymentStatus,
   contentCreatorBankAccount = undefined,
 }: Props) => {
-  const {isBusinessPeople, isAdmin} = useUser();
+  const {isBusinessPeople, isAdmin, activeRole, isContentCreator} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
-
+  console.log('activeRole: ' + activeRole);
+  console.log('isBusinessPeople: ' + isBusinessPeople);
+  console.log('isAdmin: ' + isAdmin);
+  console.log('isContentCreator: ' + isContentCreator);
   useEffect(() => {
     if (defaultImage) {
       setUploadedImage(defaultImage);
