@@ -41,6 +41,7 @@ export enum TransactionStatus {
 
   // private
   offering = 'Offering',
+  offerWaitingForPayment = 'Offering', // Jadi di tampilanya ttp "offering" textnya, tapi ini buat penanda kalo CC uda approved, tapi BP tinggal bayar. Nah kalo yang approve BP duluan, BP bisa lgsg bayar aja gausah pindah2 status
   offerApproved = 'Offer Approved',
   offerRejected = 'Offer Rejected',
 
@@ -223,7 +224,7 @@ export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap 
     [TransactionStatus.registrationApproved]: CampaignStep.Registration,
 
     [TransactionStatus.offering]: CampaignStep.Registration,
-    [TransactionStatus.offeringApproved]: CampaignStep.Registration,
+    [TransactionStatus.offerApproved]: CampaignStep.Registration,
     [TransactionStatus.offerRejected]: CampaignStep.Registration,
 
     [TransactionStatus.brainstormSubmitted]: CampaignStep.Brainstorming,

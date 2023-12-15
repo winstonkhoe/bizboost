@@ -47,6 +47,7 @@ const OfferActionModal = ({
 
   const acceptOffer = () => {
     if (offer) {
+      // TODO: prompt buat bayar dulu, baru approve (OfferActionsModal + OfferDetailScreen)
       offer.accept().then(acc => {
         const transaction = new Transaction({
           transactionAmount: acc.offeredPrice,
@@ -55,6 +56,12 @@ const OfferActionModal = ({
           businessPeopleId: offer.businessPeopleId ?? '',
           campaignId: campaign?.id ?? '',
         });
+
+        if (activeRole === UserRole.BusinessPeople) {
+          // Kalo business people yang approve, langsung prompt buat bayar
+        } else {
+          // Kalo CC yang approve, update status jadi offerWaitingForPayment -> ini nanti BP tau hrs dibayar
+        }
 
         transaction.insert(TransactionStatus.offerApproved).then(() => {
           const name =

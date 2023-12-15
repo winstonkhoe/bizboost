@@ -41,6 +41,7 @@ type Props = NativeStackScreenProps<
 >;
 
 // TODO: apa CC & BP detail screen samain aja sm ini ya? tp jd banyak kondisi
+// TODO: portfolio cc blm ada
 const UserDetailScreen = ({route}: Props) => {
   const {userId} = route.params;
   const [user, setUser] = useState<User | null>(null);
