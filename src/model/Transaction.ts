@@ -41,7 +41,7 @@ export enum TransactionStatus {
 
   // private
   offering = 'Offering',
-  offerWaitingForPayment = 'Offering', // Jadi di tampilanya ttp "offering" textnya, tapi ini buat penanda kalo CC uda approved, tapi BP tinggal bayar. Nah kalo yang approve BP duluan, BP bisa lgsg bayar aja gausah pindah2 status
+  offerWaitingForPayment = 'Offer Approved (Waiting For Payment)', // Jadi di tampilanya ttp "offering" textnya, tapi ini buat penanda kalo CC uda approved, tapi BP tinggal bayar. Nah kalo yang approve BP duluan, BP bisa lgsg bayar aja gausah pindah2 status
   offerApproved = 'Offer Approved',
   offerRejected = 'Offer Rejected',
 
@@ -404,7 +404,7 @@ export class Transaction extends BaseModel {
 
   static getById(
     id: string,
-    onComplete: (transaction: Transaction | null) => void,
+    onComplete: (transaction: Transaction | undefined) => void,
   ) {
     try {
       const unsubscribe = Transaction.getDocumentReference(id).onSnapshot(
@@ -413,7 +413,7 @@ export class Transaction extends BaseModel {
             onComplete(Transaction.fromSnapshot(docSnapshot));
             return;
           }
-          onComplete(null);
+          onComplete(undefined);
         },
         error => {
           console.log(error);
