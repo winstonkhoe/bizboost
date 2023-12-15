@@ -988,7 +988,8 @@ const TransactionDetailScreen = ({route}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          amount={campaign?.fee || -1}
+          // amount={campaign?.fee || -1}
+          amount={transaction.transactionAmount || -1}
           onProofUploaded={onProofUploaded}
           defaultImage={transaction.payment?.proofImage}
           onProofAccepted={onProofAccepted}

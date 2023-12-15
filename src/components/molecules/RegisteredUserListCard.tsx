@@ -148,7 +148,8 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          amount={campaign?.fee || -1}
+          // amount={campaign?.fee || -1}
+          amount={transaction.transactionAmount || -1}
           onProofUploaded={onProofUploaded}
           defaultImage={transaction.payment?.proofImage}
           paymentStatus={transaction.payment?.status}
@@ -216,7 +217,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         uri: campaign?.image,
       })}
       // bodyText={campaign?.title}
-      bodyText={campaign?.title + `${transaction.transactionAmount}`}
+      bodyText={campaign?.title}
       bodyContent={
         review === null &&
         transaction.isCompleted() && (
