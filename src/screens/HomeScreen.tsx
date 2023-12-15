@@ -55,6 +55,7 @@ import {CustomButton} from '../components/atoms/Button';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 import {Offer} from '../model/Offer';
+import {NewThisWeekCard} from '../components/molecules/NewThisWeekCard';
 
 const HomeScreen = () => {
   const {uid, activeRole} = useUser();
@@ -73,8 +74,6 @@ const HomeScreen = () => {
       now.getMonth(),
       now.getDate() - (day === 0 ? 6 : day - 1),
     );
-
-    console.log(nonUserCampaigns);
 
     return nonUserCampaigns.filter(
       campaign =>
@@ -167,95 +166,21 @@ const HomeScreen = () => {
                 <HorizontalPadding>
                   <HomeSectionHeader header="New This Week" link="See All" />
                 </HorizontalPadding>
-                <HorizontalScrollView>
+                <ScrollView
+                  horizontal
+                  style={[flex.flex1]}
+                  contentContainerStyle={[
+                    flex.flexRow,
+                    gap.default,
+                    padding.horizontal.default,
+                    padding.bottom.xsmall,
+                  ]}>
                   {thisWeekCampaign
                     .slice(0, 5)
                     .map((campaign: Campaign, index: number) => (
-                      <AnimatedPressable
-                        onPress={() => {
-                          if (campaign.id) {
-                            navigation.navigate(
-                              AuthenticatedNavigation.CampaignDetail,
-                              {
-                                campaignId: campaign.id,
-                              },
-                            );
-                          }
-                        }}
-                        key={index}
-                        style={[flex.flexCol, dimension.square.xlarge9]}>
-                        <View
-                          className="overflow-hidden"
-                          style={[StyleSheet.absoluteFill, rounded.large]}>
-                          <FastImage
-                            style={[dimension.full]}
-                            source={{
-                              uri: campaign.image,
-                            }}
-                          />
-                        </View>
-                        <View
-                          className="overflow-hidden"
-                          style={[
-                            StyleSheet.absoluteFill,
-                            rounded.large,
-                            background(COLOR.absoluteBlack[100], 0.4),
-                          ]}
-                        />
-                        <View
-                          className="overflow-hidden"
-                          style={[
-                            StyleSheet.absoluteFill,
-                            flex.flexCol,
-                            justify.end,
-                            padding.default,
-                          ]}>
-                          <View
-                            style={[
-                              flex.flexCol,
-                              // padding.bottom.small,
-                            ]}>
-                            <Text
-                              className="font-bold"
-                              style={[
-                                font.size[20],
-                                textColor(COLOR.absoluteBlack[0]),
-                              ]}
-                              numberOfLines={1}>
-                              {campaign?.title}
-                            </Text>
-                            <Text
-                              style={[
-                                font.size[20],
-                                textColor(COLOR.absoluteBlack[10]),
-                              ]}
-                              numberOfLines={2}>
-                              {campaign?.description}
-                            </Text>
-                          </View>
-                        </View>
-                        <View
-                          className="overflow-hidden"
-                          style={[
-                            padding.default,
-                            {
-                              position: 'absolute',
-                              top: size.xsmall2,
-                              right: size.xsmall2,
-                            },
-                          ]}>
-                          <Label
-                            radius="default"
-                            text={`Until ${formatDateToDayMonthYear(
-                              new Date(
-                                new Campaign(campaign).getTimelineStart().end,
-                              ),
-                            )}`}
-                          />
-                        </View>
-                      </AnimatedPressable>
+                      <NewThisWeekCard campaign={campaign} key={index} />
                     ))}
-                </HorizontalScrollView>
+                </ScrollView>
               </View>
             )}
             <View style={[flex.flexCol, gap.default]}>
