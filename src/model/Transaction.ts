@@ -131,6 +131,8 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
     campaignIndexMap[CampaignStep.Brainstorming],
 
   [TransactionStatus.offering]: campaignIndexMap[CampaignStep.Registration],
+  [TransactionStatus.offerWaitingForPayment]:
+    campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.offerRejected]:
     campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.offerApproved]:
@@ -169,6 +171,7 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.registrationApproved]: StatusType.success,
 
   [TransactionStatus.offering]: StatusType.warning,
+  [TransactionStatus.offerWaitingForPayment]: StatusType.warning,
   [TransactionStatus.offerApproved]: StatusType.success,
   [TransactionStatus.offerRejected]: StatusType.danger,
 
@@ -197,6 +200,7 @@ export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap 
     [TransactionStatus.registrationApproved]: StepperState.success,
 
     [TransactionStatus.offering]: StepperState.warning,
+    [TransactionStatus.offerWaitingForPayment]: StepperState.warning,
     [TransactionStatus.offerApproved]: StepperState.success,
     [TransactionStatus.offerRejected]: StepperState.danger,
 
