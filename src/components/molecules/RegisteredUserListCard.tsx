@@ -86,14 +86,16 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
   };
 
   useEffect(() => {
-    if (transaction.id && transaction.contentCreatorId) {
+    if (transaction.id && transaction.businessPeopleId) {
       return Review.getReviewByTransactionIdAndReviewerId(
         transaction.id,
-        transaction.contentCreatorId,
+        transaction.businessPeopleId, //bisa pake uid from useUser juga
         setReview,
       );
     }
   }, [transaction]);
+
+  console.log('review', review);
 
   return (
     <>
@@ -224,7 +226,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     if (transaction.id && transaction.contentCreatorId) {
       return Review.getReviewByTransactionIdAndReviewerId(
         transaction.id,
-        transaction.contentCreatorId,
+        transaction.contentCreatorId, //bisa pake uid from useUser juga
         setReview,
       );
     }

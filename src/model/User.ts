@@ -671,7 +671,7 @@ export class User extends BaseModel {
     ) => {
       return (
         (currentRating * currentRatedCount) / newRatedCount +
-        newRating / currentRatedCount
+        newRating / newRatedCount
       );
     };
     if (role === UserRole.ContentCreator && contentCreator) {
