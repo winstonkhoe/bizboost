@@ -34,6 +34,7 @@ import {MediaUploader} from '../components/atoms/Input';
 import {Campaign, CampaignType} from '../model/Campaign';
 import {textColor} from '../styles/Text';
 import {font} from '../styles/Font';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -127,36 +128,34 @@ const ProfileScreen = () => {
                   <View
                     className="items-center"
                     style={[flex.flexRow, gap.large]}>
-                    <MediaUploader
-                      targetFolder="profile-pictures"
-                      options={{
-                        width: 400,
-                        height: 400,
-                        cropping: true,
-                        includeBase64: true,
-                      }}
-                      showUploadProgress
-                      onUploadSuccess={onProfilePictureChanged}>
-                      <View className="relative">
-                        <View
-                          className="w-20 h-20 overflow-hidden"
-                          style={[rounded.max]}>
+                    <View className="relative">
+                      <View
+                        className="w-20 h-20 overflow-hidden"
+                        style={[rounded.max]}>
+                        <MediaUploader
+                          targetFolder="profile-pictures"
+                          options={{
+                            width: 400,
+                            height: 400,
+                            cropping: true,
+                            includeBase64: true,
+                          }}
+                          showUploadProgress
+                          onUploadSuccess={onProfilePictureChanged}>
                           <FastImage
                             className="w-full flex-1"
-                            source={
-                              activeData?.profilePicture
-                                ? {uri: activeData.profilePicture}
-                                : require('../assets/images/bizboost-avatar.png')
-                            }
+                            source={getSourceOrDefaultAvatar({
+                              uri: activeData?.profilePicture,
+                            })}
                           />
-                        </View>
-                        <View
-                          className="absolute bottom-0 right-1 p-2 rounded-full"
-                          style={[background(COLOR.background.green.med)]}>
-                          <Edit width={13} height={13} color={'white'} />
-                        </View>
+                        </MediaUploader>
                       </View>
-                    </MediaUploader>
+                      <View
+                        className="absolute bottom-0 right-1 p-2 rounded-full"
+                        style={[background(COLOR.background.green.med)]}>
+                        <Edit width={13} height={13} color={'white'} />
+                      </View>
+                    </View>
 
                     <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
                       <Text

@@ -15,6 +15,7 @@ import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import {useEffect, useState} from 'react';
 import FastImage from 'react-native-fast-image';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
 
 interface RegisterProfilePictureProps {
   defaultProfile?: string;
@@ -52,7 +53,9 @@ export const RegisterProfilePicture = ({
                 You can always change it later
               </Text>
             </View>
-            <View style={[dimension.square.xlarge7]}>
+            <View
+              className="overflow-hidden"
+              style={[dimension.square.xlarge7, rounded.medium]}>
               <MediaUploader
                 targetFolder="profile-pictures"
                 showUploadProgress
@@ -63,18 +66,12 @@ export const RegisterProfilePicture = ({
                 }}
                 onUploadSuccess={setUploadedImage}
                 onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-                <View
-                  className="overflow-hidden"
-                  style={[dimension.square.xlarge7, rounded.medium]}>
-                  <FastImage
-                    style={[flex.flex1]}
-                    source={
-                      uploadedImage
-                        ? {uri: uploadedImage}
-                        : require('../../assets/images/bizboost-avatar.png')
-                    }
-                  />
-                </View>
+                <FastImage
+                  style={[dimension.full]}
+                  source={getSourceOrDefaultAvatar({
+                    uri: uploadedImage,
+                  })}
+                />
               </MediaUploader>
             </View>
           </View>

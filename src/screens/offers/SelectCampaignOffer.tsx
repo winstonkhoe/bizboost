@@ -44,7 +44,7 @@ export const SelectCampaignOffer = ({
 
   return (
     <View style={[flex.flexCol, gap.large]}>
-      <View style={[flex.flexRow, items.center, justify.between]}>
+      <View style={[flex.flexRow, items.center, justify.between, gap.xlarge]}>
         <View style={flex.flex1}>
           <FormFieldHelper
             title="Campaign"
