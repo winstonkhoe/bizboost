@@ -55,19 +55,16 @@ export class Category extends BaseModel {
     });
   }
 
-  static async getById(documentId: string): Promise<Category | undefined> {
+  static async getById(documentId: string): Promise<Category | null> {
     const snapshot = await this.getDocumentReference(documentId).get();
-    if (snapshot.exists) {
-      return this.fromSnapshot(snapshot);
+    if (!snapshot.exists) {
+      return null;
     }
+    return this.fromSnapshot(snapshot);
   }
 
   static async getAll(): Promise<Category[]> {
     const querySnapshot = await this.getCollectionReference().get();
-
-    if (!querySnapshot.empty) {
-      return this.fromQuerySnapshot(querySnapshot);
-    }
-    return [];
+    return this.fromQuerySnapshot(querySnapshot);
   }
 }
