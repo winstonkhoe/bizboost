@@ -55,11 +55,12 @@ export class Location extends BaseModel {
     });
   }
 
-  static async getById(documentId: string): Promise<Location | undefined> {
+  static async getById(documentId: string): Promise<Location | null> {
     const snapshot = await this.getDocumentReference(documentId).get();
-    if (snapshot.exists) {
-      return this.fromSnapshot(snapshot);
+    if (!snapshot.exists) {
+      return null;
     }
+    return this.fromSnapshot(snapshot);
   }
 
   static async getAll(): Promise<Location[]> {
