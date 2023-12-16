@@ -217,10 +217,6 @@ export class Chat extends BaseModel {
         })
         .onSnapshot(
           querySnapshots => {
-            if (querySnapshots.empty) {
-              callback([]);
-              return;
-            }
             callback(this.fromQuerySnapshot(querySnapshots));
           },
           (error: Error) => {
@@ -251,7 +247,7 @@ export class Chat extends BaseModel {
         const ref = participant.ref;
         console.log(ref);
 
-        const user = await User.getUser(ref);
+        const user = await User.getById(ref);
         if (user) {
           const fullname =
             role === 'Business People'
