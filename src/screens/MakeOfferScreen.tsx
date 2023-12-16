@@ -96,6 +96,7 @@ const MakeOfferScreen = ({route}: Props) => {
           businessPeopleId: businessPeopleId,
           campaignId: selectedCampaign.id,
           importantNotes: data.importantNotes,
+          platformTasks: selectedCampaign.platformTasks,
           offeredPrice: data.fee,
         });
 

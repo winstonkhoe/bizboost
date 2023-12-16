@@ -1,4 +1,4 @@
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
@@ -7,10 +7,7 @@ import {HorizontalScrollView} from '../components/molecules/HorizontalScrollView
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {
-  PageWithSearchBar,
-  SearchAutocompletePlaceholder,
-} from '../components/templates/PageWithSearchBar';
+import {SearchAutocompletePlaceholder} from '../components/templates/PageWithSearchBar';
 import {Campaign} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
@@ -31,25 +28,16 @@ import {COLOR} from '../styles/Color';
 import {padding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
 import {shadow} from '../styles/Shadow';
-import {dimension} from '../styles/Dimension';
-import FastImage from 'react-native-fast-image';
 import {font} from '../styles/Font';
 import {textColor} from '../styles/Text';
 import {size} from '../styles/Size';
-import {Label} from '../components/atoms/Label';
-import {formatDateToDayMonthYear} from '../utils/date';
-import {Report, ReportStatus, reportStatusPrecendence} from '../model/Report';
+import {Report, reportStatusPrecendence} from '../model/Report';
 import {fetchReport} from '../helpers/report';
 import {ReportCard} from './report/ReportListScreen';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SearchBar} from '../components/organisms/SearchBar';
 import {CustomModal} from '../components/atoms/CustomModal';
-import {
-  ChevronLeft,
-  ChevronRight,
-  CircleIcon,
-  ReportIcon,
-} from '../components/atoms/Icon';
+import {CircleIcon, ReportIcon} from '../components/atoms/Icon';
 import PagerView from 'react-native-pager-view';
 import {CustomButton} from '../components/atoms/Button';
 import {showToast} from '../helpers/toast';
@@ -65,8 +53,12 @@ const HomeScreen = () => {
   const isBusinessPeople = UserRole.BusinessPeople === activeRole;
   const isContentCreator = UserRole.ContentCreator === activeRole;
 
-  const {userCampaigns, nonUserCampaigns} = useOngoingCampaign();
+  const {userCampaigns, nonUserCampaigns = null} = useOngoingCampaign();
   const thisWeekCampaign = useMemo(() => {
+    if (nonUserCampaigns === null) {
+      return [...Array(5)];
+    }
+
     const now = new Date();
     const day = now.getDay();
     const startOfWeek = new Date(
@@ -98,11 +90,11 @@ const HomeScreen = () => {
   useEffect(() => {
     console.log('homeScreen:Offer.getPendingOffersbyUser');
     try {
-      Offer.getPendingOffersbyUser(uid, activeRole, data => {
-        setOffers(data);
-      });
+      if (uid && activeRole) {
+        return Offer.getPendingOffersbyUser(uid, activeRole, setOffers);
+      }
     } catch (error) {}
-  }, []);
+  }, [uid, activeRole]);
 
   useEffect(() => {
     return fetchReport({

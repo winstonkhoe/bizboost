@@ -34,6 +34,8 @@ import {ImageCounterChip} from '../../components/atoms/Chip';
 import FastImage from 'react-native-fast-image';
 import {useUser} from '../../hooks/user';
 import {Offer} from '../../model/Offer';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 type Props = StackScreenProps<
   AuthenticatedStack,
@@ -162,6 +164,13 @@ const CampaignItem = ({
   useEffect(() => {
     const fetchOfferStatus = () => {
       try {
+        if (!campaign.id) {
+          showToast({
+            type: ToastType.info,
+            message: "There's an error, please try again",
+          });
+          return;
+        }
         Offer.hasOfferForContentCreatorAndCampaign(
           contentCreatorToOfferId,
           campaign.id,
