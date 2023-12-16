@@ -180,6 +180,161 @@ export class Report extends BaseModel {
     return this.getCollectionReference().doc(documentId);
   };
 
+  static getById(id: string, onComplete: (report: Report | null) => void) {
+    try {
+      const unsubscribe = Report.getCollectionReference()
+        .doc(id)
+        .onSnapshot(
+          docSnapshot => {
+            if (docSnapshot.exists) {
+              onComplete && onComplete(Report.fromSnapshot(docSnapshot));
+              return;
+            }
+            onComplete && onComplete(null);
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getByTransactionIdAndReporterId(
+    transactionId: string,
+    reporterId: string,
+    onComplete: (reports: Report[]) => void,
+  ) {
+    try {
+      const unsubscribe = Report.getCollectionReference()
+        .where(
+          'transactionId',
+          '==',
+          Transaction.getDocumentReference(transactionId),
+        )
+        .where('reporterId', '==', User.getDocumentReference(reporterId))
+        .onSnapshot(
+          querySnapshot => {
+            onComplete &&
+              onComplete(querySnapshot.docs.map(Report.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAll(onComplete: (reports: Report[]) => void) {
+    try {
+      const unsubscribe = Report.getCollectionReference().onSnapshot(
+        querySnapshot => {
+          onComplete(querySnapshot.docs.map(this.fromSnapshot));
+        },
+        error => {
+          console.log(error);
+        },
+      );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAllByTransactionId(
+    transactionId: string,
+    onComplete: (reports: Report[]) => void,
+  ) {
+    try {
+      const unsubscribe = Report.getCollectionReference()
+        .where(
+          'transactionId',
+          '==',
+          Transaction.getDocumentReference(transactionId),
+        )
+        .onSnapshot(
+          querySnapshot => {
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static getAllByReporterId(
+    reporterId: string,
+    onComplete: (reports: Report[]) => void,
+  ) {
+    try {
+      const unsubscribe = Report.getCollectionReference()
+        .where('reporterId', '==', User.getDocumentReference(reporterId))
+        .onSnapshot(
+          querySnapshot => {
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Error!');
+    }
+  }
+
+  static async closeAllWarnings(reports: string[]): Promise<void> {
+    try {
+      const batch = firestore().batch();
+      const warningClosedAt = new Date().getTime();
+      reports.forEach(reportId => {
+        batch.update(Report.getDocumentReference(reportId), {
+          warningClosedAt,
+        });
+      });
+      await batch.commit();
+    } catch (error) {
+      console.log(error);
+      throw Error('Report.closeAllWarnings err! ' + error);
+    }
+  }
+
+  static async getAllWarnings(reportedId: string): Promise<Report[]> {
+    try {
+      const querySnapshot = await Report.getCollectionReference()
+        .where('reportedId', '==', User.getDocumentReference(reportedId))
+        .where('warningNotes', '!=', null)
+        .get();
+      console.log('getAllWarnings', querySnapshot);
+      if (querySnapshot.empty) {
+        return [];
+      }
+      return querySnapshot.docs.map(this.fromSnapshot);
+    } catch (error) {
+      console.log(error);
+      throw Error('Report.getAllWarnings err!');
+    }
+  }
+
   async insert() {
     try {
       const {reporterId, reportedId, transactionId, ...rest} = this;
@@ -239,209 +394,6 @@ export class Report extends BaseModel {
       actionTakenReason: reason,
       ...extraFields,
     });
-  }
-
-  static getById(id: string, onComplete: (report: Report | null) => void) {
-    try {
-      const unsubscribe = Report.getCollectionReference()
-        .doc(id)
-        .onSnapshot(
-          docSnapshot => {
-            if (docSnapshot.exists) {
-              onComplete && onComplete(Report.fromSnapshot(docSnapshot));
-              return;
-            }
-            onComplete && onComplete(null);
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getByTransactionId(
-    transactionId: string,
-    onComplete: (reports: Report[]) => void,
-  ) {
-    try {
-      const unsubscribe = Report.getCollectionReference()
-        .where(
-          'transactionId',
-          '==',
-          Transaction.getDocumentReference(transactionId),
-        )
-        .onSnapshot(
-          querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete && onComplete([]);
-              return;
-            }
-            onComplete &&
-              onComplete(querySnapshot.docs.map(Report.fromSnapshot));
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getByTransactionIdAndReporterId(
-    transactionId: string,
-    reporterId: string,
-    onComplete: (reports: Report[]) => void,
-  ) {
-    try {
-      const unsubscribe = Report.getCollectionReference()
-        .where(
-          'transactionId',
-          '==',
-          Transaction.getDocumentReference(transactionId),
-        )
-        .where('reporterId', '==', User.getDocumentReference(reporterId))
-        .onSnapshot(
-          querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete && onComplete([]);
-              return;
-            }
-            onComplete &&
-              onComplete(querySnapshot.docs.map(Report.fromSnapshot));
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getAll(onComplete: (reports: Report[]) => void) {
-    try {
-      const unsubscribe = Report.getCollectionReference().onSnapshot(
-        querySnapshot => {
-          if (querySnapshot.empty) {
-            onComplete([]);
-          } else {
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
-          }
-        },
-        error => {
-          console.log(error);
-        },
-      );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getAllByTransactionId(
-    transactionId: string,
-    onComplete: (reports: Report[]) => void,
-  ) {
-    try {
-      const unsubscribe = Report.getCollectionReference()
-        .where(
-          'transactionId',
-          '==',
-          Transaction.getDocumentReference(transactionId),
-        )
-        .onSnapshot(
-          querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getAllByReporterId(
-    reporterId: string,
-    onComplete: (reports: Report[]) => void,
-  ) {
-    try {
-      const unsubscribe = Report.getCollectionReference()
-        .where('reporterId', '==', User.getDocumentReference(reporterId))
-        .onSnapshot(
-          querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static async closeAllWarnings(reports: string[]): Promise<void> {
-    try {
-      const batch = firestore().batch();
-      const warningClosedAt = new Date().getTime();
-      reports.forEach(reportId => {
-        batch.update(Report.getDocumentReference(reportId), {
-          warningClosedAt,
-        });
-      });
-      await batch.commit();
-    } catch (error) {
-      console.log(error);
-      throw Error('Report.closeAllWarnings err! ' + error);
-    }
-  }
-
-  static async getAllWarnings(reportedId: string): Promise<Report[]> {
-    try {
-      const querySnapshot = await Report.getCollectionReference()
-        .where('reportedId', '==', User.getDocumentReference(reportedId))
-        .where('warningNotes', '!=', null)
-        .get();
-      console.log('getAllWarnings', querySnapshot);
-      if (querySnapshot.empty) {
-        return [];
-      }
-      return querySnapshot.docs.map(this.fromSnapshot);
-    } catch (error) {
-      console.log(error);
-      throw Error('Report.getAllWarnings err!');
-    }
   }
 
   async resolve(
