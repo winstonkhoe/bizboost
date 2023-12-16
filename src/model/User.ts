@@ -324,13 +324,7 @@ export class User extends BaseModel {
       // .where('isAdmin', '!=', true)
       .onSnapshot(
         querySnapshot => {
-          let users: User[] = [];
-          if (querySnapshot.empty) {
-            return;
-          }
-          users = querySnapshot.docs.map(doc => this.fromSnapshot(doc));
-
-          onComplete(users);
+          onComplete(querySnapshot.docs.map(this.fromSnapshot));
         },
         error => {
           console.log(error);
@@ -351,7 +345,7 @@ export class User extends BaseModel {
       const users = await this.getCollectionReference()
         .where(firestore.FieldPath.documentId(), 'in', documentIds)
         .get();
-      return users?.docs?.map(this.fromSnapshot) || [];
+      return users.docs.map(this.fromSnapshot);
     } catch (error) {
       console.log(error);
       return [];
@@ -360,39 +354,10 @@ export class User extends BaseModel {
 
   static async getById(documentId: string): Promise<User | null> {
     const snapshot = await this.getDocumentReference(documentId).get();
-    if (snapshot.exists) {
-      return this.fromSnapshot(snapshot);
+    if (!snapshot.exists) {
+      return null;
     }
-    return null;
-  }
-
-  static async getUser(documentId: string): Promise<User | null> {
-    try {
-      const documentSnapshot = await this.getDocumentReference(
-        documentId,
-      ).get();
-      console.log('User exists: ', documentSnapshot.exists);
-
-      if (documentSnapshot.exists) {
-        const userData = documentSnapshot.data();
-        console.log('User data: ', userData);
-
-        const user = new User({
-          email: userData?.email,
-          phone: userData?.phone,
-          contentCreator: userData?.contentCreator,
-          businessPeople: userData?.businessPeople,
-          joinedAt: userData?.joinedAt?.seconds,
-          isAdmin: userData?.isAdmin,
-        });
-
-        return user;
-      } else {
-        return null;
-      }
-    } catch (error) {
-      throw error; // Handle the error appropriately
-    }
+    return this.fromSnapshot(snapshot);
   }
 
   static getUserDataReactive(
