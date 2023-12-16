@@ -1,10 +1,10 @@
-import {useEffect, useState} from 'react';
+import {ReactNode, useEffect, useState} from 'react';
 import {LoadingScreen} from '../LoadingScreen';
 import {Transaction} from '../../model/Transaction';
 import {useUser} from '../../hooks/user';
 import {UserRole} from '../../model/User';
-import {View, useWindowDimensions} from 'react-native';
-import {flex, items, justify} from '../../styles/Flex';
+import {Pressable, View, useWindowDimensions} from 'react-native';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
@@ -24,6 +24,12 @@ import {size} from '../../styles/Size';
 import {OngoingCampaignCard} from '../../components/molecules/OngoingCampaignCard';
 import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
 import {Campaign} from '../../model/Campaign';
+import {InternalLink} from '../../components/atoms/Link';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 const DashboardScreen = () => {
   const safeAreaInsets = useSafeAreaInsets();
@@ -49,13 +55,16 @@ const DashboardScreen = () => {
       {isLoading && <LoadingScreen />}
       <View style={[flex.flex1, background(COLOR.background.neutral.default)]}>
         <ScrollView
-          style={[
-            flex.flex1,
+          showsVerticalScrollIndicator={false}
+          style={[flex.flex1]}
+          contentContainerStyle={[
             {
-              paddingTop: safeAreaInsets.top,
+              paddingTop: Math.max(safeAreaInsets.top, size.default),
             },
-          ]}
-          contentContainerStyle={[flex.flexCol, gap.default]}>
+            padding.bottom.large,
+            flex.flexCol,
+            gap.default,
+          ]}>
           <DashboardPanel />
           <ScrollView
             horizontal
@@ -93,7 +102,13 @@ const DashboardScreen = () => {
               </View>
             </View>
           </ScrollView>
-          <View style={[flex.flexCol, gap.default, padding.horizontal.default]}>
+          <View
+            style={[
+              flex.flex1,
+              flex.flexCol,
+              gap.default,
+              padding.horizontal.default,
+            ]}>
             {transactions.map(transaction => (
               <CampaignCard key={transaction.id} transaction={transaction} />
             ))}
@@ -132,27 +147,73 @@ const CampaignCard = ({...props}: CampaignCardProps) => {
 
 const DashboardPanel = () => {
   const {user} = useUser();
+  const navigation = useNavigation<NavigationStackProps>();
   return (
     <View style={[padding.horizontal.default]}>
       <View
         style={[
-          padding.medium,
+          padding.horizontal.small,
+          padding.vertical.default,
           rounded.medium,
           flex.flexRow,
           justify.around,
           shadow.default,
         ]}>
-        <View style={[flex.flexCol, items.center, gap.xsmall]}>
-          <Text
-            className="font-bold"
-            style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-            {user?.contentCreator?.specializedCategoryIds[0]}
-          </Text>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-            Specialized Category
-          </Text>
-        </View>
-        <View style={[flex.flexCol, items.center, gap.xsmall]}>
+        <DashboardPanelItem
+          label={
+            user?.bankAccountInformation
+              ? user?.bankAccountInformation?.bankName
+              : 'Bank Account'
+          }>
+          {user?.bankAccountInformation ? (
+            <Pressable
+              style={[
+                flex.flexCol,
+                justify.center,
+                {
+                  maxWidth: size.xlarge9,
+                },
+              ]}
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                );
+              }}>
+              <Text
+                className="font-semibold text-center"
+                style={[
+                  self.center,
+                  font.size[20],
+                  textColor(COLOR.text.neutral.med),
+                ]}
+                numberOfLines={1}>
+                {`${user?.bankAccountInformation?.accountNumber}`}
+              </Text>
+              <Text
+                className="font-semibold text-center"
+                style={[
+                  self.center,
+                  font.size[20],
+                  textColor(COLOR.text.neutral.med),
+                ]}
+                numberOfLines={1}>
+                {`${user?.bankAccountInformation?.accountHolderName}`}
+              </Text>
+            </Pressable>
+          ) : (
+            <InternalLink
+              text="Update Bank Info"
+              size={30}
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                );
+              }}
+            />
+          )}
+        </DashboardPanelItem>
+
+        <DashboardPanelItem label="Rating">
           <View style={[flex.flexRow, items.end, gap.xsmall2]}>
             <RatingStarIcon size="medium" />
             <Text
@@ -162,11 +223,33 @@ const DashboardPanel = () => {
               {round(user?.contentCreator?.rating || 0, 1).toFixed(1)}
             </Text>
           </View>
-          <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-            Rating
-          </Text>
-        </View>
+        </DashboardPanelItem>
       </View>
+    </View>
+  );
+};
+
+interface DashboardPanelItemProps {
+  children?: ReactNode;
+  label: string;
+}
+
+const DashboardPanelItem = ({...props}: DashboardPanelItemProps) => {
+  return (
+    <View style={[flex.flexCol, items.center, gap.small]}>
+      <View
+        style={[
+          flex.flexCol,
+          justify.center,
+          {
+            height: size.xlarge2,
+          },
+        ]}>
+        {props.children}
+      </View>
+      <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+        {props.label}
+      </Text>
     </View>
   );
 };
