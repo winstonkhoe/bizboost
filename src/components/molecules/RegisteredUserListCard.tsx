@@ -123,7 +123,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           ]
         }
         doesNeedApproval={
-          transaction.status === TransactionStatus.ding &&
+          transaction.status === TransactionStatus.registrationPending &&
           transaction.payment === undefined
         }
         handleClickReject={() => {
