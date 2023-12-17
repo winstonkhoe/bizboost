@@ -27,8 +27,8 @@ import {gap} from '../styles/Gap';
 import {background} from '../styles/BackgroundColor';
 import {padding} from '../styles/Padding';
 import {useIsFocused, useNavigation} from '@react-navigation/core';
-import {useContent} from '../hooks/content';
-import {ContentView} from '../model/Content';
+import {usePortfolio} from '../hooks/portfolio';
+import {PortfolioView} from '../model/Portfolio';
 import {shuffle} from '../utils/array';
 import {
   AuthenticatedNavigation,
@@ -39,14 +39,14 @@ import {useAppFocus} from '../hooks/app';
 
 const ExploreScreen = () => {
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
-  const {contents} = useContent();
-  const shuffledContents = useMemo(() => shuffle(contents), [contents]);
+  const {portfolios} = usePortfolio();
+  const shuffledContents = useMemo(() => shuffle(portfolios), [portfolios]);
   const isAppFocused = useAppFocus();
   const isFocused = useIsFocused();
   const bottomTabHeight = useBottomTabBarHeight();
 
   const keyExtractor = useCallback(
-    (item: ContentView) => item.content.id!!,
+    (item: PortfolioView) => item.portfolio.id!!,
     [],
   );
 
@@ -93,7 +93,7 @@ const ExploreScreen = () => {
 };
 
 interface ExploreItemProps {
-  content: ContentView;
+  content: PortfolioView;
   active: boolean;
   bottomTabHeight?: number;
 }
@@ -148,7 +148,7 @@ export const ExploreItem = ({
         },
       ]}>
       {active && isBuffering && <LoadingScreen />}
-      {isBuffering && contentView?.content?.thumbnail && (
+      {isBuffering && contentView?.portfolio?.thumbnail && (
         <View
           style={[
             {
@@ -160,18 +160,18 @@ export const ExploreItem = ({
           <FastImage
             style={[dimension.full]}
             source={{
-              uri: contentView.content.thumbnail,
+              uri: contentView.portfolio.thumbnail,
               priority: FastImage.priority.high,
             }}
             resizeMode={'cover'}
           />
         </View>
       )}
-      {active && contentView?.content?.uri && (
+      {active && contentView?.portfolio?.uri && (
         <VideoMemo
           active={active}
           source={{
-            uri: contentView.content.uri,
+            uri: contentView.portfolio.uri,
           }}
           onBuffer={handleBuffer}
           onLoad={handleLoad}
@@ -202,7 +202,7 @@ export const ExploreItem = ({
           onPress={() => {
             navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
               contentCreatorId:
-                contentView.user.id || contentView.content.userId!!,
+                contentView.user.id || contentView.portfolio.userId!!,
             });
           }}>
           <View
@@ -231,7 +231,7 @@ export const ExploreItem = ({
               textColor(COLOR.black[0]),
               dimension.width.full,
             ]}>
-            {contentView?.content?.description}
+            {contentView?.portfolio?.description}
           </Text>
         </View>
       </View>
@@ -292,7 +292,7 @@ const ExploreItemMemo = memo(
   (prevProps, nextProps) => {
     return (
       prevProps.active === nextProps.active &&
-      prevProps.content.content.id === nextProps.content.content.id &&
+      prevProps.content.portfolio.id === nextProps.content.portfolio.id &&
       prevProps.bottomTabHeight === nextProps.bottomTabHeight
     );
   },

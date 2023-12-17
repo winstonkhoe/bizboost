@@ -24,7 +24,7 @@ import TiktokLogo from '../assets/vectors/tiktok.svg';
 import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
 import PagerView from 'react-native-pager-view';
-import {Content} from '../model/Content';
+import {Portfolio} from '../model/Portfolio';
 import {formatDateToDayMonthYear} from '../utils/date';
 import FastImage from 'react-native-fast-image';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -44,15 +44,15 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
-  const [contents, setContents] = useState<Content[]>();
+  const [portfolios, setPortfolios] = useState<Portfolio[]>();
   const [index, setIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState(0);
   const {uid} = useUser();
 
   useEffect(() => {
     User.getById(param.contentCreatorId).then(user => setContentCreator(user));
-    Content.getByUserId(param.contentCreatorId).then(content => {
-      setContents(content);
+    Portfolio.getByUserId(param.contentCreatorId).then(content => {
+      setPortfolios(content);
     });
   }, [param]);
 
@@ -268,7 +268,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                       flex.flexCol,
                       gap.default,
                     ]}>
-                    {contents?.map(
+                    {portfolios?.map(
                       (content, idx) =>
                         idx % 2 === 0 && (
                           <Pressable
@@ -297,7 +297,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                       flex.flexCol,
                       gap.default,
                     ]}>
-                    {contents?.map(
+                    {portfolios?.map(
                       (content, idx) =>
                         idx % 2 !== 0 && (
                           <Pressable
