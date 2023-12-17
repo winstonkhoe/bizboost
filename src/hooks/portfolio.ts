@@ -47,7 +47,9 @@ export const usePortfolio = (): usePortfolioHook => {
         .map((rawPortfolio): PortfolioView => {
           return {
             portfolio: rawPortfolio.toJSON(),
-            user: users.find(user => user.id === rawPortfolio.userId)?.toJSON()!!,
+            user: users
+              .find(user => user.id === rawPortfolio.userId)
+              ?.toJSON()!!,
           };
         })
         .filter(portfolioView => portfolioView?.user?.id);

@@ -71,7 +71,10 @@ export class Portfolio extends BaseModel {
     return this.getCollectionReference().doc(documentId);
   }
 
-  static async setPortfolio(documentId: string, data: Portfolio): Promise<void> {
+  static async setPortfolio(
+    documentId: string,
+    data: Portfolio,
+  ): Promise<void> {
     await this.getDocumentReference(documentId).set({
       ...data,
     });
