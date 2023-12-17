@@ -265,6 +265,7 @@ export class Report extends BaseModel {
     }
   }
 
+  // TODO: ini kayaknya ga kepake? yang kepake yg bawahnya
   static getByTransactionId(
     transactionId: string,
     onComplete: (reports: Report[]) => void,

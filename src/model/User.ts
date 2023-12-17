@@ -340,6 +340,7 @@ export class User extends BaseModel {
     return unsubscribe;
   }
 
+  // TODO: move outside User
   static extractIdFromRef(ref: string): string {
     const parts = ref.split('/');
     const id = parts[parts.length - 1];
@@ -366,6 +367,7 @@ export class User extends BaseModel {
     return null;
   }
 
+  // TODO: remove, use getbyid
   static async getUser(documentId: string): Promise<User | null> {
     try {
       const documentSnapshot = await this.getDocumentReference(
@@ -395,6 +397,7 @@ export class User extends BaseModel {
     }
   }
 
+  // TODO: jadiin satu sama getbyid
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null) => void,

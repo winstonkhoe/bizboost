@@ -62,6 +62,7 @@ export class Location extends BaseModel {
     }
   }
 
+  // TODO: dihapus aja yang ga kepake, yg dipake cuma getall
   static async getAll(): Promise<Location[]> {
     const querySnapshot = await this.getCollectionReference().get();
 
