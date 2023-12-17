@@ -12,16 +12,9 @@ export enum MessageType {
   System = 'System',
 }
 
-export type MessageTypes =
-  | MessageType.Photo
-  | MessageType.Text
-  | MessageType.Offer
-  | MessageType.Negotiation
-  | MessageType.System;
-
 export type Message = {
   message: string;
-  type: MessageTypes;
+  type: MessageType;
   role: UserRole;
   createdAt: number;
 };
