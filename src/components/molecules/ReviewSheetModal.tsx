@@ -45,8 +45,8 @@ const ReviewSheetModal = ({
       reviewerId: uid,
       revieweeId:
         transaction.contentCreatorId === uid
-          ? transaction.businessPeopleId
-          : transaction.businessPeopleId,
+          ? transaction.businessPeopleId //opposite id
+          : transaction.contentCreatorId,
       campaignId: transaction.campaignId,
       transactionId: transaction.id,
       rating: rating + 1,

@@ -14,7 +14,7 @@ import {flex} from '../../styles/Flex';
 import {COLOR} from '../../styles/Color';
 
 interface SkeletonPlaceholderProps extends ViewProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   isLoading: boolean;
   width?: number;
   height?: number;

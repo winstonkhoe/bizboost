@@ -523,48 +523,6 @@ export class Transaction extends BaseModel {
         )
         .onSnapshot(
           querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getAllTransactionsByCCBP(
-    businessPeopleId: string,
-    contentCreatorId: string,
-    onComplete: (transactions: Transaction[]) => void,
-  ) {
-    try {
-      const unsubscribe = firestore()
-        .collection(TRANSACTION_COLLECTION)
-        .where(
-          'businessPeopleId',
-          '==',
-          firestore().collection('users').doc(businessPeopleId),
-        )
-        .where(
-          'contentCreatorId',
-          '==',
-          firestore().collection('users').doc(contentCreatorId),
-        )
-        .onSnapshot(
-          querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            }
-
             onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
@@ -598,11 +556,7 @@ export class Transaction extends BaseModel {
         )
         .onSnapshot(
           querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -624,11 +578,7 @@ export class Transaction extends BaseModel {
         .orderBy('payment')
         .onSnapshot(
           querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -665,34 +615,6 @@ export class Transaction extends BaseModel {
         console.log(error);
       },
     );
-
-    return unsubscribe;
-  }
-
-  static getTransactionStatusByContentCreator(
-    campaignId: string,
-    contentCreatorId: string,
-    onComplete: (status: TransactionStatus) => void,
-  ) {
-    const id = campaignId + contentCreatorId;
-    const unsubscribe = Transaction.getCollectionReference()
-      .doc(id)
-      .onSnapshot(
-        docSnapshot => {
-          let status: TransactionStatus;
-          if (!docSnapshot.exists) {
-            status = TransactionStatus.notRegistered;
-            return;
-          }
-          let transaction = docSnapshot.data() as Transaction;
-          status = transaction.status || TransactionStatus.notRegistered;
-
-          onComplete(status);
-        },
-        error => {
-          console.log(error);
-        },
-      );
 
     return unsubscribe;
   }
@@ -932,27 +854,6 @@ export class Transaction extends BaseModel {
     return this.insert(TransactionStatus.offering);
   }
 
-  getLatestBrainstorm(): Brainstorm | null {
-    const {brainstorms} = this;
-    if (brainstorms && brainstorms?.length > 0) {
-      return brainstorms.reduce((latest, brainstorm) => {
-        return brainstorm.createdAt > latest.createdAt ? brainstorm : latest;
-      }, brainstorms[0]);
-    }
-    return null;
-  }
-
-  getBrainstormIndex(brainstorm: Brainstorm): number {
-    const {brainstorms} = this;
-    if (brainstorms && brainstorms?.length > 0) {
-      return brainstorms.findIndex(
-        currentBrainstorm =>
-          currentBrainstorm.createdAt === brainstorm.createdAt,
-      );
-    }
-    return -1;
-  }
-
   async submitBrainstorm(content: BrainstormContent[]): Promise<boolean> {
     const {id} = this;
     if (id) {
@@ -1055,26 +956,6 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id');
   }
 
-  getLatestContentSubmission() {
-    const {contents} = this;
-    if (contents && contents?.length > 0) {
-      return contents.reduce((latest, content) => {
-        return content.createdAt > latest.createdAt ? content : latest;
-      }, contents[0]);
-    }
-    return null;
-  }
-
-  getContentIndex(content: Content): number {
-    const {contents} = this;
-    if (contents && contents?.length > 0) {
-      return contents.findIndex(
-        currentContent => currentContent.createdAt === content.createdAt,
-      );
-    }
-    return -1;
-  }
-
   async rejectContent(rejection: Rejection): Promise<boolean> {
     const {id, contents} = this;
     if (id && contents && contents.length > 0) {
@@ -1157,27 +1038,6 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id');
   }
 
-  getLatestEngagementSubmission() {
-    const {engagements} = this;
-    if (engagements && engagements?.length > 0) {
-      return engagements.reduce((latest, engagement) => {
-        return engagement.createdAt > latest.createdAt ? engagement : latest;
-      }, engagements[0]);
-    }
-    return null;
-  }
-
-  getEngagementIndex(engagement: Content): number {
-    const {engagements} = this;
-    if (engagements && engagements?.length > 0) {
-      return engagements.findIndex(
-        currentEngagement =>
-          currentEngagement.createdAt === engagement.createdAt,
-      );
-    }
-    return -1;
-  }
-
   async rejectEngagement(rejection: Rejection): Promise<boolean> {
     const {id, engagements} = this;
     if (id && engagements && engagements.length > 0) {
@@ -1237,6 +1097,68 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id or engagements');
   }
 
+  getLatestBrainstorm(): Brainstorm | null {
+    const {brainstorms} = this;
+    if (brainstorms && brainstorms?.length > 0) {
+      return brainstorms.reduce((latest, brainstorm) => {
+        return brainstorm.createdAt > latest.createdAt ? brainstorm : latest;
+      }, brainstorms[0]);
+    }
+    return null;
+  }
+
+  getBrainstormIndex(brainstorm: Brainstorm): number {
+    const {brainstorms} = this;
+    if (brainstorms && brainstorms?.length > 0) {
+      return brainstorms.findIndex(
+        currentBrainstorm =>
+          currentBrainstorm.createdAt === brainstorm.createdAt,
+      );
+    }
+    return -1;
+  }
+
+  getLatestContentSubmission() {
+    const {contents} = this;
+    if (contents && contents?.length > 0) {
+      return contents.reduce((latest, content) => {
+        return content.createdAt > latest.createdAt ? content : latest;
+      }, contents[0]);
+    }
+    return null;
+  }
+
+  getContentIndex(content: Content): number {
+    const {contents} = this;
+    if (contents && contents?.length > 0) {
+      return contents.findIndex(
+        currentContent => currentContent.createdAt === content.createdAt,
+      );
+    }
+    return -1;
+  }
+
+  getLatestEngagementSubmission() {
+    const {engagements} = this;
+    if (engagements && engagements?.length > 0) {
+      return engagements.reduce((latest, engagement) => {
+        return engagement.createdAt > latest.createdAt ? engagement : latest;
+      }, engagements[0]);
+    }
+    return null;
+  }
+
+  getEngagementIndex(engagement: Content): number {
+    const {engagements} = this;
+    if (engagements && engagements?.length > 0) {
+      return engagements.findIndex(
+        currentEngagement =>
+          currentEngagement.createdAt === engagement.createdAt,
+      );
+    }
+    return -1;
+  }
+
   getRemainingRevisionCount() {
     const {contentRevisionLimit = 0, contents = []} = this;
     return Math.max(
@@ -1293,33 +1215,4 @@ export class Transaction extends BaseModel {
       ].findIndex(transactionStatus => transactionStatus === status) >= 0
     );
   }
-
-  //   static async getTransactionStatusByContentCreator(
-  //     campaignId: string,
-  //     contentCreatorId: string,
-  //   ): Promise<TransactionStatus> {
-  //     try {
-  //       const transactions = await firestore()
-  //         .collection(TRANSACTION_COLLECTION)
-  //         .where(
-  //           'campaignId',
-  //           '==',
-  //           firestore().collection('campaigns').doc(campaignId),
-  //         )
-  //         .where(
-  //           'contentCreatorId',
-  //           '==',
-  //           firestore().collection('users').doc(contentCreatorId),
-  //         )
-  //         .get();
-  //       if (transactions.empty) {
-  //         return TransactionStatus.notRegistered;
-  //       }
-  //       let transaction = transactions.docs[0].data() as Transaction;
-  //       return transaction.status || TransactionStatus.notRegistered;
-  //     } catch (error) {
-  //       console.error(error);
-  //       throw Error('Error!');
-  //     }
-  //   }
 }

@@ -35,6 +35,7 @@ import {Campaign, CampaignType} from '../model/Campaign';
 import {textColor} from '../styles/Text';
 import {font} from '../styles/Font';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
+import {dimension} from '../styles/Dimension';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -143,7 +144,7 @@ const ProfileScreen = () => {
                           showUploadProgress
                           onUploadSuccess={onProfilePictureChanged}>
                           <FastImage
-                            className="w-full flex-1"
+                            style={[dimension.full]}
                             source={getSourceOrDefaultAvatar({
                               uri: activeData?.profilePicture,
                             })}

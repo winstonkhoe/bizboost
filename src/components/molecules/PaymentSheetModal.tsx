@@ -1,6 +1,6 @@
 import {Text, View} from 'react-native';
 import {SheetModal} from '../../containers/SheetModal';
-import {flex, items, justify} from '../../styles/Flex';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
 import {textColor} from '../../styles/Text';
@@ -135,54 +135,57 @@ const PaymentSheetModal = ({
             (paymentStatus === PaymentStatus.proofWaitingForVerification ||
               paymentStatus === PaymentStatus.proofRejected ||
               paymentStatus === undefined) ? (
-              <MediaUploader
-                targetFolder="payment"
-                showUploadProgress
-                options={{
-                  //   width: 400,
-                  //   height: 400,
-                  compressImageQuality: 0.5,
-                  //   cropping: true,
-                }}
-                onUploadSuccess={url => {
-                  setUploadedImage(url);
-                  onProofUploaded(url);
-                }}
-                onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-                {uploadedImage ? (
-                  <Text
-                    style={[
-                      padding.top.default,
-                      textColor(COLOR.text.green.default),
-                      font.size[30],
-                    ]}>
-                    Reupload
-                  </Text>
-                ) : (
-                  <View
-                    style={[
-                      dimension.square.xlarge12,
-                      rounded.medium,
-                      flex.flexRow,
-                      justify.center,
-                      items.center,
-                      {
-                        borderStyle: 'dashed',
-                      },
-                      border({
-                        borderWidth: 1,
-                        color: COLOR.black[20],
-                      }),
-                      background(COLOR.black[5]),
-                    ]}>
-                    <PhotosIcon
-                      width={30}
-                      height={30}
-                      color={COLOR.text.neutral.high}
-                    />
-                  </View>
-                )}
-              </MediaUploader>
+              <View style={[dimension.square.xlarge12]}>
+                <MediaUploader
+                  targetFolder="payment"
+                  showUploadProgress
+                  options={{
+                    //   width: 400,
+                    //   height: 400,
+                    compressImageQuality: 0.5,
+                    //   cropping: true,
+                  }}
+                  onUploadSuccess={url => {
+                    setUploadedImage(url);
+                    onProofUploaded(url);
+                  }}
+                  onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
+                  {uploadedImage ? (
+                    <Text
+                      style={[
+                        self.center,
+                        padding.top.default,
+                        textColor(COLOR.text.green.default),
+                        font.size[30],
+                      ]}>
+                      Reupload
+                    </Text>
+                  ) : (
+                    <View
+                      style={[
+                        flex.flex1,
+                        rounded.medium,
+                        flex.flexRow,
+                        justify.center,
+                        items.center,
+                        {
+                          borderStyle: 'dashed',
+                        },
+                        border({
+                          borderWidth: 1,
+                          color: COLOR.black[20],
+                        }),
+                        background(COLOR.black[5]),
+                      ]}>
+                      <PhotosIcon
+                        width={30}
+                        height={30}
+                        color={COLOR.text.neutral.high}
+                      />
+                    </View>
+                  )}
+                </MediaUploader>
+              </View>
             ) : (
               <View style={[flex.flexRow, gap.default, padding.top.default]}>
                 {paymentStatus ===
