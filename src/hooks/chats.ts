@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {Chat, ChatView} from '../model/Chat';
+import {Chat} from '../model/Chat';
 import {setUserChats} from '../redux/slices/chatSlice';
 
 export const useUserChats = () => {
@@ -17,12 +17,12 @@ export const useUserChats = () => {
 
   useEffect(() => {
     if (chats.length > 0 && activeRole) {
-      Promise.allSettled(chats.map(chat => chat.convertToChatView(activeRole)))
+      Promise.allSettled(chats.map(ch => ch.serialize()))
         .then(results => {
           console.log('useUserChats.all settled results', results);
           const fulfilledChats = results
             .filter(
-              (result): result is PromiseFulfilledResult<ChatView> =>
+              (result): result is PromiseFulfilledResult<Chat> =>
                 result.status === 'fulfilled',
             )
             .map(result => result.value);

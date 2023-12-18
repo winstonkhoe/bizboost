@@ -16,7 +16,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Chat, ChatService} from '../model/Chat';
+import {Chat} from '../model/Chat';
 import {UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
@@ -49,7 +49,7 @@ const MakeOfferScreen = ({route}: Props) => {
   });
 
   const {activeRole} = useUser();
-  const chatViews = useUserChats().chats;
+  const chats = useUserChats();
 
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
 
@@ -103,46 +103,24 @@ const MakeOfferScreen = ({route}: Props) => {
         offer
           .insert()
           .then(() => {
-            const participants = [
-              {ref: businessPeopleId, role: UserRole.BusinessPeople},
-              {ref: contentCreatorId, role: UserRole.ContentCreator},
-            ];
-            const matchingChatView = chatViews.find(
-              ({chat: {participants: chatParticipants = []}}) =>
-                chatParticipants.length === participants.length &&
-                chatParticipants.every(
-                  (participant, index) =>
-                    participant.ref === participants[index].ref &&
-                    participant.role === participants[index].role,
-                ),
+            const matchingChat = chats.chats.find(
+              chat =>
+                chat.contentCreatorId === contentCreatorId &&
+                chat.businessPeopleId === businessPeopleId,
             );
-            // const matchingChatView = chatViews.find(chatView => {
-            //   const chatParticipants = chatView.chat.participants || [];
+            console.log('matchingChat: ', matchingChat);
 
-            //   if (chatParticipants.length !== participants.length) {
-            //     return false;
-            //   }
-
-            //   return chatParticipants.every((participant, index) => {
-            //     return (
-            //       participant.ref === participants[index].ref &&
-            //       participant.role === participants[index].role
-            //     );
-            //   });
-            // });
-            console.log('matchingChatView: ', matchingChatView);
-
-            if (matchingChatView !== undefined && matchingChatView.chat?.id) {
+            if (matchingChat !== undefined && matchingChat.id) {
               console.log('ada chat');
-              ChatService.insertOfferMessage(
-                matchingChatView.chat?.id,
+              Chat.insertOfferMessage(
+                matchingChat.id,
                 data.fee.toString(),
                 activeRole,
               )
                 .then(() => {
                   console.log('send!');
                   navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                    chat: matchingChatView,
+                    chat: matchingChat,
                   });
                 })
                 .catch(() => {
@@ -154,36 +132,21 @@ const MakeOfferScreen = ({route}: Props) => {
                 });
             } else {
               const chat = new Chat({
-                participants: participants,
+                businessPeopleId: businessPeopleId,
+                contentCreatorId: contentCreatorId,
               });
               chat
                 .insert()
                 .then(() => {
-                  ChatService.insertOfferMessage(
+                  Chat.insertOfferMessage(
                     businessPeopleId + contentCreatorId,
                     data.fee.toString(),
                     activeRole,
                   )
                     .then(() => {
-                      chat
-                        .convertToChatView(activeRole)
-                        .then(cv => {
-                          navigation.navigate(
-                            AuthenticatedNavigation.ChatDetail,
-                            {
-                              chat: cv,
-                            },
-                          );
-                        })
-                        .catch(() => {
-                          showToast({
-                            type: ToastType.danger,
-                            message: 'Something went wrong',
-                          });
-                        })
-                        .finally(() => {
-                          setIsLoading(false);
-                        });
+                      navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+                        chat: chat,
+                      });
                     })
                     .catch(() => {
                       showToast({

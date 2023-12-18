@@ -7,7 +7,7 @@ import {CreateAdditionalAccountScreen} from '../screens/CreateAdditionalAccountS
 import {NavigationProp} from '@react-navigation/native';
 import CreateCampaignScreen from '../screens/campaign/CreateCampaignScreen';
 import ChatScreen from '../screens/ChatScreen';
-import {ChatView} from '../model/Chat';
+import {Chat, Recipient} from '../model/Chat';
 import CampaignRegistrantsScreen from '../screens/campaign/CampaignRegistrantsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -130,7 +130,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
-  [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
+  [AuthenticatedNavigation.ChatDetail]: {chat: Chat; recipient: Recipient};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {
     campaignId: string;

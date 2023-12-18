@@ -1,8 +1,8 @@
 import {createSlice} from '@reduxjs/toolkit';
-import {ChatView} from '../../model/Chat';
+import {Chat} from '../../model/Chat';
 
 interface ChatState {
-  userChats: ChatView[];
+  userChats: Chat[];
 }
 
 const initialState = {
