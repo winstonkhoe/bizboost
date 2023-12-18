@@ -1204,15 +1204,37 @@ export class Transaction extends BaseModel {
     return status === TransactionStatus.completed;
   }
 
-  isWaitingContentCreatorAction() {
-    const {status} = this;
-    return (
-      status &&
+  async isWaitingContentCreatorAction() {
+    const {status, campaignId} = this;
+    if (
       [
         TransactionStatus.brainstormRejected,
         TransactionStatus.contentRejected,
         TransactionStatus.engagementRejected,
       ].findIndex(transactionStatus => transactionStatus === status) >= 0
-    );
+    ) {
+      return true;
+    }
+
+    if (campaignId) {
+      try {
+        const campaign = await Campaign.getById(campaignId);
+        if (campaign) {
+          const campaignActiveTimeline = campaign.getActiveTimeline();
+          const currentTransactionStep =
+            transactionStatusCampaignStepMap[status];
+          const isContentCreatorNotSubmitCurrentActiveTimeline =
+            campaignActiveTimeline &&
+            currentTransactionStep &&
+            currentTransactionStep !== campaignActiveTimeline.step;
+
+          return isContentCreatorNotSubmitCurrentActiveTimeline;
+        }
+      } catch (error) {
+        console.log('error', error);
+      }
+    }
+
+    return false;
   }
 }

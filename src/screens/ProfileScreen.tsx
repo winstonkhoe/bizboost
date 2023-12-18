@@ -28,7 +28,7 @@ import {
 import {useEffect, useRef, useState} from 'react';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import PagerView from 'react-native-pager-view';
-import {Content} from '../model/Content';
+import {Portfolio} from '../model/Portfolio';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
 import {Campaign, CampaignType} from '../model/Campaign';
@@ -47,7 +47,7 @@ const ProfileScreen = () => {
   const pagerViewRef = useRef<PagerView>(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [contents, setContents] = useState<Content[]>();
+  const [portfolios, setPortfolios] = useState<Portfolio[]>();
 
   useEffect(() => {
     // TODO: gatau ini mestinya gabung sama yang di dalem modal transactionsnya apa ngga biar fetch skali? tp kalo kek gitu gabisa dua"nya ngelisten, jadinya cuma salah satu, krn behaviour si modal kan navigate yaa
@@ -68,8 +68,8 @@ const ProfileScreen = () => {
     );
 
     // TODO: ini juga bakal butuh dibuat .onSnapshot kyknya nantinya
-    Content.getByUserId(uid || '').then(content => {
-      setContents(content);
+    Portfolio.getByUserId(uid || '').then(content => {
+      setPortfolios(content);
     });
 
     return () => {
@@ -364,7 +364,7 @@ const ProfileScreen = () => {
                           flex.flexCol,
                           gap.default,
                         ]}>
-                        {contents?.map(
+                        {portfolios?.map(
                           (content, idx) =>
                             idx % 2 === 0 && (
                               <Pressable
@@ -396,7 +396,7 @@ const ProfileScreen = () => {
                           flex.flexCol,
                           gap.default,
                         ]}>
-                        {contents?.map(
+                        {portfolios?.map(
                           (content, idx) =>
                             idx % 2 !== 0 && (
                               <Pressable

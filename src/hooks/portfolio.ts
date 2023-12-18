@@ -1,22 +1,22 @@
 import {useEffect, useState} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {User} from '../model/User';
-import {Content, ContentView} from '../model/Content';
-import {setContents} from '../redux/slices/contentSlice';
+import {Portfolio, PortfolioView} from '../model/Portfolio';
+import {setPortfolios} from '../redux/slices/portfolioSlice';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import {uploadFile} from '../helpers/storage';
 
-interface useContentHook {
-  contents: ContentView[];
+interface usePortfolioHook {
+  portfolios: PortfolioView[];
 }
 
-export const useContent = (): useContentHook => {
-  const [rawContents, setRawContents] = useState<Content[]>([]);
-  const {contents} = useAppSelector(state => state.content);
+export const usePortfolio = (): usePortfolioHook => {
+  const [rawPortfolios, setRawPortfolios] = useState<Portfolio[]>([]);
+  const {portfolios} = useAppSelector(state => state.portfolio);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    Content.getAll().then(c => {
+    Portfolio.getAll().then(c => {
       c.forEach(content => {
         if (!content?.thumbnail && content?.uri) {
           createThumbnail({
@@ -36,23 +36,25 @@ export const useContent = (): useContentHook => {
             .catch(err => console.log({err}));
         }
       });
-      setRawContents(c);
+      setRawPortfolios(c);
     });
   }, []);
 
   useEffect(() => {
     User.getAll(async users => {
-      const processedContents = rawContents
-        .filter(rawContent => rawContent.userId !== undefined)
-        .map((rawContent): ContentView => {
+      const processedPortfolios = rawPortfolios
+        .filter(rawPortfolio => rawPortfolio.userId !== undefined)
+        .map((rawPortfolio): PortfolioView => {
           return {
-            content: rawContent.toJSON(),
-            user: users.find(user => user.id === rawContent.userId)?.toJSON()!!,
+            portfolio: rawPortfolio.toJSON(),
+            user: users
+              .find(user => user.id === rawPortfolio.userId)
+              ?.toJSON()!!,
           };
         })
-        .filter(contentView => contentView?.user?.id);
-      dispatch(setContents(processedContents));
+        .filter(portfolioView => portfolioView?.user?.id);
+      dispatch(setPortfolios(processedPortfolios));
     });
-  }, [dispatch, rawContents]);
-  return {contents};
+  }, [dispatch, rawPortfolios]);
+  return {portfolios};
 };

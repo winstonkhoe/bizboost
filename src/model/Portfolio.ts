@@ -4,21 +4,21 @@ import firestore, {
 import {BaseModel} from './BaseModel';
 import {User} from './User';
 
-const CONTENT_COLLECTION = 'contents';
+const PORTFOLIO_COLLECTION = 'portfolios';
 
-export interface ContentView {
-  content: Content;
+export interface PortfolioView {
+  portfolio: Portfolio;
   user: User;
 }
 
-export class Content extends BaseModel {
+export class Portfolio extends BaseModel {
   id?: string;
   uri?: string;
   userId?: string;
   description?: string;
   thumbnail?: string;
 
-  constructor({id, uri, userId, description, thumbnail}: Partial<Content>) {
+  constructor({id, uri, userId, description, thumbnail}: Partial<Portfolio>) {
     super();
     this.id = id;
     this.uri = uri;
@@ -31,10 +31,10 @@ export class Content extends BaseModel {
     doc:
       | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
       | FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
-  ): Content {
+  ): Portfolio {
     const data = doc.data();
     if (data && doc.exists) {
-      return new Content({
+      return new Portfolio({
         id: doc.id,
         description: data?.description,
         uri: data?.uri,
@@ -45,11 +45,11 @@ export class Content extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  static async updateContentData(
+  async updatePortfolioData(
     documentId: string,
-    data: Content,
+    data: Portfolio,
   ): Promise<void> {
-    await this.getDocumentReference(documentId).update({
+    await Portfolio.getDocumentReference(documentId).update({
       ...data,
       id: undefined,
       userId: User.getDocumentReference(data.userId!!),
@@ -58,12 +58,12 @@ export class Content extends BaseModel {
 
   private static fromQuerySnapshot(
     querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
-  ): Content[] {
+  ): Portfolio[] {
     return querySnapshots.docs.map(this.fromSnapshot);
   }
 
   static getCollectionReference = () => {
-    return firestore().collection(CONTENT_COLLECTION);
+    return firestore().collection(PORTFOLIO_COLLECTION);
   };
 
   static getDocumentReference(documentId: string) {
@@ -71,20 +71,23 @@ export class Content extends BaseModel {
     return this.getCollectionReference().doc(documentId);
   }
 
-  static async setContent(documentId: string, data: Content): Promise<void> {
+  static async setPortfolio(
+    documentId: string,
+    data: Portfolio,
+  ): Promise<void> {
     await this.getDocumentReference(documentId).set({
       ...data,
     });
   }
 
-  static async getById(documentId: string): Promise<Content | undefined> {
+  static async getById(documentId: string): Promise<Portfolio | undefined> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {
       return this.fromSnapshot(snapshot);
     }
   }
 
-  static async getByUserId(userId: string): Promise<Content[] | undefined> {
+  static async getByUserId(userId: string): Promise<Portfolio[] | undefined> {
     const querySnapshot = await this.getCollectionReference()
       .where('userId', '==', User.getDocumentReference(userId))
       .get();
@@ -95,7 +98,7 @@ export class Content extends BaseModel {
     return [];
   }
 
-  static async getAll(): Promise<Content[]> {
+  static async getAll(): Promise<Portfolio[]> {
     const querySnapshot = await this.getCollectionReference().get();
 
     if (!querySnapshot.empty) {
@@ -106,14 +109,20 @@ export class Content extends BaseModel {
 
   async update() {
     try {
-      if (this.id) {
-        await Content.updateContentData(this.id, this);
-        return true;
+      const {id, userId, ...rest} = this;
+      if (!id) {
+        throw Error('Invalid id');
       }
-      return false;
+      if (!userId) {
+        throw Error('Invalid user id');
+      }
+      await Portfolio.getDocumentReference(id).update({
+        ...rest,
+        userId: User.getDocumentReference(userId),
+      });
     } catch (error) {
       console.log(error);
+      throw Error('Portfolio.update error ' + error);
     }
-    return false;
   }
 }
