@@ -1,6 +1,6 @@
 import {Pressable, View} from 'react-native';
 import {Text} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
   BasicStatus,
@@ -22,7 +22,7 @@ import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import Private from '../../assets/vectors/private.svg';
 import Public from '../../assets/vectors/public.svg';
 import Business from '../../assets/vectors/business.svg';
-import StatusTag from '../atoms/StatusTag';
+import StatusTag, {StatusType} from '../atoms/StatusTag';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
@@ -35,6 +35,14 @@ import {ImageRequireSource} from 'react-native';
 import PaymentSheetModal from './PaymentSheetModal';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
+import {dimension} from '../../styles/Dimension';
+import {background} from '../../styles/BackgroundColor';
+import {StyleSheet} from 'react-native';
+import {padding} from '../../styles/Padding';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {SkeletonPlaceholder} from './SkeletonPlaceholder';
+import ReviewSheetModal from './ReviewSheetModal';
+import {Review} from '../../model/Review';
 
 type Props = {
   transaction: Transaction;
@@ -43,6 +51,8 @@ type Props = {
 const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
+  const [review, setReview] = useState<Review | null>();
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [campaign, setCampaign] = useState<Campaign>();
   useEffect(() => {
     User.getById(transaction.contentCreatorId || '').then(setContentCreator);
@@ -54,6 +64,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
 
+  // TODO: redundant, kalo sempet refactor
   const onProofUploaded = (url: string) => {
     console.log('url: ' + url);
     //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
@@ -73,6 +84,19 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         });
       });
   };
+
+  useEffect(() => {
+    if (transaction.id && transaction.businessPeopleId) {
+      return Review.getReviewByTransactionIdAndReviewerId(
+        transaction.id,
+        transaction.businessPeopleId, //bisa pake uid from useUser juga
+        setReview,
+      );
+    }
+  }, [transaction]);
+
+  console.log('review', review);
+
   return (
     <>
       <BaseCard
@@ -90,7 +114,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
           )
         }
         headerTextLeading={campaign?.title || ''}
-        headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+        // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
         handleClickBody={() => {
           console.log('open transaction ', transaction.id, ' detail');
           if (transaction.id) {
@@ -107,7 +131,33 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
             : require('../../assets/images/bizboost-avatar.png')
         }
         bodyText={contentCreator?.contentCreator?.fullname || ''}
+        bodyContent={
+          review === null &&
+          transaction.isCompleted() && (
+            <>
+              <View style={[flex.flex1, flex.flexRow, justify.end]}>
+                <CustomButton
+                  text="Review"
+                  verticalPadding="xsmall"
+                  onPress={() => {
+                    setIsReviewModalOpen(true);
+                  }}
+                />
+              </View>
+              <ReviewSheetModal
+                isModalOpened={isReviewModalOpen}
+                onModalDismiss={() => setIsReviewModalOpen(false)}
+                transaction={transaction}
+              />
+            </>
+          )
+        }
         statusText={transaction.status}
+        statusType={
+          transactionStatusTypeMap[
+            transaction.status || TransactionStatus.terminated
+          ]
+        }
         doesNeedApproval={
           transaction.status === TransactionStatus.registrationPending &&
           transaction.payment === undefined
@@ -134,7 +184,8 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          amount={campaign?.fee || -1}
+          // amount={campaign?.fee || -1}
+          amount={transaction.transactionAmount || -1}
           onProofUploaded={onProofUploaded}
           defaultImage={transaction.payment?.proofImage}
           paymentStatus={transaction.payment?.status}
@@ -146,15 +197,39 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
 
 const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const [campaign, setCampaign] = useState<Campaign>();
-  useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(setCampaign);
-  }, [transaction]);
-
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [review, setReview] = useState<Review | null>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
 
   useEffect(() => {
-    User.getById(transaction.businessPeopleId || '').then(setBusinessPeople);
+    if (transaction.campaignId) {
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => {
+          setCampaign(null);
+        });
+    }
+  }, [transaction]);
+
+  useEffect(() => {
+    if (transaction.businessPeopleId) {
+      User.getById(transaction.businessPeopleId)
+        .then(setBusinessPeople)
+        .catch(() => {
+          setBusinessPeople(null);
+        });
+    }
+  }, [transaction]);
+
+  useEffect(() => {
+    if (transaction.id && transaction.contentCreatorId) {
+      return Review.getReviewByTransactionIdAndReviewerId(
+        transaction.id,
+        transaction.contentCreatorId, //bisa pake uid from useUser juga
+        setReview,
+      );
+    }
   }, [transaction]);
 
   return (
@@ -165,8 +240,8 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         });
       }}
       icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
-      headerTextLeading={businessPeople?.businessPeople?.fullname || ''}
-      headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+      headerTextLeading={businessPeople?.businessPeople?.fullname}
+      // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
       handleClickBody={() => {
         if (transaction.id) {
           navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
@@ -174,94 +249,163 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
           });
         }
       }}
-      imageSource={
-        campaign?.image
-          ? {
-              uri: campaign?.image,
-            }
-          : require('../../assets/images/bizboost-avatar.png')
+      imageSource={getSourceOrDefaultAvatar({
+        uri: campaign?.image,
+      })}
+      // bodyText={campaign?.title}
+      bodyText={campaign?.title}
+      bodyContent={
+        review === null &&
+        transaction.isCompleted() && (
+          <>
+            <View style={[flex.flex1, flex.flexRow, justify.end]}>
+              <CustomButton
+                text="Review"
+                verticalPadding="xsmall"
+                onPress={() => {
+                  setIsReviewModalOpen(true);
+                }}
+              />
+            </View>
+            <ReviewSheetModal
+              isModalOpened={isReviewModalOpen}
+              onModalDismiss={() => setIsReviewModalOpen(false)}
+              transaction={transaction}
+            />
+          </>
+        )
       }
-      bodyText={campaign?.title || ''}
       statusText={transaction.status}
+      statusType={
+        transactionStatusTypeMap[
+          transaction.status || TransactionStatus.terminated
+        ]
+      }
     />
   );
 };
 
 // MARK: kalo mau edit base card dari sini
 type BaseCardProps = {
-  handleClickHeader: () => void;
+  handleClickHeader?: () => void;
   icon?: ReactNode;
-  headerTextLeading: string;
-  headerTextTrailing: string;
+  headerTextLeading?: string; //essential
+  headerTextTrailing?: string | ReactNode;
   handleClickBody: () => void;
   imageSource: Source | ImageRequireSource;
-  bodyText: string;
-  statusText?: TransactionStatus;
+  imageDimension?: typeof dimension.square.xlarge3;
+  bodyText?: string; //essential
+
+  // TODO: kalo sempet rapihin bodycontent sama status
+  bodyContent?: ReactNode;
+  statusText?: string;
+  statusType?: StatusType;
+
   doesNeedApproval?: boolean;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
 };
-const BaseCard = ({
+export const BaseCard = ({
   handleClickHeader,
   icon,
   headerTextLeading,
   headerTextTrailing,
   handleClickBody,
   imageSource = require('../../assets/images/bizboost-avatar.png'),
+  imageDimension = dimension.square.xlarge3,
   bodyText,
   statusText,
+  statusType,
   doesNeedApproval = false,
   handleClickReject,
   handleClickAccept,
+  bodyContent,
 }: BaseCardProps) => {
+  const isLoading = !headerTextLeading || !bodyText;
   return (
     <View
-      className="bg-white flex flex-col pt-3 overflow-hidden border border-gray-200"
-      style={[rounded.medium]}>
+      className="overflow-hidden"
+      style={[
+        flex.flexCol,
+        rounded.medium,
+        background(COLOR.background.neutral.default),
+        border({
+          borderWidth: 1,
+          color: COLOR.black[20],
+        }),
+      ]}>
       <Pressable
         onPress={handleClickHeader}
-        className="flex flex-row justify-between items-center border-b pb-2 px-3 "
-        style={[border({color: COLOR.black[20]})]}>
-        <View className="flex flex-row items-center" style={[gap.xsmall]}>
-          {icon}
-          {/* {isPrivate && (
-              <Private width={15} height={15} stroke={COLOR.black[40]} />
-            )} */}
-          <Text
-            style={[textColor(COLOR.green[50]), font.size[20]]}
-            numberOfLines={1}
-            className="w-2/3">
-            {headerTextLeading}
-          </Text>
-        </View>
+        style={[
+          padding.top.default,
+          padding.horizontal.default,
+          {
+            paddingBottom: 10,
+          },
+          flex.flexRow,
+          justify.between,
+          items.center,
+          styles.bottomBorder,
+        ]}>
+        <SkeletonPlaceholder isLoading={isLoading}>
+          <View style={[flex.flexRow, items.center, gap.xsmall]}>
+            {icon}
+            {/* {isPrivate && (
+            <Private width={15} height={15} stroke={COLOR.black[40]} />
+          )} */}
+            <Text
+              style={[
+                textColor(
+                  handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
+                ),
+                font.size[20],
+              ]}
+              className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
+              numberOfLines={1}>
+              {headerTextLeading}
+            </Text>
+          </View>
+        </SkeletonPlaceholder>
+        <SkeletonPlaceholder isLoading={isLoading}>
+          {typeof headerTextTrailing === 'string' ? (
+            <Text
+              style={[textColor(COLOR.text.neutral.med), font.size[20]]}
+              numberOfLines={1}>
+              {headerTextTrailing}
+            </Text>
+          ) : (
+            headerTextTrailing
+          )}
+        </SkeletonPlaceholder>
       </Pressable>
       <Pressable
         onPress={handleClickBody}
-        className="flex flex-row items-center px-3 py-4 justify-between">
-        <View className="flex flex-row items-center">
-          <View
-            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-            style={[flex.flexRow, rounded.default]}>
-            <FastImage
-              className="w-full h-full object-cover"
-              source={imageSource}
-            />
-          </View>
-          <View className="flex flex-col items-start w-3/4">
-            <Text className="font-semibold text-base " numberOfLines={1}>
-              {bodyText}
-            </Text>
-            {statusText && (
-              <View>
-                <StatusTag
-                  status={`${statusText}`}
-                  statusType={transactionStatusTypeMap[statusText]}
-                />
-              </View>
-            )}
-          </View>
+        style={[flex.flexRow, items.center, justify.between, padding.default]}>
+        <View style={[flex.flex1, flex.flexRow, gap.default, items.center]}>
+          <SkeletonPlaceholder isLoading={isLoading}>
+            <View
+              className="items-center justify-center overflow-hidden"
+              style={[flex.flexRow, rounded.default, imageDimension]}>
+              <FastImage style={[dimension.full]} source={imageSource} />
+            </View>
+          </SkeletonPlaceholder>
+          <SkeletonPlaceholder style={[flex.flex1]} isLoading={isLoading}>
+            <View style={[flex.flex1, flex.flexCol, gap.xsmall]}>
+              <Text
+                className="font-semibold"
+                style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+                numberOfLines={1}>
+                {bodyText}
+              </Text>
+              {statusText && (
+                <View style={[flex.flexRow, justify.start]}>
+                  <StatusTag status={statusText} statusType={statusType} />
+                </View>
+              )}
+              {bodyContent}
+            </View>
+          </SkeletonPlaceholder>
         </View>
-        <ChevronRight fill={COLOR.black[20]} />
       </Pressable>
       {doesNeedApproval && (
         <View style={[flex.flexRow]}>
@@ -307,3 +451,10 @@ const RegisteredUserListCard = ({transaction, role}: Props) => {
 };
 
 export default RegisteredUserListCard;
+
+const styles = StyleSheet.create({
+  bottomBorder: {
+    borderColor: COLOR.black[20],
+    borderBottomWidth: 1,
+  },
+});

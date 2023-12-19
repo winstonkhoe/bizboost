@@ -32,7 +32,7 @@ import {gap} from '../styles/Gap';
 import {useUser} from '../hooks/user';
 import {CustomAlert} from '../components/molecules/CustomAlert';
 import {padding} from '../styles/Padding';
-import {ChatService} from '../model/Chat';
+import {Chat} from '../model/Chat';
 import {Seperator} from '../components/atoms/Separator';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 
@@ -51,8 +51,8 @@ export const OfferDetailScreen = ({route}: Props) => {
 
   const navigation = useNavigation<NavigationStackProps>();
 
-  const bpId = User.extractIdFromRef(offer?.businessPeopleId ?? '');
-  const ccId = User.extractIdFromRef(offer?.contentCreatorId ?? '');
+  const bpId = offer?.businessPeopleId ?? '';
+  const ccId = offer?.contentCreatorId ?? '';
 
   useEffect(() => {
     Offer.getById(offerId).then(offer => {
@@ -69,32 +69,33 @@ export const OfferDetailScreen = ({route}: Props) => {
 
   const acceptOffer = () => {
     if (offer) {
-      offer.accept().then(() => {
+      offer.accept().then(acc => {
         const transaction = new Transaction({
+          transactionAmount: acc.offeredPrice,
+          platformTasks: acc.platformTasks,
           contentCreatorId: offer.contentCreatorId ?? '',
           businessPeopleId: offer.businessPeopleId ?? '',
           campaignId: campaign?.id ?? '',
         });
 
-        transaction.updateStatus(TransactionStatus.offerApproved).then(() => {
-          const name =
-            activeRole === UserRole.BusinessPeople
-              ? user?.businessPeople?.fullname
-              : user?.contentCreator?.fullname;
-          const text =
-            name +
-            ' ' +
-            (offer.negotiatedBy
-              ? 'accepted negotiation for'
-              : 'accepted offer for') +
-            ' ' +
-            campaign?.title;
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
+        transaction
+          .updateStatus(TransactionStatus.offerWaitingForPayment)
+          .then(() => {
+            const name =
+              activeRole === UserRole.BusinessPeople
+                ? user?.businessPeople?.fullname
+                : user?.contentCreator?.fullname;
+            const text = `${name} ${
+              offer.negotiatedBy
+                ? 'accepted negotiation for'
+                : 'accepted offer for'
+            } ${
+              campaign?.title
+            }. Transaction will begin after Business People have finished payment.`;
+            Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
               navigation.goBack();
-            },
-          );
-        });
+            });
+          });
       });
     }
   };
@@ -122,11 +123,9 @@ export const OfferDetailScreen = ({route}: Props) => {
             ' ' +
             campaign?.title;
 
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
-              navigation.goBack();
-            },
-          );
+          Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
+            navigation.goBack();
+          });
         });
       });
     }
@@ -193,7 +192,7 @@ export const OfferDetailScreen = ({route}: Props) => {
                     />
                   ))}
             </View>
-            {offer?.negotiatedTasks && (
+            {offer?.negotiatedTasks && offer?.negotiatedTasks.length > 0 && (
               <View>
                 <Text
                   className="font-bold pb-2"
@@ -325,7 +324,16 @@ export const OfferDetailScreen = ({route}: Props) => {
                   <CustomAlert
                     confirmationText={
                       <View>
-                        <Text>Are you sure you want to reject this offer?</Text>
+                        <Text
+                          style={[
+                            textColor(COLOR.text.neutral.high),
+                            font.size[30],
+                          ]}>
+                          Are you sure you want to reject this offer?
+                        </Text>
+                        <Text style={[textColor(COLOR.red[50]), font.size[20]]}>
+                          You can't exchange offer again for this campaign
+                        </Text>
                         <View
                           style={[
                             flex.flexRow,

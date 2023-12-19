@@ -12,6 +12,7 @@ import {SizeType} from '../../styles/Size';
 import Animated from 'react-native-reanimated';
 import {AnimatedPressable, AnimatedPressableProps} from './AnimatedPressable';
 import {FontSizeType, font} from '../../styles/Font';
+import {LoadingSpinner} from './LoadingSpinner';
 
 type Prominence = 'primary' | 'secondary' | 'tertiary';
 
@@ -32,6 +33,7 @@ export interface CustomButtonProps
   customTextSize?: FontSizeType;
   minimumWidth?: boolean;
   logo?: ReactNode;
+  isLoading?: boolean;
 }
 
 const borderWidth = 2;
@@ -45,6 +47,7 @@ export const CustomButton = ({
   customTextColor,
   customTextSize = 30,
   minimumWidth = false,
+  isLoading = false,
   logo,
   ...props
 }: CustomButtonProps) => {
@@ -56,8 +59,8 @@ export const CustomButton = ({
     disabled: COLOR.background.green.disabled,
   };
   const defaultTextColor = {
-    default: COLOR.black[1],
-    disabled: COLOR.black[1],
+    default: COLOR.absoluteBlack[1],
+    disabled: COLOR.absoluteBlack[1],
   };
 
   const getActiveBackgroundColor = (defaultColor: ColorProps) => {
@@ -80,7 +83,7 @@ export const CustomButton = ({
     return getActiveTextColor(defaultColor);
   };
   return (
-    <AnimatedPressable {...props}>
+    <AnimatedPressable {...props} disabled={isLoading || props.disabled}>
       <Animated.View
         className="relative"
         style={[
@@ -123,16 +126,28 @@ export const CustomButton = ({
             {logo}
           </View>
         )}
-        <Text
-          className="font-bold"
-          style={[
-            isPrimary && [textColor(getTextColorOrDefault(defaultTextColor))],
-            isSecondary && [textColor(getTextColorOrDefault(COLOR.text.green))],
-            isTertiary && [textColor(getTextColorOrDefault(COLOR.text.green))],
-            font.size[customTextSize],
-          ]}>
-          {text}
-        </Text>
+        {isLoading ? (
+          <LoadingSpinner
+            size="large"
+            primaryColor={COLOR.absoluteBlack[0]}
+            secondaryColor={COLOR.absoluteBlack[20]}
+          />
+        ) : (
+          <Text
+            className="font-bold"
+            style={[
+              isPrimary && [textColor(getTextColorOrDefault(defaultTextColor))],
+              isSecondary && [
+                textColor(getTextColorOrDefault(COLOR.text.green)),
+              ],
+              isTertiary && [
+                textColor(getTextColorOrDefault(COLOR.text.green)),
+              ],
+              font.size[customTextSize],
+            ]}>
+            {text}
+          </Text>
+        )}
       </Animated.View>
     </AnimatedPressable>
   );

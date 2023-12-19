@@ -22,16 +22,15 @@ export class Offer extends BaseModel {
   businessPeopleId?: string;
   offeredPrice?: number;
   negotiatedPrice?: number;
-  platformTasks?: CampaignPlatform[];
-  negotiatedTasks?: CampaignPlatform[];
+  platformTasks: CampaignPlatform[];
+  negotiatedTasks: CampaignPlatform[];
   importantNotes?: string;
   negotiatedNotes?: string;
-  negotiatedBy?: string;
+  negotiatedBy?: UserRole;
   status?: OfferStatus;
   createdAt?: number;
 
   constructor({
-    id,
     contentCreatorId,
     campaignId,
     businessPeopleId,
@@ -54,8 +53,8 @@ export class Offer extends BaseModel {
     this.campaignId = campaignId;
     this.offeredPrice = offeredPrice;
     this.negotiatedPrice = negotiatedPrice;
-    this.platformTasks = platformTasks;
-    this.negotiatedTasks = negotiatedTasks;
+    this.platformTasks = platformTasks || [];
+    this.negotiatedTasks = negotiatedTasks || [];
     this.importantNotes = importantNotes;
     this.negotiatedNotes = negotiatedNotes;
     this.negotiatedBy = negotiatedBy;
@@ -109,7 +108,7 @@ export class Offer extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  static getCampaignCollections =
+  static getCollectionReference =
     (): FirebaseFirestoreTypes.CollectionReference<FirebaseFirestoreTypes.DocumentData> => {
       return firestore().collection(OFFER_COLLECTION);
     };
@@ -120,7 +119,7 @@ export class Offer extends BaseModel {
     firestore().settings({
       ignoreUndefinedProperties: true,
     });
-    return this.getCampaignCollections().doc(documentId);
+    return this.getCollectionReference().doc(documentId);
   }
 
   static async getById(id: string): Promise<Offer> {
@@ -156,12 +155,11 @@ export class Offer extends BaseModel {
         createdAt: new Date().getTime(),
       };
 
-      await firestore().collection(OFFER_COLLECTION).doc(id).set(data);
-      return true;
+      await Offer.getDocumentReference(id).set(data);
     } catch (error) {
       console.log(error);
+      throw Error('Error!');
     }
-    throw Error('Error!');
   }
 
   static getPendingOffersbyCCBP(
@@ -207,6 +205,45 @@ export class Offer extends BaseModel {
     }
   }
 
+  static getPendingOffersbyUser(
+    userId: string,
+    activeRole: UserRole,
+    onComplete: (offers: Offer[]) => void,
+  ) {
+    try {
+      let query;
+      if (activeRole === UserRole.BusinessPeople) {
+        query = this.getCollectionReference().where(
+          'businessPeopleId',
+          '==',
+          User.getDocumentReference(userId),
+        );
+      } else if (activeRole === UserRole.ContentCreator) {
+        query = this.getCollectionReference().where(
+          'contentCreatorId',
+          '==',
+          User.getDocumentReference(userId),
+        );
+      }
+      if (!query) {
+        return () => {};
+      }
+      return query
+        .where('status', 'in', [OfferStatus.pending, OfferStatus.negotiate])
+        .onSnapshot(
+          querySnapshot => {
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          },
+          error => {
+            console.log(error);
+          },
+        );
+    } catch (error) {
+      console.error(error);
+      throw Error('Offer.getPendingOffersbyUser err: ' + error);
+    }
+  }
+
   async accept(): Promise<Offer> {
     this.offeredPrice = this.negotiatedPrice;
     this.importantNotes = this.negotiatedNotes;
@@ -225,9 +262,13 @@ export class Offer extends BaseModel {
 
   async updateStatus(status: OfferStatus) {
     try {
-      this.status = status;
-
       const {id, ...rest} = this;
+
+      if (!id) {
+        throw Error('Missing id');
+      }
+
+      this.status = status;
       const data = {
         ...rest,
         contentCreatorId: User.getDocumentReference(
@@ -240,12 +281,11 @@ export class Offer extends BaseModel {
         status: status,
       };
 
-      await firestore().collection(OFFER_COLLECTION).doc(id).set(data);
-      return true;
+      await Offer.getDocumentReference(id).set(data);
     } catch (error) {
       console.log(error);
+      throw Error('Offer.updateStatus error ' + error);
     }
-    throw Error('Error!');
   }
 
   async negotiate(
@@ -312,20 +352,19 @@ export class Offer extends BaseModel {
         .where(
           'contentCreatorId',
           '==',
-          firestore().collection('users').doc(contentCreatorId),
+          User.getDocumentReference(contentCreatorId),
         )
-        .where(
-          'campaignId',
-          '==',
-          firestore().collection('campaigns').doc(campaignId),
-        )
+        .where('campaignId', '==', Campaign.getDocumentReference(campaignId))
         .where('status', '!=', OfferStatus.rejected)
+        .count()
         .get();
 
-      return !querySnapshot.empty;
+      return querySnapshot.data().count > 0;
     } catch (error) {
       console.error(error);
-      throw new Error('Error checking for offers');
+      throw new Error(
+        'Offer.hasOfferForContentCreatorAndCampaign error ' + error,
+      );
     }
   }
 }

@@ -220,6 +220,10 @@ export const CustomTextInput = ({
                   </View>
                 )}
                 <TextInput
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  scrollEnabled={false}
+                  placeholderTextColor={COLOR.text.neutral.med}
                   keyboardType={
                     keyboardType
                       ? keyboardType
@@ -343,7 +347,7 @@ export const FormlessCustomTextInput = ({
   const value = watch('value');
 
   // // Create a debounced version of onChange
-  const debouncedOnChange = debounce(onChange, 300);
+  const debouncedOnChange = debounce(onChange, 100);
 
   useEffect(() => {
     debouncedOnChange(value);
@@ -684,6 +688,7 @@ export const MediaUploader = ({
     };
   }, [uploadProgress]);
   const handleImageUpload = () => {
+    console.log('masuk');
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
         onMediaSelected && onMediaSelected(media);
@@ -708,8 +713,8 @@ export const MediaUploader = ({
 
   return (
     <TouchableOpacity
-      style={[flex.flex1]}
-      containerStyle={[flex.flexCol]}
+      // style={[flex.flex1]}
+      // containerStyle={[flex.flex1, flex.flexCol]}
       onPress={handleImageUpload}>
       {/* TODO: ini custom buttonnya ga bisa @win, keknya si AnimatedPressable punya CustomButton tu nimpa touchable opacity nya ini^  */}
       {children || <CustomButton text="Upload image" rounded={'small'} />}

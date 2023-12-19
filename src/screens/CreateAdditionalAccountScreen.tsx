@@ -203,7 +203,7 @@ export const CreateAdditionalAccountScreen = () => {
               rounded.large,
               horizontalPadding.default,
               verticalPadding.xsmall2,
-              background(COLOR.background.light),
+              background(COLOR.background.neutral.default),
               border({
                 borderWidth: 1,
                 color: COLOR.black[100],

@@ -18,15 +18,23 @@ import PhotoRevision from '../../assets/vectors/photo-revision.svg';
 import Upload from '../../assets/vectors/upload.svg';
 import MissingDocument from '../../assets/vectors/document-missing.svg';
 import Report from '../../assets/vectors/report.svg';
+import Dashboard from '../../assets/vectors/dashboard.svg';
+import RatingStar from '../../assets/vectors/rating-star.svg';
+import Campaign from '../../assets/vectors/campaign.svg';
+import Cooperation from '../../assets/vectors/cooperation.svg';
+import Search from '../../assets/vectors/search.svg';
+import Date from '../../assets/vectors/date.svg';
 import {SocialPlatform} from '../../model/User';
-import Svg, {Path} from 'react-native-svg';
+import Svg, {Path, SvgProps} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
 import {rounded} from '../../styles/BorderRadius';
+import {processColorsInProps} from 'react-native-reanimated/lib/typescript/reanimated2/Colors';
 
-interface IconProps {
+interface IconProps extends SvgProps {
   size?: SizeType;
   color?: string;
+  fill?: string;
   strokeWidth?: number;
 }
 
@@ -166,6 +174,23 @@ export const ChevronRight = ({
         fill="transparent"
       />
     </Svg>
+  );
+};
+
+export const ChevronLeft = ({...props}: IconProps) => {
+  return (
+    <View
+      style={[
+        {
+          transform: [
+            {
+              rotate: '180deg',
+            },
+          ],
+        },
+      ]}>
+      <ChevronRight {...props} />
+    </View>
   );
 };
 
@@ -334,6 +359,104 @@ export const ReportIcon = ({
       height={size[sizeType]}
       color={color}
       strokeWidth={strokeWidth}
+    />
+  );
+};
+
+export const DashboardIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.red[60],
+  fill = color,
+  ...props
+}: IconProps) => {
+  return (
+    <Dashboard
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      {...props}
+    />
+  );
+};
+
+export const RatingStarIcon = ({
+  size: sizeType = 'default',
+  color = '#FFDB44',
+}: IconProps) => {
+  return (
+    <RatingStar width={size[sizeType]} height={size[sizeType]} color={color} />
+  );
+};
+
+export const CampaignIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  fill = COLOR.black[100],
+  strokeWidth = 0,
+  ...props
+}: IconProps) => {
+  return (
+    <Campaign
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      strokeWidth={strokeWidth}
+      {...props}
+    />
+  );
+};
+
+export const CooperationIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  fill = 'transparent',
+  strokeWidth = 1,
+  ...props
+}: IconProps) => {
+  return (
+    <Cooperation
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      strokeWidth={strokeWidth}
+      {...props}
+    />
+  );
+};
+
+export const SearchIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  fill = 'transparent',
+  strokeWidth = 1.5,
+  ...props
+}: IconProps) => {
+  return (
+    <Search
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      fill={fill}
+      strokeWidth={strokeWidth}
+      {...props}
+    />
+  );
+};
+
+export const DateIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  ...props
+}: IconProps) => {
+  return (
+    <Date
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
     />
   );
 };

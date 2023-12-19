@@ -1,19 +1,13 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
   ScrollView,
   Pressable,
-  StyleSheet,
   Dimensions,
+  PressableProps,
 } from 'react-native';
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetModalProvider,
-  BottomSheetScrollView,
-} from '@gorhom/bottom-sheet';
-import {PanGestureHandler, State} from 'react-native-gesture-handler';
+import {BottomSheetModal, BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -21,30 +15,38 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import SafeAreaContainer from '../containers/SafeAreaContainer';
 import ArrowUp from '../assets/vectors/arrow-up.svg';
 import ArrowDown from '../assets/vectors/arrow-down.svg';
 import ArrowUpDown from '../assets/vectors/arrow-up-down.svg';
 
 import Filter from '../assets/vectors/filter.svg';
-import {flex, justify} from '../styles/Flex';
+import {flex, items, justify} from '../styles/Flex';
 import {COLOR} from '../styles/Color';
 import ContentCreatorCard from '../components/atoms/ContentCreatorCard';
 import {gap} from '../styles/Gap';
 import {User} from '../model/User';
 import {background} from '../styles/BackgroundColor';
 import {CustomButton} from '../components/atoms/Button';
-import {PageWithSearchBar} from '../components/templates/PageWithSearchBar';
+import {
+  SearchAutocompletePlaceholder,
+  PageWithSearchBar,
+  HideOnActiveSearch,
+} from '../components/templates/PageWithSearchBar';
 import {Location} from '../model/Location';
 import {useAppSelector} from '../redux/hooks';
 import {getSimilarContentCreators} from '../validations/user';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../components/atoms/ViewPadding';
-import {useDispatch, useSelector} from 'react-redux';
-import {setOnSearchPage} from '../redux/searchSlice';
 import {useCategory} from '../hooks/category';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../styles/Size';
+import {SheetModal} from '../containers/SheetModal';
+import {padding} from '../styles/Padding';
+import {rounded} from '../styles/BorderRadius';
+import {font} from '../styles/Font';
+import {textColor} from '../styles/Text';
+import {InternalLink} from '../components/atoms/Link';
+import {border} from '../styles/Border';
+import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
+import {SearchBar} from '../components/organisms/SearchBar';
 
 interface SelectedFilters {
   locations: string[];
@@ -56,9 +58,10 @@ const ContentCreatorsScreen: React.FC = () => {
   const [filterModalState, setFilterModalState] = useState(false);
   const [navbarState, setNavbarState] = useState(true);
   const {categories} = useCategory();
+  const safeAreaInsets = useSafeAreaInsets();
   const [locations, setLocations] = useState<Location[]>([]);
 
-  const {isOnSearchPage, searchTerm} = useSelector(state => state.search);
+  const {isOnSearchPage, searchTerm} = useAppSelector(state => state.search);
 
   const [filteredContentCreators, setFilteredContentCreators] = useState<
     User[]
@@ -105,6 +108,7 @@ const ContentCreatorsScreen: React.FC = () => {
     if (selectedFilters.locations.length > 0) {
       sortedContentCreators = sortedContentCreators.filter(
         contentCreator =>
+          contentCreator.contentCreator?.preferredLocationIds &&
           contentCreator.contentCreator?.preferredLocationIds?.length > 0 &&
           contentCreator.contentCreator?.preferredLocationIds.some(loc =>
             selectedFilters.locations.includes(loc),
@@ -186,18 +190,6 @@ const ContentCreatorsScreen: React.FC = () => {
   const modalRef = useRef<BottomSheetModal>(null);
   const handleClosePress = () => setFilterModalState(false);
 
-  const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        opacity={1}
-        style={[props.style, background(COLOR.black[100])]}
-      />
-    ),
-    [],
-  );
-
   useEffect(() => {
     if (filterModalState) {
       modalRef.current?.present();
@@ -205,6 +197,13 @@ const ContentCreatorsScreen: React.FC = () => {
       modalRef.current?.close();
     }
   }, [filterModalState]);
+
+  const resetFilter = () => {
+    setSelectedFilters({
+      locations: [],
+      categories: [],
+    });
+  };
 
   const handleLocationPress = (location: string) => {
     if (selectedFilters.locations.includes(location)) {
@@ -220,24 +219,24 @@ const ContentCreatorsScreen: React.FC = () => {
     }
   };
 
-  const handleCategoryPress = category => {
-    if (selectedFilters.categories.includes(category)) {
+  const handleCategoryPress = (categoryId: string) => {
+    if (selectedFilters.categories.includes(categoryId)) {
       setSelectedFilters(prevState => ({
         ...prevState,
-        categories: prevState.categories.filter(cat => cat !== category),
+        categories: prevState.categories.filter(cat => cat !== categoryId),
       }));
     } else {
       setSelectedFilters(prevState => ({
         ...prevState,
-        categories: [...prevState.categories, category],
+        categories: [...prevState.categories, categoryId],
       }));
     }
   };
 
-  const handleSortByRating = sort => {
+  const handleSortByRating = (isSort: boolean) => {
     setSortByInstagram(0);
     setSortByTiktok(0);
-    if (sort) {
+    if (isSort) {
       if (sortByRating === 0 || sortByRating === 2) {
         setSortByRating(1);
       } else if (sortByRating === 1) {
@@ -248,8 +247,8 @@ const ContentCreatorsScreen: React.FC = () => {
     }
   };
 
-  const handleSortByInstagram = sort => {
-    if (sort) {
+  const handleSortByInstagram = (isSort: boolean) => {
+    if (isSort) {
       setSortByRating(0);
       setSortByTiktok(0);
       if (sortByInstagram === 0 || sortByInstagram === 2) {
@@ -262,8 +261,8 @@ const ContentCreatorsScreen: React.FC = () => {
     }
   };
 
-  const handleSortByTiktok = sort => {
-    if (sort) {
+  const handleSortByTiktok = (isSort: boolean) => {
+    if (isSort) {
       setSortByRating(0);
       setSortByInstagram(0);
       if (sortByTiktok === 0 || sortByTiktok === 2) {
@@ -302,311 +301,412 @@ const ContentCreatorsScreen: React.FC = () => {
   });
 
   return (
-    <BottomSheetModalProvider>
-      <SafeAreaContainer>
-        <ScrollView className="flex-1">
-          <VerticalPadding>
-            {/* Navbar */}
-            {navbarState && (
-              <Animated.View
-                style={[flex.flexCol, navbarStyle]}
-                className="px-3 justify-start">
-                <Text className="text-black text-xl font-bold">
-                  Perfect content creators
-                </Text>
-                <Text className="text-black text-xl font-bold">
-                  for your campaigns
-                </Text>
-              </Animated.View>
-            )}
+    <>
+      <View
+        style={[
+          flex.flex1,
+          background(COLOR.background.neutral.default),
+          {
+            paddingTop: Math.max(safeAreaInsets.top, size.default),
+          },
+        ]}>
+        <ScrollView
+          scrollEnabled
+          stickyHeaderIndices={[1]}
+          onScrollEndDrag={event => console.log(event)}
+          style={[flex.flex1]}
+          contentContainerStyle={[flex.flexCol, padding.bottom.large]}>
+          {/* Navbar */}
+          {navbarState && (
+            <Animated.View
+              style={[
+                flex.flexCol,
+                navbarStyle,
+                padding.bottom.small,
+                padding.horizontal.default,
+              ]}>
+              <Text
+                className="font-bold"
+                style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                Perfect content creators
+              </Text>
+              <Text
+                className="font-bold"
+                style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                for your campaigns
+              </Text>
+            </Animated.View>
+          )}
 
-            {/* Search Bar */}
-            <PageWithSearchBar>
-              <View className="px-3">
-                <View
+          {/* Search Bar */}
+          <View
+            style={[
+              flex.flexCol,
+              gap.default,
+              padding.horizontal.default,
+              padding.bottom.default,
+              background(COLOR.background.neutral.default),
+            ]}>
+            <SearchBar />
+            <HideOnActiveSearch>
+              <View
+                style={[
+                  flex.flexRow,
+                  gap.default,
+                  {
+                    marginTop: size.default,
+                  },
+                ]}>
+                <Pressable
+                  onPress={() => setFilterModalState(true)}
                   style={flex.flexRow}
-                  className="gap-x-1 pb-2 items-center">
-                  <Pressable
-                    onPress={() => setFilterModalState(true)}
-                    style={flex.flexRow}
-                    className="rounded-md border border-zinc-500 justify-between items-center px-2 py-1">
-                    {selectedFilters.categories.length > 0 ||
-                    selectedFilters.locations.length > 0 ? (
-                      <Text className="px-2 text-white text-xs bg-primary rounded-lg">
+                  className="rounded-md border border-zinc-500 justify-between items-center px-2 py-1">
+                  {selectedFilters.categories.length > 0 ||
+                  selectedFilters.locations.length > 0 ? (
+                    <View
+                      style={[
+                        background(COLOR.green[50]),
+                        rounded.max,
+                        padding.vertical.xsmall2,
+                        padding.horizontal.small,
+                      ]}>
+                      <Text
+                        className="font-bold"
+                        style={[font.size[20], textColor(COLOR.black[0])]}>
                         {selectedFilters.categories.length +
                           selectedFilters.locations.length}
                       </Text>
-                    ) : (
-                      <Filter
+                    </View>
+                  ) : (
+                    <Filter
+                      width={15}
+                      height={15}
+                      color="rgb(113 113 122)"
+                      className="text-zinc-500"
+                    />
+                  )}
+                  <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => handleSortByRating(sortByRating === 0)}
+                  style={flex.flexRow}
+                  className={`${
+                    sortByRating === 0
+                      ? 'border-zinc-500 bg-transparent'
+                      : 'border-primary bg-primary '
+                  }   rounded-md border justify-between items-center px-2 py-1`}>
+                  <Text
+                    className={`${
+                      sortByRating === 0 ? 'text-zinc-500' : 'text-white'
+                    } pr-2 text-xs`}>
+                    Rating
+                  </Text>
+                  <Pressable
+                    onPress={() =>
+                      handleSortByRating(
+                        sortByRating === 1 || sortByRating === 2 ? true : false,
+                      )
+                    }>
+                    {sortByRating === 0 && (
+                      <ArrowUpDown
                         width={15}
                         height={15}
-                        color="rgb(113 113 122)"
-                        className="text-zinc-500"
+                        color="rgb(113, 113, 122)"
                       />
                     )}
-                    <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
+                    {sortByRating === 1 && (
+                      <ArrowDown width={15} height={15} color={COLOR.white} />
+                    )}
+                    {sortByRating === 2 && (
+                      <ArrowUp width={15} height={15} color={COLOR.white} />
+                    )}
                   </Pressable>
-                  <Pressable
-                    onPress={() => handleSortByRating(sortByRating === 0)}
-                    style={flex.flexRow}
+                </Pressable>
+                <Pressable
+                  onPress={() => handleSortByInstagram(sortByInstagram === 0)}
+                  style={flex.flexRow}
+                  className={`${
+                    sortByInstagram === 0
+                      ? 'border-zinc-500 bg-transparent'
+                      : 'border-primary bg-primary '
+                  }   rounded-md border justify-between items-center px-2 py-1`}>
+                  <Text
                     className={`${
-                      sortByRating === 0
-                        ? 'border-zinc-500 bg-transparent'
-                        : 'border-primary bg-primary '
-                    }   rounded-md border justify-between items-center px-2 py-1`}>
-                    <Text
-                      className={`${
-                        sortByRating === 0 ? 'text-zinc-500' : 'text-white'
-                      } pr-2 text-xs`}>
-                      Rating
-                    </Text>
-                    <Pressable
-                      onPress={() =>
-                        handleSortByRating(
-                          sortByRating === 1 || sortByRating === 2
-                            ? true
-                            : false,
-                        )
-                      }>
-                      {sortByRating === 0 && (
-                        <ArrowUpDown
-                          width={15}
-                          height={15}
-                          color="rgb(113, 113, 122)"
-                        />
-                      )}
-                      {sortByRating === 1 && (
-                        <ArrowDown width={15} height={15} color={COLOR.white} />
-                      )}
-                      {sortByRating === 2 && (
-                        <ArrowUp width={15} height={15} color={COLOR.white} />
-                      )}
-                    </Pressable>
-                  </Pressable>
+                      sortByInstagram === 0 ? 'text-zinc-500' : 'text-white'
+                    } pr-2 text-xs`}>
+                    Instagram
+                  </Text>
                   <Pressable
-                    onPress={() => handleSortByInstagram(sortByInstagram === 0)}
-                    style={flex.flexRow}
-                    className={`${
-                      sortByInstagram === 0
-                        ? 'border-zinc-500 bg-transparent'
-                        : 'border-primary bg-primary '
-                    }   rounded-md border justify-between items-center px-2 py-1`}>
-                    <Text
-                      className={`${
-                        sortByInstagram === 0 ? 'text-zinc-500' : 'text-white'
-                      } pr-2 text-xs`}>
-                      Instagram
-                    </Text>
-                    <Pressable
-                      onPress={() =>
-                        handleSortByInstagram(
-                          sortByInstagram === 1 || sortByInstagram === 2
-                            ? true
-                            : false,
-                        )
-                      }>
-                      {sortByInstagram === 0 && (
-                        <ArrowUpDown
-                          width={15}
-                          height={15}
-                          color="rgb(113, 113, 122)"
-                        />
-                      )}
-                      {sortByInstagram === 1 && (
-                        <ArrowDown width={15} height={15} color={COLOR.white} />
-                      )}
-                      {sortByInstagram === 2 && (
-                        <ArrowUp width={15} height={15} color={COLOR.white} />
-                      )}
-                    </Pressable>
+                    onPress={() =>
+                      handleSortByInstagram(
+                        sortByInstagram === 1 || sortByInstagram === 2
+                          ? true
+                          : false,
+                      )
+                    }>
+                    {sortByInstagram === 0 && (
+                      <ArrowUpDown
+                        width={15}
+                        height={15}
+                        color="rgb(113, 113, 122)"
+                      />
+                    )}
+                    {sortByInstagram === 1 && (
+                      <ArrowDown width={15} height={15} color={COLOR.white} />
+                    )}
+                    {sortByInstagram === 2 && (
+                      <ArrowUp width={15} height={15} color={COLOR.white} />
+                    )}
                   </Pressable>
+                </Pressable>
+                <Pressable
+                  onPress={() => handleSortByTiktok(sortByTiktok === 0)}
+                  style={flex.flexRow}
+                  className={`${
+                    sortByTiktok === 0
+                      ? 'border-zinc-500 bg-transparent'
+                      : 'border-primary bg-primary '
+                  }   rounded-md border justify-between items-center px-2 py-1`}>
+                  <Text
+                    className={`${
+                      sortByTiktok === 0 ? 'text-zinc-500' : 'text-white'
+                    } pr-2 text-xs`}>
+                    Tiktok
+                  </Text>
                   <Pressable
-                    onPress={() => handleSortByTiktok(sortByTiktok === 0)}
-                    style={flex.flexRow}
-                    className={`${
-                      sortByTiktok === 0
-                        ? 'border-zinc-500 bg-transparent'
-                        : 'border-primary bg-primary '
-                    }   rounded-md border justify-between items-center px-2 py-1`}>
-                    <Text
-                      className={`${
-                        sortByTiktok === 0 ? 'text-zinc-500' : 'text-white'
-                      } pr-2 text-xs`}>
-                      Tiktok
-                    </Text>
-                    <Pressable
-                      onPress={() =>
-                        handleSortByTiktok(
-                          sortByTiktok === 1 || sortByTiktok === 2
-                            ? true
-                            : false,
-                        )
-                      }>
-                      {sortByTiktok === 0 && (
-                        <ArrowUpDown
-                          width={15}
-                          height={15}
-                          color="rgb(113, 113, 122)"
-                        />
-                      )}
-                      {sortByTiktok === 1 && (
-                        <ArrowDown width={15} height={15} color={COLOR.white} />
-                      )}
-                      {sortByTiktok === 2 && (
-                        <ArrowUp width={15} height={15} color={COLOR.white} />
-                      )}
-                    </Pressable>
+                    onPress={() =>
+                      handleSortByTiktok(
+                        sortByTiktok === 1 || sortByTiktok === 2 ? true : false,
+                      )
+                    }>
+                    {sortByTiktok === 0 && (
+                      <ArrowUpDown
+                        width={15}
+                        height={15}
+                        color="rgb(113, 113, 122)"
+                      />
+                    )}
+                    {sortByTiktok === 1 && (
+                      <ArrowDown width={15} height={15} color={COLOR.white} />
+                    )}
+                    {sortByTiktok === 2 && (
+                      <ArrowUp width={15} height={15} color={COLOR.white} />
+                    )}
                   </Pressable>
-                </View>
-
-                {filteredContentCreators.length > 0 ? (
-                  <View style={[flex.flexRow, justify.between]}>
-                    <View style={(flex.flexCol, gap.default)}>
-                      {filteredContentCreators.map((item, index) =>
-                        index % 2 === 0 ? (
-                          <ContentCreatorCard
-                            key={item.id}
-                            id={item.id?.toString()}
-                            name={item.contentCreator?.fullname ?? ''}
-                            categories={
-                              item.contentCreator?.specializedCategoryIds
-                            }
-                            rating={item.contentCreator?.rating}
-                            imageUrl={
-                              item.contentCreator?.profilePicture ||
-                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                            }
-                          />
-                        ) : null,
-                      )}
-                    </View>
-                    <View style={(flex.flexCol, gap.default)}>
-                      {filteredContentCreators.map((item, index) =>
-                        index % 2 !== 0 ? (
-                          <ContentCreatorCard
-                            key={item.id}
-                            id={item.id?.toString()}
-                            name={item.contentCreator?.fullname ?? ''}
-                            categories={
-                              item.contentCreator?.specializedCategoryIds
-                            }
-                            rating={item.contentCreator?.rating}
-                            imageUrl={
-                              item.contentCreator?.profilePicture ||
-                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                            }
-                          />
-                        ) : null,
-                      )}
-                    </View>
-                  </View>
-                ) : (
-                  <View>
-                    <Text>No content creators</Text>
-                  </View>
-                )}
+                </Pressable>
               </View>
-            </PageWithSearchBar>
-          </VerticalPadding>
-        </ScrollView>
-
-        <BottomSheetModal
-          ref={modalRef}
-          onDismiss={handleClosePress}
-          backdropComponent={renderBackdrop}
-          snapPoints={['90%']}
-          index={0}
-          enablePanDownToClose>
-          <BottomSheetScrollView>
-            <HorizontalPadding paddingSize="medium">
-              <Text className="text-2xl font-bold text-black">Set filters</Text>
-            </HorizontalPadding>
-            <HorizontalPadding paddingSize="medium">
-              <View style={flex.flexCol}>
-                <VerticalPadding>
-                  <Text className="text-lg font-bold text-black">
-                    Choose category
-                  </Text>
-
-                  <View style={flex.flexRow} className="py-2 flex-wrap gap-2">
-                    {categories.map((ct, idx) => (
-                      <Pressable
-                        key={idx}
-                        className={`border rounded-md p-2 ${
-                          selectedFilters.categories.includes(ct.id)
-                            ? 'border-primary bg-primary'
-                            : 'border-primary bg-white'
-                        }`}
-                        onPress={() => handleCategoryPress(ct.id)}>
-                        <Text
-                          className={`${
-                            selectedFilters.categories.includes(ct.id)
-                              ? 'text-white'
-                              : 'text-black'
-                          }`}>
-                          {ct.id}
-                        </Text>
-                      </Pressable>
-                    ))}
+            </HideOnActiveSearch>
+          </View>
+          <SearchAutocompletePlaceholder>
+            <View
+              style={[
+                flex.flex1,
+                flex.flexCol,
+                gap.default,
+                padding.horizontal.default,
+              ]}>
+              {filteredContentCreators.length > 0 ? (
+                <View style={[flex.flexRow, justify.between, gap.default]}>
+                  <View style={[flex.flexCol, gap.default]}>
+                    {filteredContentCreators.map((item, index) =>
+                      index % 2 === 0 ? (
+                        <ContentCreatorCard
+                          key={item.id}
+                          id={item.id || ''}
+                          name={item.contentCreator?.fullname ?? ''}
+                          categories={
+                            item.contentCreator?.specializedCategoryIds
+                          }
+                          rating={item.contentCreator?.rating || 0}
+                          imageUrl={
+                            item.contentCreator?.profilePicture ||
+                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                          }
+                        />
+                      ) : null,
+                    )}
                   </View>
-                </VerticalPadding>
-                <View>
-                  <Text className="text-lg font-bold text-black">
-                    Choose preferred location
-                  </Text>
-
-                  <View style={flex.flexRow} className="py-2 flex-wrap gap-2">
-                    {locations.map((loc, idx) => (
-                      <Pressable
-                        key={idx}
-                        className={`border rounded-md p-2 ${
-                          selectedFilters.locations.includes(loc.id)
-                            ? 'border-primary bg-primary'
-                            : 'border-primary bg-white'
-                        }`}
-                        onPress={() => handleLocationPress(loc.id)}>
-                        <Text
-                          className={`${
-                            selectedFilters.locations.includes(loc.id)
-                              ? 'text-white'
-                              : 'text-black'
-                          }`}>
-                          {loc.id}
-                        </Text>
-                      </Pressable>
-                    ))}
+                  <View style={[flex.flexCol, gap.default]}>
+                    {filteredContentCreators.map((item, index) =>
+                      index % 2 !== 0 ? (
+                        <ContentCreatorCard
+                          key={item.id}
+                          id={item.id || ''}
+                          name={item.contentCreator?.fullname ?? ''}
+                          categories={
+                            item.contentCreator?.specializedCategoryIds
+                          }
+                          rating={item.contentCreator?.rating || 0}
+                          imageUrl={
+                            item.contentCreator?.profilePicture ||
+                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                          }
+                        />
+                      ) : null,
+                    )}
                   </View>
                 </View>
-                <View className="py-4">
-                  <CustomButton
-                    onPress={handleClosePress}
-                    text="Apply filters"
-                    rounded="default"
+              ) : (
+                <View style={[flex.flexRow, items.center, padding.top.xlarge5]}>
+                  <EmptyPlaceholder
+                    title={
+                      selectedFilters.categories.length > 0 ||
+                      selectedFilters.locations.length > 0
+                        ? 'No ideal content creator for this filter or search'
+                        : "There isn't available content creator yet"
+                    }
+                    description="Try to change the filter or search for another content creator"
                   />
                 </View>
+              )}
+            </View>
+          </SearchAutocompletePlaceholder>
+        </ScrollView>
+      </View>
+
+      <SheetModal
+        open={filterModalState}
+        onDismiss={handleClosePress}
+        fullHeight
+        snapPoints={['60%', '100%']}
+        enableDynamicSizing={false}
+        enableOverDrag={false}
+        enablePanDownToClose>
+        <View style={[flex.flexCol, flex.grow, gap.large]}>
+          <View
+            style={[flex.flexRow, justify.between, padding.horizontal.medium]}>
+            <Text
+              className="font-bold"
+              style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+              Filter
+            </Text>
+            <InternalLink text="Reset" onPress={resetFilter} />
+          </View>
+          <BottomSheetScrollView
+            style={[flex.flex1]}
+            contentContainerStyle={[
+              flex.flexCol,
+              padding.horizontal.medium,
+              gap.xlarge,
+            ]}>
+            <View style={[flex.flexCol, gap.default]}>
+              <Text
+                className="font-bold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                Category
+              </Text>
+              <View style={[flex.flexRow, flex.wrap, gap.default]}>
+                {categories
+                  .filter(ct => ct?.id)
+                  .map(ct => {
+                    return (
+                      <FilterElement
+                        key={ct.id}
+                        text={ct.id!!}
+                        isSelected={selectedFilters.categories.includes(
+                          ct.id || '',
+                        )}
+                        onPress={() => {
+                          if (ct.id) {
+                            handleCategoryPress(ct.id);
+                          }
+                        }}
+                      />
+                    );
+                  })}
               </View>
-            </HorizontalPadding>
+            </View>
+            <View style={[flex.flexCol, gap.default]}>
+              <Text
+                className="font-bold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                Content Creator Territory
+              </Text>
+
+              <View style={[flex.flexRow, flex.wrap, gap.default]}>
+                {locations
+                  .filter(loc => loc?.id)
+                  .map(loc => (
+                    <FilterElement
+                      key={loc.id}
+                      text={loc.id!!}
+                      isSelected={selectedFilters.locations.includes(
+                        loc.id || '',
+                      )}
+                      onPress={() => {
+                        if (loc.id) {
+                          handleLocationPress(loc.id);
+                        }
+                      }}
+                    />
+                  ))}
+              </View>
+            </View>
           </BottomSheetScrollView>
-        </BottomSheetModal>
-      </SafeAreaContainer>
-    </BottomSheetModalProvider>
+          <View
+            style={[
+              padding.horizontal.default,
+              {
+                paddingBottom: Math.max(safeAreaInsets.bottom, size.large),
+              },
+            ]}>
+            <CustomButton
+              onPress={handleClosePress}
+              text={`Show ${
+                filteredContentCreators.length || 0
+              } content creators`}
+              rounded="default"
+            />
+          </View>
+        </View>
+      </SheetModal>
+    </>
+  );
+};
+
+interface FilterElementProps extends PressableProps {
+  text: string;
+  isSelected: boolean;
+}
+
+const FilterElement = ({...props}: FilterElementProps) => {
+  return (
+    <Pressable
+      {...props}
+      style={[
+        rounded.default,
+        {
+          padding: 10,
+        },
+        props.isSelected
+          ? [
+              background(COLOR.green[30]),
+              border({
+                borderWidth: 1,
+                color: COLOR.green[50],
+              }),
+              textColor(COLOR.black[0]),
+            ]
+          : [
+              background(COLOR.black[0]),
+              border({
+                borderWidth: 1,
+                color: COLOR.black[25],
+              }),
+              textColor(COLOR.black[100]),
+            ],
+      ]}>
+      <Text
+        className="font-semibold"
+        style={[
+          props.isSelected
+            ? [textColor(COLOR.black[0])]
+            : [textColor(COLOR.text.neutral.med)],
+        ]}>
+        {props.text}
+      </Text>
+    </Pressable>
   );
 };
 
 export default ContentCreatorsScreen;
-
-const styles = StyleSheet.create({
-  categoriesContainer: {
-    width: 185,
-    marginLeft: 5,
-    paddingVertical: 5,
-  },
-  category: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'normal',
-  },
-  sortButton: {
-    width: Dimensions.get('window').width * 0.28,
-  },
-});

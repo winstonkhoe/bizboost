@@ -6,12 +6,18 @@ interface UserState {
   uid: string | null;
   user: User | null | undefined;
   activeRole?: UserRole;
+  isAdmin: boolean;
+  isBusinessPeople: boolean;
+  isContentCreator: boolean;
 }
 
 const initialState = {
   uid: null,
   user: undefined,
   activeRole: undefined,
+  isAdmin: false,
+  isBusinessPeople: false,
+  isContentCreator: false,
 } as UserState;
 
 export const switchRole = createAction<UserRole | undefined>('switchRole');
@@ -33,8 +39,10 @@ const userSlice = createSlice({
       } else if (action.payload?.businessPeople.fullname) {
         state.activeRole = UserRole.BusinessPeople;
       }
-      console.log('role: ' + state.activeRole);
-      console.log(action.payload?.contentCreator);
+
+      state.isAdmin = state.activeRole === UserRole.Admin;
+      state.isBusinessPeople = state.activeRole === UserRole.BusinessPeople;
+      state.isContentCreator = state.activeRole === UserRole.ContentCreator;
     },
     setUserUid(state, action) {
       state.uid = action.payload;
@@ -42,10 +50,17 @@ const userSlice = createSlice({
   },
   extraReducers(builder) {
     builder.addCase(switchRole, (state, action) => {
-      showToast({
-        message: `Switched to ${action.payload}`,
-      });
-      state.activeRole = action.payload;
+      const newRole = action.payload;
+      if (newRole) {
+        showToast({
+          message: `Switched to ${newRole}`,
+        });
+      }
+
+      state.activeRole = newRole;
+      state.isAdmin = newRole === UserRole.Admin;
+      state.isBusinessPeople = newRole === UserRole.BusinessPeople;
+      state.isContentCreator = newRole === UserRole.ContentCreator;
     });
   },
 });

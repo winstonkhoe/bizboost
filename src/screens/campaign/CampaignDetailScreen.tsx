@@ -12,7 +12,11 @@ import {Campaign} from '../../model/Campaign';
 import {formatDateToDayMonthYear} from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
 import {useUser} from '../../hooks/user';
-import {Transaction, TransactionStatus} from '../../model/Transaction';
+import {
+  Transaction,
+  TransactionStatus,
+  transactionStatusIndexMap,
+} from '../../model/Transaction';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 
 import People from '../../assets/vectors/people.svg';
@@ -21,8 +25,12 @@ import {gap} from '../../styles/Gap';
 import {useNavigation} from '@react-navigation/native';
 import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
 import {User} from '../../model/User';
-import {flex} from '../../styles/Flex';
-import {horizontalPadding, verticalPadding} from '../../styles/Padding';
+import {flex, items, justify} from '../../styles/Flex';
+import {
+  horizontalPadding,
+  padding,
+  verticalPadding,
+} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
 import {border} from '../../styles/Border';
 import {textColor} from '../../styles/Text';
@@ -33,8 +41,13 @@ import LinearGradient from 'react-native-linear-gradient';
 import {dimension} from '../../styles/Dimension';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
-import {ChevronRight} from '../../components/atoms/Icon';
+import {ChevronRight, DateIcon} from '../../components/atoms/Icon';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {CollapsiblePanel} from '../transaction/TransactionDetailScreen';
+import {font} from '../../styles/Font';
+import {background} from '../../styles/BackgroundColor';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../../styles/Size';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -42,12 +55,11 @@ type Props = NativeStackScreenProps<
 
 const CampaignDetailScreen = ({route}: Props) => {
   const {uid} = useUser();
+  const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
   const [campaign, setCampaign] = useState<Campaign>();
-  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(
-    TransactionStatus.notRegistered,
-  );
+  const [transaction, setTransaction] = useState<Transaction>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
@@ -58,39 +70,32 @@ const CampaignDetailScreen = ({route}: Props) => {
     Transaction.getAllTransactionsByCampaign(campaignId, transactions =>
       setApprovedTransactionsCount(
         transactions.filter(
-          t => t.status === TransactionStatus.registrationApproved,
+          t =>
+            transactionStatusIndexMap[t.status] >=
+            transactionStatusIndexMap[TransactionStatus.registrationApproved],
         ).length,
       ),
     );
   }, [campaignId]);
 
   useEffect(() => {
-    const unsubscribe = Campaign.getByIdReactive(campaignId, c =>
-      setCampaign(c),
-    );
-
-    return unsubscribe;
+    return Campaign.getByIdReactive(campaignId, setCampaign);
   }, [campaignId]);
 
   useEffect(() => {
-    const unsubscribe = Transaction.getTransactionStatusByContentCreator(
-      campaignId,
-      uid || '',
-
-      status => {
-        setTransactionStatus(status);
-      },
-    );
-
-    return unsubscribe;
+    if (uid) {
+      return Transaction.getTransactionByContentCreator(
+        campaignId,
+        uid,
+        setTransaction,
+      );
+    }
   }, [campaignId, uid]);
 
   useEffect(() => {
-    User.getById(campaign?.userId || '').then(u => {
-      if (u) {
-        setBusinessPeople(u);
-      }
-    });
+    if (campaign?.userId) {
+      User.getById(campaign?.userId).then(setBusinessPeople);
+    }
   }, [campaign]);
 
   const isCampaignOwner = useMemo(() => {
@@ -99,10 +104,19 @@ const CampaignDetailScreen = ({route}: Props) => {
 
   const handleJoinCampaign = () => {
     if (uid !== campaign?.userId) {
+      if (!uid) {
+        showToast({
+          message: 'Unknown error has occured',
+          type: ToastType.info,
+        });
+        return;
+      }
+
       const data = new Transaction({
-        contentCreatorId: uid || '',
+        contentCreatorId: uid,
         campaignId: campaignId,
         businessPeopleId: campaign?.userId,
+        transactionAmount: campaign?.fee,
       });
 
       setIsLoading(true);
@@ -127,6 +141,12 @@ const CampaignDetailScreen = ({route}: Props) => {
     }
   };
 
+  const navigateToCampaignTimeline = () => {
+    navigation.navigate(AuthenticatedNavigation.CampaignTimeline, {
+      campaignId: campaignId,
+    });
+  };
+
   if (!campaign || businessPeople === undefined) {
     return <LoadingScreen />;
   }
@@ -134,223 +154,243 @@ const CampaignDetailScreen = ({route}: Props) => {
   return (
     <>
       {isLoading && <LoadingScreen />}
-      <PageWithBackButton fullHeight threshold={180}>
-        <View className="flex-1">
-          <View className="relative w-full h-72 overflow-hidden ">
-            <FastImage
-              className="w-full h-full object-cover"
-              source={{uri: campaign.image}}
-            />
-            <LinearGradient
-              colors={[COLOR.black[100], 'transparent']}
-              style={[
-                dimension.width.full,
-                dimension.height.xlarge6,
-                StyleSheet.absoluteFill,
-              ]}
-            />
-          </View>
-          <View className="flex flex-col p-4 gap-4">
-            <View>
-              <Text className="font-bold text-2xl mb-2">{campaign.title}</Text>
+      <View style={[flex.flex1, background(COLOR.background.neutral.default)]}>
+        <PageWithBackButton fullHeight threshold={180}>
+          <View className="flex-1">
+            <View className="relative h-72 overflow-hidden ">
+              <FastImage
+                style={[dimension.full]}
+                source={{uri: campaign.image}}
+              />
+              <LinearGradient
+                colors={[COLOR.absoluteBlack[90], 'transparent']}
+                style={[
+                  dimension.width.full,
+                  dimension.height.xlarge6,
+                  StyleSheet.absoluteFill,
+                ]}
+              />
+            </View>
+            <View style={[flex.flexCol, padding.medium, gap.default]}>
+              <Text
+                className="font-bold"
+                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                {campaign.title}
+              </Text>
               <View className="flex flex-row justify-between">
-                <Text className="font-bold text-xs">
-                  {campaign.getTimelineStart() &&
-                    campaign.getTimelineEnd() &&
-                    `${formatDateToDayMonthYear(
-                      new Date(campaign.getTimelineStart().start),
+                <Pressable
+                  style={[
+                    flex.flexRow,
+                    gap.small,
+                    items.center,
+                    padding.horizontal.default,
+                    padding.vertical.small,
+                    rounded.default,
+                    border({
+                      borderWidth: 1,
+                      color: COLOR.green[60],
+                    }),
+                    background(COLOR.green[5]),
+                  ]}
+                  onPress={navigateToCampaignTimeline}>
+                  <DateIcon size="medium" color={COLOR.green[60]} />
+                  <Text
+                    className="font-bold"
+                    style={[font.size[20], textColor(COLOR.green[60])]}>
+                    {`${formatDateToDayMonthYear(
+                      new Date(
+                        new Campaign(campaign).getTimelineStart()?.start,
+                      ),
                     )} - ${formatDateToDayMonthYear(
-                      new Date(campaign.getTimelineEnd().end),
+                      // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
+                      new Date(new Campaign(campaign).getTimelineEnd()?.end),
                     )}`}
-                </Text>
-                <View className="flex flex-row items-center">
-                  <People width={20} height={20} />
-                  <View className="ml-2 bg-gray-300 py-1 px-2 rounded-md min-w-12">
-                    <Text className="text-center text-xs font-bold">
+                  </Text>
+                  <ChevronRight size="medium" color={COLOR.green[60]} />
+                </Pressable>
+                <View style={[flex.flexRow, items.center, gap.small]}>
+                  <People
+                    width={20}
+                    height={20}
+                    color={COLOR.text.neutral.high}
+                  />
+                  <View
+                    style={[
+                      background(COLOR.black[20]),
+                      rounded.default,
+                      padding.horizontal.default,
+                      padding.vertical.small,
+                    ]}>
+                    <Text
+                      className="font-bold"
+                      style={[
+                        font.size[20],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
                       {approvedTransactionsCount}/{campaign.slot}
                     </Text>
                   </View>
                 </View>
               </View>
-            </View>
 
-            <View>
               {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
-              <View className="flex flex-row flex-wrap gap-2">
+              <View style={[flex.flexRow, flex.wrap, gap.small]}>
                 {campaign.criterias &&
-                  campaign.criterias.map((_item: any, index: number) => (
+                  campaign.criterias.map((criteria: string, index: number) => (
                     <View key={index}>
-                      <TagCard text={_item} />
+                      <TagCard text={criteria} />
                     </View>
                   ))}
               </View>
-            </View>
 
-            <Text>{campaign.description}</Text>
+              <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                {campaign.description}
+              </Text>
 
-            <View className="flex flex-row items-center justify-between flex-wrap ">
-              <Text className="font-semibold text-base">Fee</Text>
-              <View>
+              <View
+                style={[
+                  flex.flexRow,
+                  flex.wrap,
+                  justify.between,
+                  items.center,
+                ]}>
+                <Text
+                  className="font-semibold"
+                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                  Fee
+                </Text>
                 {campaign.fee && (
-                  <Text className="font-medium ">
+                  <Text
+                    className="font-medium"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
                     {formatToRupiah(campaign.fee)}
                   </Text>
                 )}
               </View>
-            </View>
 
-            {/* TODO: extract component */}
-            {businessPeople && (
-              <Pressable
-                onPress={() => {
-                  navigation.navigate(
-                    AuthenticatedNavigation.BusinessPeopleDetail,
-                    {businessPeopleId: `${businessPeople.id}`},
-                  );
-                }}
-                className="justify-between items-center text-center relative"
-                style={[
-                  flex.flexRow,
-                  horizontalPadding.default,
-                  verticalPadding.default,
-                  rounded.default,
-                  border({
-                    borderWidth: 1,
-                    color: COLOR.background.neutral.disabled,
-                  }),
-                ]}>
-                <View className="flex flex-row items-center">
-                  <View
-                    className="mr-2 w-12 h-12 items-center justify-center overflow-hidden"
-                    style={[flex.flexRow, rounded.max]}>
-                    <FastImage
-                      className="w-full h-full object-cover"
-                      source={getSourceOrDefaultAvatar({
-                        uri: businessPeople.businessPeople?.profilePicture,
-                      })}
-                    />
+              {/* TODO: extract component */}
+              {businessPeople && (
+                <Pressable
+                  onPress={() => {
+                    navigation.navigate(
+                      AuthenticatedNavigation.BusinessPeopleDetail,
+                      {businessPeopleId: `${businessPeople.id}`},
+                    );
+                  }}
+                  className="text-center relative"
+                  style={[
+                    flex.flexRow,
+                    horizontalPadding.default,
+                    verticalPadding.default,
+                    rounded.medium,
+                    justify.between,
+                    items.center,
+                    border({
+                      borderWidth: 1,
+                      color: COLOR.black[20],
+                    }),
+                  ]}>
+                  <View style={[flex.flexRow, items.center, gap.small]}>
+                    <View
+                      className="overflow-hidden"
+                      style={[rounded.max, dimension.square.xlarge]}>
+                      <FastImage
+                        style={[dimension.full]}
+                        source={getSourceOrDefaultAvatar({
+                          uri: businessPeople.businessPeople?.profilePicture,
+                        })}
+                      />
+                    </View>
+                    <View className="flex flex-col">
+                      <Text
+                        className="font-semibold"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.high),
+                        ]}>
+                        {businessPeople.businessPeople?.fullname}
+                      </Text>
+                    </View>
                   </View>
-                  <View className="flex flex-col">
-                    <Text className="font-semibold">
-                      {businessPeople.businessPeople?.fullname}
-                    </Text>
-                    <Text
-                      className="text-xs"
-                      style={[textColor(COLOR.black[30])]}>
-                      Subtitle
-                    </Text>
-                  </View>
-                </View>
 
-                <ChevronRight color={COLOR.black[20]} />
-              </Pressable>
-            )}
+                  <ChevronRight color={COLOR.black[20]} />
+                </Pressable>
+              )}
 
-            {isMoreInfoVisible && (
               <View className="flex flex-col" style={[gap.medium]}>
-                <View className="">
-                  <Text className="font-semibold text-base pb-2">
+                <View style={[flex.flexCol, gap.xsmall]}>
+                  <Text
+                    className="font-semibold pb-2"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
                     Important Information
                   </Text>
                   {campaign.importantInformation &&
                     campaign.importantInformation.map(
-                      (_item: any, index: number) => (
+                      (importantInfo: string, index: number) => (
                         <View
                           key={index}
-                          className="mb-2 flex flex-row items-center">
-                          <View className="bg-gray-300 py-1 px-[11px] rounded-full mr-2">
-                            <Text className="text-center text-xs">i</Text>
+                          style={[flex.flexRow, items.center, gap.default]}>
+                          <View
+                            style={[
+                              flex.flexRow,
+                              justify.center,
+                              items.center,
+                              background(COLOR.background.neutral.med),
+                              dimension.square.large,
+                              rounded.max,
+                            ]}>
+                            <Text
+                              className="font-bold"
+                              style={[
+                                font.size[20],
+                                textColor(COLOR.text.neutral.high),
+                              ]}>
+                              i
+                            </Text>
                           </View>
-                          <Text>{_item}</Text>
+                          <Text
+                            style={[
+                              font.size[20],
+                              textColor(COLOR.text.neutral.high),
+                            ]}>
+                            {importantInfo}
+                          </Text>
                         </View>
                       ),
                     )}
                 </View>
 
-                <View className="">
-                  <Text className="font-semibold text-base pb-2">
+                <View style={[flex.flexCol, gap.small]}>
+                  <Text
+                    className="font-semibold"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
                     Task Summary
                   </Text>
                   {campaign.platformTasks && (
-                    <View className="flex flex-col">
+                    <View style={[flex.flexCol]}>
                       {campaign.platformTasks.map((p, index) => (
                         <CampaignPlatformAccordion platform={p} key={index} />
                       ))}
                     </View>
                   )}
                 </View>
-                <View className="">
-                  <Text className="font-semibold text-base pb-2">Location</Text>
-                  <View className="flex flex-row flex-wrap gap-2">
+                <View style={[flex.flexCol, gap.small]}>
+                  <Text
+                    className="font-semibold"
+                    style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                    Location
+                  </Text>
+                  <View style={[flex.flexRow, flex.wrap, gap.small]}>
                     {campaign.locations &&
-                      campaign.locations.map((_item: any, index: number) => (
-                        <View key={index}>
-                          <TagCard text={_item} />
-                        </View>
-                      ))}
+                      campaign.locations.map(
+                        (location: string, index: number) => (
+                          <TagCard key={index} text={location} />
+                        ),
+                      )}
                   </View>
                 </View>
               </View>
-            )}
-            <View>
-              <CustomButton
-                type="secondary"
-                text={
-                  isMoreInfoVisible
-                    ? 'Hide Information'
-                    : 'Read More Information'
-                }
-                rounded="default"
-                onPress={() => setIsMoreInfoVisible(value => !value)}
-              />
-            </View>
-            {/* <Text>{transactionStatus}</Text> */}
-            {!isCampaignOwner &&
-              transactionStatus === TransactionStatus.notRegistered && (
-                <View className="py-2" style={[flex.flexCol, gap.default]}>
-                  {/* TODO: validate join only for CC */}
-
-                  <CustomButton
-                    text="Join Campaign"
-                    rounded="default"
-                    onPress={handleJoinCampaign}
-                  />
-                </View>
-              )}
-            <CustomButton
-              text="Campaign Timeline"
-              rounded="default"
-              type="secondary"
-              onPress={() =>
-                navigation.navigate(AuthenticatedNavigation.CampaignTimeline, {
-                  campaignId: campaignId,
-                })
-              }
-            />
-            {/* TODO: move to another screen? For Campaign's owner (business people), to check registered CC */}
-            {isCampaignOwner && (
-              <View className="">
-                <CustomButton
-                  customBackgroundColor={{
-                    default: COLOR.background.neutral.high,
-                    disabled: COLOR.background.neutral.disabled,
-                  }}
-                  text="View Registrants"
-                  rounded="default"
-                  onPress={() =>
-                    navigation.navigate(
-                      AuthenticatedNavigation.CampaignRegistrants,
-                      {campaignId: campaignId},
-                    )
-                  }
-                />
-                {/* {transactions.map((t, index) => (
-                  <RegisteredUserListCard transaction={t} key={index} />
-                ))} */}
-              </View>
-            )}
-
-            {/* {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
+              {/* {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
               <View className="pb-2">
                 <CustomButton
                   customBackgroundColor={
@@ -386,9 +426,47 @@ const CampaignDetailScreen = ({route}: Props) => {
                 />
               </View>
             )} */}
+            </View>
           </View>
+        </PageWithBackButton>
+        <View
+          style={[
+            flex.flexCol,
+            gap.default,
+            padding.top.default,
+            padding.horizontal.default,
+            {
+              paddingBottom: Math.max(safeAreaInsets.bottom, size.default),
+            },
+          ]}>
+          {!isCampaignOwner &&
+            transaction?.status === TransactionStatus.notRegistered && (
+              <CustomButton
+                text="Join Campaign"
+                rounded="default"
+                onPress={handleJoinCampaign}
+              />
+            )}
+          {isCampaignOwner && (
+            <CustomButton
+              customBackgroundColor={{
+                default: COLOR.background.neutral.high,
+                disabled: COLOR.background.neutral.disabled,
+              }}
+              text="View Registrants"
+              rounded="default"
+              onPress={() =>
+                navigation.navigate(
+                  AuthenticatedNavigation.CampaignRegistrants,
+                  {
+                    campaignId: campaignId,
+                  },
+                )
+              }
+            />
+          )}
         </View>
-      </PageWithBackButton>
+      </View>
     </>
   );
 };

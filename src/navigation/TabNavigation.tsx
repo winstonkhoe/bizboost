@@ -4,19 +4,14 @@ import ChatListScreen from '../screens/ChatListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HomeLogoOutline from '../assets/vectors/home-outline.svg';
 import HomeLogoFilled from '../assets/vectors/home-filled.svg';
-import CampaignLogoFilled from '../assets/vectors/campaign-filled.svg';
-import CampaignLogoOutline from '../assets/vectors/campaign-outline.svg';
 import ChatLogoFilled from '../assets/vectors/chat-filled.svg';
 import ChatLogoOutline from '../assets/vectors/chat-outline.svg';
-import ListLogoFilled from '../assets/vectors/list-box.svg';
-import ListLogoOutline from '../assets/vectors/list-box-line.svg';
-import SearchLogo from '../assets/vectors/search.svg';
 import {useAppDispatch} from '../redux/hooks';
 import {openModal} from '../redux/slices/modalSlice';
-import {useCallback} from 'react';
+import {ReactNode, useCallback} from 'react';
 import {useUser} from '../hooks/user';
 import {UserRole} from '../model/User';
-import {View} from 'react-native';
+import {Text, View} from 'react-native';
 import {COLOR} from '../styles/Color';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import {NavigationProp} from '@react-navigation/native';
@@ -24,6 +19,23 @@ import {closeSearchPage, updateSearchTerm} from '../redux/slices/searchSlice';
 import ContentCreatorsScreen from '../screens/ContentCreatorsScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import FastImage from 'react-native-fast-image';
+import {
+  CampaignIcon,
+  CooperationIcon,
+  DashboardIcon,
+  SearchIcon,
+} from '../components/atoms/Icon';
+import DashboardScreen from '../screens/dashboard/DashboardScreen';
+import {flex, items, justify} from '../styles/Flex';
+import {font} from '../styles/Font';
+import {gap} from '../styles/Gap';
+import {textColor} from '../styles/Text';
+import {dimension} from '../styles/Dimension';
+import {rounded} from '../styles/BorderRadius';
+import {SizeType, size} from '../styles/Size';
+import {background} from '../styles/BackgroundColor';
+import {padding} from '../styles/Padding';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,6 +43,7 @@ export enum TabNavigation {
   Campaigns = 'Campaigns',
   Chat = 'Chat',
   Home = 'Home',
+  Dashboard = 'Dashboard',
   Profile = 'Profile',
   ContentCreators = 'Content Creators',
   Explore = 'Explore',
@@ -47,82 +60,179 @@ type TabNavigationParamList = {
 
 export type TabNavigationProps = NavigationProp<TabNavigationParamList>;
 
+const color = {
+  logo: {
+    focus: COLOR.green[50],
+    default: COLOR.text.neutral.high,
+  },
+  text: {
+    focus: COLOR.green[50],
+    default: COLOR.text.neutral.high,
+  },
+};
+
+const logoSizeType: SizeType = 'large';
+const logoSize = size[logoSizeType];
+
 export const TabNavigator = () => {
   const dispatch = useAppDispatch();
   const {user, activeRole} = useUser();
+  const isContentCreator = activeRole === UserRole.ContentCreator;
+  const isBusinessPeople = activeRole === UserRole.BusinessPeople;
+  const isAdmin = activeRole === UserRole.Admin;
 
   const resetSearchState = () => {
     dispatch(updateSearchTerm(''));
     dispatch(closeSearchPage());
   };
 
-  const profileIcon = useCallback(() => {
-    const getUserProfile = () => {
-      if (activeRole === UserRole.ContentCreator) {
-        return user?.contentCreator?.profilePicture;
-      } else if (activeRole === UserRole.BusinessPeople) {
-        return user?.businessPeople?.profilePicture;
-      }
-      return undefined;
-    };
-    return (
-      <View className="rounded-full w-6 h-6 overflow-hidden">
-        <FastImage
-          className="w-full h-full"
-          source={
-            getUserProfile()
-              ? {uri: getUserProfile()}
-              : require('../assets/images/bizboost-avatar.png')
-          }
-        />
-      </View>
-    );
-  }, [activeRole, user]);
+  const profileIcon = useCallback(
+    (focused: boolean) => {
+      const getUserProfile = () => {
+        if (activeRole === UserRole.ContentCreator) {
+          return user?.contentCreator?.profilePicture;
+        } else if (activeRole === UserRole.BusinessPeople) {
+          return user?.businessPeople?.profilePicture;
+        }
+        return undefined;
+      };
+      return (
+        <View
+          style={[
+            flex.flexRow,
+            items.center,
+            justify.center,
+            {
+              width: size.xlarge + 3,
+              height: size.xlarge + 3,
+            },
+            focused
+              ? [background(COLOR.absoluteBlack[10])]
+              : [
+                  {
+                    backgroundColor: 'transparent',
+                  },
+                ],
+            rounded.max,
+          ]}>
+          <View
+            className="overflow-hidden"
+            style={[dimension.square.xlarge, rounded.max]}>
+            <FastImage
+              source={getSourceOrDefaultAvatar({
+                uri: getUserProfile(),
+              })}
+              style={[dimension.full]}
+            />
+          </View>
+        </View>
+      );
+    },
+    [activeRole, user],
+  );
 
   const homeIcon = useCallback(
-    (focused: boolean) =>
-      focused ? <HomeLogoFilled width={30} /> : <HomeLogoOutline width={30} />,
+    (focused: boolean) => (
+      <TabIcon text="Home" isFocused={focused}>
+        {focused ? (
+          <HomeLogoFilled
+            width={logoSize}
+            height={logoSize}
+            color={color.logo.focus}
+          />
+        ) : (
+          <HomeLogoOutline
+            width={logoSize}
+            height={logoSize}
+            color={color.logo.default}
+          />
+        )}
+      </TabIcon>
+    ),
     [],
   );
 
   // TODO: kayaknya kureng icon campaignnya
   const campaignIcon = useCallback(
-    (focused: boolean) =>
-      focused ? (
-        <CampaignLogoFilled width={30} fill={'black'} />
-      ) : (
-        <CampaignLogoOutline width={30} fill={'black'} />
-      ),
+    (focused: boolean) => (
+      <TabIcon text="Campaign" isFocused={focused}>
+        <CampaignIcon
+          size={logoSizeType}
+          fill={focused ? color.logo.focus : 'transparent'}
+          strokeWidth={focused ? 0 : 1.5}
+        />
+      </TabIcon>
+    ),
     [],
   );
 
   const chatIcon = useCallback(
-    (focused: boolean) =>
-      focused ? (
-        <ChatLogoFilled width={30} height={30} />
-      ) : (
-        <ChatLogoOutline width={30} height={30} />
-      ),
+    (focused: boolean) => (
+      <TabIcon text="Chat" isFocused={focused}>
+        {focused ? (
+          <ChatLogoFilled
+            width={logoSize}
+            height={logoSize}
+            color={color.logo.focus}
+          />
+        ) : (
+          <ChatLogoOutline
+            width={logoSize}
+            height={logoSize}
+            color={color.logo.default}
+          />
+        )}
+      </TabIcon>
+    ),
     [],
   );
 
   const listIcon = useCallback(
-    (focused: boolean) =>
-      focused ? (
-        <ListLogoFilled width={30} height={30} />
-      ) : (
-        <ListLogoOutline width={30} height={30} />
-      ),
+    (focused: boolean) => (
+      <TabIcon text="Creators" isFocused={focused}>
+        <CooperationIcon
+          size={logoSizeType}
+          color={focused ? color.logo.focus : color.logo.default}
+          strokeWidth={focused ? 2 : 1.5}
+        />
+      </TabIcon>
+    ),
     [],
   );
 
   const searchIcon = useCallback(
-    (focused: boolean) =>
-      focused ? (
-        <SearchLogo width={30} height={30} color={COLOR.green[50]} />
-      ) : (
-        <SearchLogo width={30} height={30} color={COLOR.green[80]} />
-      ),
+    (focused: boolean) => (
+      <TabIcon text="Explore" isFocused={focused}>
+        <SearchIcon
+          width={logoSize}
+          height={logoSize}
+          color={focused ? color.logo.focus : color.logo.default}
+          strokeWidth={focused ? 2 : 1.5}
+        />
+      </TabIcon>
+    ),
+    [],
+  );
+
+  const dashboardIcon = useCallback(
+    (focused: boolean) => (
+      <TabIcon text="Dashboard" isFocused={focused}>
+        {focused ? (
+          <DashboardIcon
+            size={logoSizeType}
+            color={color.logo.focus}
+            strokeWidth={0}
+          />
+        ) : (
+          <DashboardIcon
+            size={logoSizeType}
+            color={color.logo.default}
+            fill="transparent"
+            strokeWidth={1.5}
+          />
+        )}
+      </TabIcon>
+    ),
     [],
   );
 
@@ -131,9 +241,21 @@ export const TabNavigator = () => {
   }
 
   return (
-    <Tab.Navigator>
-      {UserRole.ContentCreator === activeRole && (
-        <Tab.Group screenOptions={{headerShown: false}}>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: [
+          background(COLOR.black[0]),
+          {
+            borderWidth: 0,
+            borderTopWidth: 0.2,
+            borderTopColor: COLOR.black[20],
+            borderColor: 'transparent',
+          },
+        ],
+        tabBarHideOnKeyboard: true,
+      }}>
+      {isContentCreator && (
+        <Tab.Group screenOptions={{headerShown: false, tabBarShowLabel: false}}>
           <Tab.Screen
             name={TabNavigation.Home}
             component={HomeScreen}
@@ -151,6 +273,13 @@ export const TabNavigator = () => {
             component={ChatListScreen}
             options={{
               tabBarIcon: ({focused}) => chatIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.Dashboard}
+            component={DashboardScreen}
+            options={{
+              tabBarIcon: ({focused}) => dashboardIcon(focused),
             }}
           />
           <Tab.Screen
@@ -174,13 +303,13 @@ export const TabNavigator = () => {
               },
             }}
             options={{
-              tabBarIcon: profileIcon,
+              tabBarIcon: ({focused}) => profileIcon(focused),
             }}
           />
         </Tab.Group>
       )}
-      {UserRole.BusinessPeople === activeRole && (
-        <Tab.Group screenOptions={{headerShown: false}}>
+      {isBusinessPeople && (
+        <Tab.Group screenOptions={{headerShown: false, tabBarShowLabel: false}}>
           <Tab.Screen
             name={TabNavigation.Home}
             component={HomeScreen}
@@ -201,17 +330,17 @@ export const TabNavigator = () => {
             }}
           />
           <Tab.Screen
-            name={TabNavigation.ContentCreators}
-            component={ContentCreatorsScreen}
-            options={{
-              tabBarIcon: ({focused}) => listIcon(focused),
-            }}
-          />
-          <Tab.Screen
             name={TabNavigation.Explore}
             component={ExploreScreen}
             options={{
               tabBarIcon: ({focused}) => searchIcon(focused),
+            }}
+          />
+          <Tab.Screen
+            name={TabNavigation.ContentCreators}
+            component={ContentCreatorsScreen}
+            options={{
+              tabBarIcon: ({focused}) => listIcon(focused),
             }}
           />
           <Tab.Screen
@@ -228,8 +357,8 @@ export const TabNavigator = () => {
           />
         </Tab.Group>
       )}
-      {UserRole.Admin === activeRole && (
-        <Tab.Group screenOptions={{headerShown: false}}>
+      {isAdmin && (
+        <Tab.Group screenOptions={{headerShown: false, tabBarShowLabel: false}}>
           <Tab.Screen
             name={TabNavigation.Home}
             component={HomeScreen}
@@ -252,5 +381,35 @@ export const TabNavigator = () => {
         </Tab.Group>
       )}
     </Tab.Navigator>
+  );
+};
+
+interface TabIconProps {
+  children?: ReactNode;
+  text: string;
+  isFocused: boolean;
+}
+
+const TabIcon = ({...props}: TabIconProps) => {
+  return (
+    <View
+      style={[
+        flex.flexCol,
+        items.center,
+        justify.center,
+        gap.xsmall2,
+        dimension.height.xlarge2,
+      ]}>
+      {props.children}
+      <Text
+        className={props.isFocused ? 'font-medium' : undefined}
+        style={[
+          font.size[10],
+          textColor(color.text.default),
+          props.isFocused && [textColor(color.text.focus)],
+        ]}>
+        {props.text}
+      </Text>
+    </View>
   );
 };

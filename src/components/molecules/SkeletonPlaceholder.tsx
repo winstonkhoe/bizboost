@@ -11,9 +11,10 @@ import Animated, {
 import LinearGradient from 'react-native-linear-gradient';
 import {rounded} from '../../styles/BorderRadius';
 import {flex} from '../../styles/Flex';
+import {COLOR} from '../../styles/Color';
 
 interface SkeletonPlaceholderProps extends ViewProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   isLoading: boolean;
   width?: number;
   height?: number;
@@ -75,7 +76,7 @@ export const SkeletonPlaceholder: React.FC<SkeletonPlaceholderProps> = ({
       {isLoading && (
         <Animated.View style={[StyleSheet.absoluteFill, reanimatedStyle]}>
           <LinearGradient
-            colors={['#E0E0E0', '#F0F0F0', '#E0E0E0']}
+            colors={[COLOR.black[10], COLOR.black[5], COLOR.black[10]]}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             locations={[0, 0.5, 1]}
@@ -89,11 +90,11 @@ export const SkeletonPlaceholder: React.FC<SkeletonPlaceholderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLOR.black[10],
     overflow: 'hidden',
   },
   skeleton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLOR.black[10],
     position: 'absolute',
   },
 });

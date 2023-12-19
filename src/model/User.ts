@@ -17,6 +17,7 @@ import {AuthMethod, Provider, Providers} from './AuthMethod';
 import {Category} from './Category';
 import {Location} from './Location';
 import {deleteFileByURL} from '../helpers/storage';
+import {StatusType} from '../components/atoms/StatusTag';
 
 const USER_COLLECTION = 'users';
 
@@ -36,6 +37,13 @@ export enum UserStatus {
   Suspended = 'Suspended',
 }
 
+type UserStatusMap = {
+  [key in UserStatus]: StatusType;
+};
+export const userStatusTypeMap: UserStatusMap = {
+  [UserStatus.Active]: StatusType.success,
+  [UserStatus.Suspended]: StatusType.danger,
+};
 export interface BankAccountInformation {
   bankName: string;
   accountHolderName: string;
@@ -51,14 +59,14 @@ export interface ContentCreatorPreference {
 export type BaseUserData = {
   fullname: string;
   profilePicture?: string;
+  rating: number;
+  ratedCount: number;
 };
 
 export type ContentCreator = BaseUserData &
   ContentCreatorPreference & {
     specializedCategoryIds: string[];
     preferredLocationIds: string[];
-    rating: number;
-    ratedCount: number;
   };
 
 export type BusinessPeople = BaseUserData;
@@ -116,8 +124,22 @@ export class User extends BaseModel {
     this.email = email;
     this.password = password;
     this.phone = phone;
-    this.contentCreator = contentCreator;
-    this.businessPeople = businessPeople;
+    this.contentCreator = {
+      ...contentCreator,
+      postingSchedules: contentCreator?.postingSchedules || [],
+      preferences: contentCreator?.preferences || [],
+      specializedCategoryIds: contentCreator?.specializedCategoryIds || [],
+      preferredLocationIds: contentCreator?.preferredLocationIds || [],
+      fullname: contentCreator?.fullname || '',
+      rating: contentCreator?.rating || 0,
+      ratedCount: contentCreator?.ratedCount || 0,
+    };
+    this.businessPeople = {
+      ...businessPeople,
+      fullname: businessPeople?.fullname || '',
+      rating: businessPeople?.rating || 0,
+      ratedCount: businessPeople?.ratedCount || 0,
+    };
     this.joinedAt = joinedAt;
     this.isAdmin = isAdmin;
     this.status = status;
@@ -204,11 +226,12 @@ export class User extends BaseModel {
     });
   }
 
-  // TODO: ganti jadi ga static
   async updateUserData(): Promise<void> {
-    await User.getDocumentReference(this.id || '').update(
-      User.mappingUserFields(this),
-    );
+    const {id} = this;
+    if (!id) {
+      throw Error('User id is not defined!');
+    }
+    await User.getDocumentReference(id).update(User.mappingUserFields(this));
   }
 
   async updateProfilePicture(
@@ -216,22 +239,40 @@ export class User extends BaseModel {
     profilePictureUrl: string,
   ): Promise<void> {
     if (activeRole === UserRole.BusinessPeople) {
-      deleteFileByURL(this.businessPeople?.profilePicture || '');
+      const {businessPeople} = this;
+      if (!businessPeople) {
+        throw Error('Business people is not defined!');
+      }
+
+      const {profilePicture} = businessPeople;
+      if (!profilePicture) {
+        throw Error('Profile picture is not defined!');
+      }
+      await deleteFileByURL(profilePicture);
 
       this.businessPeople = {
-        ...this.businessPeople!,
+        ...businessPeople,
         profilePicture: profilePictureUrl,
       };
     } else if (activeRole === UserRole.ContentCreator) {
-      deleteFileByURL(this.contentCreator?.profilePicture || '');
+      const {contentCreator} = this;
+      if (!contentCreator) {
+        throw Error('Business people is not defined!');
+      }
+
+      const {profilePicture} = contentCreator;
+      if (!profilePicture) {
+        throw Error('Profile picture is not defined!');
+      }
+      await deleteFileByURL(profilePicture);
 
       this.contentCreator = {
-        ...this.contentCreator!,
+        ...contentCreator,
         profilePicture: profilePictureUrl,
       };
     }
 
-    this.updateUserData().then(() => console.log('Profile picture updated'));
+    await this.updateUserData();
   }
 
   async updatePassword(
@@ -283,13 +324,7 @@ export class User extends BaseModel {
       // .where('isAdmin', '!=', true)
       .onSnapshot(
         querySnapshot => {
-          let users: User[] = [];
-          if (querySnapshot.empty) {
-            return;
-          }
-          users = querySnapshot.docs.map(doc => this.fromSnapshot(doc));
-
-          onComplete(users);
+          onComplete(querySnapshot.docs.map(this.fromSnapshot));
         },
         error => {
           console.log(error);
@@ -299,18 +334,12 @@ export class User extends BaseModel {
     return unsubscribe;
   }
 
-  static extractIdFromRef(ref: string): string {
-    const parts = ref.split('/');
-    const id = parts[parts.length - 1];
-    return id;
-  }
-
   static async getByIds(documentIds: string[]): Promise<User[]> {
     try {
       const users = await this.getCollectionReference()
         .where(firestore.FieldPath.documentId(), 'in', documentIds)
         .get();
-      return users?.docs?.map(this.fromSnapshot) || [];
+      return users.docs.map(this.fromSnapshot);
     } catch (error) {
       console.log(error);
       return [];
@@ -319,42 +348,12 @@ export class User extends BaseModel {
 
   static async getById(documentId: string): Promise<User | null> {
     const snapshot = await this.getDocumentReference(documentId).get();
-    if (snapshot.exists) {
-      return this.fromSnapshot(snapshot);
+    if (!snapshot.exists) {
+      return null;
     }
-    return null;
+    return this.fromSnapshot(snapshot);
   }
 
-  static async getUser(documentId: string): Promise<User | null> {
-    try {
-      const documentSnapshot = await this.getDocumentReference(
-        documentId,
-      ).get();
-      console.log('User exists: ', documentSnapshot.exists);
-
-      if (documentSnapshot.exists) {
-        const userData = documentSnapshot.data();
-        console.log('User data: ', userData);
-
-        const user = new User({
-          email: userData?.email,
-          phone: userData?.phone,
-          contentCreator: userData?.contentCreator,
-          businessPeople: userData?.businessPeople,
-          joinedAt: userData?.joinedAt?.seconds,
-          isAdmin: userData?.isAdmin,
-        });
-
-        return user;
-      } else {
-        return null;
-      }
-    } catch (error) {
-      throw error; // Handle the error appropriately
-    }
-  }
-
-  // TODO: fix callback and unsubscribe return
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null) => void,
@@ -619,6 +618,51 @@ export class User extends BaseModel {
 
   async activate() {
     this.status = UserStatus.Active;
+    await this.updateUserData();
+  }
+
+  async updateRating(newRating: number, role: UserRole) {
+    const {contentCreator, businessPeople} = this;
+    const getNewRating = (
+      currentRating: number,
+      currentRatedCount: number,
+      newRatedCount: number,
+    ) => {
+      return (
+        (currentRating * currentRatedCount) / newRatedCount +
+        newRating / newRatedCount
+      );
+    };
+    if (role === UserRole.ContentCreator && contentCreator) {
+      const currentRating = contentCreator?.rating;
+      const currentRatedCount = contentCreator.ratedCount;
+      const newRatedCount = currentRatedCount + 1;
+      const calculatedRating = getNewRating(
+        currentRating,
+        currentRatedCount,
+        newRatedCount,
+      );
+      this.contentCreator = {
+        ...contentCreator,
+        rating: calculatedRating,
+        ratedCount: newRatedCount,
+      };
+    }
+    if (role === UserRole.BusinessPeople && businessPeople) {
+      const currentRating = businessPeople?.rating;
+      const currentRatedCount = businessPeople.ratedCount;
+      const newRatedCount = currentRatedCount + 1;
+      const calculatedRating = getNewRating(
+        currentRating,
+        currentRatedCount,
+        newRatedCount,
+      );
+      this.businessPeople = {
+        ...businessPeople,
+        rating: calculatedRating,
+        ratedCount: newRatedCount,
+      };
+    }
     await this.updateUserData();
   }
 

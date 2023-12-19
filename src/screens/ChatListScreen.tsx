@@ -1,87 +1,34 @@
 import React from 'react';
-import {View, Text, ScrollView, TouchableWithoutFeedback} from 'react-native';
+import {View, Text, ScrollView, Pressable} from 'react-native';
 import {useUserChats} from '../hooks/chats';
 import {flex} from '../styles/Flex';
 import {gap} from '../styles/Gap';
-import {getDate, getTimeAgo} from '../utils/date';
-import {useNavigation} from '@react-navigation/native';
-import {
-  AuthenticatedNavigation,
-  NavigationStackProps,
-} from '../navigation/StackNavigation';
+import {getTimeAgo} from '../utils/date';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import FastImage from 'react-native-fast-image';
+import {font} from '../styles/Font';
+import {textColor} from '../styles/Text';
+import {COLOR} from '../styles/Color';
+import {padding} from '../styles/Padding';
+import ChatItem from '../components/molecules/ChatItem';
 
 const ChatListScreen = () => {
   const chats = useUserChats();
 
-  const navigation = useNavigation<NavigationStackProps>();
-
-  const profilePictureSource = require('../assets/images/sample-influencer.jpeg');
-
   return (
-    <SafeAreaContainer>
-      <View style={flex.flexCol} className="bg-white">
-        <Text className="text-black text-2xl font-bold p-4">Chat List</Text>
-        <ScrollView style={flex.flexCol}>
-          {chats.chats ? (
-            chats.chats.map((item, idx) => {
-              const recipient = item.recipient;
-              const chat = item.chat;
-
-              if (!recipient) {
-                return;
-              }
-
-              return (
-                <TouchableWithoutFeedback
-                  key={idx}
-                  onPress={() => {
-                    navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                      chat: item,
-                    });
-                  }}>
-                  <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
-                    <View style={gap.medium} className="flex flex-row h-full">
-                      <View className="w-12 h-12 rounded-full overflow-hidden">
-                        <FastImage
-                          source={
-                            item.recipient?.profilePicture
-                              ? {
-                                  uri: item.recipient?.profilePicture,
-                                }
-                              : profilePictureSource
-                          }
-                          className="w-full h-full object-cover"
-                        />
-                      </View>
-                      <View className="h-full">
-                        <Text className="text-lg font-bold">
-                          {recipient.fullname || 'User'}
-                        </Text>
-                        <Text>
-                          {chat.messages && chat.messages.length > 0
-                            ? chat.messages[chat.messages.length - 1].message
-                            : ''}
-                        </Text>
-                      </View>
-                    </View>
-                    {chat.messages && chat.messages.length > 0 && (
-                      <View className="flex h-full">
-                        <Text>
-                          {chat.messages.length > 0 &&
-                          chat.messages[chat.messages.length - 1].createdAt
-                            ? getTimeAgo(
-                                chat.messages[chat.messages.length - 1]
-                                  .createdAt || 0,
-                              )
-                            : ''}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              );
+    <SafeAreaContainer enable>
+      <View style={[flex.flex1, flex.flexCol, gap.default, padding.top.medium]}>
+        <View style={[padding.horizontal.medium]}>
+          <Text
+            className="font-bold"
+            style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+            Chats
+          </Text>
+        </View>
+        <ScrollView style={[flex.flex1, flex.flexCol]}>
+          {chats.chats.length > 0 ? (
+            chats.chats.map(item => {
+              return <ChatItem key={item.id} chat={item} />;
             })
           ) : (
             <View

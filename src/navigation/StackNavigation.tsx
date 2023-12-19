@@ -7,7 +7,7 @@ import {CreateAdditionalAccountScreen} from '../screens/CreateAdditionalAccountS
 import {NavigationProp} from '@react-navigation/native';
 import CreateCampaignScreen from '../screens/campaign/CreateCampaignScreen';
 import ChatScreen from '../screens/ChatScreen';
-import {ChatView} from '../model/Chat';
+import {Chat, Recipient} from '../model/Chat';
 import CampaignRegistrantsScreen from '../screens/campaign/CampaignRegistrantsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -49,6 +49,7 @@ import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrain
 import ReportListScreen from '../screens/report/ReportListScreen';
 import ReportDetailScreen from '../screens/report/ReportDetailScreen';
 import {OfferDetailScreen} from '../screens/OfferDetailScreen';
+import {UserRole} from '../model/User';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -74,7 +75,7 @@ export enum AuthenticatedNavigation {
   SubmitBrainstorm = 'Submit Brainstorm',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
-  MyTransactions = 'My Transactions',
+  MyTransactions = 'Transactions',
   MyCampaigns = 'My Campaigns',
   AboutMe = 'About Me',
   ChangePassword = 'Change Password',
@@ -108,7 +109,7 @@ export type GuestStack = {
 };
 
 interface CampaignModalProps {
-  initialSelectedCampaign: Campaign;
+  initialSelectedCampaign?: Campaign;
   eventType: string;
   contentCreatorToOfferId: string;
 }
@@ -129,7 +130,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
-  [AuthenticatedNavigation.ChatDetail]: {chat: ChatView};
+  [AuthenticatedNavigation.ChatDetail]: {chat: Chat; recipient: Recipient};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {
     campaignId: string;
@@ -145,7 +146,7 @@ export type AuthenticatedStack = {
     businessPeopleId: string;
   };
   [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
-  [AuthenticatedNavigation.MyTransactions]: undefined;
+  [AuthenticatedNavigation.MyTransactions]: {userId?: string; role?: UserRole};
   [AuthenticatedNavigation.MyCampaigns]: undefined;
   [AuthenticatedNavigation.AboutMe]: undefined;
   [AuthenticatedNavigation.ChangePassword]: undefined;

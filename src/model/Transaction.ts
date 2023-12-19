@@ -41,6 +41,7 @@ export enum TransactionStatus {
 
   // private
   offering = 'Offering',
+  offerWaitingForPayment = 'Offer Approved (Waiting For Payment)', // Jadi di tampilanya ttp "offering" textnya, tapi ini buat penanda kalo CC uda approved, tapi BP tinggal bayar. Nah kalo yang approve BP duluan, BP bisa lgsg bayar aja gausah pindah2 status
   offerApproved = 'Offer Approved',
   offerRejected = 'Offer Rejected',
 
@@ -130,6 +131,8 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
     campaignIndexMap[CampaignStep.Brainstorming],
 
   [TransactionStatus.offering]: campaignIndexMap[CampaignStep.Registration],
+  [TransactionStatus.offerWaitingForPayment]:
+    campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.offerRejected]:
     campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.offerApproved]:
@@ -168,6 +171,7 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.registrationApproved]: StatusType.success,
 
   [TransactionStatus.offering]: StatusType.warning,
+  [TransactionStatus.offerWaitingForPayment]: StatusType.warning,
   [TransactionStatus.offerApproved]: StatusType.success,
   [TransactionStatus.offerRejected]: StatusType.danger,
 
@@ -196,6 +200,7 @@ export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap 
     [TransactionStatus.registrationApproved]: StepperState.success,
 
     [TransactionStatus.offering]: StepperState.warning,
+    [TransactionStatus.offerWaitingForPayment]: StepperState.warning,
     [TransactionStatus.offerApproved]: StepperState.success,
     [TransactionStatus.offerRejected]: StepperState.danger,
 
@@ -223,7 +228,7 @@ export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap 
     [TransactionStatus.registrationApproved]: CampaignStep.Registration,
 
     [TransactionStatus.offering]: CampaignStep.Registration,
-    [TransactionStatus.offeringApproved]: CampaignStep.Registration,
+    [TransactionStatus.offerApproved]: CampaignStep.Registration,
     [TransactionStatus.offerRejected]: CampaignStep.Registration,
 
     [TransactionStatus.brainstormSubmitted]: CampaignStep.Brainstorming,
@@ -307,7 +312,7 @@ export class Transaction extends BaseModel {
   brainstorms?: Brainstorm[];
   contents?: Content[];
   engagements?: Engagement[];
-  status?: TransactionStatus;
+  status: TransactionStatus;
   createdAt?: number;
   updatedAt?: number;
   lastCheckedAt?: number;
@@ -345,7 +350,7 @@ export class Transaction extends BaseModel {
     this.brainstorms = brainstorms;
     this.contents = contents;
     this.engagements = engagements;
-    this.status = status;
+    this.status = status || TransactionStatus.notRegistered;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.lastCheckedAt = lastCheckedAt;
@@ -401,17 +406,29 @@ export class Transaction extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  static async getById(id: string): Promise<Transaction> {
+  static getById(
+    id: string,
+    onComplete: (transaction: Transaction | undefined) => void,
+  ) {
     try {
-      const snapshot = await this.getDocumentReference(id).get();
-      if (!snapshot.exists) {
-        throw Error('Transaction not found!');
-      }
+      const unsubscribe = Transaction.getDocumentReference(id).onSnapshot(
+        docSnapshot => {
+          if (docSnapshot.exists) {
+            onComplete(Transaction.fromSnapshot(docSnapshot));
+            return;
+          }
+          onComplete(undefined);
+        },
+        error => {
+          console.log(error);
+        },
+      );
 
-      const transaction = this.fromSnapshot(snapshot);
-      return transaction;
-    } catch (error) {}
-    throw Error('Error!');
+      return unsubscribe;
+    } catch (error) {
+      console.error(error);
+      throw Error('Transaction.getById Error: ' + error);
+    }
   }
 
   static getCollectionReference = () => {
@@ -425,19 +442,29 @@ export class Transaction extends BaseModel {
 
   async insert(status: TransactionStatus) {
     try {
-      const {id, ...rest} = this;
+      const {id, contentCreatorId, businessPeopleId, campaignId, ...rest} =
+        this;
       if (!id) {
         throw Error('Missing id');
       }
+
+      if (!contentCreatorId) {
+        throw Error('Missing content creator id');
+      }
+
+      if (!businessPeopleId) {
+        throw Error('Missing business people id');
+      }
+
+      if (!campaignId) {
+        throw Error('Missing campaign id');
+      }
+
       const data = {
         ...rest,
-        contentCreatorId: User.getDocumentReference(
-          this.contentCreatorId ?? '',
-        ),
-        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
-        businessPeopleId: User.getDocumentReference(
-          this.businessPeopleId ?? '',
-        ),
+        contentCreatorId: User.getDocumentReference(contentCreatorId),
+        campaignId: Campaign.getDocumentReference(campaignId),
+        businessPeopleId: User.getDocumentReference(businessPeopleId),
         status: status,
         createdAt: new Date().getTime(),
       };
@@ -496,48 +523,6 @@ export class Transaction extends BaseModel {
         )
         .onSnapshot(
           querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getAllTransactionsByCCBP(
-    businessPeopleId: string,
-    contentCreatorId: string,
-    onComplete: (transactions: Transaction[]) => void,
-  ) {
-    try {
-      const unsubscribe = firestore()
-        .collection(TRANSACTION_COLLECTION)
-        .where(
-          'businessPeopleId',
-          '==',
-          firestore().collection('users').doc(businessPeopleId),
-        )
-        .where(
-          'contentCreatorId',
-          '==',
-          firestore().collection('users').doc(contentCreatorId),
-        )
-        .onSnapshot(
-          querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            }
-
             onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
@@ -571,11 +556,7 @@ export class Transaction extends BaseModel {
         )
         .onSnapshot(
           querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -597,11 +578,7 @@ export class Transaction extends BaseModel {
         .orderBy('payment')
         .onSnapshot(
           querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            } else {
-              onComplete(querySnapshot.docs.map(this.fromSnapshot));
-            }
+            onComplete(querySnapshot.docs.map(this.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -631,7 +608,6 @@ export class Transaction extends BaseModel {
           new Transaction({
             campaignId,
             contentCreatorId,
-            status: TransactionStatus.notRegistered,
           }),
         );
       },
@@ -639,34 +615,6 @@ export class Transaction extends BaseModel {
         console.log(error);
       },
     );
-
-    return unsubscribe;
-  }
-
-  static getTransactionStatusByContentCreator(
-    campaignId: string,
-    contentCreatorId: string,
-    onComplete: (status: TransactionStatus) => void,
-  ) {
-    const id = campaignId + contentCreatorId;
-    const unsubscribe = Transaction.getCollectionReference()
-      .doc(id)
-      .onSnapshot(
-        docSnapshot => {
-          let status: TransactionStatus;
-          if (!docSnapshot.exists) {
-            status = TransactionStatus.notRegistered;
-            return;
-          }
-          let transaction = docSnapshot.data() as Transaction;
-          status = transaction.status || TransactionStatus.notRegistered;
-
-          onComplete(status);
-        },
-        error => {
-          console.log(error);
-        },
-      );
 
     return unsubscribe;
   }
@@ -868,6 +816,7 @@ export class Transaction extends BaseModel {
     }
   }
 
+  // Approve regis abis bayar, sekalian offer yg dibayar jg
   async approveRegistration(): Promise<boolean> {
     const {campaignId, contentCreatorId} = this;
     if (!campaignId) {
@@ -880,7 +829,14 @@ export class Transaction extends BaseModel {
       const contentCreator = await User.getById(contentCreatorId);
       const campaign = await Campaign.getById(campaignId);
       if (contentCreator && campaign) {
-        await this.updateStatus(TransactionStatus.registrationApproved, {
+        let newStatus: TransactionStatus;
+        // TODO: ditest lagi
+        if (this.status === TransactionStatus.registrationPending) {
+          newStatus = TransactionStatus.registrationApproved;
+        } else {
+          newStatus = TransactionStatus.offerApproved;
+        }
+        await this.updateStatus(newStatus, {
           contentRevisionLimit:
             contentCreator.contentCreator?.contentRevisionLimit,
           platformTasks: campaign.platformTasks,
@@ -895,28 +851,7 @@ export class Transaction extends BaseModel {
   }
 
   async offer() {
-    return await this.insert(TransactionStatus.offering);
-  }
-
-  getLatestBrainstorm(): Brainstorm | null {
-    const {brainstorms} = this;
-    if (brainstorms && brainstorms?.length > 0) {
-      return brainstorms.reduce((latest, brainstorm) => {
-        return brainstorm.createdAt > latest.createdAt ? brainstorm : latest;
-      }, brainstorms[0]);
-    }
-    return null;
-  }
-
-  getBrainstormIndex(brainstorm: Brainstorm): number {
-    const {brainstorms} = this;
-    if (brainstorms && brainstorms?.length > 0) {
-      return brainstorms.findIndex(
-        currentBrainstorm =>
-          currentBrainstorm.createdAt === brainstorm.createdAt,
-      );
-    }
-    return -1;
+    return this.insert(TransactionStatus.offering);
   }
 
   async submitBrainstorm(content: BrainstormContent[]): Promise<boolean> {
@@ -1021,26 +956,6 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id');
   }
 
-  getLatestContentSubmission() {
-    const {contents} = this;
-    if (contents && contents?.length > 0) {
-      return contents.reduce((latest, content) => {
-        return content.createdAt > latest.createdAt ? content : latest;
-      }, contents[0]);
-    }
-    return null;
-  }
-
-  getContentIndex(content: Content): number {
-    const {contents} = this;
-    if (contents && contents?.length > 0) {
-      return contents.findIndex(
-        currentContent => currentContent.createdAt === content.createdAt,
-      );
-    }
-    return -1;
-  }
-
   async rejectContent(rejection: Rejection): Promise<boolean> {
     const {id, contents} = this;
     if (id && contents && contents.length > 0) {
@@ -1123,27 +1038,6 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id');
   }
 
-  getLatestEngagementSubmission() {
-    const {engagements} = this;
-    if (engagements && engagements?.length > 0) {
-      return engagements.reduce((latest, engagement) => {
-        return engagement.createdAt > latest.createdAt ? engagement : latest;
-      }, engagements[0]);
-    }
-    return null;
-  }
-
-  getEngagementIndex(engagement: Content): number {
-    const {engagements} = this;
-    if (engagements && engagements?.length > 0) {
-      return engagements.findIndex(
-        currentEngagement =>
-          currentEngagement.createdAt === engagement.createdAt,
-      );
-    }
-    return -1;
-  }
-
   async rejectEngagement(rejection: Rejection): Promise<boolean> {
     const {id, engagements} = this;
     if (id && engagements && engagements.length > 0) {
@@ -1203,6 +1097,68 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id or engagements');
   }
 
+  getLatestBrainstorm(): Brainstorm | null {
+    const {brainstorms} = this;
+    if (brainstorms && brainstorms?.length > 0) {
+      return brainstorms.reduce((latest, brainstorm) => {
+        return brainstorm.createdAt > latest.createdAt ? brainstorm : latest;
+      }, brainstorms[0]);
+    }
+    return null;
+  }
+
+  getBrainstormIndex(brainstorm: Brainstorm): number {
+    const {brainstorms} = this;
+    if (brainstorms && brainstorms?.length > 0) {
+      return brainstorms.findIndex(
+        currentBrainstorm =>
+          currentBrainstorm.createdAt === brainstorm.createdAt,
+      );
+    }
+    return -1;
+  }
+
+  getLatestContentSubmission() {
+    const {contents} = this;
+    if (contents && contents?.length > 0) {
+      return contents.reduce((latest, content) => {
+        return content.createdAt > latest.createdAt ? content : latest;
+      }, contents[0]);
+    }
+    return null;
+  }
+
+  getContentIndex(content: Content): number {
+    const {contents} = this;
+    if (contents && contents?.length > 0) {
+      return contents.findIndex(
+        currentContent => currentContent.createdAt === content.createdAt,
+      );
+    }
+    return -1;
+  }
+
+  getLatestEngagementSubmission() {
+    const {engagements} = this;
+    if (engagements && engagements?.length > 0) {
+      return engagements.reduce((latest, engagement) => {
+        return engagement.createdAt > latest.createdAt ? engagement : latest;
+      }, engagements[0]);
+    }
+    return null;
+  }
+
+  getEngagementIndex(engagement: Content): number {
+    const {engagements} = this;
+    if (engagements && engagements?.length > 0) {
+      return engagements.findIndex(
+        currentEngagement =>
+          currentEngagement.createdAt === engagement.createdAt,
+      );
+    }
+    return -1;
+  }
+
   getRemainingRevisionCount() {
     const {contentRevisionLimit = 0, contents = []} = this;
     return Math.max(
@@ -1214,32 +1170,49 @@ export class Transaction extends BaseModel {
     );
   }
 
-  //   static async getTransactionStatusByContentCreator(
-  //     campaignId: string,
-  //     contentCreatorId: string,
-  //   ): Promise<TransactionStatus> {
-  //     try {
-  //       const transactions = await firestore()
-  //         .collection(TRANSACTION_COLLECTION)
-  //         .where(
-  //           'campaignId',
-  //           '==',
-  //           firestore().collection('campaigns').doc(campaignId),
-  //         )
-  //         .where(
-  //           'contentCreatorId',
-  //           '==',
-  //           firestore().collection('users').doc(contentCreatorId),
-  //         )
-  //         .get();
-  //       if (transactions.empty) {
-  //         return TransactionStatus.notRegistered;
-  //       }
-  //       let transaction = transactions.docs[0].data() as Transaction;
-  //       return transaction.status || TransactionStatus.notRegistered;
-  //     } catch (error) {
-  //       console.error(error);
-  //       throw Error('Error!');
-  //     }
-  //   }
+  isApprovable() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.brainstormSubmitted,
+        TransactionStatus.contentSubmitted,
+        TransactionStatus.engagementSubmitted,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    );
+  }
+
+  isTerminated() {
+    const {status} = this;
+    return status === TransactionStatus.terminated;
+  }
+
+  isOngoing() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.terminated,
+        TransactionStatus.reported,
+        TransactionStatus.completed,
+      ].findIndex(transactionStatus => transactionStatus === status) === -1
+    );
+  }
+
+  isCompleted() {
+    const {status} = this;
+    return status === TransactionStatus.completed;
+  }
+
+  isWaitingContentCreatorAction() {
+    const {status} = this;
+    return (
+      status &&
+      [
+        TransactionStatus.brainstormRejected,
+        TransactionStatus.contentRejected,
+        TransactionStatus.engagementRejected,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    );
+  }
 }

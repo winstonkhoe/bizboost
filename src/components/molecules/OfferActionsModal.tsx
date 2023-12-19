@@ -16,7 +16,7 @@ import {CustomAlert} from './CustomAlert';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import {padding} from '../../styles/Padding';
-import {ChatService} from '../../model/Chat';
+import {Chat} from '../../model/Chat';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
 
 type Props = {
@@ -47,6 +47,7 @@ const OfferActionModal = ({
 
   const acceptOffer = () => {
     if (offer) {
+      // TODO: prompt buat bayar dulu, baru approve (OfferActionsModal + OfferDetailScreen)
       offer.accept().then(acc => {
         const transaction = new Transaction({
           transactionAmount: acc.offeredPrice,
@@ -55,26 +56,24 @@ const OfferActionModal = ({
           businessPeopleId: offer.businessPeopleId ?? '',
           campaignId: campaign?.id ?? '',
         });
-
-        transaction.insert(TransactionStatus.offerApproved).then(() => {
-          const name =
-            activeRole === UserRole.BusinessPeople
-              ? user?.businessPeople?.fullname
-              : user?.contentCreator?.fullname;
-          const text =
-            name +
-            ' ' +
-            (offer.negotiatedBy
-              ? 'accepted negotiation for'
-              : 'accepted offer for') +
-            ' ' +
-            campaign?.title;
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
+        transaction
+          .insert(TransactionStatus.offerWaitingForPayment)
+          .then(() => {
+            const name =
+              activeRole === UserRole.BusinessPeople
+                ? user?.businessPeople?.fullname
+                : user?.contentCreator?.fullname;
+            const text = `${name} ${
+              offer.negotiatedBy
+                ? 'accepted negotiation for'
+                : 'accepted offer for'
+            } ${
+              campaign?.title
+            }. Transaction will begin after Business People have finished payment.`;
+            Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
               onModalDismiss();
-            },
-          );
-        });
+            });
+          });
       });
     }
   };
@@ -101,11 +100,9 @@ const OfferActionModal = ({
               : 'rejected offer for') +
             ' ' +
             campaign?.title;
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
-              onModalDismiss();
-            },
-          );
+          Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
+            onModalDismiss();
+          });
         });
       });
     }
@@ -178,7 +175,16 @@ const OfferActionModal = ({
               <CustomAlert
                 confirmationText={
                   <View>
-                    <Text>Are you sure you want to reject this offer?</Text>
+                    <Text
+                      style={[
+                        textColor(COLOR.text.neutral.high),
+                        font.size[30],
+                      ]}>
+                      Are you sure you want to reject this offer?
+                    </Text>
+                    <Text style={[textColor(COLOR.red[50]), font.size[20]]}>
+                      You can't exchange offer again for this campaign
+                    </Text>
                     <View
                       style={[
                         flex.flexRow,

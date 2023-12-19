@@ -1,32 +1,36 @@
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {Chat, ChatView, Participant} from '../model/Chat';
+import {Chat} from '../model/Chat';
 import {setUserChats} from '../redux/slices/chatSlice';
-import {User} from '../model/User';
 
 export const useUserChats = () => {
+  const [chats, setChats] = useState<Chat[]>([]);
   const {uid, activeRole} = useAppSelector(state => state.user);
   const {userChats} = useAppSelector(state => state.chat);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (uid) {
-      Chat.getUserChatsReactive(
-        uid,
-        activeRole,
-        async (chats: Chat[], unsubscribe: () => void) => {
-          const updatedChats = await Promise.all(
-            chats.map(async chat => {
-              return await chat.convertToChatView(activeRole);
-            }),
-          );
-
-          dispatch(setUserChats(updatedChats));
-          return unsubscribe;
-        },
-      );
+    if (uid && activeRole) {
+      return Chat.getUserChatsReactive(uid, activeRole, setChats);
     }
   }, [uid, activeRole, dispatch]);
+
+  useEffect(() => {
+    if (chats.length > 0 && activeRole) {
+      Promise.allSettled(chats.map(ch => ch.serialize()))
+        .then(results => {
+          console.log('useUserChats.all settled results', results);
+          const fulfilledChats = results
+            .filter(
+              (result): result is PromiseFulfilledResult<Chat> =>
+                result.status === 'fulfilled',
+            )
+            .map(result => result.value);
+          dispatch(setUserChats(fulfilledChats));
+        })
+        .catch(err => console.log('useUserChats error: ' + err));
+    }
+  }, [chats, activeRole, dispatch]);
 
   return {chats: userChats};
 };

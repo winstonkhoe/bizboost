@@ -67,14 +67,21 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
           <View className="w-24 h-24 overflow-hidden" style={[rounded.max]}>
             <FastImage className="w-full flex-1" source={getProfilePicture()} />
           </View>
-          <View className="flex-1 items-start" style={[flex.flexCol]}>
-            <Text className="text-base font-bold" numberOfLines={1}>
+          <View style={[flex.flexCol, gap.xsmall]}>
+            <Text
+              className="font-bold"
+              style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+              numberOfLines={1}>
               {businessPeople?.businessPeople?.fullname}
             </Text>
-            <Text className="text-xs" numberOfLines={1}>
+            <Text
+              style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+              numberOfLines={1}>
               {businessPeople?.phone}
             </Text>
-            <Text className="text-xs" numberOfLines={1}>
+            <Text
+              style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+              numberOfLines={1}>
               {businessPeople?.email}
             </Text>
           </View>

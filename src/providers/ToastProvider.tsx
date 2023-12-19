@@ -20,7 +20,7 @@ import {textColor} from '../styles/Text';
 import {font} from '../styles/Font';
 import {useEffect, useState} from 'react';
 import {ShowToastProps} from '../helpers/toast';
-import { zIndex } from '../styles/zIndex';
+import {zIndex} from '../styles/zIndex';
 
 export enum ToastType {
   danger = 'danger',
@@ -41,11 +41,11 @@ const animationDuration = 300;
 const colorToastTypeMap: ColorToastTypeMap = {
   [ToastType.danger]: {
     background: COLOR.red[60],
-    textColor: COLOR.black[0],
+    textColor: COLOR.absoluteBlack[0],
   },
   [ToastType.success]: {
     background: COLOR.green[50],
-    textColor: COLOR.black[0],
+    textColor: COLOR.absoluteBlack[0],
   },
   [ToastType.warning]: {
     background: COLOR.yellow[40],
