@@ -40,7 +40,7 @@ export const FieldArrayLabel = ({
           type === 'add' &&
             border({
               borderWidth: 1,
-              color: COLOR.background.neutral.high,
+              color: COLOR.black[25],
             }),
           type === 'field' &&
             border({
@@ -59,11 +59,7 @@ export const FieldArrayLabel = ({
         </Text>
         {type === 'add' && (
           <View
-            style={[
-              rounded.max,
-              background(COLOR.background.neutral.high),
-              padding.xsmall,
-            ]}>
+            style={[rounded.max, background(COLOR.black[30]), padding.xsmall]}>
             <AddIcon size="default" color={COLOR.black[0]} />
           </View>
         )}

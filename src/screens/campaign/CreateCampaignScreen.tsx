@@ -915,7 +915,7 @@ const CreateCampaignScreen = () => {
                                           COLOR.background.danger.high,
                                         ),
                                       ]}>
-                                      <AddIcon color={COLOR.black[0]} />
+                                      <AddIcon color={COLOR.absoluteBlack[0]} />
                                     </AnimatedPressable>
                                   </View>
                                   <View

@@ -82,6 +82,13 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
             'Registration Approved! Your payment is being reviewed by our Admin',
           type: ToastType.success,
         });
+      })
+      .catch(err => {
+        console.log(err);
+        showToast({
+          message: 'Failed to update proof!',
+          type: ToastType.danger,
+        });
       });
   };
 
@@ -95,7 +102,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
-  console.log('review', review);
+  console.log('transaction', transaction);
 
   return (
     <>
