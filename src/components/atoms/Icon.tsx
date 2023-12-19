@@ -24,6 +24,7 @@ import Campaign from '../../assets/vectors/campaign.svg';
 import Cooperation from '../../assets/vectors/cooperation.svg';
 import Search from '../../assets/vectors/search.svg';
 import Date from '../../assets/vectors/date.svg';
+import Card from '../../assets/vectors/card.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path, SvgProps} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
@@ -453,6 +454,21 @@ export const DateIcon = ({
 }: IconProps) => {
   return (
     <Date
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
+};
+
+export const CardIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.green[60],
+  ...props
+}: IconProps) => {
+  return (
+    <Card
       width={size[sizeType]}
       height={size[sizeType]}
       color={color}

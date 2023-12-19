@@ -1,11 +1,12 @@
 import {ReactNode, useEffect, useMemo, useState} from 'react';
 import {LoadingScreen} from '../LoadingScreen';
-import {Transaction} from '../../model/Transaction';
+import {Transaction, TransactionStatus} from '../../model/Transaction';
 import {useUser} from '../../hooks/user';
 import {UserRole} from '../../model/User';
 import {
   Pressable,
   PressableProps,
+  StyleSheet,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -14,13 +15,13 @@ import {padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
 import {shadow} from '../../styles/Shadow';
 import {Text} from 'react-native';
-import {font} from '../../styles/Font';
+import {font, text} from '../../styles/Font';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import SafeAreaContainer from '../../containers/SafeAreaContainer';
-import {RatingStarIcon} from '../../components/atoms/Icon';
+import {CardIcon, RatingStarIcon} from '../../components/atoms/Icon';
 import {round} from 'lodash';
 import {ScrollView} from 'react-native-gesture-handler';
 import {dimension} from '../../styles/Dimension';
@@ -28,7 +29,7 @@ import {background} from '../../styles/BackgroundColor';
 import {size} from '../../styles/Size';
 import {OngoingCampaignCard} from '../../components/molecules/OngoingCampaignCard';
 import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
-import {Campaign} from '../../model/Campaign';
+import {Campaign, CampaignStep} from '../../model/Campaign';
 import {InternalLink} from '../../components/atoms/Link';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -38,10 +39,14 @@ import {
 import {border} from '../../styles/Border';
 import RegisteredUserListCard from '../../components/molecules/RegisteredUserListCard';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
+import {currencyFormat} from '../../utils/currency';
+import SelectableTag from '../../components/atoms/SelectableTag';
 
 enum FilterCardType {
   ActionNeeded = 'Action Needed',
+  Ongoing = 'Ongoing',
   Terminated = 'Terminated',
+  Completed = 'Completed',
 }
 
 const DashboardScreen = () => {
@@ -55,8 +60,18 @@ const DashboardScreen = () => {
   const [actionNeededTransactions, setActionNeededTransactions] =
     useState<Transaction[]>();
 
+  const ongoingTransactions = useMemo(
+    () => transactions.filter(transaction => transaction.isOngoing()),
+    [transactions],
+  );
+
   const terminatedTransactions = useMemo(
     () => transactions.filter(transaction => transaction.isTerminated()),
+    [transactions],
+  );
+
+  const completedTransaction = useMemo(
+    () => transactions.filter(transaction => transaction.isCompleted()),
     [transactions],
   );
 
@@ -64,16 +79,22 @@ const DashboardScreen = () => {
     switch (activeFilterType) {
       case FilterCardType.ActionNeeded:
         return actionNeededTransactions;
+      case FilterCardType.Ongoing:
+        return ongoingTransactions;
       case FilterCardType.Terminated:
         return terminatedTransactions;
+      case FilterCardType.Completed:
+        return completedTransaction;
       default:
         return transactions;
     }
   }, [
     activeFilterType,
-    actionNeededTransactions,
     transactions,
+    actionNeededTransactions,
+    ongoingTransactions,
     terminatedTransactions,
+    completedTransaction,
   ]);
 
   useEffect(() => {
@@ -110,51 +131,85 @@ const DashboardScreen = () => {
   return (
     <>
       {isLoading && <LoadingScreen />}
-      <View style={[flex.flex1, background(COLOR.background.neutral.default)]}>
+      <View
+        style={[
+          flex.flex1,
+          background(COLOR.background.neutral.med),
+          {
+            paddingTop: Math.max(safeAreaInsets.top, size.default),
+          },
+        ]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           style={[flex.flex1]}
+          scrollEventThrottle={8}
+          stickyHeaderIndices={[1]}
           contentContainerStyle={[
             flex.grow,
-            {
-              paddingTop: Math.max(safeAreaInsets.top, size.default),
-            },
             padding.bottom.large,
             flex.flexCol,
             gap.default,
           ]}>
-          <DashboardPanel />
-          <View style={[flex.flexRow, items.start]}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={[
-                flex.flexRow,
-                gap.default,
-                padding.horizontal.default,
-                padding.vertical.small,
-              ]}>
-              <SkeletonPlaceholder
-                isLoading={actionNeededTransactions?.length === undefined}>
-                <FilterCard
-                  isActive={activeFilterType === FilterCardType.ActionNeeded}
-                  label={FilterCardType.ActionNeeded}
-                  count={actionNeededTransactions?.length || 0}
-                  onPress={() =>
-                    setActiveFilterType(FilterCardType.ActionNeeded)
-                  }
-                />
-              </SkeletonPlaceholder>
-              <SkeletonPlaceholder
-                isLoading={terminatedTransactions?.length === undefined}>
-                <FilterCard
-                  isActive={activeFilterType === FilterCardType.Terminated}
-                  label="Terminated"
-                  count={terminatedTransactions.length}
-                  onPress={() => setActiveFilterType(FilterCardType.Terminated)}
-                />
-              </SkeletonPlaceholder>
-            </ScrollView>
+          <DashboardPanel transactions={transactions} />
+          <View style={[flex.flexCol, gap.medium]}>
+            <View style={[flex.flexRow, items.start, padding.vertical.small]}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={[
+                  flex.flexRow,
+                  gap.default,
+                  padding.horizontal.default,
+                ]}>
+                <SkeletonPlaceholder
+                  isLoading={actionNeededTransactions?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.ActionNeeded}
+                    label={FilterCardType.ActionNeeded}
+                    count={actionNeededTransactions?.length || 0}
+                    onPress={() =>
+                      setActiveFilterType(FilterCardType.ActionNeeded)
+                    }
+                  />
+                </SkeletonPlaceholder>
+                <SkeletonPlaceholder
+                  isLoading={ongoingTransactions?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Ongoing}
+                    label={FilterCardType.Ongoing}
+                    count={ongoingTransactions.length}
+                    onPress={() => setActiveFilterType(FilterCardType.Ongoing)}
+                  />
+                </SkeletonPlaceholder>
+                <SkeletonPlaceholder
+                  isLoading={terminatedTransactions?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Terminated}
+                    label={FilterCardType.Terminated}
+                    count={terminatedTransactions.length}
+                    onPress={() =>
+                      setActiveFilterType(FilterCardType.Terminated)
+                    }
+                  />
+                </SkeletonPlaceholder>
+                <SkeletonPlaceholder
+                  isLoading={completedTransaction?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Completed}
+                    label={FilterCardType.Completed}
+                    count={completedTransaction.length}
+                    onPress={() =>
+                      setActiveFilterType(FilterCardType.Completed)
+                    }
+                  />
+                </SkeletonPlaceholder>
+              </ScrollView>
+            </View>
+            {activeFilterType === FilterCardType.ActionNeeded && (
+              <View style={[flex.flexRow, items.start, padding.vertical.small]}>
+                <FilterPanel />
+              </View>
+            )}
           </View>
           {filteredTransactions && filteredTransactions.length > 0 ? (
             <View
@@ -178,6 +233,42 @@ const DashboardScreen = () => {
         </ScrollView>
       </View>
     </>
+  );
+};
+
+const FilterPanel = () => {
+  const [filterStep, setFilterStep] = useState<
+    CampaignStep | TransactionStatus
+  >(CampaignStep.Brainstorming);
+  const filterSteps = [
+    CampaignStep.Brainstorming,
+    CampaignStep.ContentCreation,
+    CampaignStep.ResultSubmission,
+  ];
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={[
+        flex.flexRow,
+        items.start,
+        gap.default,
+        padding.horizontal.default,
+      ]}>
+      <SelectableTag
+        text={TransactionStatus.offerRejected}
+        onPress={() => setFilterStep(TransactionStatus.offerRejected)}
+        isSelected={filterStep === TransactionStatus.offerRejected}
+      />
+      {filterSteps.map(step => (
+        <SelectableTag
+          key={step}
+          text={step}
+          onPress={() => setFilterStep(step)}
+          isSelected={filterStep === step}
+        />
+      ))}
+    </ScrollView>
   );
 };
 
@@ -217,8 +308,11 @@ const FilterCard = ({isActive, label, count, ...props}: FilterCardProps) => {
         {label}
       </Text>
       <Text
-        className="font-bold"
-        style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+        style={[
+          font.size[40],
+          font.weight.bold,
+          textColor(COLOR.text.neutral.high),
+        ]}>
         {count}
       </Text>
     </Pressable>
@@ -251,9 +345,19 @@ const CampaignCard = ({...props}: CampaignCardProps) => {
   );
 };
 
-const DashboardPanel = () => {
+interface DashboardPanelProps {
+  transactions: Transaction[];
+}
+
+const DashboardPanel = ({transactions}: DashboardPanelProps) => {
   const {user} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
+  const balance = transactions
+    .filter(transaction => transaction.isCompleted())
+    .reduce(
+      (acc, transaction) => acc + (transaction.transactionAmount || 0),
+      0,
+    );
   return (
     <View style={[padding.horizontal.default]}>
       <View
@@ -262,9 +366,34 @@ const DashboardPanel = () => {
           padding.vertical.default,
           rounded.medium,
           flex.flexRow,
+          gap.small,
           justify.around,
-          shadow.default,
+          // shadow.default,
+          border({
+            borderWidth: 1,
+            color: COLOR.black[20],
+          }),
+          background(COLOR.black[0]),
         ]}>
+        <DashboardPanelItem label="Bizboost Balance">
+          <Pressable
+            style={[flex.flexCol, items.center]}
+            onPress={() =>
+              navigation.navigate(AuthenticatedNavigation.WithdrawMoney)
+            }>
+            <CardIcon size="large" />
+            <Text
+              style={[
+                font.size[20],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}
+              numberOfLines={1}>
+              {currencyFormat(balance)}
+            </Text>
+          </Pressable>
+        </DashboardPanelItem>
+        <VerticalSeparator />
         <DashboardPanelItem
           label={
             user?.bankAccountInformation
@@ -286,21 +415,23 @@ const DashboardPanel = () => {
                 );
               }}>
               <Text
-                className="font-semibold text-center"
                 style={[
+                  text.center,
+                  font.weight.semibold,
                   self.center,
                   font.size[20],
-                  textColor(COLOR.text.neutral.med),
+                  textColor(COLOR.text.neutral.high),
                 ]}
                 numberOfLines={1}>
                 {`${user?.bankAccountInformation?.accountNumber}`}
               </Text>
               <Text
-                className="font-semibold text-center"
                 style={[
+                  text.center,
+                  font.weight.semibold,
                   self.center,
                   font.size[20],
-                  textColor(COLOR.text.neutral.med),
+                  textColor(COLOR.text.neutral.high),
                 ]}
                 numberOfLines={1}>
                 {`${user?.bankAccountInformation?.accountHolderName}`}
@@ -309,7 +440,7 @@ const DashboardPanel = () => {
           ) : (
             <InternalLink
               text="Update Bank Info"
-              size={30}
+              size={20}
               onPress={() => {
                 navigation.navigate(
                   AuthenticatedNavigation.EditBankAccountInformationScreen,
@@ -318,7 +449,7 @@ const DashboardPanel = () => {
             />
           )}
         </DashboardPanelItem>
-
+        <VerticalSeparator />
         <DashboardPanelItem
           label={
             user?.contentCreator?.ratedCount
@@ -328,8 +459,11 @@ const DashboardPanel = () => {
           <View style={[flex.flexRow, items.end, gap.xsmall2]}>
             <RatingStarIcon size="medium" />
             <Text
-              className="font-bold"
-              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[20],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               {/* {Math.round(user?.contentCreator?.rating || 4.88).toFixed(1)} */}
               {round(user?.contentCreator?.rating || 0, 1).toFixed(1)}
             </Text>
@@ -347,22 +481,42 @@ interface DashboardPanelItemProps {
 
 const DashboardPanelItem = ({...props}: DashboardPanelItemProps) => {
   return (
-    <View style={[flex.flexCol, items.center, gap.small]}>
+    <View style={[flex.flex1, flex.flexCol, items.center, gap.small]}>
       <View
         style={[
           flex.flexCol,
           justify.center,
           {
-            height: size.xlarge2,
+            height: size.xlarge,
           },
         ]}>
         {props.children}
       </View>
-      <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+      <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
         {props.label}
       </Text>
     </View>
   );
 };
+
+const VerticalSeparator = () => {
+  return (
+    <View
+      style={[
+        styles.verticalSeparator,
+        {
+          marginVertical: size.default,
+        },
+      ]}
+    />
+  );
+};
+
+const styles = StyleSheet.create({
+  verticalSeparator: {
+    borderRightWidth: 0.7,
+    borderRightColor: COLOR.black[20],
+  },
+});
 
 export default DashboardScreen;

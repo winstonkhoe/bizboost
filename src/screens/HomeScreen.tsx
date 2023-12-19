@@ -28,7 +28,7 @@ import {COLOR} from '../styles/Color';
 import {padding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
 import {shadow} from '../styles/Shadow';
-import {font} from '../styles/Font';
+import {font, text} from '../styles/Font';
 import {textColor} from '../styles/Text';
 import {size} from '../styles/Size';
 import {Report, reportStatusPrecendence} from '../model/Report';
@@ -385,8 +385,7 @@ const WarningModal = () => {
         <View style={[flex.flexRow, justify.center, items.center, gap.small]}>
           <ReportIcon size="large" />
           <Text
-            className="font-bold"
-            style={[font.size[40], textColor(COLOR.red[70])]}>
+            style={[font.weight.bold, font.size[40], textColor(COLOR.red[70])]}>
             Warning
           </Text>
         </View>
@@ -406,8 +405,9 @@ const WarningModal = () => {
               key={report.id}
               style={[flex.flex1, flex.flexCol, justify.center, gap.default]}>
               <Text
-                className="font-bold text-center"
                 style={[
+                  text.center,
+                  font.weight.bold,
                   self.center,
                   font.size[30],
                   textColor(COLOR.text.neutral.high),
@@ -415,8 +415,8 @@ const WarningModal = () => {
                 {report.type}
               </Text>
               <Text
-                className="text-center"
                 style={[
+                  text.center,
                   self.center,
                   font.size[30],
                   textColor(COLOR.text.neutral.high),
