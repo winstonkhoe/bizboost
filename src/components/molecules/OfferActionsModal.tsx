@@ -42,10 +42,10 @@ const OfferActionModal = ({
     }
   }, [offer]);
 
-  const bpId = User.extractIdFromRef(offer.businessPeopleId ?? '');
-  const ccId = User.extractIdFromRef(offer.contentCreatorId ?? '');
+  const bpId = offer.businessPeopleId;
+  const ccId = offer.contentCreatorId;
 
-  const acceptOffer = () => {
+  const onAcceptOfferClicked = () => {
     if (offer) {
       // TODO: prompt buat bayar dulu, baru approve (OfferActionsModal + OfferDetailScreen)
       offer.accept().then(acc => {
@@ -78,7 +78,7 @@ const OfferActionModal = ({
     }
   };
 
-  const declineOffer = () => {
+  const onRejectOfferClicked = () => {
     if (offer) {
       offer.reject().then(() => {
         const transaction = new Transaction({
@@ -165,7 +165,7 @@ const OfferActionModal = ({
                 }
                 text="Accept"
                 approveButtonText="Accept"
-                onApprove={() => acceptOffer()}
+                onApprove={() => onAcceptOfferClicked()}
               />
               <CustomButton
                 type="secondary"
@@ -222,7 +222,7 @@ const OfferActionModal = ({
                 }}
                 text="Reject"
                 approveButtonText="Reject"
-                onApprove={() => declineOffer()}
+                onApprove={() => onRejectOfferClicked()}
               />
             </View>
           )
@@ -263,7 +263,7 @@ const OfferActionModal = ({
               }
               text="Accept"
               approveButtonText="Accept"
-              onApprove={() => acceptOffer()}
+              onApprove={() => onAcceptOfferClicked()}
             />
             <CustomButton
               type="secondary"
@@ -309,7 +309,7 @@ const OfferActionModal = ({
               }}
               text="Reject"
               approveButtonText="Reject"
-              onApprove={() => declineOffer()}
+              onApprove={() => onRejectOfferClicked()}
             />
           </View>
         ) : (

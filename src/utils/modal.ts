@@ -88,8 +88,8 @@ export const openNegotiateModal = ({
   });
 
   const listener = DeviceEventEmitter.addListener(eventType, fee => {
-    const bpId = User.extractIdFromRef(selectedOffer.businessPeopleId ?? '');
-    const ccId = User.extractIdFromRef(selectedOffer.contentCreatorId ?? '');
+    const bpId = selectedOffer.businessPeopleId;
+    const ccId = selectedOffer.contentCreatorId;
     Chat.insertNegotiateMessage(bpId + ccId, fee, activeRole);
   });
 
