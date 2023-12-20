@@ -14,7 +14,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {AnimatedPressable} from '../atoms/AnimatedPressable';
 import {RatingStarIcon} from '../atoms/Icon';
 import {FormFieldHelper} from '../atoms/FormLabel';
-import RegisteredUserListCard from './RegisteredUserListCard';
+import TransactionCard from './TransactionCard';
 import {Review} from '../../model/Review';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';

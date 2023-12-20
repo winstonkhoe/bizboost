@@ -5,7 +5,7 @@ import {padding} from '../../styles/Padding';
 import {useEffect, useState} from 'react';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
 import {useUser} from '../../hooks/user';
-import RegisteredUserListCard from '../../components/molecules/RegisteredUserListCard';
+import TransactionCard from '../../components/molecules/TransactionCard';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import {size} from '../../styles/Size';
@@ -43,7 +43,7 @@ const WithdrawMoneyScreen = () => {
         ]}>
         <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
           {transactions.map((t, index) => (
-            <RegisteredUserListCard
+            <TransactionCard
               key={index}
               transaction={t}
               role={activeRole}

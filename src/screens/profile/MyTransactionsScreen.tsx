@@ -3,7 +3,7 @@ import {CloseModal} from '../../components/atoms/Close';
 import SafeAreaContainer from '../../containers/SafeAreaContainer';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
-import RegisteredUserListCard from '../../components/molecules/RegisteredUserListCard';
+import TransactionCard from '../../components/molecules/TransactionCard';
 import {useUser} from '../../hooks/user';
 import {useEffect, useState} from 'react';
 import {Transaction} from '../../model/Transaction';
@@ -54,7 +54,7 @@ const MyTransactionsScreen = ({route}: Props) => {
             <Text>No transaction yet!</Text>
           ) : (
             transactions.map((t, index) => (
-              <RegisteredUserListCard key={index} transaction={t} role={role} />
+              <TransactionCard key={index} transaction={t} role={role} />
             ))
           )}
         </View>

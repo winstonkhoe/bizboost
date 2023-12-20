@@ -566,7 +566,7 @@ export class Transaction extends BaseModel {
       return unsubscribe;
     } catch (error) {
       console.error(error);
-      throw Error('Error!');
+      throw Error('Transaction.getAllTransactionsByRole err ' + error);
     }
   }
 
@@ -1204,8 +1204,45 @@ export class Transaction extends BaseModel {
     return status === TransactionStatus.completed;
   }
 
+  isOffering() {
+    const {status} = this;
+    return status === TransactionStatus.offering;
+  }
+
+  isWaitingAdminAction() {
+    const {payment} = this;
+    if (this.isTerminated() || this.isCompleted()) {
+      return false;
+    }
+    return (
+      [
+        PaymentStatus.proofWaitingForVerification,
+        PaymentStatus.withdrawalRequested,
+      ].findIndex(paymentStatus => paymentStatus === payment?.status) >= 0
+    );
+  }
+
+  isWaitingBusinessPeopleAction() {
+    const {status} = this;
+    if (this.isTerminated() || this.isCompleted()) {
+      return false;
+    }
+    return (
+      [
+        TransactionStatus.registrationPending,
+        TransactionStatus.offerWaitingForPayment,
+        TransactionStatus.brainstormSubmitted,
+        TransactionStatus.contentSubmitted,
+        TransactionStatus.engagementSubmitted,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    );
+  }
+
   async isWaitingContentCreatorAction() {
     const {status, campaignId} = this;
+    if (this.isTerminated() || this.isCompleted()) {
+      return false;
+    }
     if (
       [
         TransactionStatus.brainstormRejected,

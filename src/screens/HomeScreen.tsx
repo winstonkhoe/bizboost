@@ -15,14 +15,25 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {ReactNode, useEffect, useMemo, useRef, useState} from 'react';
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import UserListCard from '../components/molecules/UserListCard';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import Edit from '../assets/vectors/edit.svg';
-import {Transaction, TransactionStatus} from '../model/Transaction';
-import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
+import {
+  Transaction,
+  TransactionStatus,
+  transactionStatusCampaignStepMap,
+} from '../model/Transaction';
+import TransactionCard from '../components/molecules/TransactionCard';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {padding} from '../styles/Padding';
@@ -61,8 +72,9 @@ import {SkeletonPlaceholder} from '../components/molecules/SkeletonPlaceholder';
 enum FilterCardType {
   ActionNeeded = 'Action Needed',
   Ongoing = 'Ongoing',
-  Terminated = 'Terminated',
   Completed = 'Completed',
+  Terminated = 'Terminated',
+  Users = 'Users',
 }
 
 const HomeScreen = () => {
@@ -96,14 +108,29 @@ const HomeScreen = () => {
         startOfWeek.getTime(),
     );
   }, [nonUserCampaigns]);
+  const [filterStep, setFilterStep] = useState<FilterType>();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
 
-  // TODO: kalo klik see all apa mending pindah page?
-  const [userLimit, setUserLimit] = useState(3);
-  const [ongoingCampaignsLimit, setOngoingCampaignsLimit] = useState(3);
+  const pendingReports = useMemo(
+    () =>
+      reports
+        .filter(report => report.isPending())
+        .sort(
+          (a, b) =>
+            reportStatusPrecendence[a.status] -
+            reportStatusPrecendence[b.status],
+        )
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+    [reports],
+  );
+
+  const upcomingCampaigns = useMemo(
+    () => userCampaigns.filter(c => new Campaign(c).isUpcoming()),
+    [userCampaigns],
+  );
 
   const [actionNeededTransactions, setActionNeededTransactions] =
     useState<Transaction[]>();
@@ -123,20 +150,38 @@ const HomeScreen = () => {
     [transactions],
   );
 
+  const getFilteredStep = useCallback(
+    (targetFilterTransactions: Transaction[]) => {
+      if (targetFilterTransactions.length === 0) {
+        return targetFilterTransactions;
+      }
+      if (!filterStep) {
+        return targetFilterTransactions;
+      }
+      return targetFilterTransactions.filter(
+        transaction =>
+          filterStep === transactionStatusCampaignStepMap[transaction.status],
+      );
+    },
+    [filterStep],
+  );
+
   const filteredTransactions = useMemo(() => {
-    switch (activeFilterType) {
-      case FilterCardType.ActionNeeded:
-        return actionNeededTransactions;
-      case FilterCardType.Ongoing:
-        return ongoingTransactions;
-      case FilterCardType.Terminated:
-        return terminatedTransactions;
-      case FilterCardType.Completed:
-        return completedTransaction;
-      default:
-        return transactions;
+    if (FilterCardType.ActionNeeded === activeFilterType) {
+      return getFilteredStep(actionNeededTransactions || []);
     }
+    if (FilterCardType.Ongoing === activeFilterType) {
+      return getFilteredStep(ongoingTransactions);
+    }
+    if (FilterCardType.Terminated === activeFilterType) {
+      return getFilteredStep(terminatedTransactions);
+    }
+    if (FilterCardType.Completed === activeFilterType) {
+      return getFilteredStep(completedTransaction);
+    }
+    return getFilteredStep(transactions);
   }, [
+    getFilteredStep,
     activeFilterType,
     transactions,
     actionNeededTransactions,
@@ -157,11 +202,27 @@ const HomeScreen = () => {
       return results.filter((result): result is Transaction => result !== null);
     };
     if (transactions) {
-      getActionNeededTransactions()
-        .then(setActionNeededTransactions)
-        .catch(() => setActionNeededTransactions([]));
+      if (isAdmin) {
+        setActionNeededTransactions(
+          transactions.filter(transaction =>
+            transaction.isWaitingAdminAction(),
+          ),
+        );
+      }
+      if (isBusinessPeople) {
+        setActionNeededTransactions(
+          transactions.filter(transaction =>
+            transaction.isWaitingBusinessPeopleAction(),
+          ),
+        );
+      }
+      if (isContentCreator) {
+        getActionNeededTransactions()
+          .then(setActionNeededTransactions)
+          .catch(() => setActionNeededTransactions([]));
+      }
     }
-  }, [transactions]);
+  }, [transactions, isAdmin, isBusinessPeople, isContentCreator]);
 
   useEffect(() => {
     console.log('homeScreen:userGetall');
@@ -220,82 +281,108 @@ const HomeScreen = () => {
         },
         background(COLOR.background.neutral.default),
       ]}>
-      <View
-        style={[
-          padding.horizontal.default,
-          background(COLOR.background.neutral.default),
-        ]}>
-        <SearchBar />
-      </View>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[]}
-        contentContainerStyle={[
-          flex.flexCol,
-          padding.bottom.xlarge,
-          gap.default,
-        ]}>
-        <SearchAutocompletePlaceholder>
-          <View style={[flex.flexCol, gap.medium]}>
-            <DashboardPanel transactions={transactions} />
-            {isContentCreator && (
-              <View style={[flex.flexCol, gap.default]}>
-                <HorizontalPadding>
-                  <HomeSectionHeader header="New This Week" link="See All" />
-                </HorizontalPadding>
-                <ScrollView
-                  horizontal
-                  contentContainerStyle={[
-                    flex.flexRow,
-                    gap.default,
-                    padding.horizontal.default,
-                    padding.bottom.xsmall,
-                  ]}>
-                  {thisWeekCampaign
-                    .slice(0, 5)
-                    .map((campaign: Campaign, index: number) => (
-                      <NewThisWeekCard campaign={campaign} key={index} />
-                    ))}
-                </ScrollView>
-              </View>
-            )}
+      {!isAdmin && (
+        <View
+          style={[
+            padding.horizontal.default,
+            background(COLOR.background.neutral.default),
+          ]}>
+          <SearchBar />
+        </View>
+      )}
+      <SearchAutocompletePlaceholder>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[2]}
+          contentContainerStyle={[
+            flex.grow,
+            flex.flexCol,
+            padding.bottom.xlarge,
+            gap.medium,
+          ]}>
+          {!isAdmin && <DashboardPanel transactions={transactions} />}
+          {/* New This Week */}
+          {isContentCreator && (
             <View style={[flex.flexCol, gap.default]}>
               <HorizontalPadding>
-                <HomeSectionHeader
-                  header="Recent Negotiations"
-                  link="See All"
-                />
+                <HomeSectionHeader header="New This Week" link="See All" />
               </HorizontalPadding>
-              <HorizontalScrollView>
-                {offers.map((offer: any, index: number) => (
-                  <RecentNegotiationCard
-                    key={index}
-                    offer={offer}
-                    navigation={navigation}
-                  />
-                ))}
-              </HorizontalScrollView>
-            </View>
-            <View style={[flex.flexCol, gap.small]}>
               <ScrollView
-                horizontal
                 showsHorizontalScrollIndicator={false}
+                horizontal
                 contentContainerStyle={[
                   flex.flexRow,
                   gap.default,
                   padding.horizontal.default,
+                  padding.bottom.xsmall,
                 ]}>
-                <SkeletonPlaceholder
-                  isLoading={actionNeededTransactions?.length === undefined}>
-                  <FilterCard
-                    isActive={activeFilterType === FilterCardType.ActionNeeded}
-                    label={FilterCardType.ActionNeeded}
-                    count={actionNeededTransactions?.length || 0}
-                    onPress={() =>
-                      setActiveFilterType(FilterCardType.ActionNeeded)
-                    }
-                  />
-                </SkeletonPlaceholder>
+                {thisWeekCampaign
+                  .slice(0, 5)
+                  .map((campaign: Campaign, index: number) => (
+                    <NewThisWeekCard campaign={campaign} key={index} />
+                  ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Your Upcoming Campaigns */}
+          {isBusinessPeople && (
+            <View style={[flex.flexCol, gap.default]}>
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header="Your Upcoming Campaigns"
+                  link="See All"
+                />
+              </HorizontalPadding>
+              <ScrollView
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                contentContainerStyle={[
+                  flex.flexRow,
+                  gap.default,
+                  padding.horizontal.default,
+                  padding.bottom.xsmall,
+                ]}>
+                {upcomingCampaigns
+                  .slice(0, 5)
+                  .map((campaign: Campaign, index: number) => (
+                    <NewThisWeekCard campaign={campaign} key={index} />
+                  ))}
+              </ScrollView>
+            </View>
+          )}
+          <View
+            style={[
+              flex.flexCol,
+              gap.small,
+              background(COLOR.background.neutral.default),
+            ]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                flex.flexRow,
+                gap.default,
+                padding.horizontal.default,
+              ]}>
+              <SkeletonPlaceholder
+                isLoading={
+                  actionNeededTransactions?.length === undefined ||
+                  (isAdmin && pendingReports?.length === undefined)
+                }>
+                <FilterCard
+                  isActive={activeFilterType === FilterCardType.ActionNeeded}
+                  label={FilterCardType.ActionNeeded}
+                  count={
+                    (actionNeededTransactions?.length || 0) +
+                    (isAdmin ? pendingReports.length : 0)
+                  }
+                  onPress={() =>
+                    setActiveFilterType(FilterCardType.ActionNeeded)
+                  }
+                />
+              </SkeletonPlaceholder>
+              {!isAdmin && (
                 <SkeletonPlaceholder
                   isLoading={ongoingTransactions?.length === undefined}>
                   <FilterCard
@@ -305,17 +392,8 @@ const HomeScreen = () => {
                     onPress={() => setActiveFilterType(FilterCardType.Ongoing)}
                   />
                 </SkeletonPlaceholder>
-                <SkeletonPlaceholder
-                  isLoading={terminatedTransactions?.length === undefined}>
-                  <FilterCard
-                    isActive={activeFilterType === FilterCardType.Terminated}
-                    label={FilterCardType.Terminated}
-                    count={terminatedTransactions.length}
-                    onPress={() =>
-                      setActiveFilterType(FilterCardType.Terminated)
-                    }
-                  />
-                </SkeletonPlaceholder>
+              )}
+              {!isAdmin && (
                 <SkeletonPlaceholder
                   isLoading={completedTransaction?.length === undefined}>
                   <FilterCard
@@ -327,18 +405,48 @@ const HomeScreen = () => {
                     }
                   />
                 </SkeletonPlaceholder>
-              </ScrollView>
-              {[FilterCardType.ActionNeeded, FilterCardType.Ongoing].find(
-                filter => filter === activeFilterType,
-              ) && (
-                <View
-                  style={[flex.flexRow, items.start, padding.vertical.small]}>
-                  <FilterPanel />
-                </View>
               )}
-            </View>
+              {!isAdmin && (
+                <SkeletonPlaceholder
+                  isLoading={terminatedTransactions?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Terminated}
+                    label={FilterCardType.Terminated}
+                    count={terminatedTransactions.length}
+                    onPress={() =>
+                      setActiveFilterType(FilterCardType.Terminated)
+                    }
+                  />
+                </SkeletonPlaceholder>
+              )}
+              {isAdmin && (
+                <SkeletonPlaceholder isLoading={users?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Users}
+                    label={FilterCardType.Users}
+                    count={users.length}
+                    onPress={() => setActiveFilterType(FilterCardType.Users)}
+                  />
+                </SkeletonPlaceholder>
+              )}
+            </ScrollView>
+            {[FilterCardType.ActionNeeded, FilterCardType.Ongoing].find(
+              filter => filter === activeFilterType,
+            ) && (
+              <View style={[flex.flexRow, items.start, padding.vertical.small]}>
+                <FilterPanel
+                  initialFilter={filterStep}
+                  onFilterChange={setFilterStep}
+                />
+              </View>
+            )}
           </View>
-          {filteredTransactions && filteredTransactions.length > 0 ? (
+          {(activeFilterType !== FilterCardType.Users &&
+            ((filteredTransactions && filteredTransactions.length > 0) ||
+              (isAdmin && pendingReports.length > 0))) ||
+          (activeFilterType === FilterCardType.Users &&
+            users &&
+            users.length > 0) ? (
             <View
               style={[
                 flex.flex1,
@@ -346,13 +454,22 @@ const HomeScreen = () => {
                 gap.default,
                 padding.horizontal.default,
               ]}>
-              {filteredTransactions?.map(transaction => (
-                <RegisteredUserListCard
-                  key={transaction.id}
-                  transaction={transaction}
-                  role={UserRole.ContentCreator} //dashboard is focusing on cc side
-                />
-              ))}
+              {activeFilterType !== FilterCardType.Users &&
+                filteredTransactions?.map(transaction => (
+                  <TransactionCard
+                    key={transaction.id}
+                    transaction={transaction}
+                    role={UserRole.ContentCreator} //dashboard is focusing on cc side
+                  />
+                ))}
+              {isAdmin &&
+                pendingReports.map((report, index) => (
+                  <ReportCard key={index} report={report} />
+                ))}
+              {activeFilterType === FilterCardType.Users &&
+                users?.map((user, index) => (
+                  <UserListCard key={index} user={user} />
+                ))}
             </View>
           ) : (
             <EmptyPlaceholder />
@@ -381,7 +498,7 @@ const HomeScreen = () => {
                 </ScrollView>
               </View>
             )}
-            
+
             {isBusinessPeople && (
               <View style={[flex.flexCol, gap.default]}>
                 <HorizontalPadding>
@@ -490,47 +607,73 @@ const HomeScreen = () => {
               </View>
             </HorizontalPadding>
           )} */}
-        </SearchAutocompletePlaceholder>
-      </ScrollView>
-      {isBusinessPeople && (
-        <View
-          style={[
-            {
-              position: 'absolute',
-              bottom: 20,
-              right: 20,
-            },
-          ]}>
-          <AnimatedPressable
-            onPress={() =>
-              navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-            }>
-            <View
-              style={[
-                shadow.large,
-                background(COLOR.green[50]),
-                padding.default,
-                rounded.max,
-              ]}>
-              <Edit width={20} height={20} color={'white'} />
-            </View>
-          </AnimatedPressable>
-        </View>
-      )}
+        </ScrollView>
+        {isBusinessPeople && (
+          <View
+            style={[
+              {
+                position: 'absolute',
+                bottom: 20,
+                right: 20,
+              },
+            ]}>
+            <AnimatedPressable
+              onPress={() =>
+                navigation.navigate(AuthenticatedNavigation.CreateCampaign)
+              }>
+              <View
+                style={[
+                  shadow.large,
+                  background(COLOR.green[50]),
+                  padding.default,
+                  rounded.max,
+                ]}>
+                <Edit width={20} height={20} color={'white'} />
+              </View>
+            </AnimatedPressable>
+          </View>
+        )}
+      </SearchAutocompletePlaceholder>
       <WarningModal />
     </View>
   );
 };
 
-const FilterPanel = () => {
-  const [filterStep, setFilterStep] = useState<
-    CampaignStep | TransactionStatus
-  >(CampaignStep.Brainstorming);
+type FilterType = CampaignStep | undefined;
+
+interface FilterPanelProps {
+  initialFilter: FilterType;
+  onFilterChange: (filter: FilterType) => void;
+}
+
+const filterStepLabelMap: {[key in CampaignStep]?: string} = {
+  [CampaignStep.Registration]: `${CampaignStep.Registration} · ${TransactionStatus.offering}`,
+  [CampaignStep.Brainstorming]: CampaignStep.Brainstorming,
+  [CampaignStep.ContentCreation]: CampaignStep.ContentCreation,
+  [CampaignStep.ResultSubmission]: CampaignStep.ResultSubmission,
+};
+
+const FilterPanel = ({initialFilter, onFilterChange}: FilterPanelProps) => {
+  const [filterStep, setFilterStep] = useState<FilterType>(initialFilter);
   const filterSteps = [
+    CampaignStep.Registration,
     CampaignStep.Brainstorming,
     CampaignStep.ContentCreation,
     CampaignStep.ResultSubmission,
   ];
+
+  useEffect(() => {
+    onFilterChange(filterStep);
+  }, [filterStep, onFilterChange]);
+
+  const onSelectFilter = (filter: FilterType) => {
+    if (filterStep !== filter) {
+      setFilterStep(filter);
+      return;
+    }
+    setFilterStep(undefined);
+  };
+
   return (
     <ScrollView
       horizontal
@@ -541,16 +684,11 @@ const FilterPanel = () => {
         gap.default,
         padding.horizontal.default,
       ]}>
-      <SelectableTag
-        text={TransactionStatus.offerRejected}
-        onPress={() => setFilterStep(TransactionStatus.offerRejected)}
-        isSelected={filterStep === TransactionStatus.offerRejected}
-      />
       {filterSteps.map(step => (
         <SelectableTag
           key={step}
-          text={step}
-          onPress={() => setFilterStep(step)}
+          text={filterStepLabelMap[step] || ''}
+          onPress={() => onSelectFilter(step)}
           isSelected={filterStep === step}
         />
       ))}

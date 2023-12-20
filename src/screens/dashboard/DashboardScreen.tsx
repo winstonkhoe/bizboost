@@ -37,7 +37,7 @@ import {
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {border} from '../../styles/Border';
-import RegisteredUserListCard from '../../components/molecules/RegisteredUserListCard';
+import TransactionCard from '../../components/molecules/TransactionCard';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 import {currencyFormat} from '../../utils/currency';
 import SelectableTag from '../../components/atoms/SelectableTag';
@@ -149,7 +149,7 @@ const DashboardScreen = () => {
             flex.flexCol,
             gap.default,
           ]}>
-          
+
         </ScrollView>
       </View>
     </>

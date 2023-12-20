@@ -9,7 +9,7 @@ import {gap} from '../../styles/Gap';
 import {shadow} from '../../styles/Shadow';
 import {background} from '../../styles/BackgroundColor';
 import FastImage from 'react-native-fast-image';
-import {BaseCard} from './RegisteredUserListCard';
+import {BaseCard} from './TransactionCard';
 import {useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,

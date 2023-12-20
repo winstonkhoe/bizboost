@@ -23,7 +23,7 @@ import {textColor} from '../../styles/Text';
 import {dimension} from '../../styles/Dimension';
 import {formatToRupiah} from '../../utils/currency';
 import {useCategory} from '../../hooks/category';
-import {BaseCard} from './RegisteredUserListCard';
+import {BaseCard} from './TransactionCard';
 type Props = {
   campaign: Campaign;
 };

@@ -48,7 +48,7 @@ type Props = {
   transaction: Transaction;
   role?: UserRole;
 };
-const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
+const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [review, setReview] = useState<Review | null>();
@@ -449,15 +449,15 @@ export const BaseCard = ({
 };
 // END MARK
 
-const RegisteredUserListCard = ({transaction, role}: Props) => {
+const TransactionCard = ({transaction, role}: Props) => {
   if (role === UserRole.BusinessPeople) {
-    return <BusinessPeopleTransactionsCard transaction={transaction} />;
+    return <BusinessPeopleTransactionCard transaction={transaction} />;
   } else {
     return <ContentCreatorTransactionCard transaction={transaction} />;
   }
 };
 
-export default RegisteredUserListCard;
+export default TransactionCard;
 
 const styles = StyleSheet.create({
   bottomBorder: {

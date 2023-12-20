@@ -183,7 +183,7 @@ export class Campaign extends BaseModel {
       }
       return campaigns.docs.map(this.fromSnapshot);
     } catch (error) {
-      throw Error('Error!');
+      throw Error('Campaign.getUserCampaigns err' + error);
     }
   }
 
