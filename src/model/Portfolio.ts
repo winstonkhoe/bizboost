@@ -71,6 +71,7 @@ export class Portfolio extends BaseModel {
     return this.getCollectionReference().doc(documentId);
   }
 
+  // TODO: gakepake
   static async setPortfolio(
     documentId: string,
     data: Portfolio,
@@ -80,6 +81,7 @@ export class Portfolio extends BaseModel {
     });
   }
 
+  // TODO: gakepake
   static async getById(documentId: string): Promise<Portfolio | undefined> {
     const snapshot = await this.getDocumentReference(documentId).get();
     if (snapshot.exists) {

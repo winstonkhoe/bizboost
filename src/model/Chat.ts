@@ -264,6 +264,7 @@ export class Chat extends BaseModel {
 
 export interface ChatView {
   chat: Chat;
+  // TODO: extract jadi interface lg
   recipient?: {
     fullname?: string;
     profilePicture?: string;

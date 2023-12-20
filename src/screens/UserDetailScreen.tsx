@@ -78,6 +78,7 @@ const UserDetailScreen = ({route}: Props) => {
     return <Text>Error</Text>;
   }
 
+  // TODO: show success message
   const onSuspendButtonClick = async () => {
     if (user.status === UserStatus.Active) {
       await user.suspend();
