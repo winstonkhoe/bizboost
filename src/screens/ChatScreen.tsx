@@ -39,6 +39,7 @@ import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {Campaign} from '../model/Campaign';
 import OfferActionModal from '../components/molecules/OfferActionsModal';
 import {MeatballMenuIcon} from '../components/atoms/Icon';
+import {padding} from '../styles/Padding';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -250,16 +251,13 @@ const ChatScreen = ({route}: Props) => {
             <View style={[flex.flexCol, gap.default]} className="py-3">
               {chatMessages &&
                 chatMessages.map((message: Message, index: number) => (
-                  <HorizontalPadding key={index} paddingSize="xsmall2">
-                    <View className="w-full px-3">
-                      <ChatBubble
-                        key={index}
-                        message={message.message}
-                        isSender={message.role === activeRole}
-                        type={message.type}
-                      />
-                    </View>
-                  </HorizontalPadding>
+                  <View key={index} style={[padding.horizontal.default]}>
+                    <ChatBubble
+                      key={index}
+                      message={message}
+                      isSender={message.role === activeRole}
+                    />
+                  </View>
                 ))}
             </View>
           </Pressable>
