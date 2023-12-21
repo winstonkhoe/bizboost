@@ -67,7 +67,7 @@ export const OfferDetailScreen = ({route}: Props) => {
     });
   }, []);
 
-  const acceptOffer = () => {
+  const onAcceptOfferClicked = () => {
     if (offer) {
       offer.accept().then(acc => {
         const transaction = new Transaction({
@@ -100,7 +100,7 @@ export const OfferDetailScreen = ({route}: Props) => {
     }
   };
 
-  const declineOffer = () => {
+  const onRejectOfferClicked = () => {
     if (offer) {
       offer.reject().then(() => {
         const transaction = new Transaction({
@@ -314,7 +314,7 @@ export const OfferDetailScreen = ({route}: Props) => {
                     }
                     text="Accept"
                     approveButtonText="Accept"
-                    onApprove={() => acceptOffer()}
+                    onApprove={() => onAcceptOfferClicked()}
                   />
                   <CustomButton
                     type="secondary"
@@ -371,7 +371,7 @@ export const OfferDetailScreen = ({route}: Props) => {
                     }}
                     text="Reject"
                     approveButtonText="Reject"
-                    onApprove={() => declineOffer()}
+                    onApprove={() => onRejectOfferClicked()}
                   />
                 </View>
               )
@@ -414,7 +414,7 @@ export const OfferDetailScreen = ({route}: Props) => {
                   }
                   text="Accept"
                   approveButtonText="Accept"
-                  onApprove={() => acceptOffer()}
+                  onApprove={() => onAcceptOfferClicked()}
                 />
                 <CustomButton
                   type="secondary"
@@ -462,7 +462,7 @@ export const OfferDetailScreen = ({route}: Props) => {
                   }}
                   text="Reject"
                   approveButtonText="Reject"
-                  onApprove={() => declineOffer()}
+                  onApprove={() => onRejectOfferClicked()}
                 />
               </View>
             ) : (
