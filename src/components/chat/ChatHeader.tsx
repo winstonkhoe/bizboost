@@ -9,6 +9,15 @@ import {
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import FastImage from 'react-native-fast-image';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
+import {BackButtonLabel} from '../atoms/Header';
+import {rounded} from '../../styles/BorderRadius';
+import {overflow} from '../../styles/Overflow';
+import {dimension} from '../../styles/Dimension';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {flex, items} from '../../styles/Flex';
+import {padding} from '../../styles/Padding';
 
 interface Props {
   recipientName: string;
@@ -22,28 +31,31 @@ const ChatHeader = ({recipientName, recipientPicture}: Props) => {
     navigation.navigate(AuthenticatedNavigation.Main);
   };
 
-  let profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
-
-  if (recipientPicture) {
-    profilePictureSource = {uri: recipientPicture};
-  }
-
   return (
     <View
-      className="h-16 w-full flex flex-row items-center justify-start px-2 border-b-[0.5px] border-gray-400 "
-      style={[gap.default]}>
+      style={[
+        flex.flex1,
+        flex.flexRow,
+        items.center,
+        gap.default,
+        padding.default,
+        {
+          borderBottomColor: COLOR.black[20],
+          borderBottomWidth: 1,
+        },
+      ]}>
       <TouchableOpacity onPress={handleBackButtonPress}>
         <BackNav width={30} height={20} color={COLOR.black[100]} />
       </TouchableOpacity>
-      <View className="w-10 h-10 rounded-full overflow-hidden">
+      <View style={[rounded.max, overflow.hidden, dimension.square.xlarge]}>
         <FastImage
-          source={profilePictureSource}
-          className="w-full h-full object-cover"
+          source={getSourceOrDefaultAvatar({
+            uri: recipientPicture,
+          })}
+          style={[dimension.full]}
         />
       </View>
-      <View className="flex flex-col">
-        <Text className="text-lg font-bold text-black">{recipientName}</Text>
-      </View>
+      <BackButtonLabel text={recipientName} />
     </View>
   );
 };

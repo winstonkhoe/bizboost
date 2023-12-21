@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useMemo} from 'react';
 import {
   View,
   ScrollView,
@@ -13,7 +13,7 @@ import ChatWidget from '../components/chat/ChatWidget';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 
 import {useUser} from '../hooks/user';
-import {flex} from '../styles/Flex';
+import {flex, justify, self} from '../styles/Flex';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
@@ -40,16 +40,29 @@ import {Campaign} from '../model/Campaign';
 import OfferActionModal from '../components/molecules/OfferActionsModal';
 import {MeatballMenuIcon} from '../components/atoms/Icon';
 import {padding} from '../styles/Padding';
+import {formatDateToDayMonthYear} from '../utils/date';
+import {font} from '../styles/Font';
+import {textColor} from '../styles/Text';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.ChatDetail
 >;
+
+interface DateGroupedMessages {
+  date: number;
+  messages: RoleGroupedMessages[];
+}
+
+interface RoleGroupedMessages {
+  role: UserRole;
+  messages: Message[];
+}
+
 const ChatScreen = ({route}: Props) => {
   const {chat, recipient} = route.params;
   const [chatData, setChatData] = useState<Chat>(chat);
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {user, activeRole} = useUser();
 
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
@@ -96,11 +109,61 @@ const ChatScreen = ({route}: Props) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (chatData.messages) {
-      setChatMessages(chatData.messages);
-    }
-  }, [chatData.messages]);
+  const dateGroupedMessages = useMemo(
+    () =>
+      chatData.messages.reduce((acc, message) => {
+        const messageDate = new Date(message.createdAt);
+        const normalizedMessageDate = new Date(
+          messageDate.getFullYear(),
+          messageDate.getMonth(),
+          messageDate.getDate(),
+        );
+        const addNewDateEntry = () => {
+          acc.push({
+            date: normalizedMessageDate.getTime(),
+            messages: [
+              {
+                role: message.role,
+                messages: [message],
+              },
+            ],
+          });
+        };
+        const addNewRoleEntry = () => {
+          acc[acc.length - 1].messages.push({
+            role: message.role,
+            messages: [message],
+          });
+        };
+        const appendRoleEntry = () => {
+          acc[acc.length - 1].messages[
+            acc[acc.length - 1].messages.length - 1
+          ].messages.push(message);
+        };
+
+        if (acc.length === 0) {
+          addNewDateEntry();
+          return acc;
+        }
+        const lastDateGroupedMessages = acc[acc.length - 1];
+        if (lastDateGroupedMessages.date !== normalizedMessageDate.getTime()) {
+          addNewDateEntry();
+          return acc;
+        }
+        const lastRoleGroupedMessages =
+          lastDateGroupedMessages.messages[
+            lastDateGroupedMessages.messages.length - 1
+          ];
+
+        if (lastRoleGroupedMessages.role !== message.role) {
+          addNewRoleEntry();
+          return acc;
+        }
+        appendRoleEntry();
+        return acc;
+      }, [] as DateGroupedMessages[]),
+    [chatData.messages],
+  );
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -168,9 +231,9 @@ const ChatScreen = ({route}: Props) => {
     <SafeAreaContainer enable>
       <View
         className="h-full w-full"
-        style={[flex.flexCol, background(COLOR.white)]}>
+        style={[flex.flexCol, background(COLOR.background.neutral.default)]}>
         {/* Chat Header */}
-        <View className="items-center justify-start" style={[flex.flexRow]}>
+        <View style={[flex.flexRow]}>
           <ChatHeader
             recipientName={recipient.fullname ?? ''}
             recipientPicture={recipient.profilePicture ?? ''}
@@ -179,62 +242,56 @@ const ChatScreen = ({route}: Props) => {
 
         {/* Floating Tab */}
         {offers && offers.length > 0 && (
-          <View className="w-full relative z-10">
-            <View>
-              <ScrollView
-                scrollEnabled={isExpanded}
-                style={[flex.flexCol, isExpanded ? styles.scroll : null]}>
+          <View className="w-full relative">
+            <ScrollView
+              scrollEnabled={isExpanded}
+              style={[flex.flexCol, isExpanded ? styles.scroll : null]}>
+              <View
+                style={flex.flexCol}
+                className="px-1 pt-1 rounded-t-md z-50">
                 <View
                   style={flex.flexCol}
-                  className="px-1 pt-1 rounded-t-md z-50">
-                  <View
-                    style={flex.flexCol}
-                    className="bg-gray-100 pt-3 pb-1 z-30 rounded-md">
-                    <OfferCard
-                      offer={offers[0]}
-                      businessPeople={businessPeople || ''}
-                      contentCreator={contentCreator || ''}
-                      toggleExpansion={toggleExpansion}
-                      setIsModalOpened={setIsModalOpened}
-                      setSelectedOffer={setSelectedOffer}
-                      isExpanded={isExpanded}
-                    />
+                  className="bg-gray-100 pt-3 pb-1 z-30 rounded-md">
+                  <OfferCard
+                    offer={offers[0]}
+                    businessPeople={businessPeople || ''}
+                    contentCreator={contentCreator || ''}
+                    toggleExpansion={toggleExpansion}
+                    setIsModalOpened={setIsModalOpened}
+                    setSelectedOffer={setSelectedOffer}
+                    isExpanded={isExpanded}
+                  />
 
-                    {isExpanded &&
-                      offers.length > 1 &&
-                      offers
-                        .slice(1)
-                        .map(
-                          offer =>
-                            activeRole && (
-                              <OfferCard
-                                key={offer.id}
-                                offer={offer}
-                                businessPeople={businessPeople || ''}
-                                contentCreator={contentCreator || ''}
-                                setIsModalOpened={setIsModalOpened}
-                                setSelectedOffer={setSelectedOffer}
-                              />
-                            ),
-                        )}
-                  </View>
+                  {isExpanded &&
+                    offers.length > 1 &&
+                    offers
+                      .slice(1)
+                      .map(
+                        offer =>
+                          activeRole && (
+                            <OfferCard
+                              key={offer.id}
+                              offer={offer}
+                              businessPeople={businessPeople || ''}
+                              contentCreator={contentCreator || ''}
+                              setIsModalOpened={setIsModalOpened}
+                              setSelectedOffer={setSelectedOffer}
+                            />
+                          ),
+                      )}
                 </View>
-              </ScrollView>
-              {isExpanded && offers.length > 1 && (
-                <View className="px-1 rounded-b-md">
-                  <TouchableOpacity
-                    style={flex.flexRow}
-                    className="bg-gray-100 border-t border-t-zinc-300 justify-end items-center px-3 py-3"
-                    onPress={toggleExpansion}>
-                    <ChevronUp
-                      width={20}
-                      height={10}
-                      color={COLOR.black[100]}
-                    />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+              </View>
+            </ScrollView>
+            {isExpanded && offers.length > 1 && (
+              <View className="px-1 rounded-b-md">
+                <TouchableOpacity
+                  style={flex.flexRow}
+                  className="bg-gray-100 border-t border-t-zinc-300 justify-end items-center px-3 py-3"
+                  onPress={toggleExpansion}>
+                  <ChevronUp width={20} height={10} color={COLOR.black[100]} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
@@ -242,28 +299,86 @@ const ChatScreen = ({route}: Props) => {
         <ScrollView
           // className={`offers ${offers && offers.length > 0 ? 'mt-24' : ''}`}
           ref={scrollViewRef}
+          style={[flex.flex1]}
           onContentSizeChange={() => {
             if (scrollViewRef.current) {
               scrollViewRef.current?.scrollToEnd({animated: true});
             }
-          }}>
-          <Pressable onPress={() => setIsWidgetVisible(false)}>
-            <View style={[flex.flexCol, gap.default]} className="py-3">
-              {chatMessages &&
-                chatMessages.map((message: Message, index: number) => (
-                  <View key={index} style={[padding.horizontal.default]}>
-                    <ChatBubble
-                      key={index}
-                      message={message}
-                      isSender={message.role === activeRole}
-                    />
-                  </View>
-                ))}
-            </View>
-          </Pressable>
+          }}
+          stickyHeaderIndices={dateGroupedMessages.map((_, index) => index * 2)}
+          contentContainerStyle={[
+            flex.flexCol,
+            gap.large,
+            padding.bottom.default,
+          ]}>
+          {dateGroupedMessages.map(
+            (dateGroupedMessage: DateGroupedMessages) => [
+              <View
+                key={`${dateGroupedMessage.date}-date`}
+                style={[flex.flexRow, justify.center, padding.top.default]}>
+                <View
+                  style={[
+                    self.center,
+                    background(COLOR.absoluteBlack[70], 0.5),
+                    padding.horizontal.default,
+                    padding.vertical.small,
+                    rounded.medium,
+                  ]}>
+                  <Text
+                    style={[
+                      self.center,
+                      font.size[10],
+                      textColor(COLOR.absoluteBlack[0]),
+                      font.weight.medium,
+                    ]}>
+                    {formatDateToDayMonthYear(
+                      new Date(dateGroupedMessage.date),
+                    )}
+                  </Text>
+                </View>
+              </View>,
+              <View
+                key={`${dateGroupedMessage.date}-chats`}
+                style={[padding.horizontal.default, flex.flexCol, gap.default]}>
+                {dateGroupedMessage.messages.map(
+                  (
+                    roleGroupedMessage: RoleGroupedMessages,
+                    roleGroupedMessageIndex,
+                  ) => (
+                    <View
+                      key={roleGroupedMessageIndex}
+                      style={[flex.flexCol, gap.xsmall]}>
+                      {roleGroupedMessage.messages.map(
+                        (message: Message, messageIndex) => (
+                          <ChatBubble
+                            key={messageIndex}
+                            message={message}
+                            isSender={message.role === activeRole}
+                            isStart={messageIndex === 0}
+                            isLast={
+                              messageIndex ===
+                              roleGroupedMessage.messages.length - 1
+                            }
+                          />
+                        ),
+                      )}
+                    </View>
+                  ),
+                )}
+              </View>,
+            ],
+          )}
         </ScrollView>
 
-        <View className="py-4 border-t-[0.5px]">
+        <View
+          style={[
+            flex.flexCol,
+            padding.vertical.default,
+            {
+              borderTopColor: COLOR.black[20],
+              borderTopWidth: 1,
+            },
+          ]}>
           {/* Chat Input Bar */}
           <ChatInputBar
             onSendPress={handleSendPress}
@@ -273,12 +388,10 @@ const ChatScreen = ({route}: Props) => {
 
           {/* Chat Widget */}
           {isWidgetVisible ? (
-            <View className="w-full" style={{height: 100}}>
+            <View style={[flex.grow]}>
               <ChatWidget
                 options={{
-                  width: 400,
-                  height: 400,
-                  cropping: true,
+                  cropping: false,
                 }}
                 handleImageUpload={handleImageUpload}
                 handleMakeOffer={handleMakeOffer}

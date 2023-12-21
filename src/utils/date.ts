@@ -110,14 +110,19 @@ export const formatDateToDayMonthYearHourMinute = (date: Date): string => {
   return `${date.toLocaleDateString('en-US', options)} WIB`;
 };
 
-export const formatDateToHourMinute = (date: Date): string => {
+export const formatDateToHourMinute = (
+  date: Date,
+  withZone: boolean = true,
+): string => {
   const options = {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
     timeZone: 'Asia/Jakarta',
   } as const;
-  return `${date.toLocaleTimeString('en-US', options)} WIB`;
+  return `${date.toLocaleTimeString('en-US', options)}${
+    withZone ? ' WIB' : ''
+  }`;
 };
 
 export const formatDateToTime12Hrs = (date: Date): string => {

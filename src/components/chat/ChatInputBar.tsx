@@ -1,8 +1,16 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, TouchableOpacity} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, Platform} from 'react-native';
 import SendButton from '../../assets/vectors/send.svg';
 import Keyboard from '../../assets/vectors/keyboard.svg';
 import {gap} from '../../styles/Gap';
+import {background} from '../../styles/BackgroundColor';
+import {COLOR} from '../../styles/Color';
+import {flex, items} from '../../styles/Flex';
+import {padding} from '../../styles/Padding';
+import {font} from '../../styles/Font';
+import {textColor} from '../../styles/Text';
+import {border} from '../../styles/Border';
+import {rounded} from '../../styles/BorderRadius';
 
 interface Props {
   onSendPress: (message: string) => void;
@@ -29,32 +37,50 @@ const ChatInputBar = ({
 
   return (
     <View
-      className="bg-white flex flex-row items-center px-3"
-      style={gap.default}>
-      {isWidgetVisible ? (
-        <TouchableOpacity onPress={onOpenWidgetPress}>
-          <Keyboard width={20} height={20} />
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity onPress={onOpenWidgetPress}>
-          <Text className="text-3xl">+</Text>
-        </TouchableOpacity>
-      )}
+      style={[
+        flex.flexRow,
+        items.center,
+        padding.horizontal.default,
+        gap.default,
+        background(COLOR.background.neutral.default),
+      ]}>
+      <TouchableOpacity onPress={onOpenWidgetPress}>
+        {isWidgetVisible ? (
+          <Keyboard width={20} height={20} color={COLOR.text.neutral.high} />
+        ) : (
+          <Text style={[font.size[80], textColor(COLOR.text.neutral.med)]}>
+            +
+          </Text>
+        )}
+      </TouchableOpacity>
       <TextInput
-        style={{
-          flex: 1,
-          borderWidth: 1,
-          borderColor: 'gray',
-          borderRadius: 10,
-          padding: 10,
-        }}
+        style={[
+          flex.flex1,
+          border({
+            borderWidth: 1,
+            color: COLOR.black[25],
+            opacity: 0.7,
+          }),
+          rounded.medium,
+          padding.horizontal.default,
+          padding.vertical.default,
+          font.size[20],
+          font.lineHeight[20],
+          Platform.OS === 'android' && [padding.vertical.small],
+        ]}
         value={message}
         onChangeText={text => setMessage(text)}
         placeholder="Type a message"
       />
       <TouchableOpacity onPress={handleSendPress}>
-        <View style={sendButtonStyle} className="bg-gray-300 p-2 rounded-full">
-          <SendButton className="text-white" width={20} height={20} />
+        <View
+          style={[
+            !!message && [background(COLOR.green[50])],
+            !message && [background(COLOR.black[20])],
+            rounded.max,
+            padding.small,
+          ]}>
+          <SendButton width={20} height={20} color={COLOR.absoluteBlack[0]} />
         </View>
       </TouchableOpacity>
     </View>
