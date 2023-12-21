@@ -10,6 +10,10 @@ import {
 import {User} from '../../model/User';
 import {useUser} from '../../hooks/user';
 import {gap} from '../../styles/Gap';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {dimension} from '../../styles/Dimension';
+import {rounded} from '../../styles/BorderRadius';
+import { getTimeAgo } from '../../utils/date';
 
 interface ChatItemProps {
   chat: Chat;
@@ -17,51 +21,57 @@ interface ChatItemProps {
 
 const ChatItem = ({chat}: ChatItemProps) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const {isBusinessPeople} = useUser();
+  const {isBusinessPeople, isContentCreator} = useUser();
 
   const profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
   const [recipient, setRecipient] = useState<Recipient>();
 
   useEffect(() => {
     if (isBusinessPeople) {
-      User.getById(chat.contentCreatorId || '').then(u =>
-        setRecipient({
-          fullname: u?.contentCreator?.fullname || '',
-          profilePicture: u?.contentCreator?.profilePicture || '',
-        }),
-      );
-    } else {
-      User.getById(chat.businessPeopleId || '').then(u =>
-        setRecipient({
-          fullname: u?.businessPeople?.fullname || '',
-          profilePicture: u?.businessPeople?.profilePicture || '',
-        }),
-      );
+      if (chat.contentCreatorId) {
+        User.getById(chat.contentCreatorId || '').then(u =>
+          setRecipient({
+            fullname: u?.contentCreator?.fullname || '',
+            profilePicture: u?.contentCreator?.profilePicture || '',
+          }),
+        );
+      }
     }
-  }, [isBusinessPeople]);
+    if (isContentCreator) {
+      if (chat.businessPeopleId) {
+        User.getById(chat.businessPeopleId || '').then(u =>
+          setRecipient({
+            fullname: u?.businessPeople?.fullname || '',
+            profilePicture: u?.businessPeople?.profilePicture || '',
+          }),
+        );
+      }
+    }
+  }, [isBusinessPeople, isContentCreator, chat]);
 
   console.log('role:' + isBusinessPeople + ' rec:' + JSON.stringify(recipient));
+  console.log('chat:' + chat);
 
   return (
     <Pressable
       onPress={() => {
-        navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-          chat: chat,
-          recipient: recipient,
-        });
+        if (recipient) {
+          navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+            chat: chat,
+            recipient: recipient,
+          });
+        }
       }}>
-      <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
+      <View className="flex flex-row items-center p-4 border-y border-gray-300">
         <View style={gap.default} className="flex flex-row h-full">
-          <View className="w-12 h-12 rounded-full overflow-hidden">
+          <View
+            className="overflow-hidden"
+            style={[dimension.square.xlarge2, rounded.max]}>
             <FastImage
-              source={
-                recipient?.profilePicture
-                  ? {
-                      uri: recipient?.profilePicture,
-                    }
-                  : profilePictureSource
-              }
-              className="w-full h-full object-cover"
+              style={[dimension.full]}
+              source={getSourceOrDefaultAvatar({
+                uri: recipient?.profilePicture,
+              })}
             />
           </View>
           <View className="h-full">
@@ -76,7 +86,7 @@ const ChatItem = ({chat}: ChatItemProps) => {
           </View>
         </View>
         {chat.messages && chat.messages.length > 0 && (
-          <View className="flex h-full">
+          <View>
             <Text>
               {chat.messages.length > 0 &&
               chat.messages[chat.messages.length - 1].createdAt
