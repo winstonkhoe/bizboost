@@ -69,18 +69,12 @@ export class Chat extends BaseModel {
     const data = doc.data();
     if (data && doc.exists) {
       console.log('[Chat:fromSnapshot] data: ' + data);
-      const messages: Message[] = data.messages?.map((messageData: any) => ({
-        message: messageData.message,
-        type: messageData.type,
-        role: messageData.role,
-        createdAt: messageData.createdAt.seconds,
-      }));
 
       return new Chat({
         id: doc.id,
         businessPeopleId: data.businessPeopleId.id,
         contentCreatorId: data.contentCreatorId.id,
-        messages: messages,
+        messages: data.messages,
       });
     }
 

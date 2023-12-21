@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Pressable, View, Text} from 'react-native';
+import {Pressable, View, Text, StyleSheet} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import {useNavigation} from '@react-navigation/native';
 import {Chat, Recipient} from '../../model/Chat';
@@ -13,7 +13,13 @@ import {gap} from '../../styles/Gap';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
-import { getTimeAgo } from '../../utils/date';
+import {formatDateToHourMinute} from '../../utils/date';
+import {COLOR} from '../../styles/Color';
+import {padding} from '../../styles/Padding';
+import {flex, items} from '../../styles/Flex';
+import {textColor} from '../../styles/Text';
+import {font} from '../../styles/Font';
+import {overflow} from '../../styles/Overflow';
 
 interface ChatItemProps {
   chat: Chat;
@@ -22,8 +28,6 @@ interface ChatItemProps {
 const ChatItem = ({chat}: ChatItemProps) => {
   const navigation = useNavigation<NavigationStackProps>();
   const {isBusinessPeople, isContentCreator} = useUser();
-
-  const profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
   const [recipient, setRecipient] = useState<Recipient>();
 
   useEffect(() => {
@@ -49,9 +53,6 @@ const ChatItem = ({chat}: ChatItemProps) => {
     }
   }, [isBusinessPeople, isContentCreator, chat]);
 
-  console.log('role:' + isBusinessPeople + ' rec:' + JSON.stringify(recipient));
-  console.log('chat:' + chat);
-
   return (
     <Pressable
       onPress={() => {
@@ -62,44 +63,64 @@ const ChatItem = ({chat}: ChatItemProps) => {
           });
         }
       }}>
-      <View className="flex flex-row items-center p-4 border-y border-gray-300">
-        <View style={gap.default} className="flex flex-row h-full">
-          <View
-            className="overflow-hidden"
-            style={[dimension.square.xlarge2, rounded.max]}>
-            <FastImage
-              style={[dimension.full]}
-              source={getSourceOrDefaultAvatar({
-                uri: recipient?.profilePicture,
-              })}
-            />
-          </View>
-          <View className="h-full">
-            <Text className="text-lg font-bold">
-              {recipient ? recipient.fullname : 'User'}
-            </Text>
-            <Text numberOfLines={1} className="w-[70vw]">
-              {chat.messages && chat.messages.length > 0
-                ? chat.messages[chat.messages.length - 1].message
-                : ''}
-            </Text>
-          </View>
+      <View
+        style={[
+          flex.flexRow,
+          items.center,
+          styles.borderHorizontal,
+          padding.default,
+          gap.default,
+        ]}>
+        <View style={[dimension.square.xlarge2, rounded.max, overflow.hidden]}>
+          <FastImage
+            style={[dimension.full]}
+            source={getSourceOrDefaultAvatar({
+              uri: recipient?.profilePicture,
+            })}
+          />
+        </View>
+        <View style={[flex.flex1]}>
+          <Text
+            style={[
+              font.size[30],
+              font.weight.medium,
+              textColor(COLOR.text.neutral.high),
+            ]}>
+            {recipient ? recipient.fullname : 'User'}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+            {chat.messages && chat.messages.length > 0
+              ? chat.messages[chat.messages.length - 1].message
+              : ''}
+          </Text>
         </View>
         {chat.messages && chat.messages.length > 0 && (
           <View>
-            <Text>
-              {chat.messages.length > 0 &&
-              chat.messages[chat.messages.length - 1].createdAt
-                ? getTimeAgo(
-                    chat.messages[chat.messages.length - 1].createdAt || 0,
-                  )
-                : ''}
-            </Text>
+            {chat.messages.length > 0 &&
+              chat.messages[chat.messages.length - 1].createdAt && (
+                <Text
+                  style={[font.size[10], textColor(COLOR.text.neutral.med)]}>
+                  {formatDateToHourMinute(
+                    new Date(chat.messages[chat.messages.length - 1].createdAt),
+                  )}
+                </Text>
+              )}
           </View>
         )}
       </View>
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  borderHorizontal: {
+    borderStyle: 'solid',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: COLOR.black[20],
+  },
+});
 
 export default ChatItem;
