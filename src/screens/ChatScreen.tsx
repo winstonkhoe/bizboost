@@ -333,30 +333,30 @@ const ChatScreen = ({route}: Props) => {
             })}
           </ScrollView>
           {isExpanded && offers.length > 1 && (
-            <TouchableOpacity
+            <View
               style={[
-                flex.flexRow,
-                justify.end,
-                padding.default,
                 {
                   borderTopColor: COLOR.black[20],
                   borderTopWidth: 0.5,
                 },
-              ]}
-              onPress={toggleExpansion}>
-              <View
-                style={[
-                  {
-                    transform: [
-                      {
-                        rotate: '-90deg',
-                      },
-                    ],
-                  },
-                ]}>
-                <ChevronRight size="large" />
-              </View>
-            </TouchableOpacity>
+              ]}>
+              <TouchableOpacity
+                style={[flex.flexRow, justify.end, padding.default]}
+                onPress={toggleExpansion}>
+                <View
+                  style={[
+                    {
+                      transform: [
+                        {
+                          rotate: '-90deg',
+                        },
+                      ],
+                    },
+                  ]}>
+                  <ChevronRight size="large" />
+                </View>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       )}
