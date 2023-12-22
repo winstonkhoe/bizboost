@@ -19,78 +19,44 @@ export type Message = {
   createdAt: number;
 };
 
-export type Participant = {
-  ref: string;
-  role: string;
+export type Recipient = {
+  fullname: string;
+  profilePicture: string;
 };
 
 const CHAT_COLLECTION = 'chats';
 
 export class Chat extends BaseModel {
   id: string;
-  participants: Participant[];
+  businessPeopleId: string;
+  contentCreatorId: string;
   messages: Message[];
 
   constructor(data: Partial<Chat>) {
     super();
-    this.participants = data.participants || [];
     this.messages = data.messages || [];
-    this.id = this.generateId(this.participants);
+    this.businessPeopleId = data.businessPeopleId || '';
+    this.contentCreatorId = data.contentCreatorId || '';
+    this.id = this.generateId();
   }
 
-  private generateId(participants: Participant[]): string {
-    const businessPeopleRef =
-      participants.find(
-        participant => participant.role === UserRole.BusinessPeople,
-      )?.ref || '';
-
-    const contentCreatorRef =
-      participants.find(
-        participant => participant.role === UserRole.ContentCreator,
-      )?.ref || '';
-
-    const businessPeopleId = User.extractIdFromRef(businessPeopleRef);
-    const contentCreatorId = User.extractIdFromRef(contentCreatorRef);
-
-    const generatedId = `${businessPeopleId}${contentCreatorId}`;
-
-    return generatedId;
+  private generateId(): string {
+    return `${this.businessPeopleId}${this.contentCreatorId}`;
   }
 
-  static serialize(chat: Chat): any {
-    if (!chat) {
-      return null;
-    }
-
+  public serialize(): any {
     const messages: Message[] =
-      chat.messages?.map((messageData: any) => ({
+      this.messages?.map((messageData: any) => ({
         message: messageData.message,
         type: messageData.type,
         role: messageData.role,
         createdAt: messageData.createdAt,
       })) || [];
 
-    const participants: Participant[] =
-      chat.participants?.map((participantData: any) => {
-        const ref = participantData.ref;
-        const role = participantData.role;
-
-        const serializedParticipant: Participant = {
-          ref: ref,
-          role: role,
-        };
-
-        if (participantData.fullname || participantData.profilePicture) {
-          serializedParticipant.fullname = participantData.fullname;
-          serializedParticipant.profilePicture = participantData.profilePicture;
-        }
-
-        return serializedParticipant;
-      }) || [];
-
     return {
-      id: chat.id,
-      participants: participants,
+      id: this.id,
+      businessPeopleId: this.businessPeopleId,
+      contentCreatorId: this.contentCreatorId,
       messages: messages,
     };
   }
@@ -102,24 +68,18 @@ export class Chat extends BaseModel {
   ): Chat {
     const data = doc.data();
     if (data && doc.exists) {
-      console.log('[fromSnapshot] data: ' + data);
+      console.log('[Chat:fromSnapshot] data: ' + data);
       const messages: Message[] = data.messages?.map((messageData: any) => ({
         message: messageData.message,
         type: messageData.type,
         role: messageData.role,
         createdAt: messageData.createdAt.seconds,
       }));
-      console.log('[fromSnapshot] data.messages: ' + data.messages);
-
-      const participants: Participant[] = data.participants.map((p: any) => ({
-        ref: p.ref.id,
-        role: p.role,
-      }));
-      console.log('[fromSnapshot] data.participants: ' + data.participants);
 
       return new Chat({
         id: doc.id,
-        participants: participants,
+        businessPeopleId: data.businessPeopleId.id,
+        contentCreatorId: data.contentCreatorId.id,
         messages: messages,
       });
     }
@@ -148,17 +108,14 @@ export class Chat extends BaseModel {
       if (!id) {
         throw Error('Missing id');
       }
-
-      const participantRefs = this.participants.map(
-        (participant: Participant) => ({
-          ref: User.getDocumentReference(participant.ref),
-          role: participant.role,
-        }),
-      );
-
       const data = {
         ...rest,
-        participants: participantRefs,
+        businessPeopleId: User.getDocumentReference(
+          this.businessPeopleId ?? '',
+        ),
+        contentCreatorId: User.getDocumentReference(
+          this.contentCreatorId ?? '',
+        ),
       };
 
       await Chat.getDocumentReference(id).set(data);
@@ -168,34 +125,6 @@ export class Chat extends BaseModel {
     }
   }
 
-  // static getUserChatsReactive(
-  //   userId: string,
-  //   activeRole: string,
-  //   callback: (chats: Chat[], unsubscribe: () => void) => void,
-  // ): void {
-  //   try {
-  //     const userRef = User.getDocumentReference(userId);
-  //     const subscriber = this.getCollectionReference()
-  //       .where('participants', 'array-contains', {
-  //         ref: userRef,
-  //         role: activeRole,
-  //       })
-  //       .onSnapshot(
-  //         (
-  //           querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
-  //         ) => {
-  //           const userChats = this.fromQuerySnapshot(querySnapshots);
-  //           callback(userChats, subscriber);
-  //         },
-  //         (error: Error) => {
-  //           console.log('getUserChatsReactive error', error.message);
-  //         },
-  //       );
-  //   } catch (error) {
-  //     console.log('no access', error);
-  //   }
-  // }
-
   static getUserChatsReactive(
     userId: string,
     activeRole: string,
@@ -203,75 +132,72 @@ export class Chat extends BaseModel {
   ) {
     try {
       const userRef = User.getDocumentReference(userId);
-      const unsubscribe = this.getCollectionReference()
-        .where('participants', 'array-contains', {
-          ref: userRef,
-          role: activeRole,
-        })
-        .onSnapshot(
-          querySnapshots => {
-            callback(this.fromQuerySnapshot(querySnapshots));
-          },
-          (error: Error) => {
-            console.log('getUserChatsReactive error', error.message);
-          },
-        );
-      return unsubscribe;
+      console.log('Chat:getUserChatsReactive:', activeRole);
+
+      let fieldToCheck = '';
+      if (activeRole === UserRole.BusinessPeople) {
+        fieldToCheck = 'businessPeopleId';
+      } else if (activeRole === UserRole.ContentCreator) {
+        fieldToCheck = 'contentCreatorId';
+      }
+
+      if (fieldToCheck) {
+        const unsubscribe = this.getCollectionReference()
+          .where(fieldToCheck, '==', userRef)
+          .onSnapshot(
+            querySnapshots => {
+              callback(this.fromQuerySnapshot(querySnapshots));
+            },
+            (error: Error) => {
+              console.log('getUserChatsReactive error', error.message);
+            },
+          );
+
+        return unsubscribe;
+      } else {
+        console.log('Invalid role:', activeRole);
+        return () => {};
+      }
     } catch (error) {
       console.log('no access', error);
       return () => {};
     }
   }
 
-  async insertMessage(newMessage: Message) {
-    await ChatService.insertMessage(this.id || '', newMessage);
-  }
+  // async convertToChatView(currentRole: UserRole): Promise<ChatView> {
+  //   const cv: ChatView = {
+  //     chat: Chat.serialize(this),
+  //     recipient: {},
+  //   };
+  //   console.log('convertToChatView', this.toJSON());
 
-  async convertToChatView(currentRole: UserRole): Promise<ChatView> {
-    const cv: ChatView = {
-      chat: Chat.serialize(this),
-      recipient: {},
-    };
-    console.log('convertToChatView', this.toJSON());
+  //   for (const participant of this.participants || []) {
+  //     if (participant.role !== currentRole) {
+  //       const role = participant.role;
+  //       const ref = participant.ref;
+  //       console.log(ref);
 
-    for (const participant of this.participants || []) {
-      if (participant.role !== currentRole) {
-        const role = participant.role;
-        const ref = participant.ref;
-        console.log(ref);
+  //       const user = await User.getById(ref);
+  //       if (user) {
+  //         const fullname =
+  //           role === 'Business People'
+  //             ? user.businessPeople?.fullname
+  //             : user.contentCreator?.fullname;
+  //         const profilePicture =
+  //           role === 'Business People'
+  //             ? user.businessPeople?.profilePicture
+  //             : user.contentCreator?.profilePicture;
 
-        const user = await User.getById(ref);
-        if (user) {
-          const fullname =
-            role === 'Business People'
-              ? user.businessPeople?.fullname
-              : user.contentCreator?.fullname;
-          const profilePicture =
-            role === 'Business People'
-              ? user.businessPeople?.profilePicture
-              : user.contentCreator?.profilePicture;
+  //         if (cv.recipient) {
+  //           cv.recipient.fullname = fullname;
+  //           cv.recipient.profilePicture = profilePicture;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return cv;
+  // }
 
-          if (cv.recipient) {
-            cv.recipient.fullname = fullname;
-            cv.recipient.profilePicture = profilePicture;
-          }
-        }
-      }
-    }
-    return cv;
-  }
-}
-
-export interface ChatView {
-  chat: Chat;
-  // TODO: extract jadi interface lg
-  recipient?: {
-    fullname?: string;
-    profilePicture?: string;
-  };
-}
-
-export class ChatService {
   static async insertMessage(chatId: string, newMessage: Message) {
     try {
       const chatRef = Chat.getDocumentReference(chatId);
@@ -303,6 +229,21 @@ export class ChatService {
       message: message,
       role: activeRole,
       type: MessageType.Text,
+      createdAt: new Date().getTime(),
+    };
+
+    this.insertMessage(chatId, newMessage);
+  }
+
+  static async insertPhotoMessage(
+    chatId: string,
+    message: string,
+    activeRole: UserRole,
+  ) {
+    const newMessage: Message = {
+      message: message,
+      role: activeRole,
+      type: MessageType.Photo,
       createdAt: new Date().getTime(),
     };
 
@@ -354,3 +295,11 @@ export class ChatService {
     this.insertMessage(chatId, newMessage);
   }
 }
+
+// export interface ChatView {
+//   chat: Chat;
+//   recipient?: {
+//     fullname?: string;
+//     profilePicture?: string;
+//   };
+// }

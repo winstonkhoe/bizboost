@@ -16,7 +16,7 @@ import {CustomAlert} from './CustomAlert';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import {padding} from '../../styles/Padding';
-import {ChatService} from '../../model/Chat';
+import {Chat} from '../../model/Chat';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
 
 type Props = {
@@ -70,11 +70,9 @@ const OfferActionModal = ({
             } ${
               campaign?.title
             }. Transaction will begin after Business People have finished payment.`;
-            ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-              () => {
-                onModalDismiss();
-              },
-            );
+            Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
+              onModalDismiss();
+            });
           });
       });
     }
@@ -102,11 +100,9 @@ const OfferActionModal = ({
               : 'rejected offer for') +
             ' ' +
             campaign?.title;
-          ChatService.insertSystemMessage(bpId + ccId, text, activeRole).then(
-            () => {
-              onModalDismiss();
-            },
-          );
+          Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
+            onModalDismiss();
+          });
         });
       });
     }

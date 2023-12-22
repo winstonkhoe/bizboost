@@ -18,7 +18,7 @@ import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
-import {Chat, ChatService, Message, MessageType} from '../model/Chat';
+import {Chat, Message, MessageType} from '../model/Chat';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
@@ -45,8 +45,8 @@ type Props = NativeStackScreenProps<
   AuthenticatedNavigation.ChatDetail
 >;
 const ChatScreen = ({route}: Props) => {
-  const {chat} = route.params;
-  const [chatData, setChatData] = useState<Chat>(chat.chat);
+  const {chat, recipient} = route.params;
+  const [chatData, setChatData] = useState<Chat>(chat);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const {user, activeRole} = useUser();
@@ -59,7 +59,7 @@ const ChatScreen = ({route}: Props) => {
 
   // TODO: bikin Chat.getById
   useEffect(() => {
-    const chatRef = Chat.getDocumentReference(chat.chat.id ?? '');
+    const chatRef = Chat.getDocumentReference(chat.id ?? '');
 
     const unsubscribe = chatRef.onSnapshot(doc => {
       if (doc.exists) {
@@ -69,14 +69,7 @@ const ChatScreen = ({route}: Props) => {
     });
 
     return () => unsubscribe();
-  }, [chat.chat.id]);
-
-  const businessPeopleId = chat.chat.participants.find(
-    participant => participant.role === UserRole.BusinessPeople,
-  );
-  const contentCreatorId = chat.chat.participants.find(
-    participant => participant.role === UserRole.ContentCreator,
-  );
+  }, [chat.id]);
 
   useEffect(() => {
     if (offers.length === 1) {
@@ -86,8 +79,8 @@ const ChatScreen = ({route}: Props) => {
 
   useEffect(() => {
     const unsubscribe = Offer.getPendingOffersbyCCBP(
-      businessPeopleId?.ref ?? '',
-      contentCreatorId?.ref ?? '',
+      chat.businessPeopleId ?? '',
+      chat.contentCreatorId ?? '',
       res => {
         const sortedTransactions = res.sort(
           (a, b) => b.createdAt - a.createdAt,
@@ -101,11 +94,7 @@ const ChatScreen = ({route}: Props) => {
         unsubscribe();
       }
     };
-  }, [businessPeopleId, contentCreatorId]);
-
-  console.log('ChatScreen:offers:', offers);
-  console.log('ChatScreen:businessPeopleId:', businessPeopleId?.ref ?? '');
-  console.log('ChatScreen:contentCreatorId:', contentCreatorId?.ref ?? '');
+  }, []);
 
   useEffect(() => {
     if (chatData.messages) {
@@ -117,14 +106,7 @@ const ChatScreen = ({route}: Props) => {
 
   const handleSendPress = async (message: string) => {
     if (message !== '') {
-      const newMessage: Message = {
-        message: message,
-        role: activeRole,
-        type: MessageType.Text,
-        createdAt: new Date().getTime(),
-      };
-      await new Chat(chat.chat).insertMessage(newMessage);
-      setChatMessages([...chatMessages, newMessage]);
+      await Chat.insertOrdinaryMessage(chat.id, message, activeRole);
 
       // Scroll to the end of the ScrollView
       if (scrollViewRef.current) {
@@ -142,17 +124,8 @@ const ChatScreen = ({route}: Props) => {
   };
 
   const handleImageUpload = async (downloadURL: string) => {
-    // Create a new message with the image download URL
-    const newMessage: Message = {
-      message: downloadURL,
-      type: MessageType.Photo,
-      role: activeRole,
-      createdAt: new Date().getTime(),
-    };
-
     // Add the new message to the chatMessages state
-    setChatMessages([...chatMessages, newMessage]);
-    await new Chat(chat.chat).insertMessage(newMessage);
+    await Chat.insertPhotoMessage(chat.id, downloadURL, activeRole);
 
     // Scroll to the end of the ScrollView
     if (scrollViewRef.current) {
@@ -162,8 +135,8 @@ const ChatScreen = ({route}: Props) => {
 
   const handleMakeOffer = () => {
     navigation.navigate(AuthenticatedNavigation.MakeOffer, {
-      businessPeopleId: businessPeopleId?.ref ?? '',
-      contentCreatorId: contentCreatorId?.ref ?? '',
+      businessPeopleId: chat.businessPeopleId ?? '',
+      contentCreatorId: chat.contentCreatorId ?? '',
     });
   };
 
@@ -172,11 +145,11 @@ const ChatScreen = ({route}: Props) => {
   const businessPeople =
     activeRole === UserRole.BusinessPeople
       ? user?.businessPeople?.fullname
-      : chat.recipient?.fullname ?? '';
+      : recipient.fullname ?? '';
   const contentCreator =
     activeRole === UserRole.ContentCreator
       ? user?.contentCreator?.fullname
-      : chat.recipient?.fullname ?? '';
+      : recipient.fullname ?? '';
 
   const animatedHeight = new Animated.Value(isExpanded ? 200 : 60);
 
@@ -199,8 +172,8 @@ const ChatScreen = ({route}: Props) => {
         {/* Chat Header */}
         <View className="items-center justify-start" style={[flex.flexRow]}>
           <ChatHeader
-            recipientName={chat.recipient?.fullname ?? ''}
-            recipientPicture={chat.recipient?.profilePicture ?? ''}
+            recipientName={recipient.fullname ?? ''}
+            recipientPicture={recipient.profilePicture ?? ''}
           />
         </View>
 

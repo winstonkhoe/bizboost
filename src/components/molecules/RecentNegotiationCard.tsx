@@ -26,8 +26,14 @@ const RecentNegotiationCard = ({
   const [businessPeople, setBusinessPeople] = useState<User>();
 
   useEffect(() => {
-    Campaign.getByIdReactive(offer.campaignId || '', c => setCampaign(c));
-    User.getById(offer.businessPeopleId || '').then(u => setBusinessPeople(u));
+    if (offer.campaignId) {
+      Campaign.getByIdReactive(offer.campaignId, c => setCampaign(c));
+    }
+    if (offer.businessPeopleId) {
+      User.getById(offer.businessPeopleId).then(
+        u => u !== null && setBusinessPeople(u),
+      );
+    }
   }, []);
 
   return (
