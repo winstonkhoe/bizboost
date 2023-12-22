@@ -367,4 +367,16 @@ export class Offer extends BaseModel {
       );
     }
   }
+
+  isPending() {
+    return this.status === OfferStatus.pending;
+  }
+
+  isNegotiating() {
+    return this.status === OfferStatus.negotiate;
+  }
+
+  isNegotiationRejected() {
+    return this.status === OfferStatus.negotiateRejected;
+  }
 }

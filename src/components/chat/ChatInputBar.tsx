@@ -5,22 +5,23 @@ import Keyboard from '../../assets/vectors/keyboard.svg';
 import {gap} from '../../styles/Gap';
 import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
-import {flex, items} from '../../styles/Flex';
+import {flex, items, self} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
-import {font} from '../../styles/Font';
+import {font, lineHeight} from '../../styles/Font';
 import {textColor} from '../../styles/Text';
 import {border} from '../../styles/Border';
 import {rounded} from '../../styles/BorderRadius';
+import {size} from '../../styles/Size';
 
 interface Props {
   onSendPress: (message: string) => void;
-  onOpenWidgetPress: () => void;
+  onWidgetVisibilityChange: (visibility: boolean) => void;
   isWidgetVisible: boolean;
 }
 
 const ChatInputBar = ({
   onSendPress,
-  onOpenWidgetPress,
+  onWidgetVisibilityChange,
   isWidgetVisible,
 }: Props) => {
   const [message, setMessage] = useState('');
@@ -30,9 +31,8 @@ const ChatInputBar = ({
     setMessage(''); // Clear the input field after sending
   };
 
-  // Define a dynamic style for the send button view
-  const sendButtonStyle = {
-    backgroundColor: message ? '#2EA72B' : 'rgb(209 213 219)',
+  const dismissWidgetVisibility = () => {
+    onWidgetVisibilityChange(false);
   };
 
   return (
@@ -44,7 +44,11 @@ const ChatInputBar = ({
         gap.default,
         background(COLOR.background.neutral.default),
       ]}>
-      <TouchableOpacity onPress={onOpenWidgetPress}>
+      <TouchableOpacity
+        onPress={() => {
+          console.log('widgetVisibilityChange', !isWidgetVisible);
+          onWidgetVisibilityChange(!isWidgetVisible);
+        }}>
         {isWidgetVisible ? (
           <Keyboard width={20} height={20} color={COLOR.text.neutral.high} />
         ) : (
@@ -56,20 +60,25 @@ const ChatInputBar = ({
       <TextInput
         style={[
           flex.flex1,
+          {
+            maxHeight: lineHeight[20] * 5,
+          },
+          rounded.medium,
           border({
             borderWidth: 1,
             color: COLOR.black[25],
             opacity: 0.7,
           }),
-          rounded.medium,
-          padding.horizontal.default,
-          padding.vertical.default,
+          padding.default,
           font.size[20],
           font.lineHeight[20],
           Platform.OS === 'android' && [padding.vertical.small],
         ]}
+        multiline
+        textAlignVertical="center"
         value={message}
-        onChangeText={text => setMessage(text)}
+        onChangeText={setMessage}
+        onFocus={dismissWidgetVisibility}
         placeholder="Type a message"
       />
       <TouchableOpacity onPress={handleSendPress}>

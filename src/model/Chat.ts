@@ -210,101 +210,25 @@ export class Chat extends BaseModel {
   //   return cv;
   // }
 
-  static async insertMessage(chatId: string, newMessage: Message) {
+  static async insertMessage(
+    chatId: string,
+    type: MessageType,
+    role: UserRole,
+    message: string,
+  ) {
     try {
-      const chatRef = Chat.getDocumentReference(chatId);
-
-      const chatDoc = await chatRef.get();
-      if (chatDoc.exists) {
-        const chatData = chatDoc.data() as Chat;
-
-        const updatedMessages = chatData.messages || [];
-        updatedMessages.push(newMessage);
-
-        await chatRef.update({messages: updatedMessages});
-
-        console.log('Message inserted successfully');
-      } else {
-        console.error('Chat document does not exist');
-      }
+      await this.getDocumentReference(chatId).update({
+        messages: firestore.FieldValue.arrayUnion({
+          message: message,
+          role: role,
+          type: type,
+          createdAt: new Date().getTime(),
+        }),
+      });
     } catch (error) {
-      console.error('Error inserting message:', error);
+      console.error(error);
+      throw new Error('Chat.insertMessage error ' + error);
     }
-  }
-
-  static async insertOrdinaryMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Text,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
-  }
-
-  static async insertPhotoMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Photo,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
-  }
-
-  static async insertSystemMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.System,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
-  }
-
-  static async insertOfferMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Offer,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
-  }
-
-  static async insertNegotiateMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Negotiation,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
   }
 }
 

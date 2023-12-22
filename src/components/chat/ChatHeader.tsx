@@ -18,13 +18,14 @@ import {dimension} from '../../styles/Dimension';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {flex, items} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
+import {Recipient} from '../../model/Chat';
+import {SkeletonPlaceholder} from '../molecules/SkeletonPlaceholder';
 
-interface Props {
-  recipientName: string;
-  recipientPicture: string;
+interface ChatHeaderProps {
+  recipient: Recipient | null;
 }
 
-const ChatHeader = ({recipientName, recipientPicture}: Props) => {
+const ChatHeader = ({recipient}: ChatHeaderProps) => {
   const navigation = useNavigation<NavigationStackProps>();
 
   const handleBackButtonPress = () => {
@@ -34,7 +35,6 @@ const ChatHeader = ({recipientName, recipientPicture}: Props) => {
   return (
     <View
       style={[
-        flex.flex1,
         flex.flexRow,
         items.center,
         gap.default,
@@ -47,15 +47,19 @@ const ChatHeader = ({recipientName, recipientPicture}: Props) => {
       <TouchableOpacity onPress={handleBackButtonPress}>
         <BackNav width={30} height={20} color={COLOR.black[100]} />
       </TouchableOpacity>
-      <View style={[rounded.max, overflow.hidden, dimension.square.xlarge]}>
-        <FastImage
-          source={getSourceOrDefaultAvatar({
-            uri: recipientPicture,
-          })}
-          style={[dimension.full]}
-        />
-      </View>
-      <BackButtonLabel text={recipientName} />
+      <SkeletonPlaceholder isLoading={!recipient?.profilePicture}>
+        <View style={[rounded.max, overflow.hidden, dimension.square.xlarge]}>
+          <FastImage
+            source={getSourceOrDefaultAvatar({
+              uri: recipient?.profilePicture,
+            })}
+            style={[dimension.full]}
+          />
+        </View>
+      </SkeletonPlaceholder>
+      <SkeletonPlaceholder isLoading={!recipient?.fullname}>
+        <BackButtonLabel text={recipient?.fullname || ''} />
+      </SkeletonPlaceholder>
     </View>
   );
 };

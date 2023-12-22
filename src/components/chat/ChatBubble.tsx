@@ -43,7 +43,11 @@ const ChatBubble = ({
         !isSystemMessage && !isSender && [flex.flexRow],
       ]}>
       {!isSystemMessage && [
-        <BubbleContainer isSender={isSender} isStart={isStart} isLast={isLast}>
+        <BubbleContainer
+          key={`chat-container-${message.createdAt}`}
+          isSender={isSender}
+          isStart={isStart}
+          isLast={isLast}>
           {isTextMessage && (
             <Text
               style={[
@@ -56,14 +60,14 @@ const ChatBubble = ({
           )}
           {isOfferMessage && (
             <>
-              <Text style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+              <Text style={[textColor(COLOR.absoluteBlack[90]), font.size[30]]}>
                 Made an offer
               </Text>
               <Text
                 style={[
                   font.size[30],
                   font.weight.bold,
-                  textColor(COLOR.text.neutral.high),
+                  textColor(COLOR.absoluteBlack[90]),
                 ]}>
                 Rp. {message.message}
               </Text>
@@ -71,11 +75,11 @@ const ChatBubble = ({
           )}
           {isNegotiationMessage && (
             <>
-              <Text style={[textColor(COLOR.text.neutral.high)]}>
+              <Text style={[textColor(COLOR.absoluteBlack[90])]}>
                 MADE A NEGOTIATION
               </Text>
               <Text
-                style={[textColor(COLOR.text.neutral.high), font.weight.bold]}>
+                style={[textColor(COLOR.absoluteBlack[90]), font.weight.bold]}>
                 Rp. {message.message}
               </Text>
             </>
@@ -98,7 +102,9 @@ const ChatBubble = ({
             </>
           )}
         </BubbleContainer>,
-        <View style={[padding.bottom.xsmall]}>
+        <View
+          key={`date-container-${message.createdAt}`}
+          style={[padding.bottom.xsmall]}>
           <Text
             style={[font.size[10], textColor(COLOR.text.neutral.med)]}
             numberOfLines={1}>

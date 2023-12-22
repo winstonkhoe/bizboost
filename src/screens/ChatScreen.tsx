@@ -1,24 +1,16 @@
 import React, {useState, useRef, useEffect, useMemo} from 'react';
-import {
-  View,
-  ScrollView,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import {View, ScrollView, Text, TouchableOpacity} from 'react-native';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInputBar from '../components/chat/ChatInputBar';
 import ChatWidget from '../components/chat/ChatWidget';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
 
 import {useUser} from '../hooks/user';
-import {flex, justify, self} from '../styles/Flex';
+import {flex, items, justify, self} from '../styles/Flex';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {gap} from '../styles/Gap';
-import {Chat, Message, MessageType} from '../model/Chat';
+import {Chat, Message, MessageType, Recipient} from '../model/Chat';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
@@ -26,23 +18,31 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {UserRole} from '../model/User';
-import {Offer, OfferStatus} from '../model/Offer';
+import {User, UserRole} from '../model/User';
+import {Offer} from '../model/Offer';
 import {useNavigation} from '@react-navigation/native';
 import {Pressable} from 'react-native';
 import {Animated} from 'react-native';
-import ChevronUp from '../assets/vectors/chevron-up.svg';
-import ChevronDown from '../assets/vectors/chevron-down.svg';
 import {rounded} from '../styles/BorderRadius';
 import FastImage from 'react-native-fast-image';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {Campaign} from '../model/Campaign';
 import OfferActionModal from '../components/molecules/OfferActionsModal';
-import {MeatballMenuIcon} from '../components/atoms/Icon';
+import {ChevronRight, MeatballMenuIcon} from '../components/atoms/Icon';
 import {padding} from '../styles/Padding';
 import {formatDateToDayMonthYear} from '../utils/date';
 import {font} from '../styles/Font';
 import {textColor} from '../styles/Text';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../styles/Size';
+import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
+import {ErrorMessage} from '../constants/errorMessage';
+import {LoadingScreen} from './LoadingScreen';
+import {overflow} from '../styles/Overflow';
+import {shadow} from '../styles/Shadow';
+import {dimension} from '../styles/Dimension';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -60,10 +60,13 @@ interface RoleGroupedMessages {
 }
 
 const ChatScreen = ({route}: Props) => {
-  const {chat, recipient} = route.params;
+  const {chat} = route.params;
+  const {user, activeRole, isBusinessPeople} = useUser();
+  const safeAreaInsets = useSafeAreaInsets();
+
   const [chatData, setChatData] = useState<Chat>(chat);
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const {user, activeRole} = useUser();
+  const [offers, setOffers] = useState<Offer[]>();
+  const [recipient, setRecipient] = useState<Recipient | null>();
 
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
   const navigation = useNavigation<NavigationStackProps>();
@@ -76,10 +79,24 @@ const ChatScreen = ({route}: Props) => {
   }, [chat.id]);
 
   useEffect(() => {
-    if (offers.length === 1) {
-      setIsExpanded(true);
+    if (chat.contentCreatorId && chat.businessPeopleId) {
+      User.getById(
+        isBusinessPeople ? chat.contentCreatorId : chat.businessPeopleId,
+      )
+        .then(u => {
+          const userRecipient = isBusinessPeople
+            ? u?.contentCreator
+            : u?.businessPeople;
+          setRecipient({
+            fullname: userRecipient?.fullname || 'Empty',
+            profilePicture: userRecipient?.profilePicture || '',
+          });
+        })
+        .catch(() => {
+          setRecipient(null);
+        });
     }
-  }, [offers.length]);
+  }, [chat, isBusinessPeople]);
 
   useEffect(() => {
     return Offer.getPendingOffersbyCCBP(
@@ -87,12 +104,18 @@ const ChatScreen = ({route}: Props) => {
       chat.contentCreatorId ?? '',
       res => {
         const sortedTransactions = res.sort(
-          (a, b) => b.createdAt - a.createdAt,
+          (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
         );
         setOffers(sortedTransactions);
       },
     );
   }, [chat]);
+
+  useEffect(() => {
+    if (offers && offers.length === 1) {
+      setIsExpanded(true);
+    }
+  }, [offers]);
 
   const dateGroupedMessages = useMemo(
     () =>
@@ -140,6 +163,15 @@ const ChatScreen = ({route}: Props) => {
             lastDateGroupedMessages.messages.length - 1
           ];
 
+        if (
+          [MessageType.System].findIndex(
+            messageType => messageType === message.type,
+          ) >= 0
+        ) {
+          addNewRoleEntry();
+          return acc;
+        }
+
         if (lastRoleGroupedMessages.role !== message.role) {
           addNewRoleEntry();
           return acc;
@@ -152,32 +184,57 @@ const ChatScreen = ({route}: Props) => {
 
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const handleSendPress = async (message: string) => {
-    if (message !== '') {
-      await Chat.insertOrdinaryMessage(chat.id, message, activeRole);
-
-      // Scroll to the end of the ScrollView
+  const handleSendTextMessage = async (message: string) => {
+    if (!message) {
+      return;
+    }
+    if (!activeRole) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
+      });
+      return;
+    }
+    try {
+      await Chat.insertMessage(chat.id, MessageType.Text, activeRole, message);
       if (scrollViewRef.current) {
         scrollViewRef.current.scrollToEnd({animated: true});
       }
-
-      // Clear the input field
-      console.log(`Sending message: ${message}`);
+    } catch (error) {
+      showToast({
+        type: ToastType.info,
+        message: 'Error sending message',
+      });
     }
   };
 
-  // Handle opening the widget
-  const handleOpenWidgetPress = () => {
-    setIsWidgetVisible(!isWidgetVisible);
-  };
+  const handleSendImageMessage = async (imageUrl: string) => {
+    if (!imageUrl) {
+      return;
+    }
+    if (!activeRole) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
+      });
+      return;
+    }
 
-  const handleImageUpload = async (downloadURL: string) => {
-    // Add the new message to the chatMessages state
-    await Chat.insertPhotoMessage(chat.id, downloadURL, activeRole);
-
-    // Scroll to the end of the ScrollView
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({animated: true});
+    try {
+      await Chat.insertMessage(
+        chat.id,
+        MessageType.Photo,
+        activeRole,
+        imageUrl,
+      );
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({animated: true});
+      }
+    } catch (error) {
+      showToast({
+        type: ToastType.info,
+        message: 'Error sending photo',
+      });
     }
   };
 
@@ -189,15 +246,6 @@ const ChatScreen = ({route}: Props) => {
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const businessPeople =
-    activeRole === UserRole.BusinessPeople
-      ? user?.businessPeople?.fullname
-      : recipient.fullname ?? '';
-  const contentCreator =
-    activeRole === UserRole.ContentCreator
-      ? user?.contentCreator?.fullname
-      : recipient.fullname ?? '';
 
   const animatedHeight = new Animated.Value(isExpanded ? 200 : 60);
 
@@ -212,79 +260,113 @@ const ChatScreen = ({route}: Props) => {
     setIsExpanded(!isExpanded);
   };
 
+  const visibleOffers = useMemo(() => {
+    if (!offers) {
+      return [];
+    }
+    return offers.slice(0, !isExpanded ? 1 : undefined);
+  }, [offers, isExpanded]);
+
+  if (recipient === undefined || offers === undefined) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <SafeAreaContainer enable>
-      <View
-        className="h-full w-full"
-        style={[flex.flexCol, background(COLOR.background.neutral.default)]}>
-        {/* Chat Header */}
-        <View style={[flex.flexRow]}>
-          <ChatHeader
-            recipientName={recipient.fullname ?? ''}
-            recipientPicture={recipient.profilePicture ?? ''}
-          />
-        </View>
+    <View
+      style={[
+        flex.flex1,
+        flex.flexCol,
+        background(COLOR.background.neutral.default),
+        {
+          paddingTop: Math.max(safeAreaInsets.top, size.default),
+          paddingBottom: Math.max(safeAreaInsets.bottom, size.default),
+        },
+      ]}>
+      {/* Chat Header */}
+      <ChatHeader recipient={recipient} />
 
-        {/* Floating Tab */}
-        {offers && offers.length > 0 && (
-          <View className="w-full relative">
-            <ScrollView
-              scrollEnabled={isExpanded}
-              style={[flex.flexCol, isExpanded ? styles.scroll : null]}>
-              <View
-                style={flex.flexCol}
-                className="px-1 pt-1 rounded-t-md z-50">
-                <View
-                  style={flex.flexCol}
-                  className="bg-gray-100 pt-3 pb-1 z-30 rounded-md">
-                  <OfferCard
-                    offer={offers[0]}
-                    businessPeople={businessPeople || ''}
-                    contentCreator={contentCreator || ''}
-                    toggleExpansion={toggleExpansion}
-                    setIsModalOpened={setIsModalOpened}
-                    setSelectedOffer={setSelectedOffer}
-                    isExpanded={isExpanded}
+      {/* Floating Tab */}
+      {offers && offers.length > 0 && (
+        <View
+          style={[
+            flex.flexCol,
+            rounded.medium,
+            shadow.default,
+            background(COLOR.background.neutral.default),
+            {
+              marginHorizontal: size.small,
+              marginTop: size.small,
+              maxHeight: size.xlarge15,
+            },
+          ]}>
+          <ScrollView
+            scrollEnabled={isExpanded}
+            contentContainerStyle={[
+              flex.flexCol,
+              gap.default,
+              padding.default,
+            ]}>
+            {visibleOffers.map((offer, offerIndex) => {
+              const isFirst = offerIndex === 0;
+              const isLast = offerIndex === visibleOffers.length - 1;
+              return [
+                <OfferCard
+                  key={offer.id}
+                  offer={offer}
+                  toggleExpansion={isFirst ? toggleExpansion : undefined}
+                  setIsModalOpened={setIsModalOpened}
+                  setSelectedOffer={setSelectedOffer}
+                  isExpanded={isFirst ? isExpanded : undefined}
+                />,
+                !isLast && (
+                  <View
+                    key={`separator-${offerIndex}`}
+                    style={[
+                      {
+                        borderTopColor: COLOR.black[20],
+                        borderTopWidth: 0.4,
+                      },
+                    ]}
                   />
-
-                  {isExpanded &&
-                    offers.length > 1 &&
-                    offers
-                      .slice(1)
-                      .map(
-                        offer =>
-                          activeRole && (
-                            <OfferCard
-                              key={offer.id}
-                              offer={offer}
-                              businessPeople={businessPeople || ''}
-                              contentCreator={contentCreator || ''}
-                              setIsModalOpened={setIsModalOpened}
-                              setSelectedOffer={setSelectedOffer}
-                            />
-                          ),
-                      )}
-                </View>
+                ),
+              ];
+            })}
+          </ScrollView>
+          {isExpanded && offers.length > 1 && (
+            <TouchableOpacity
+              style={[
+                flex.flexRow,
+                justify.end,
+                padding.default,
+                {
+                  borderTopColor: COLOR.black[20],
+                  borderTopWidth: 0.5,
+                },
+              ]}
+              onPress={toggleExpansion}>
+              <View
+                style={[
+                  {
+                    transform: [
+                      {
+                        rotate: '-90deg',
+                      },
+                    ],
+                  },
+                ]}>
+                <ChevronRight size="large" />
               </View>
-            </ScrollView>
-            {isExpanded && offers.length > 1 && (
-              <View className="px-1 rounded-b-md">
-                <TouchableOpacity
-                  style={flex.flexRow}
-                  className="bg-gray-100 border-t border-t-zinc-300 justify-end items-center px-3 py-3"
-                  onPress={toggleExpansion}>
-                  <ChevronUp width={20} height={10} color={COLOR.black[100]} />
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
+      <KeyboardAvoidingContainer withoutScroll>
         {/* Chat Messages */}
         <ScrollView
           // className={`offers ${offers && offers.length > 0 ? 'mt-24' : ''}`}
+          // className="bg-red-500"
           ref={scrollViewRef}
-          style={[flex.flex1]}
           onContentSizeChange={() => {
             if (scrollViewRef.current) {
               scrollViewRef.current?.scrollToEnd({animated: true});
@@ -293,7 +375,7 @@ const ChatScreen = ({route}: Props) => {
           stickyHeaderIndices={dateGroupedMessages.map((_, index) => index * 2)}
           contentContainerStyle={[
             flex.flexCol,
-            gap.large,
+            gap.xlarge,
             padding.bottom.default,
           ]}>
           {dateGroupedMessages.map(
@@ -336,7 +418,7 @@ const ChatScreen = ({route}: Props) => {
                       {roleGroupedMessage.messages.map(
                         (message: Message, messageIndex) => (
                           <ChatBubble
-                            key={messageIndex}
+                            key={`${dateGroupedMessage.date}-${roleGroupedMessageIndex}-${messageIndex}`}
                             message={message}
                             isSender={message.role === activeRole}
                             isStart={messageIndex === 0}
@@ -366,25 +448,24 @@ const ChatScreen = ({route}: Props) => {
           ]}>
           {/* Chat Input Bar */}
           <ChatInputBar
-            onSendPress={handleSendPress}
-            onOpenWidgetPress={handleOpenWidgetPress}
+            onSendPress={handleSendTextMessage}
             isWidgetVisible={isWidgetVisible}
+            onWidgetVisibilityChange={setIsWidgetVisible}
           />
 
           {/* Chat Widget */}
-          {isWidgetVisible ? (
-            <View style={[flex.grow]}>
-              <ChatWidget
-                options={{
-                  cropping: false,
-                }}
-                handleImageUpload={handleImageUpload}
-                handleMakeOffer={handleMakeOffer}
-              />
-            </View>
-          ) : null}
+          {isWidgetVisible && (
+            <ChatWidget
+              options={{
+                cropping: false,
+              }}
+              handleImageUpload={handleSendImageMessage}
+              handleMakeOffer={handleMakeOffer}
+            />
+          )}
         </View>
-      </View>
+      </KeyboardAvoidingContainer>
+
       {isModalOpened && selectedOffer && (
         <OfferActionModal
           isModalOpened={isModalOpened}
@@ -396,30 +477,14 @@ const ChatScreen = ({route}: Props) => {
           navigation={navigation}
         />
       )}
-    </SafeAreaContainer>
+    </View>
   );
 };
 
 export default ChatScreen;
 
-const styles = StyleSheet.create({
-  scroll: {
-    maxHeight: 300,
-  },
-  meatball: {
-    width: 100,
-    backgroundColor: 'red',
-    position: 'absolute',
-    top: 20,
-    right: 5,
-    zIndex: 1,
-  },
-});
-
 type OfferCardProps = {
   offer: Offer;
-  businessPeople: string;
-  contentCreator: string;
   isExpanded?: boolean;
   toggleExpansion?: () => void;
   setIsModalOpened: (isModalOpened: boolean) => void;
@@ -428,76 +493,89 @@ type OfferCardProps = {
 
 const OfferCard = ({
   offer,
-  businessPeople,
-  contentCreator,
   isExpanded = true,
   toggleExpansion,
   setIsModalOpened,
   setSelectedOffer,
 }: OfferCardProps) => {
-  const [campaign, setCampaign] = useState<Campaign>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const navigation = useNavigation<NavigationStackProps>();
   const {activeRole} = useUser();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
+  const [contentCreator, setContentCreator] = useState<User | null>();
+  const negotiatedByContentCreator =
+    offer.negotiatedBy === UserRole.ContentCreator;
 
   useEffect(() => {
-    Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
+    if (offer.campaignId) {
+      Campaign.getById(offer.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
+    }
+    if (offer.businessPeopleId) {
+      User.getById(offer.businessPeopleId)
+        .then(setBusinessPeople)
+        .catch(() => setBusinessPeople(null));
+    }
+    if (offer.contentCreatorId) {
+      User.getById(offer.contentCreatorId)
+        .then(setContentCreator)
+        .catch(() => setContentCreator(null));
+    }
   }, [offer]);
 
   return (
-    <View
-      className="px-3 pb-2 justify-between items-center"
-      style={flex.flexRow}>
-      <View
-        style={flex.flexRow}
-        className="flex-1 justify-between items-center py-1">
+    <View style={[flex.flexRow]}>
+      <View style={[flex.flex1, flex.flexRow, items.center, justify.between]}>
         <Pressable
-          style={flex.flexRow}
-          className="items-start"
+          style={[flex.flexRow, gap.default]}
           onPress={() => {
-            navigation.navigate(AuthenticatedNavigation.OfferDetail, {
-              offerId: offer?.id || '',
-            });
+            if (offer.id) {
+              navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+                offerId: offer?.id,
+              });
+            }
           }}>
           <View
-            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-            style={[flex.flexRow, rounded.default]}>
+            style={[
+              flex.flexRow,
+              rounded.default,
+              dimension.square.xlarge3,
+              overflow.hidden,
+            ]}>
             <FastImage
-              className="w-full h-full object-cover"
+              style={[dimension.full]}
               source={getSourceOrDefaultAvatar({uri: campaign?.image})}
             />
           </View>
           <View>
-            <Text className="text-md text-left text-black">
-              {offer.status === OfferStatus.negotiate
-                ? 'Negotiation: '
-                : 'Offer: '}
-              <Text className="font-bold">
-                {offer.status === OfferStatus.pending ||
-                offer.status === OfferStatus.negotiateRejected
+            <Text style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              {offer.isNegotiating() ? 'Negotiation: ' : 'Offer: '}
+              <Text style={[font.weight.bold, font.size[20]]}>
+                {offer.isPending() || offer.isNegotiationRejected()
                   ? offer?.offeredPrice?.toLocaleString('en-ID')
                   : offer?.negotiatedPrice?.toLocaleString('en-ID')}
               </Text>
             </Text>
-            {offer.status === OfferStatus.pending ? (
-              <Text className="text-xs text-left">
-                by{' '}
-                {offer.negotiatedBy === UserRole.ContentCreator
-                  ? contentCreator
-                  : businessPeople}
+            {offer.isPending() ? (
+              <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                {`by ${contentCreator?.contentCreator?.fullname}`}
               </Text>
             ) : (
               <View>
-                {(offer.status === OfferStatus.negotiateRejected ||
-                  offer.status === OfferStatus.negotiate) && (
-                  <Text className="text-xs text-left">
+                {(offer.isNegotiationRejected() || offer.isNegotiating()) && (
+                  <Text
+                    style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
                     Last Offer: {offer.offeredPrice}
                   </Text>
                 )}
-                <Text className="text-xs text-left">
-                  by{' '}
-                  {offer.negotiatedBy === UserRole.ContentCreator
-                    ? contentCreator
-                    : businessPeople}
+                <Text
+                  style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                  {`by ${
+                    negotiatedByContentCreator
+                      ? contentCreator?.contentCreator?.fullname
+                      : businessPeople?.businessPeople?.fullname
+                  }`}
                 </Text>
               </View>
             )}
@@ -505,7 +583,18 @@ const OfferCard = ({
         </Pressable>
         {!isExpanded && (
           <TouchableOpacity onPress={toggleExpansion}>
-            <ChevronDown width={20} height={10} color={COLOR.black[100]} />
+            <View
+              style={[
+                {
+                  transform: [
+                    {
+                      rotate: '90deg',
+                    },
+                  ],
+                },
+              ]}>
+              <ChevronRight size="large" />
+            </View>
           </TouchableOpacity>
         )}
       </View>

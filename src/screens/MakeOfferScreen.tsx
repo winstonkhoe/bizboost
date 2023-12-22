@@ -16,7 +16,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Chat} from '../model/Chat';
+import {Chat, MessageType} from '../model/Chat';
 import {UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
@@ -112,10 +112,11 @@ const MakeOfferScreen = ({route}: Props) => {
 
             if (matchingChat !== undefined && matchingChat.id) {
               console.log('ada chat');
-              Chat.insertOfferMessage(
+              Chat.insertMessage(
                 matchingChat.id,
-                data.fee.toString(),
+                MessageType.Offer,
                 activeRole,
+                data.fee.toString(),
               )
                 .then(() => {
                   console.log('send!');

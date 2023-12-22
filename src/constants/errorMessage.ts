@@ -6,6 +6,7 @@ export enum ErrorCode {
 }
 
 export enum ErrorMessage {
+  GENERAL = 'Oops! Something went wrong. Please try again.',
   CREDENTIALS_INVALID = 'Invalid Credentials!',
   MISSING_FIELDS = 'Missing fields!',
   PASSWORD_EMPTY = 'Password is required!',

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -63,9 +63,6 @@ const ContentCreatorsScreen: React.FC = () => {
 
   const {isOnSearchPage, searchTerm} = useAppSelector(state => state.search);
 
-  const [filteredContentCreators, setFilteredContentCreators] = useState<
-    User[]
-  >([]);
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     locations: [],
     categories: [],
@@ -79,12 +76,11 @@ const ContentCreatorsScreen: React.FC = () => {
   useEffect(() => {
     User.getContentCreators().then(contentCreatorsData => {
       setContentCreators(contentCreatorsData);
-      setFilteredContentCreators(contentCreatorsData);
     });
     Location.getAll().then(setLocations);
   }, []);
 
-  useEffect(() => {
+  const filteredContentCreators = useMemo(() => {
     let sortedContentCreators = [...contentCreators];
 
     if (searchTerm && searchTerm !== '') {
@@ -177,7 +173,7 @@ const ContentCreatorsScreen: React.FC = () => {
       });
     }
 
-    setFilteredContentCreators(sortedContentCreators);
+    return sortedContentCreators;
   }, [
     selectedFilters,
     sortByRating,

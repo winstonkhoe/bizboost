@@ -27,33 +27,27 @@ const ChatWidget = ({options, handleImageUpload, handleMakeOffer}: Props) => {
   const {activeRole} = useUser();
 
   return (
-    <View
-      style={[
-        flex.flexRow,
-        gap.medium,
-        justify.start,
-        items.center,
-        padding.default,
-      ]}>
+    <View style={[flex.flexRow, gap.medium, padding.medium]}>
       {/* Send Photo Button */}
-      <View style={[flex.flexCol, gap.small]}>
+      <WidgetItem text="Photos">
         <MediaUploader
           targetFolder="chats"
           options={options}
           onUploadSuccess={handleImageUpload}>
-          <WidgetItem text="Photos">
+          <View
+            style={[flex.flex1, flex.flexRow, justify.center, items.center]}>
             <PhotosIcon
               width={30}
               height={30}
               color={COLOR.text.neutral.high}
             />
-          </WidgetItem>
+          </View>
         </MediaUploader>
-      </View>
+      </WidgetItem>
 
       {/* Make Offer Button */}
       {activeRole === UserRole.BusinessPeople && (
-        <Pressable onPress={handleMakeOffer} style={[flex.flexCol, gap.small]}>
+        <Pressable onPress={handleMakeOffer}>
           <WidgetItem text="Make Offer">
             <MakeOfferIcon width={30} height={30} />
           </WidgetItem>
