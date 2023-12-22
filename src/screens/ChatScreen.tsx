@@ -72,16 +72,7 @@ const ChatScreen = ({route}: Props) => {
   const [selectedOffer, setSelectedOffer] = useState<Offer>();
 
   useEffect(() => {
-    const chatRef = Chat.getDocumentReference(chat.id ?? '');
-
-    const unsubscribe = chatRef.onSnapshot(doc => {
-      if (doc.exists) {
-        const updatedChatData = doc.data() as Chat;
-        setChatData(updatedChatData);
-      }
-    });
-
-    return () => unsubscribe();
+    return Chat.getById(chat.id, setChatData);
   }, [chat.id]);
 
   useEffect(() => {
@@ -91,7 +82,7 @@ const ChatScreen = ({route}: Props) => {
   }, [offers.length]);
 
   useEffect(() => {
-    const unsubscribe = Offer.getPendingOffersbyCCBP(
+    return Offer.getPendingOffersbyCCBP(
       chat.businessPeopleId ?? '',
       chat.contentCreatorId ?? '',
       res => {
@@ -101,13 +92,7 @@ const ChatScreen = ({route}: Props) => {
         setOffers(sortedTransactions);
       },
     );
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, []);
+  }, [chat]);
 
   const dateGroupedMessages = useMemo(
     () =>

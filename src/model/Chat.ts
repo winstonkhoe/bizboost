@@ -121,8 +121,8 @@ export class Chat extends BaseModel {
 
   static getUserChatsReactive(
     userId: string,
-    activeRole: string,
-    callback: (chats: Chat[]) => void,
+    activeRole: UserRole,
+    onChange: (chats: Chat[]) => void,
   ) {
     try {
       const userRef = User.getDocumentReference(userId);
@@ -140,7 +140,7 @@ export class Chat extends BaseModel {
           .where(fieldToCheck, '==', userRef)
           .onSnapshot(
             querySnapshots => {
-              callback(this.fromQuerySnapshot(querySnapshots));
+              onChange(this.fromQuerySnapshot(querySnapshots));
             },
             (error: Error) => {
               console.log('getUserChatsReactive error', error.message);
@@ -152,6 +152,24 @@ export class Chat extends BaseModel {
         console.log('Invalid role:', activeRole);
         return () => {};
       }
+    } catch (error) {
+      console.log('no access', error);
+      return () => {};
+    }
+  }
+
+  static getById(id: string, onChange: (chat: Chat) => void) {
+    try {
+      const unsubscribe = this.getDocumentReference(id).onSnapshot(
+        doc => {
+          onChange(this.fromSnapshot(doc));
+        },
+        (error: Error) => {
+          console.log('getById error', error.message);
+        },
+      );
+
+      return unsubscribe;
     } catch (error) {
       console.log('no access', error);
       return () => {};
