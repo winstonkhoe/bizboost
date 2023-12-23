@@ -139,10 +139,11 @@ const MakeOfferScreen = ({route}: Props) => {
               chat
                 .insert()
                 .then(() => {
-                  Chat.insertOfferMessage(
+                  Chat.insertMessage(
                     businessPeopleId + contentCreatorId,
-                    data.fee.toString(),
+                    MessageType.Offer,
                     activeRole,
+                    data.fee.toString(),
                   )
                     .then(() => {
                       navigation.navigate(AuthenticatedNavigation.ChatDetail, {

@@ -32,9 +32,12 @@ import {gap} from '../styles/Gap';
 import {useUser} from '../hooks/user';
 import {CustomAlert} from '../components/molecules/CustomAlert';
 import {padding} from '../styles/Padding';
-import {Chat} from '../model/Chat';
+import {Chat, MessageType} from '../model/Chat';
 import {Seperator} from '../components/atoms/Separator';
 import {Transaction, TransactionStatus} from '../model/Transaction';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
+import {ErrorMessage} from '../constants/errorMessage';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -68,67 +71,99 @@ export const OfferDetailScreen = ({route}: Props) => {
   }, []);
 
   const onAcceptOfferClicked = () => {
-    if (offer) {
-      offer.accept().then(acc => {
-        const transaction = new Transaction({
-          transactionAmount: acc.offeredPrice,
-          platformTasks: acc.platformTasks,
-          contentCreatorId: offer.contentCreatorId ?? '',
-          businessPeopleId: offer.businessPeopleId ?? '',
-          campaignId: campaign?.id ?? '',
-        });
-
-        transaction
-          .updateStatus(TransactionStatus.offerWaitingForPayment)
-          .then(() => {
-            const name =
-              activeRole === UserRole.BusinessPeople
-                ? user?.businessPeople?.fullname
-                : user?.contentCreator?.fullname;
-            const text = `${name} ${
-              offer.negotiatedBy
-                ? 'accepted negotiation for'
-                : 'accepted offer for'
-            } ${
-              campaign?.title
-            }. Transaction will begin after Business People have finished payment.`;
-            Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
-              navigation.goBack();
-            });
-          });
+    if (
+      !offer ||
+      !offer.contentCreatorId ||
+      !offer?.businessPeopleId ||
+      !campaign?.id ||
+      !activeRole
+    ) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
       });
+      return;
     }
-  };
+    offer.accept().then(acc => {
+      const transaction = new Transaction({
+        transactionAmount: acc.offeredPrice,
+        platformTasks: acc.platformTasks,
+        contentCreatorId: offer.contentCreatorId,
+        businessPeopleId: offer.businessPeopleId,
+        campaignId: campaign?.id ?? '',
+      });
 
-  const onRejectOfferClicked = () => {
-    if (offer) {
-      offer.reject().then(() => {
-        const transaction = new Transaction({
-          contentCreatorId: offer.contentCreatorId ?? '',
-          businessPeopleId: offer.businessPeopleId ?? '',
-          campaignId: campaign.id ?? '',
-        });
-
-        transaction.updateStatus(TransactionStatus.offerRejected).then(() => {
+      transaction
+        .updateStatus(TransactionStatus.offerWaitingForPayment)
+        .then(() => {
           const name =
             activeRole === UserRole.BusinessPeople
               ? user?.businessPeople?.fullname
               : user?.contentCreator?.fullname;
-          const text =
-            name +
-            ' ' +
-            (offer.negotiatedBy
-              ? 'rejected negotiation for'
-              : 'rejected offer for') +
-            ' ' +
-            campaign?.title;
-
-          Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
+          const text = `${name} ${
+            offer.negotiatedBy
+              ? 'accepted negotiation for'
+              : 'accepted offer for'
+          } ${
+            campaign?.title
+          }. Transaction will begin after Business People have finished payment.`;
+          Chat.insertMessage(
+            bpId + ccId,
+            MessageType.System,
+            activeRole,
+            text,
+          ).then(() => {
             navigation.goBack();
           });
         });
+    });
+  };
+
+  const onRejectOfferClicked = () => {
+    if (
+      !offer ||
+      !offer.contentCreatorId ||
+      !offer?.businessPeopleId ||
+      !campaign?.id ||
+      !activeRole
+    ) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
       });
+      return;
     }
+    offer.reject().then(() => {
+      const transaction = new Transaction({
+        contentCreatorId: offer.contentCreatorId ?? '',
+        businessPeopleId: offer.businessPeopleId ?? '',
+        campaignId: campaign.id ?? '',
+      });
+
+      transaction.updateStatus(TransactionStatus.offerRejected).then(() => {
+        const name =
+          activeRole === UserRole.BusinessPeople
+            ? user?.businessPeople?.fullname
+            : user?.contentCreator?.fullname;
+        const text =
+          name +
+          ' ' +
+          (offer.negotiatedBy
+            ? 'rejected negotiation for'
+            : 'rejected offer for') +
+          ' ' +
+          campaign?.title;
+
+        Chat.insertMessage(
+          bpId + ccId,
+          MessageType.System,
+          activeRole,
+          text,
+        ).then(() => {
+          navigation.goBack();
+        });
+      });
+    });
   };
 
   const openModalNegotiate = () => {
