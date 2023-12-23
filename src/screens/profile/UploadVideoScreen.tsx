@@ -26,6 +26,8 @@ import {ToastType} from '../../providers/ToastProvider';
 import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
+import {createThumbnail} from 'react-native-create-thumbnail';
+import {useState} from 'react';
 
 export type FormData = {
   uri: string;
@@ -41,8 +43,16 @@ const UploadVideoScreen = () => {
   const {handleSubmit, setValue, watch, control, getFieldState, formState} =
     methods;
 
-  const imageSelected = (url: string) => {
+  const [thumbnail, setThumbnail] = useState<string>();
+  const videoSelected = (url: string) => {
     setValue('uri', url);
+
+    createThumbnail({
+      url: url,
+      timeStamp: 0,
+    }).then(t => {
+      setThumbnail(t.path);
+    });
   };
 
   const onSubmit = (data: FormData) => {
@@ -53,13 +63,21 @@ const UploadVideoScreen = () => {
       userId: uid || '',
     });
 
-    portfolio.insert().then(() => {
-      navigation.goBack();
-      showToast({
-        type: ToastType.success,
-        message: 'Successfully uploaded portfolio video',
+    portfolio
+      .insert()
+      .then(() => {
+        navigation.goBack();
+        showToast({
+          type: ToastType.success,
+          message: 'Successfully uploaded portfolio video',
+        });
+      })
+      .catch(() => {
+        showToast({
+          type: ToastType.danger,
+          message: 'Upload error!',
+        });
       });
-    });
   };
   return (
     <FormProvider {...methods}>
@@ -97,7 +115,7 @@ const UploadVideoScreen = () => {
                           mediaType: 'video',
                         }}
                         showUploadProgress
-                        onUploadSuccess={imageSelected}>
+                        onUploadSuccess={videoSelected}>
                         <View
                           className="overflow-hidden"
                           style={[
@@ -110,7 +128,7 @@ const UploadVideoScreen = () => {
                               className=""
                               style={[dimension.full]}
                               source={{
-                                uri: value,
+                                uri: thumbnail,
                               }}
                             />
                           ) : (
