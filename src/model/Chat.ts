@@ -171,6 +171,44 @@ export class Chat extends BaseModel {
     }
   }
 
+  static async findOrCreateByContentCreatorIdAndBusinessPeopleId(
+    contentCreatorId: string,
+    businessPeopleId: string,
+  ): Promise<Chat> {
+    try {
+      const querySnapshot = await this.getCollectionReference()
+        .where(
+          'contentCreatorId',
+          '==',
+          User.getDocumentReference(contentCreatorId),
+        )
+        .where(
+          'businessPeopleId',
+          '==',
+          User.getDocumentReference(businessPeopleId),
+        )
+        .get();
+
+      if (querySnapshot.empty) {
+        const chat = new Chat({
+          contentCreatorId: contentCreatorId,
+          businessPeopleId: businessPeopleId,
+        });
+        await chat.insert();
+        return chat;
+      }
+
+      return this.fromSnapshot(querySnapshot.docs[0]);
+    } catch (error) {
+      console.log(
+        'Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId error ' + error,
+      );
+      throw new Error(
+        'Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId error ' + error,
+      );
+    }
+  }
+
   static async insertMessage(
     chatId: string,
     type: MessageType,
@@ -179,6 +217,23 @@ export class Chat extends BaseModel {
   ) {
     try {
       await this.getDocumentReference(chatId).update({
+        messages: firestore.FieldValue.arrayUnion({
+          message: message,
+          role: role,
+          type: type,
+          createdAt: new Date().getTime(),
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      throw new Error('Chat.insertMessage error ' + error);
+    }
+  }
+
+  async addMessage(type: MessageType, role: UserRole, message: string) {
+    const {id} = this;
+    try {
+      await Chat.getDocumentReference(id).update({
         messages: firestore.FieldValue.arrayUnion({
           message: message,
           role: role,

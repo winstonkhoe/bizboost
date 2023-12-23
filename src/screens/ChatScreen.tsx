@@ -60,11 +60,11 @@ interface RoleGroupedMessages {
 }
 
 const ChatScreen = ({route}: Props) => {
-  const {chat} = route.params;
+  const {chatId} = route.params;
   const {user, activeRole, isBusinessPeople} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
 
-  const [chatData, setChatData] = useState<Chat>(chat);
+  const [chat, setChat] = useState<Chat>();
   const [offers, setOffers] = useState<Offer[]>();
   const [recipient, setRecipient] = useState<Recipient | null>();
 
@@ -75,11 +75,11 @@ const ChatScreen = ({route}: Props) => {
   const [selectedOffer, setSelectedOffer] = useState<Offer>();
 
   useEffect(() => {
-    return Chat.getById(chat.id, setChatData);
-  }, [chat.id]);
+    return Chat.getById(chatId, setChat);
+  }, [chatId]);
 
   useEffect(() => {
-    if (chat.contentCreatorId && chat.businessPeopleId) {
+    if (chat?.contentCreatorId && chat?.businessPeopleId) {
       User.getById(
         isBusinessPeople ? chat.contentCreatorId : chat.businessPeopleId,
       )
@@ -99,16 +99,18 @@ const ChatScreen = ({route}: Props) => {
   }, [chat, isBusinessPeople]);
 
   useEffect(() => {
-    return Offer.getPendingOffersbyCCBP(
-      chat.businessPeopleId ?? '',
-      chat.contentCreatorId ?? '',
-      res => {
-        const sortedTransactions = res.sort(
-          (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
-        );
-        setOffers(sortedTransactions);
-      },
-    );
+    if (chat?.businessPeopleId && chat?.contentCreatorId) {
+      return Offer.getPendingOffersbyCCBP(
+        chat.businessPeopleId,
+        chat.contentCreatorId,
+        res => {
+          const sortedTransactions = res.sort(
+            (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+          );
+          setOffers(sortedTransactions);
+        },
+      );
+    }
   }, [chat]);
 
   useEffect(() => {
@@ -117,70 +119,71 @@ const ChatScreen = ({route}: Props) => {
     }
   }, [offers]);
 
-  const dateGroupedMessages = useMemo(
-    () =>
-      chatData.messages.reduce((acc, message) => {
-        const messageDate = new Date(message.createdAt);
-        const normalizedMessageDate = new Date(
-          messageDate.getFullYear(),
-          messageDate.getMonth(),
-          messageDate.getDate(),
-        );
-        const addNewDateEntry = () => {
-          acc.push({
-            date: normalizedMessageDate.getTime(),
-            messages: [
-              {
-                role: message.role,
-                messages: [message],
-              },
-            ],
-          });
-        };
-        const addNewRoleEntry = () => {
-          acc[acc.length - 1].messages.push({
-            role: message.role,
-            messages: [message],
-          });
-        };
-        const appendRoleEntry = () => {
-          acc[acc.length - 1].messages[
-            acc[acc.length - 1].messages.length - 1
-          ].messages.push(message);
-        };
+  const dateGroupedMessages = useMemo(() => {
+    if (!chat) {
+      return [];
+    }
+    return chat.messages.reduce((acc, message) => {
+      const messageDate = new Date(message.createdAt);
+      const normalizedMessageDate = new Date(
+        messageDate.getFullYear(),
+        messageDate.getMonth(),
+        messageDate.getDate(),
+      );
+      const addNewDateEntry = () => {
+        acc.push({
+          date: normalizedMessageDate.getTime(),
+          messages: [
+            {
+              role: message.role,
+              messages: [message],
+            },
+          ],
+        });
+      };
+      const addNewRoleEntry = () => {
+        acc[acc.length - 1].messages.push({
+          role: message.role,
+          messages: [message],
+        });
+      };
+      const appendRoleEntry = () => {
+        acc[acc.length - 1].messages[
+          acc[acc.length - 1].messages.length - 1
+        ].messages.push(message);
+      };
 
-        if (acc.length === 0) {
-          addNewDateEntry();
-          return acc;
-        }
-        const lastDateGroupedMessages = acc[acc.length - 1];
-        if (lastDateGroupedMessages.date !== normalizedMessageDate.getTime()) {
-          addNewDateEntry();
-          return acc;
-        }
-        const lastRoleGroupedMessages =
-          lastDateGroupedMessages.messages[
-            lastDateGroupedMessages.messages.length - 1
-          ];
-
-        if (
-          [MessageType.System].findIndex(
-            messageType => messageType === message.type,
-          ) >= 0
-        ) {
-          addNewRoleEntry();
-          return acc;
-        }
-
-        if (lastRoleGroupedMessages.role !== message.role) {
-          addNewRoleEntry();
-          return acc;
-        }
-        appendRoleEntry();
+      if (acc.length === 0) {
+        addNewDateEntry();
         return acc;
-      }, [] as DateGroupedMessages[]),
-    [chatData.messages],
-  );
+      }
+      const lastDateGroupedMessages = acc[acc.length - 1];
+      if (lastDateGroupedMessages.date !== normalizedMessageDate.getTime()) {
+        addNewDateEntry();
+        return acc;
+      }
+      const lastRoleGroupedMessages =
+        lastDateGroupedMessages.messages[
+          lastDateGroupedMessages.messages.length - 1
+        ];
+
+      if (
+        [MessageType.System].findIndex(
+          messageType => messageType === message.type,
+        ) >= 0
+      ) {
+        addNewRoleEntry();
+        return acc;
+      }
+
+      if (lastRoleGroupedMessages.role !== message.role) {
+        addNewRoleEntry();
+        return acc;
+      }
+      appendRoleEntry();
+      return acc;
+    }, [] as DateGroupedMessages[]);
+  }, [chat]);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -195,17 +198,19 @@ const ChatScreen = ({route}: Props) => {
       });
       return;
     }
-    try {
-      await Chat.insertMessage(chat.id, MessageType.Text, activeRole, message);
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollToEnd({animated: true});
-      }
-    } catch (error) {
-      showToast({
-        type: ToastType.info,
-        message: 'Error sending message',
+    chat
+      ?.addMessage(MessageType.Text, activeRole, message)
+      .catch(() => {
+        showToast({
+          type: ToastType.info,
+          message: 'Error sending message',
+        });
+      })
+      .finally(() => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollToEnd({animated: true});
+        }
       });
-    }
   };
 
   const handleSendImageMessage = async (imageUrl: string) => {
@@ -219,30 +224,28 @@ const ChatScreen = ({route}: Props) => {
       });
       return;
     }
-
-    try {
-      await Chat.insertMessage(
-        chat.id,
-        MessageType.Photo,
-        activeRole,
-        imageUrl,
-      );
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollToEnd({animated: true});
-      }
-    } catch (error) {
-      showToast({
-        type: ToastType.info,
-        message: 'Error sending photo',
+    chat
+      ?.addMessage(MessageType.Photo, activeRole, imageUrl)
+      .catch(() => {
+        showToast({
+          type: ToastType.info,
+          message: 'Error sending photo',
+        });
+      })
+      .finally(() => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollToEnd({animated: true});
+        }
       });
-    }
   };
 
   const handleMakeOffer = () => {
-    navigation.navigate(AuthenticatedNavigation.MakeOffer, {
-      businessPeopleId: chat.businessPeopleId ?? '',
-      contentCreatorId: chat.contentCreatorId ?? '',
-    });
+    if (chat?.businessPeopleId && chat?.contentCreatorId) {
+      navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+        businessPeopleId: chat.businessPeopleId,
+        contentCreatorId: chat.contentCreatorId,
+      });
+    }
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -601,13 +604,13 @@ const OfferCard = ({
       {isExpanded &&
         ((offer.negotiatedBy && offer.negotiatedBy !== activeRole) ||
           (!offer.negotiatedBy && activeRole === UserRole.ContentCreator)) && (
-          <Pressable
+          <TouchableOpacity
             onPress={() => {
               setIsModalOpened(true);
               setSelectedOffer(offer);
             }}>
             <MeatballMenuIcon size="xsmall" />
-          </Pressable>
+          </TouchableOpacity>
         )}
     </View>
   );

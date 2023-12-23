@@ -4,6 +4,9 @@ import firestore, {
 import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
 import {Campaign, CampaignPlatform, CampaignTask} from './Campaign';
+import {Chat, MessageType} from './Chat';
+import {ErrorMessage} from '../constants/errorMessage';
+import { Transaction } from './Transaction';
 
 export const OFFER_COLLECTION = 'offers';
 
@@ -139,23 +142,50 @@ export class Offer extends BaseModel {
 
   async insert() {
     try {
-      const {id, ...rest} = this;
-      if (!id) {
-        throw Error('Missing id');
+      const {
+        id,
+        campaignId,
+        contentCreatorId,
+        businessPeopleId,
+        offeredPrice,
+        ...rest
+      } = this;
+      if (
+        !id ||
+        !contentCreatorId ||
+        !businessPeopleId ||
+        !campaignId ||
+        !offeredPrice
+      ) {
+        throw Error(ErrorMessage.GENERAL);
       }
       const data = {
         ...rest,
-        contentCreatorId: User.getDocumentReference(
-          this.contentCreatorId ?? '',
-        ),
-        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
-        businessPeopleId: User.getDocumentReference(
-          this.businessPeopleId ?? '',
-        ),
+        contentCreatorId: User.getDocumentReference(contentCreatorId),
+        campaignId: Campaign.getDocumentReference(campaignId),
+        businessPeopleId: User.getDocumentReference(businessPeopleId),
         createdAt: new Date().getTime(),
       };
-
       await Offer.getDocumentReference(id).set(data);
+
+      const transaction = new Transaction({
+        contentCreatorId: contentCreatorId,
+        businessPeopleId: businessPeopleId,
+        campaignId: campaignId,
+      });
+      await transaction.offer();
+
+      const existingChat =
+        await Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId(
+          contentCreatorId,
+          businessPeopleId,
+        );
+      await existingChat.addMessage(
+        MessageType.Offer,
+        UserRole.BusinessPeople,
+        offeredPrice.toString(),
+      );
+      return {chat: existingChat};
     } catch (error) {
       console.log(error);
       throw Error('Error!');

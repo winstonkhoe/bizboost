@@ -130,7 +130,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
-  [AuthenticatedNavigation.ChatDetail]: {chat: Chat};
+  [AuthenticatedNavigation.ChatDetail]: {chatId: string};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {
     campaignId: string;

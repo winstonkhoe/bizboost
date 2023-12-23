@@ -58,8 +58,7 @@ const ChatItem = ({chat}: ChatItemProps) => {
       onPress={() => {
         if (recipient) {
           navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-            chat: chat,
-            recipient: recipient,
+            chatId: chat.id,
           });
         }
       }}>

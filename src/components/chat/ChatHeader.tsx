@@ -47,7 +47,7 @@ const ChatHeader = ({recipient}: ChatHeaderProps) => {
       <TouchableOpacity onPress={handleBackButtonPress}>
         <BackNav width={30} height={20} color={COLOR.black[100]} />
       </TouchableOpacity>
-      <SkeletonPlaceholder isLoading={!recipient?.profilePicture}>
+      <SkeletonPlaceholder isLoading={recipient === null}>
         <View style={[rounded.max, overflow.hidden, dimension.square.xlarge]}>
           <FastImage
             source={getSourceOrDefaultAvatar({
