@@ -69,18 +69,12 @@ export class Chat extends BaseModel {
     const data = doc.data();
     if (data && doc.exists) {
       console.log('[Chat:fromSnapshot] data: ' + data);
-      const messages: Message[] = data.messages?.map((messageData: any) => ({
-        message: messageData.message,
-        type: messageData.type,
-        role: messageData.role,
-        createdAt: messageData.createdAt.seconds,
-      }));
 
       return new Chat({
         id: doc.id,
         businessPeopleId: data.businessPeopleId.id,
         contentCreatorId: data.contentCreatorId.id,
-        messages: messages,
+        messages: data.messages,
       });
     }
 
@@ -125,181 +119,139 @@ export class Chat extends BaseModel {
     }
   }
 
+  static getFieldToCheck(role: UserRole) {
+    if (role === UserRole.BusinessPeople) {
+      return 'businessPeopleId';
+    }
+    if (role === UserRole.ContentCreator) {
+      return 'contentCreatorId';
+    }
+    throw new Error('Chat.getFieldToCheck - Invalid role');
+  }
+
   static getUserChatsReactive(
     userId: string,
-    activeRole: string,
-    callback: (chats: Chat[]) => void,
+    activeRole: UserRole,
+    onChange: (chats: Chat[]) => void,
   ) {
     try {
-      const userRef = User.getDocumentReference(userId);
       console.log('Chat:getUserChatsReactive:', activeRole);
-
-      let fieldToCheck = '';
-      if (activeRole === UserRole.BusinessPeople) {
-        fieldToCheck = 'businessPeopleId';
-      } else if (activeRole === UserRole.ContentCreator) {
-        fieldToCheck = 'contentCreatorId';
-      }
-
-      if (fieldToCheck) {
-        const unsubscribe = this.getCollectionReference()
-          .where(fieldToCheck, '==', userRef)
-          .onSnapshot(
-            querySnapshots => {
-              callback(this.fromQuerySnapshot(querySnapshots));
-            },
-            (error: Error) => {
-              console.log('getUserChatsReactive error', error.message);
-            },
-          );
-
-        return unsubscribe;
-      } else {
-        console.log('Invalid role:', activeRole);
-        return () => {};
-      }
+      const fieldToCheck = this.getFieldToCheck(activeRole);
+      return this.getCollectionReference()
+        .where(fieldToCheck, '==', User.getDocumentReference(userId))
+        .onSnapshot(
+          querySnapshots => {
+            onChange(this.fromQuerySnapshot(querySnapshots));
+          },
+          (error: Error) => {
+            console.log('getUserChatsReactive error', error.message);
+          },
+        );
     } catch (error) {
       console.log('no access', error);
       return () => {};
     }
   }
 
-  // async convertToChatView(currentRole: UserRole): Promise<ChatView> {
-  //   const cv: ChatView = {
-  //     chat: Chat.serialize(this),
-  //     recipient: {},
-  //   };
-  //   console.log('convertToChatView', this.toJSON());
-
-  //   for (const participant of this.participants || []) {
-  //     if (participant.role !== currentRole) {
-  //       const role = participant.role;
-  //       const ref = participant.ref;
-  //       console.log(ref);
-
-  //       const user = await User.getById(ref);
-  //       if (user) {
-  //         const fullname =
-  //           role === 'Business People'
-  //             ? user.businessPeople?.fullname
-  //             : user.contentCreator?.fullname;
-  //         const profilePicture =
-  //           role === 'Business People'
-  //             ? user.businessPeople?.profilePicture
-  //             : user.contentCreator?.profilePicture;
-
-  //         if (cv.recipient) {
-  //           cv.recipient.fullname = fullname;
-  //           cv.recipient.profilePicture = profilePicture;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return cv;
-  // }
-
-  static async insertMessage(chatId: string, newMessage: Message) {
+  static getById(id: string, onChange: (chat: Chat) => void) {
     try {
-      const chatRef = Chat.getDocumentReference(chatId);
+      const unsubscribe = this.getDocumentReference(id).onSnapshot(
+        doc => {
+          onChange(this.fromSnapshot(doc));
+        },
+        (error: Error) => {
+          console.log('getById error', error.message);
+        },
+      );
 
-      const chatDoc = await chatRef.get();
-      if (chatDoc.exists) {
-        const chatData = chatDoc.data() as Chat;
-
-        const updatedMessages = chatData.messages || [];
-        updatedMessages.push(newMessage);
-
-        await chatRef.update({messages: updatedMessages});
-
-        console.log('Message inserted successfully');
-      } else {
-        console.error('Chat document does not exist');
-      }
+      return unsubscribe;
     } catch (error) {
-      console.error('Error inserting message:', error);
+      console.log('no access', error);
+      return () => {};
     }
   }
 
-  static async insertOrdinaryMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Text,
-      createdAt: new Date().getTime(),
-    };
+  static async findOrCreateByContentCreatorIdAndBusinessPeopleId(
+    contentCreatorId: string,
+    businessPeopleId: string,
+  ): Promise<Chat> {
+    try {
+      const querySnapshot = await this.getCollectionReference()
+        .where(
+          'contentCreatorId',
+          '==',
+          User.getDocumentReference(contentCreatorId),
+        )
+        .where(
+          'businessPeopleId',
+          '==',
+          User.getDocumentReference(businessPeopleId),
+        )
+        .get();
 
-    this.insertMessage(chatId, newMessage);
+      if (querySnapshot.empty) {
+        const chat = new Chat({
+          contentCreatorId: contentCreatorId,
+          businessPeopleId: businessPeopleId,
+        });
+        await chat.insert();
+        return chat;
+      }
+
+      return this.fromSnapshot(querySnapshot.docs[0]);
+    } catch (error) {
+      console.log(
+        'Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId error ' + error,
+      );
+      throw new Error(
+        'Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId error ' + error,
+      );
+    }
   }
 
-  static async insertPhotoMessage(
+  static async insertMessage(
     chatId: string,
+    type: MessageType,
+    role: UserRole,
     message: string,
-    activeRole: UserRole,
   ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Photo,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
+    try {
+      await this.getDocumentReference(chatId).update({
+        messages: firestore.FieldValue.arrayUnion({
+          message: message,
+          role: role,
+          type: type,
+          createdAt: new Date().getTime(),
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      throw new Error('Chat.insertMessage error ' + error);
+    }
   }
 
-  static async insertSystemMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.System,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
+  async addMessage(type: MessageType, role: UserRole, message: string) {
+    const {id} = this;
+    try {
+      await Chat.getDocumentReference(id).update({
+        messages: firestore.FieldValue.arrayUnion({
+          message: message,
+          role: role,
+          type: type,
+          createdAt: new Date().getTime(),
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      throw new Error('Chat.insertMessage error ' + error);
+    }
   }
 
-  static async insertOfferMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Offer,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
-  }
-
-  static async insertNegotiateMessage(
-    chatId: string,
-    message: string,
-    activeRole: UserRole,
-  ) {
-    const newMessage: Message = {
-      message: message,
-      role: activeRole,
-      type: MessageType.Negotiation,
-      createdAt: new Date().getTime(),
-    };
-
-    this.insertMessage(chatId, newMessage);
+  getLatestMessage() {
+    const {messages} = this;
+    if (messages.length === 0) {
+      return null;
+    }
+    return messages[messages.length - 1];
   }
 }
-
-// export interface ChatView {
-//   chat: Chat;
-//   recipient?: {
-//     fullname?: string;
-//     profilePicture?: string;
-//   };
-// }

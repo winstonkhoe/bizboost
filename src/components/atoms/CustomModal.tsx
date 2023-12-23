@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {padding} from '../../styles/Padding';
+import {border} from '../../styles/Border';
 
 interface CustomModalProps extends ModalProps {
   children: ReactNode;
@@ -53,12 +54,17 @@ export const CustomModal = ({
           gap.default,
           animatedBackgroundStyle,
           !removeDefaultPadding && padding.horizontal.xlarge,
-          background(`${COLOR.black[100]}d0`),
+          background(COLOR.absoluteBlack[100], 0.7),
         ]}>
         <Animated.View
           style={[
             rounded.default,
             animatedModalStyle,
+            border({
+              borderWidth: 2,
+              color: COLOR.black[10],
+              opacity: 0.5,
+            }),
             !removeDefaultBackground && background(COLOR.black[0]),
           ]}>
           {children}

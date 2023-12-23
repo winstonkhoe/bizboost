@@ -9,7 +9,7 @@ import {
 import {DeviceEventEmitter} from 'react-native';
 import {Campaign} from '../model/Campaign';
 import {Offer} from '../model/Offer';
-import {Chat} from '../model/Chat';
+import {Chat, MessageType} from '../model/Chat';
 import {useUser} from '../hooks/user';
 import {User, UserRole} from '../model/User';
 
@@ -90,7 +90,10 @@ export const openNegotiateModal = ({
   const listener = DeviceEventEmitter.addListener(eventType, fee => {
     const bpId = selectedOffer.businessPeopleId;
     const ccId = selectedOffer.contentCreatorId;
-    Chat.insertNegotiateMessage(bpId + ccId, fee, activeRole);
+    if (!bpId || !ccId) {
+      return;
+    }
+    Chat.insertMessage(bpId + ccId, MessageType.Negotiation, activeRole, fee);
   });
 
   const closeListener = DeviceEventEmitter.addListener(

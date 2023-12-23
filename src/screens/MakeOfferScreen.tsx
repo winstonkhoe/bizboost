@@ -16,7 +16,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Chat} from '../model/Chat';
+import {Chat, MessageType} from '../model/Chat';
 import {UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import {useUserChats} from '../hooks/chats';
@@ -47,10 +47,7 @@ const MakeOfferScreen = ({route}: Props) => {
   const methods = useForm<MakeOfferFormData>({
     mode: 'all',
   });
-
   const {activeRole} = useUser();
-  const chats = useUserChats();
-
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
 
   const onSubmit = (data: MakeOfferFormData) => {
@@ -80,106 +77,30 @@ const MakeOfferScreen = ({route}: Props) => {
       return;
     }
 
-    const transaction = new Transaction({
+    setIsLoading(true);
+    const offer = new Offer({
       contentCreatorId: contentCreatorId,
       businessPeopleId: businessPeopleId,
       campaignId: selectedCampaign.id,
+      importantNotes: data.importantNotes,
+      platformTasks: selectedCampaign.platformTasks,
+      offeredPrice: data.fee,
     });
 
-    console.log(transaction);
-    setIsLoading(true);
-    transaction
-      .offer()
-      .then(() => {
-        const offer = new Offer({
-          contentCreatorId: contentCreatorId,
-          businessPeopleId: businessPeopleId,
-          campaignId: selectedCampaign.id,
-          importantNotes: data.importantNotes,
-          platformTasks: selectedCampaign.platformTasks,
-          offeredPrice: data.fee,
+    offer
+      .insert()
+      .then(({chat}) => {
+        navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+          chatId: chat.id,
         });
-
-        offer
-          .insert()
-          .then(() => {
-            const matchingChat = chats.chats.find(
-              chat =>
-                chat.contentCreatorId === contentCreatorId &&
-                chat.businessPeopleId === businessPeopleId,
-            );
-            console.log('matchingChat: ', matchingChat);
-
-            if (matchingChat !== undefined && matchingChat.id) {
-              console.log('ada chat');
-              Chat.insertOfferMessage(
-                matchingChat.id,
-                data.fee.toString(),
-                activeRole,
-              )
-                .then(() => {
-                  console.log('send!');
-                  navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                    chat: matchingChat,
-                  });
-                })
-                .catch(() => {
-                  showToast({
-                    type: ToastType.danger,
-                    message: 'Something went wrong',
-                  });
-                  setIsLoading(false);
-                });
-            } else {
-              const chat = new Chat({
-                businessPeopleId: businessPeopleId,
-                contentCreatorId: contentCreatorId,
-              });
-              chat
-                .insert()
-                .then(() => {
-                  Chat.insertOfferMessage(
-                    businessPeopleId + contentCreatorId,
-                    data.fee.toString(),
-                    activeRole,
-                  )
-                    .then(() => {
-                      navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                        chat: chat,
-                      });
-                    })
-                    .catch(() => {
-                      showToast({
-                        type: ToastType.danger,
-                        message: 'Something went wrong',
-                      });
-                      setIsLoading(false);
-                    });
-                })
-                .catch(() => {
-                  showToast({
-                    type: ToastType.danger,
-                    message: 'Something went wrong',
-                  });
-                  setIsLoading(false);
-                });
-            }
-          })
-          .catch(() => {
-            showToast({
-              type: ToastType.danger,
-              message: 'Something went wrong',
-            });
-            setIsLoading(false);
-          });
       })
-      .catch(() => {
+      .catch(error => {
         showToast({
           type: ToastType.danger,
-          message: 'Something went wrong',
+          message: error,
         });
-        setIsLoading(false);
-      });
+      })
+      .finally(() => setIsLoading(false));
   };
 
   return (

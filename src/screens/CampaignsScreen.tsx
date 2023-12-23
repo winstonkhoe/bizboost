@@ -63,7 +63,7 @@ const CampaignsScreen = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={[flex.flexCol, padding.default]}>
+        contentContainerStyle={[flex.flexCol, padding.horizontal.default]}>
         <View
           style={[
             background(COLOR.background.neutral.default),

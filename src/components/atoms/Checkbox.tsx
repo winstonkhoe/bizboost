@@ -39,7 +39,7 @@ export const Checkbox = ({size: sizeType = 'large', checked}: Props) => {
           <CheckMark
             width={checkMarkScale * numberSize}
             height={checkMarkScale * numberSize}
-            color={COLOR.black[0]}
+            color={COLOR.absoluteBlack[0]}
           />
         )}
       </Animated.View>

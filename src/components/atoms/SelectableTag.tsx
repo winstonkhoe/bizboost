@@ -1,5 +1,12 @@
 import React from 'react';
 import {Pressable, PressableProps, Text} from 'react-native';
+import {border} from '../../styles/Border';
+import {COLOR} from '../../styles/Color';
+import {background} from '../../styles/BackgroundColor';
+import {rounded} from '../../styles/BorderRadius';
+import {padding} from '../../styles/Padding';
+import {textColor} from '../../styles/Text';
+import {font} from '../../styles/Font';
 
 interface Props extends PressableProps {
   text: string;
@@ -9,13 +16,34 @@ const SelectableTag = ({text, isSelected = false, ...props}: Props) => {
   return (
     <Pressable
       {...props}
-      className={`border ${
-        isSelected ? 'border-green-700 bg-green-100' : 'border-gray-500'
-      } py-1 px-2 rounded-lg`}>
+      style={[
+        rounded.default,
+        padding.vertical.small,
+        padding.horizontal.default,
+        isSelected
+          ? [
+              border({
+                borderWidth: 1,
+                color: COLOR.green[50],
+              }),
+              background(COLOR.green[5]),
+            ]
+          : [
+              border({
+                borderWidth: 1,
+                color: COLOR.black[25],
+              }),
+              background(COLOR.black[1]),
+            ],
+      ]}>
       <Text
-        className={`${
-          isSelected ? 'text-green-700' : 'text-gray-500'
-        } font-semibold`}>
+        style={[
+          font.size[20],
+          font.weight.medium,
+          isSelected
+            ? [textColor(COLOR.green[50])]
+            : [textColor(COLOR.text.neutral.med)],
+        ]}>
         {text}
       </Text>
     </Pressable>

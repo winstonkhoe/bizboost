@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {font} from '../styles/Font';
-import {flex} from '../styles/Flex';
+import {flex, items, justify} from '../styles/Flex';
 import StarIcon from '../assets/vectors/star.svg';
 import InstagramLogo from '../assets/vectors/instagram.svg';
 import TiktokLogo from '../assets/vectors/tiktok.svg';
@@ -33,6 +33,9 @@ import {size} from '../styles/Size';
 import {useNavigation} from '@react-navigation/native';
 import {useUser} from '../hooks/user';
 import {dimension} from '../styles/Dimension';
+import {rounded} from '../styles/BorderRadius';
+import {textColor} from '../styles/Text';
+import {COLOR} from '../styles/Color';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -72,6 +75,13 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
     setSelectedTab(1);
   };
 
+  const openMakeOfferModal = () => {
+    navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+      businessPeopleId: uid ?? '',
+      contentCreatorId: contentCreator?.id ?? '',
+    });
+  };
+
   return (
     <PageWithBackButton fullHeight={true}>
       <View
@@ -85,15 +95,16 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
           },
           padding.horizontal.large,
         ]}>
-        <View
-          style={[flex.grow, flex.flexCol]}
-          className="justify-center items-center">
+        <View style={[flex.grow, flex.flexCol, justify.center, items.center]}>
           <View
-            style={{
-              width: Dimensions.get('window').width * 0.3,
-              height: Dimensions.get('window').width * 0.3,
-            }}
-            className="rounded-full overflow-hidden object-cover">
+            style={[
+              {
+                width: Dimensions.get('window').width * 0.3,
+                height: Dimensions.get('window').width * 0.3,
+              },
+              rounded.max,
+            ]}
+            className="overflow-hidden object-cover">
             <FastImage
               style={[dimension.full]}
               source={
@@ -113,9 +124,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
             style={flex.flexRow}
             className="w-full items-center justify-center gap-x-2">
             {contentCreator?.instagram && (
-              <View
-                style={flex.flexRow}
-                className="justify-center items-center">
+              <View style={[flex.flexRow, justify.center, items.center]}>
                 <InstagramLogo width={10} height={10} />
                 <Text>
                   {contentCreator.instagram.followersCount?.toString()}
@@ -123,14 +132,12 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
               </View>
             )}
             {contentCreator?.tiktok && (
-              <View
-                style={flex.flexRow}
-                className="justify-center items-center">
+              <View style={[flex.flexRow, justify.center, items.center]}>
                 <TiktokLogo width={10} height={10} />
                 <Text>{contentCreator.tiktok.followersCount?.toString()}</Text>
               </View>
             )}
-            <View style={flex.flexRow} className="justify-center items-center">
+            <View style={[flex.flexRow, justify.center, items.center]}>
               <StarIcon width={10} height={10} />
               <Text>
                 {contentCreator?.contentCreator?.rating ?? 'Not rated'}
@@ -178,7 +185,13 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                 bounces={false}
                 contentContainerStyle={[flex.flexCol, gap.medium]}>
                 <View style={[flex.flexCol]}>
-                  <Text className="text-black font-bold">About Me</Text>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    About Me
+                  </Text>
                   <Text>
                     Hi there! I'm Emily, a content creator weaving stories and
                     visuals in the digital realm. From crafting eye-catching
@@ -195,7 +208,13 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                 {contentCreator?.contentCreator?.preferences &&
                   contentCreator.contentCreator.preferences.length > 0 && (
                     <View>
-                      <Text className="text-black font-bold">Preferences</Text>
+                      <Text
+                        style={[
+                          textColor(COLOR.text.neutral.high),
+                          font.weight.bold,
+                        ]}>
+                        Preferences
+                      </Text>
                       {contentCreator.contentCreator.preferences.map(
                         (preference, idx) => (
                           <Text key={idx}>• {preference}</Text>
@@ -208,7 +227,11 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                   contentCreator?.contentCreator?.preferredLocationIds.length >
                     0 && (
                     <View>
-                      <Text className="text-black font-bold">
+                      <Text
+                        style={[
+                          textColor(COLOR.text.neutral.high),
+                          font.weight.bold,
+                        ]}>
                         Preferred Locations
                       </Text>
                       {contentCreator.contentCreator.preferredLocationIds.map(
@@ -222,7 +245,11 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                   contentCreator?.contentCreator?.postingSchedules.length >
                     0 && (
                     <View>
-                      <Text className="text-black font-bold">
+                      <Text
+                        style={[
+                          textColor(COLOR.text.neutral.high),
+                          font.weight.bold,
+                        ]}>
                         Posting Schedules
                       </Text>
                       {contentCreator?.contentCreator?.postingSchedules?.map(
@@ -238,7 +265,11 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                   contentCreator?.contentCreator?.specializedCategoryIds
                     .length > 0 && (
                     <View>
-                      <Text className="text-black font-bold">
+                      <Text
+                        style={[
+                          textColor(COLOR.text.neutral.high),
+                          font.weight.bold,
+                        ]}>
                         Specialized Categories
                       </Text>
                       <ScrollView
@@ -325,15 +356,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
           </PagerView>
         </View>
         <View>
-          <CustomButton
-            text="Make Offer"
-            onPress={() => {
-              navigation.navigate(AuthenticatedNavigation.MakeOffer, {
-                businessPeopleId: uid ?? '',
-                contentCreatorId: contentCreator?.id ?? '',
-              });
-            }}
-          />
+          <CustomButton text="Make Offer" onPress={openMakeOfferModal} />
         </View>
       </View>
     </PageWithBackButton>

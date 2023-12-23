@@ -2,7 +2,7 @@ import {View, Text} from 'react-native';
 import {useUser} from '../../hooks/user';
 import {Offer} from '../../model/Offer';
 import {CustomButton} from '../atoms/Button';
-import {HorizontalPadding, VerticalPadding} from '../atoms/ViewPadding';
+import {HorizontalPadding} from '../atoms/ViewPadding';
 import {flex, items, justify} from '../../styles/Flex';
 import {COLOR} from '../../styles/Color';
 import {NavigationStackProps} from '../../navigation/StackNavigation';
@@ -11,13 +11,16 @@ import {gap} from '../../styles/Gap';
 import {openNegotiateModal} from '../../utils/modal';
 import {useEffect, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
-import {User, UserRole} from '../../model/User';
+import {UserRole} from '../../model/User';
 import {CustomAlert} from './CustomAlert';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import {padding} from '../../styles/Padding';
-import {Chat} from '../../model/Chat';
+import {Chat, MessageType} from '../../model/Chat';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
+import {ErrorMessage} from '../../constants/errorMessage';
 
 type Props = {
   offer: Offer;
@@ -46,6 +49,13 @@ const OfferActionModal = ({
   const ccId = offer.contentCreatorId;
 
   const onAcceptOfferClicked = () => {
+    if (!bpId || !ccId || !activeRole) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
+      });
+      return;
+    }
     if (offer) {
       // TODO: prompt buat bayar dulu, baru approve (OfferActionsModal + OfferDetailScreen)
       offer.accept().then(acc => {
@@ -70,15 +80,34 @@ const OfferActionModal = ({
             } ${
               campaign?.title
             }. Transaction will begin after Business People have finished payment.`;
-            Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
-              onModalDismiss();
-            });
+            Chat.insertMessage(
+              bpId + ccId,
+              MessageType.System,
+              activeRole,
+              text,
+            )
+              .then(() => {
+                onModalDismiss();
+              })
+              .catch(() => {
+                showToast({
+                  type: ToastType.info,
+                  message: 'Error inserting message',
+                });
+              });
           });
       });
     }
   };
 
   const onRejectOfferClicked = () => {
+    if (!bpId || !ccId || !activeRole || !campaign) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
+      });
+      return;
+    }
     if (offer) {
       offer.reject().then(() => {
         const transaction = new Transaction({
@@ -100,9 +129,16 @@ const OfferActionModal = ({
               : 'rejected offer for') +
             ' ' +
             campaign?.title;
-          Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
-            onModalDismiss();
-          });
+          Chat.insertMessage(bpId + ccId, MessageType.System, activeRole, text)
+            .then(() => {
+              onModalDismiss();
+            })
+            .catch(() => {
+              showToast({
+                type: ToastType.info,
+                message: 'Error inserting message',
+              });
+            });
         });
       });
     }
@@ -110,7 +146,7 @@ const OfferActionModal = ({
 
   const openModalNegotiate = () => {
     onModalDismiss();
-    if (offer && campaign) {
+    if (offer && campaign && activeRole) {
       openNegotiateModal({
         selectedOffer: offer,
         campaign: campaign,

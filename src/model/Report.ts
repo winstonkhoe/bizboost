@@ -379,23 +379,6 @@ export class Report extends BaseModel {
     }
   }
 
-  async resolveReport(
-    actionTaken: ActionTaken,
-    reason?: string,
-    extraFields?: Partial<Report>,
-  ): Promise<void> {
-    const {id} = this;
-    if (!id) {
-      throw Error('Missing id');
-    }
-    await this.update({
-      status: ReportStatus.resolved,
-      actionTaken,
-      actionTakenReason: reason,
-      ...extraFields,
-    });
-  }
-
   async resolve(
     action: ActionTaken,
     reason?: string,
@@ -428,7 +411,10 @@ export class Report extends BaseModel {
           transactionId,
           async transaction => {
             if (transaction) {
-              await this.resolveReport(ActionTaken.warningIssued, reason, {
+              await this.update({
+                status: ReportStatus.resolved,
+                actionTaken: ActionTaken.warningIssued,
+                actionTakenReason: reason,
                 warningNotes: warningNotes,
               });
               unsubscribe();
@@ -455,10 +441,11 @@ export class Report extends BaseModel {
           async transaction => {
             if (transaction) {
               await transaction.terminate();
-              await this.resolveReport(
-                ActionTaken.terminateTransaction,
-                reason,
-              );
+              await this.update({
+                status: ReportStatus.resolved,
+                actionTaken: ActionTaken.terminateTransaction,
+                actionTakenReason: reason,
+              });
               unsubscribe();
               resolve();
             }
@@ -476,7 +463,11 @@ export class Report extends BaseModel {
     if (!id) {
       throw Error('Missing id');
     }
-    await this.resolveReport(ActionTaken.reject, reason);
+    await this.update({
+      status: ReportStatus.resolved,
+      actionTaken: ActionTaken.reject,
+      actionTakenReason: reason,
+    });
   }
 
   async approveTransaction(reason?: string): Promise<void> {
@@ -491,7 +482,11 @@ export class Report extends BaseModel {
           async transaction => {
             if (transaction) {
               await transaction.approve();
-              await this.resolveReport(ActionTaken.approveTransaction, reason);
+              await this.update({
+                status: ReportStatus.resolved,
+                actionTaken: ActionTaken.approveTransaction,
+                actionTakenReason: reason,
+              });
               unsubscribe();
               resolve();
             }
@@ -526,7 +521,11 @@ export class Report extends BaseModel {
                 const user = await User.getById(targetSuspendUserId);
                 if (user) {
                   await user.suspend();
-                  await this.resolveReport(ActionTaken.suspendUser, reason);
+                  await this.update({
+                    status: ReportStatus.resolved,
+                    actionTaken: ActionTaken.suspendUser,
+                    actionTakenReason: reason,
+                  });
                   resolve();
                   return;
                 }

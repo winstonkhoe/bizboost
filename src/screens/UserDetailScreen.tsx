@@ -53,13 +53,15 @@ const UserDetailScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
 
   useEffect(() => {
-    Campaign.getUserCampaigns(userId).then(value => setCampaigns(value));
+    Campaign.getUserCampaigns(userId)
+      .then(value => setCampaigns(value))
+      .catch(() => setCampaigns([]));
   }, [userId]);
   useEffect(() => {
-    User.getUserDataReactive(userId, u => setUser(u));
+    return User.getUserDataReactive(userId, u => setUser(u));
   }, [userId]);
   useEffect(() => {
-    Transaction.getAllTransactionsByRole(
+    return Transaction.getAllTransactionsByRole(
       userId,
       UserRole.ContentCreator,
       setContentCreatorTransactions,
@@ -67,7 +69,7 @@ const UserDetailScreen = ({route}: Props) => {
   }, [userId]);
 
   useEffect(() => {
-    Transaction.getAllTransactionsByRole(
+    return Transaction.getAllTransactionsByRole(
       userId,
       UserRole.BusinessPeople,
       setBusinessPeopleTransactions,

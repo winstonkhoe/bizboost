@@ -48,7 +48,7 @@ type Props = {
   transaction: Transaction;
   role?: UserRole;
 };
-const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
+const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [review, setReview] = useState<Review | null>();
@@ -82,6 +82,13 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
             'Registration Approved! Your payment is being reviewed by our Admin',
           type: ToastType.success,
         });
+      })
+      .catch(err => {
+        console.log(err);
+        showToast({
+          message: 'Failed to update proof!',
+          type: ToastType.danger,
+        });
       });
   };
 
@@ -95,7 +102,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
-  console.log('review', review);
+  console.log('transaction', transaction);
 
   return (
     <>
@@ -442,15 +449,15 @@ export const BaseCard = ({
 };
 // END MARK
 
-const RegisteredUserListCard = ({transaction, role}: Props) => {
+const TransactionCard = ({transaction, role}: Props) => {
   if (role === UserRole.BusinessPeople) {
-    return <BusinessPeopleTransactionsCard transaction={transaction} />;
+    return <BusinessPeopleTransactionCard transaction={transaction} />;
   } else {
     return <ContentCreatorTransactionCard transaction={transaction} />;
   }
 };
 
-export default RegisteredUserListCard;
+export default TransactionCard;
 
 const styles = StyleSheet.create({
   bottomBorder: {

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -53,6 +53,23 @@ interface SelectedFilters {
   categories: string[];
 }
 
+enum SortField {
+  Rating = 'Rating',
+  Instagram = 'Instagram',
+  Tiktok = 'Tiktok',
+}
+
+enum SortDirection {
+  Descending = 1,
+  Ascending = -1,
+  Normal = 0,
+}
+
+interface SortConfig {
+  field?: SortField;
+  direction?: SortDirection;
+}
+
 const ContentCreatorsScreen: React.FC = () => {
   const [contentCreators, setContentCreators] = useState<User[]>([]);
   const [filterModalState, setFilterModalState] = useState(false);
@@ -63,28 +80,38 @@ const ContentCreatorsScreen: React.FC = () => {
 
   const {isOnSearchPage, searchTerm} = useAppSelector(state => state.search);
 
-  const [filteredContentCreators, setFilteredContentCreators] = useState<
-    User[]
-  >([]);
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     locations: [],
     categories: [],
   });
-  const [sortByRating, setSortByRating] = useState<number>(0);
-  const [sortByInstagram, setSortByInstagram] = useState<number>(0);
-  const [sortByTiktok, setSortByTiktok] = useState<number>(0);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    field: undefined,
+    direction: undefined,
+  });
 
   const windowWidth = Dimensions.get('window').width;
 
   useEffect(() => {
     User.getContentCreators().then(contentCreatorsData => {
       setContentCreators(contentCreatorsData);
-      setFilteredContentCreators(contentCreatorsData);
     });
     Location.getAll().then(setLocations);
   }, []);
 
-  useEffect(() => {
+  const getFilteredField = useCallback(
+    (user: User) => {
+      if (sortConfig.field === SortField.Instagram) {
+        return user.instagram?.followersCount ?? 0;
+      }
+      if (sortConfig.field === SortField.Tiktok) {
+        return user.tiktok?.followersCount ?? 0;
+      }
+      return user?.contentCreator?.rating ?? 0;
+    },
+    [sortConfig],
+  );
+
+  const filteredContentCreators = useMemo(() => {
     let sortedContentCreators = [...contentCreators];
 
     if (searchTerm && searchTerm !== '') {
@@ -116,75 +143,23 @@ const ContentCreatorsScreen: React.FC = () => {
       );
     }
 
-    if (sortByRating !== 0) {
-      sortedContentCreators.sort((a, b) => {
-        const ratingA = a.contentCreator?.rating;
-        const ratingB = b.contentCreator?.rating;
-
-        if (ratingA == null && ratingB == null) {
-          return 0;
-        }
-        if (ratingA == null) {
-          return sortByRating === 1 ? 1 : -1;
-        }
-        if (ratingB == null) {
-          return sortByRating === 1 ? -1 : 1;
-        }
-
-        return sortByRating === 1 ? ratingA - ratingB : ratingB - ratingA;
-      });
-    }
-
-    if (sortByInstagram !== 0) {
-      sortedContentCreators.sort((a, b) => {
-        const followersA = a.instagram?.followersCount;
-        const followersB = b.instagram?.followersCount;
-
-        if (followersA == null && followersB == null) {
-          return 0;
-        }
-        if (followersA == null) {
-          return sortByInstagram === 1 ? 1 : -1;
-        }
-        if (followersB == null) {
-          return sortByInstagram === 1 ? -1 : 1;
-        }
-
-        return sortByInstagram === 1
-          ? followersA - followersB
-          : followersB - followersA;
-      });
-    }
-
-    if (sortByTiktok !== 0) {
-      sortedContentCreators.sort((a, b) => {
-        const followersA = a.tiktok?.followersCount;
-        const followersB = b.tiktok?.followersCount;
-
-        if (followersA == null && followersB == null) {
-          return 0;
-        }
-        if (followersA == null) {
-          return sortByTiktok === 1 ? 1 : -1;
-        }
-        if (followersB == null) {
-          return sortByTiktok === 1 ? -1 : 1;
-        }
-
-        return sortByTiktok === 1
-          ? followersA - followersB
-          : followersB - followersA;
-      });
-    }
-
-    setFilteredContentCreators(sortedContentCreators);
+    return sortedContentCreators.sort((a, b) => {
+      const fieldA = getFilteredField(a);
+      const fieldB = getFilteredField(b);
+      if (fieldA > fieldB) {
+        return sortConfig.direction ?? SortDirection.Descending;
+      }
+      if (fieldA < fieldB) {
+        return sortConfig.direction ?? SortDirection.Ascending;
+      }
+      return 0;
+    });
   }, [
     selectedFilters,
-    sortByRating,
-    sortByInstagram,
-    sortByTiktok,
+    sortConfig,
     searchTerm,
     contentCreators,
+    getFilteredField,
   ]);
 
   const modalRef = useRef<BottomSheetModal>(null);
@@ -230,48 +205,6 @@ const ContentCreatorsScreen: React.FC = () => {
         ...prevState,
         categories: [...prevState.categories, categoryId],
       }));
-    }
-  };
-
-  const handleSortByRating = (isSort: boolean) => {
-    setSortByInstagram(0);
-    setSortByTiktok(0);
-    if (isSort) {
-      if (sortByRating === 0 || sortByRating === 2) {
-        setSortByRating(1);
-      } else if (sortByRating === 1) {
-        setSortByRating(2);
-      }
-    } else {
-      setSortByRating(0);
-    }
-  };
-
-  const handleSortByInstagram = (isSort: boolean) => {
-    if (isSort) {
-      setSortByRating(0);
-      setSortByTiktok(0);
-      if (sortByInstagram === 0 || sortByInstagram === 2) {
-        setSortByInstagram(1);
-      } else if (sortByInstagram === 1) {
-        setSortByInstagram(2);
-      }
-    } else {
-      setSortByInstagram(0);
-    }
-  };
-
-  const handleSortByTiktok = (isSort: boolean) => {
-    if (isSort) {
-      setSortByRating(0);
-      setSortByInstagram(0);
-      if (sortByTiktok === 0 || sortByTiktok === 2) {
-        setSortByTiktok(1);
-      } else if (sortByTiktok === 1) {
-        setSortByTiktok(2);
-      }
-    } else {
-      setSortByTiktok(0);
     }
   };
 
@@ -352,15 +285,22 @@ const ContentCreatorsScreen: React.FC = () => {
               <View
                 style={[
                   flex.flexRow,
-                  gap.default,
                   {
                     marginTop: size.default,
                   },
                 ]}>
                 <Pressable
                   onPress={() => setFilterModalState(true)}
-                  style={flex.flexRow}
-                  className="rounded-md border border-zinc-500 justify-between items-center px-2 py-1">
+                  style={[
+                    flex.flexRow,
+                    padding.horizontal.default,
+                    padding.vertical.small,
+                    rounded.default,
+                    border({
+                      borderWidth: 1,
+                      color: COLOR.black[25],
+                    }),
+                  ]}>
                   {selectedFilters.categories.length > 0 ||
                   selectedFilters.locations.length > 0 ? (
                     <View
@@ -387,113 +327,27 @@ const ContentCreatorsScreen: React.FC = () => {
                   )}
                   <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => handleSortByRating(sortByRating === 0)}
-                  style={flex.flexRow}
-                  className={`${
-                    sortByRating === 0
-                      ? 'border-zinc-500 bg-transparent'
-                      : 'border-primary bg-primary '
-                  }   rounded-md border justify-between items-center px-2 py-1`}>
-                  <Text
-                    className={`${
-                      sortByRating === 0 ? 'text-zinc-500' : 'text-white'
-                    } pr-2 text-xs`}>
-                    Rating
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      handleSortByRating(
-                        sortByRating === 1 || sortByRating === 2 ? true : false,
-                      )
-                    }>
-                    {sortByRating === 0 && (
-                      <ArrowUpDown
-                        width={15}
-                        height={15}
-                        color="rgb(113, 113, 122)"
-                      />
-                    )}
-                    {sortByRating === 1 && (
-                      <ArrowDown width={15} height={15} color={COLOR.white} />
-                    )}
-                    {sortByRating === 2 && (
-                      <ArrowUp width={15} height={15} color={COLOR.white} />
-                    )}
-                  </Pressable>
-                </Pressable>
-                <Pressable
-                  onPress={() => handleSortByInstagram(sortByInstagram === 0)}
-                  style={flex.flexRow}
-                  className={`${
-                    sortByInstagram === 0
-                      ? 'border-zinc-500 bg-transparent'
-                      : 'border-primary bg-primary '
-                  }   rounded-md border justify-between items-center px-2 py-1`}>
-                  <Text
-                    className={`${
-                      sortByInstagram === 0 ? 'text-zinc-500' : 'text-white'
-                    } pr-2 text-xs`}>
-                    Instagram
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      handleSortByInstagram(
-                        sortByInstagram === 1 || sortByInstagram === 2
-                          ? true
-                          : false,
-                      )
-                    }>
-                    {sortByInstagram === 0 && (
-                      <ArrowUpDown
-                        width={15}
-                        height={15}
-                        color="rgb(113, 113, 122)"
-                      />
-                    )}
-                    {sortByInstagram === 1 && (
-                      <ArrowDown width={15} height={15} color={COLOR.white} />
-                    )}
-                    {sortByInstagram === 2 && (
-                      <ArrowUp width={15} height={15} color={COLOR.white} />
-                    )}
-                  </Pressable>
-                </Pressable>
-                <Pressable
-                  onPress={() => handleSortByTiktok(sortByTiktok === 0)}
-                  style={flex.flexRow}
-                  className={`${
-                    sortByTiktok === 0
-                      ? 'border-zinc-500 bg-transparent'
-                      : 'border-primary bg-primary '
-                  }   rounded-md border justify-between items-center px-2 py-1`}>
-                  <Text
-                    className={`${
-                      sortByTiktok === 0 ? 'text-zinc-500' : 'text-white'
-                    } pr-2 text-xs`}>
-                    Tiktok
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      handleSortByTiktok(
-                        sortByTiktok === 1 || sortByTiktok === 2 ? true : false,
-                      )
-                    }>
-                    {sortByTiktok === 0 && (
-                      <ArrowUpDown
-                        width={15}
-                        height={15}
-                        color="rgb(113, 113, 122)"
-                      />
-                    )}
-                    {sortByTiktok === 1 && (
-                      <ArrowDown width={15} height={15} color={COLOR.white} />
-                    )}
-                    {sortByTiktok === 2 && (
-                      <ArrowUp width={15} height={15} color={COLOR.white} />
-                    )}
-                  </Pressable>
-                </Pressable>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={[
+                    padding.horizontal.default,
+                    flex.flexRow,
+                    gap.small,
+                  ]}>
+                  {[
+                    SortField.Rating,
+                    SortField.Instagram,
+                    SortField.Tiktok,
+                  ].map(sortField => (
+                    <FilterSort
+                      key={sortField}
+                      field={sortField}
+                      currentSortConfig={sortConfig}
+                      onSortChange={setSortConfig}
+                    />
+                  ))}
+                </ScrollView>
               </View>
             </HideOnActiveSearch>
           </View>
@@ -705,6 +559,84 @@ const FilterElement = ({...props}: FilterElementProps) => {
         ]}>
         {props.text}
       </Text>
+    </Pressable>
+  );
+};
+
+interface FilterSortProps extends PressableProps {
+  field: SortField;
+  currentSortConfig: SortConfig;
+  onSortChange: (config: SortConfig) => void;
+}
+
+const FilterSort = ({
+  field,
+  currentSortConfig,
+  onSortChange,
+  ...props
+}: FilterSortProps) => {
+  const isActiveFilter = currentSortConfig.field === field;
+  const sortDirection = isActiveFilter ? currentSortConfig.direction : 0;
+  const isDescending =
+    isActiveFilter && SortDirection.Descending === sortDirection;
+  const isAscending =
+    isActiveFilter && SortDirection.Ascending === sortDirection;
+  const isNormal = SortDirection.Normal === sortDirection;
+
+  const getNextSortConfigDirection = () => {
+    if (isNormal) {
+      return SortDirection.Descending;
+    }
+    if (isDescending) {
+      return SortDirection.Ascending;
+    }
+    return SortDirection.Normal;
+  };
+
+  return (
+    <Pressable
+      {...props}
+      onPress={() =>
+        onSortChange({
+          direction: getNextSortConfigDirection(),
+          field: field,
+        })
+      }
+      style={[
+        flex.flexRow,
+        items.center,
+        gap.small,
+        padding.horizontal.default,
+        padding.vertical.small,
+        rounded.medium,
+        isNormal && [
+          border({
+            borderWidth: 1,
+            color: COLOR.black[25],
+          }),
+        ],
+        (isAscending || isDescending) && [
+          background(COLOR.green[40]),
+          {
+            borderWidth: 1,
+            borderColor: 'transparent',
+          },
+        ],
+      ]}>
+      <Text
+        style={[
+          font.size[20],
+          font.weight.medium,
+          textColor(COLOR.text.neutral.med),
+          (isAscending || isDescending) && [textColor(COLOR.absoluteBlack[0])],
+        ]}>
+        {field}
+      </Text>
+      {isNormal && (
+        <ArrowUpDown width={15} height={15} color="rgb(113, 113, 122)" />
+      )}
+      {isDescending && <ArrowDown width={15} height={15} color={COLOR.white} />}
+      {isAscending && <ArrowUp width={15} height={15} color={COLOR.white} />}
     </Pressable>
   );
 };

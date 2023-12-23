@@ -142,7 +142,7 @@ const TransactionDetailScreen = ({route}: Props) => {
   const [transactionReports, setTransactionReports] = useState<Report[]>([]);
   const [selectedReportType, setSelectedReportType] = useState<ReportType>();
   const [rejectReason, setRejectReason] = useState<string>('');
-  const [campaign, setCampaign] = useState<Campaign>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const [transaction, setTransaction] = useState<Transaction | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   const [contentCreator, setContentCreator] = useState<User | null>();
@@ -157,7 +157,9 @@ const TransactionDetailScreen = ({route}: Props) => {
 
   useEffect(() => {
     if (transaction?.campaignId) {
-      Campaign.getById(transaction.campaignId).then(setCampaign);
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
     }
   }, [transaction]);
 
@@ -302,6 +304,13 @@ const TransactionDetailScreen = ({route}: Props) => {
           message:
             'Registration Approved! Your payment is being reviewed by our Admin',
           type: ToastType.success,
+        });
+      })
+      .catch(err => {
+        console.log('error updating proof', err);
+        showToast({
+          message: 'Failed to upload proof',
+          type: ToastType.danger,
         });
       });
   };

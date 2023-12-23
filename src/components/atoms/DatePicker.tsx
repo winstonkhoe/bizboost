@@ -767,14 +767,27 @@ const DateCell = ({
       <View
         style={[
           cellStyle.cellGap,
-          !disabled && active.start && background(COLOR.green[5]),
+          !disabled && active.start && background(COLOR.green[10]),
         ]}
       />
       <View
+        className="overflow-hidden"
         style={[
           !disabled &&
             (active.start || active.end) &&
-            background(COLOR.green[5]),
+            background(COLOR.green[10]),
+          active.end && [
+            {
+              borderTopLeftRadius: size.default,
+              borderBottomLeftRadius: size.default,
+            },
+          ],
+          active.start && [
+            {
+              borderTopRightRadius: size.default,
+              borderBottomRightRadius: size.default,
+            },
+          ],
         ]}>
         <View
           className="overflow-hidden"
@@ -794,7 +807,7 @@ const DateCell = ({
               textColor(
                 isRed ? COLOR.text.danger.default : COLOR.text.neutral.med,
               ),
-              exactDate && textColor(COLOR.black[0]),
+              exactDate && textColor(COLOR.absoluteBlack[0]),
               disabled && textColor(COLOR.text.neutral.low),
             ]}>
             {date}
@@ -804,7 +817,7 @@ const DateCell = ({
       <View
         style={[
           cellStyle.cellGap,
-          !disabled && active.end && background(COLOR.green[5]),
+          !disabled && active.end && background(COLOR.green[10]),
         ]}
       />
     </AnimatedPressable>
@@ -839,7 +852,7 @@ export const DefaultDatePickerPlaceholder = ({
           padding.horizontal.default,
           border({
             borderWidth: 1,
-            color: COLOR.background.neutral.high,
+            color: COLOR.black[25],
           }),
           isEdit &&
             border({
@@ -864,11 +877,7 @@ export const DefaultDatePickerPlaceholder = ({
         </Text>
         {!isEdit ? (
           <View
-            style={[
-              rounded.max,
-              background(COLOR.background.neutral.high),
-              padding.xsmall,
-            ]}>
+            style={[rounded.max, background(COLOR.black[25]), padding.xsmall]}>
             <AddIcon size="default" color={COLOR.black[0]} />
           </View>
         ) : (

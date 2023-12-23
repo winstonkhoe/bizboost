@@ -50,7 +50,6 @@ export const SimpleImageCard = ({
           className="absolute z-20 bottom-0 left-0"
           colors={[
             'transparent',
-            `${COLOR.absoluteBlack[40]}`,
             `${COLOR.absoluteBlack[100]}`,
           ]}
           style={[dimension.width.full, padding.small, padding.top.large]}>

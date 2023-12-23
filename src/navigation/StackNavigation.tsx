@@ -130,7 +130,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
-  [AuthenticatedNavigation.ChatDetail]: {chat: Chat; recipient: Recipient};
+  [AuthenticatedNavigation.ChatDetail]: {chatId: string};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {
     campaignId: string;
@@ -266,6 +266,10 @@ const StackNavigator = () => {
                   component={ChatListScreen}
                 />
                 <Stack.Screen
+                  name={AuthenticatedNavigation.ChatDetail}
+                  component={ChatScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.CampaignDetail}
                   component={CampaignDetailScreen}
                 />
@@ -320,10 +324,6 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.MakeOffer}
                   component={MakeOfferScreen}
-                />
-                <Stack.Screen
-                  name={AuthenticatedNavigation.ChatDetail}
-                  component={ChatScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.ContentCreatorDetail}

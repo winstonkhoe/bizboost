@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {Pressable, PressableProps, StyleSheet, Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
@@ -8,27 +8,38 @@ import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {SearchAutocompletePlaceholder} from '../components/templates/PageWithSearchBar';
-import {Campaign} from '../model/Campaign';
+import {Campaign, CampaignStep} from '../model/Campaign';
 import {useOngoingCampaign} from '../hooks/campaign';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {User, UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
 import UserListCard from '../components/molecules/UserListCard';
 import {AnimatedPressable} from '../components/atoms/AnimatedPressable';
 import Edit from '../assets/vectors/edit.svg';
-import {Transaction} from '../model/Transaction';
-import RegisteredUserListCard from '../components/molecules/RegisteredUserListCard';
+import {
+  Transaction,
+  TransactionStatus,
+  transactionStatusCampaignStepMap,
+} from '../model/Transaction';
+import TransactionCard from '../components/molecules/TransactionCard';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {padding} from '../styles/Padding';
 import {rounded} from '../styles/BorderRadius';
 import {shadow} from '../styles/Shadow';
-import {font} from '../styles/Font';
+import {font, text} from '../styles/Font';
 import {textColor} from '../styles/Text';
 import {size} from '../styles/Size';
 import {Report, reportStatusPrecendence} from '../model/Report';
@@ -37,16 +48,40 @@ import {ReportCard} from './report/ReportListScreen';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SearchBar} from '../components/organisms/SearchBar';
 import {CustomModal} from '../components/atoms/CustomModal';
-import {CircleIcon, ReportIcon} from '../components/atoms/Icon';
+import {
+  CardIcon,
+  CircleIcon,
+  RatingStarIcon,
+  ReportIcon,
+} from '../components/atoms/Icon';
 import PagerView from 'react-native-pager-view';
 import {CustomButton} from '../components/atoms/Button';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 import {Offer} from '../model/Offer';
 import {NewThisWeekCard} from '../components/molecules/NewThisWeekCard';
+import {round} from 'lodash';
+import {InternalLink} from '../components/atoms/Link';
+import {currencyFormat} from '../utils/currency';
+import {border} from '../styles/Border';
+import {dimension} from '../styles/Dimension';
+import SelectableTag from '../components/atoms/SelectableTag';
+import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
+import {SkeletonPlaceholder} from '../components/molecules/SkeletonPlaceholder';
+
+enum FilterCardType {
+  ActionNeeded = 'Action Needed',
+  Ongoing = 'Ongoing',
+  Completed = 'Completed',
+  Terminated = 'Terminated',
+  Users = 'Users',
+}
 
 const HomeScreen = () => {
   const {uid, activeRole} = useUser();
+  const [activeFilterType, setActiveFilterType] = useState<FilterCardType>(
+    FilterCardType.ActionNeeded,
+  );
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const isAdmin = UserRole.Admin === activeRole;
@@ -73,14 +108,122 @@ const HomeScreen = () => {
         startOfWeek.getTime(),
     );
   }, [nonUserCampaigns]);
+  const [filterStep, setFilterStep] = useState<FilterType>();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
 
-  // TODO: kalo klik see all apa mending pindah page?
-  const [userLimit, setUserLimit] = useState(3);
-  const [ongoingCampaignsLimit, setOngoingCampaignsLimit] = useState(3);
+  const pendingReports = useMemo(
+    () =>
+      reports
+        .filter(report => report.isPending())
+        .sort(
+          (a, b) =>
+            reportStatusPrecendence[a.status] -
+            reportStatusPrecendence[b.status],
+        )
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+    [reports],
+  );
+
+  const upcomingCampaigns = useMemo(
+    () => userCampaigns.filter(c => new Campaign(c).isUpcoming()),
+    [userCampaigns],
+  );
+
+  const [actionNeededTransactions, setActionNeededTransactions] =
+    useState<Transaction[]>();
+
+  const ongoingTransactions = useMemo(
+    () => transactions.filter(transaction => transaction.isOngoing()),
+    [transactions],
+  );
+
+  const terminatedTransactions = useMemo(
+    () => transactions.filter(transaction => transaction.isTerminated()),
+    [transactions],
+  );
+
+  const completedTransaction = useMemo(
+    () => transactions.filter(transaction => transaction.isCompleted()),
+    [transactions],
+  );
+
+  const getFilteredStep = useCallback(
+    (targetFilterTransactions: Transaction[]) => {
+      if (targetFilterTransactions.length === 0) {
+        return targetFilterTransactions;
+      }
+      if (!filterStep) {
+        return targetFilterTransactions;
+      }
+      return targetFilterTransactions.filter(
+        transaction =>
+          filterStep === transactionStatusCampaignStepMap[transaction.status],
+      );
+    },
+    [filterStep],
+  );
+
+  const filteredTransactions = useMemo(() => {
+    if (FilterCardType.ActionNeeded === activeFilterType) {
+      return getFilteredStep(actionNeededTransactions || []);
+    }
+    if (FilterCardType.Ongoing === activeFilterType) {
+      return getFilteredStep(ongoingTransactions);
+    }
+    if (FilterCardType.Terminated === activeFilterType) {
+      return getFilteredStep(terminatedTransactions);
+    }
+    if (FilterCardType.Completed === activeFilterType) {
+      return getFilteredStep(completedTransaction);
+    }
+    return getFilteredStep(transactions);
+  }, [
+    getFilteredStep,
+    activeFilterType,
+    transactions,
+    actionNeededTransactions,
+    ongoingTransactions,
+    terminatedTransactions,
+    completedTransaction,
+  ]);
+
+  useEffect(() => {
+    const getActionNeededTransactions = async () => {
+      const results = await Promise.all(
+        transactions.map(async transaction =>
+          (await transaction.isWaitingContentCreatorAction())
+            ? transaction
+            : null,
+        ),
+      );
+      return results.filter((result): result is Transaction => result !== null);
+    };
+    if (transactions) {
+      if (isAdmin) {
+        setActionNeededTransactions(
+          transactions.filter(transaction =>
+            transaction.isWaitingAdminAction(),
+          ),
+        );
+      }
+      if (isBusinessPeople) {
+        setActionNeededTransactions(
+          transactions.filter(transaction =>
+            transaction.isWaitingBusinessPeopleAction(),
+          ),
+        );
+      }
+      if (isContentCreator) {
+        getActionNeededTransactions()
+          .then(setActionNeededTransactions)
+          .catch(() => setActionNeededTransactions([]));
+      }
+    }
+  }, [transactions, isAdmin, isBusinessPeople, isContentCreator]);
+
   useEffect(() => {
     console.log('homeScreen:userGetall');
     const unsubscribe = User.getAll(setUsers);
@@ -131,19 +274,14 @@ const HomeScreen = () => {
     <View
       style={[
         flex.flex1,
+        flex.flexCol,
+        gap.default,
         {
           paddingTop: Math.max(safeAreaInsets.top, size.default),
         },
         background(COLOR.background.neutral.default),
       ]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[0]}
-        contentContainerStyle={[
-          flex.flexCol,
-          padding.bottom.xlarge,
-          gap.default,
-        ]}>
+      {!isAdmin && (
         <View
           style={[
             padding.horizontal.default,
@@ -151,8 +289,193 @@ const HomeScreen = () => {
           ]}>
           <SearchBar />
         </View>
-        <SearchAutocompletePlaceholder>
-          <View style={[flex.flexCol, gap.large]}>
+      )}
+      <SearchAutocompletePlaceholder>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[2]}
+          contentContainerStyle={[
+            flex.grow,
+            flex.flexCol,
+            padding.bottom.xlarge,
+            gap.medium,
+          ]}>
+          {!isAdmin && <DashboardPanel transactions={transactions} />}
+          {/* New This Week */}
+          {isContentCreator && (
+            <View style={[flex.flexCol, gap.default]}>
+              <HorizontalPadding>
+                <HomeSectionHeader header="New This Week" link="See All" />
+              </HorizontalPadding>
+              <ScrollView
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                contentContainerStyle={[
+                  flex.flexRow,
+                  gap.default,
+                  padding.horizontal.default,
+                  padding.bottom.xsmall,
+                ]}>
+                {thisWeekCampaign
+                  .slice(0, 5)
+                  .map((campaign: Campaign, index: number) => (
+                    <NewThisWeekCard campaign={campaign} key={index} />
+                  ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Your Upcoming Campaigns */}
+          {isBusinessPeople && (
+            <View style={[flex.flexCol, gap.default]}>
+              <HorizontalPadding>
+                <HomeSectionHeader
+                  header="Your Upcoming Campaigns"
+                  link="See All"
+                />
+              </HorizontalPadding>
+              <ScrollView
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                contentContainerStyle={[
+                  flex.flexRow,
+                  gap.default,
+                  padding.horizontal.default,
+                  padding.bottom.xsmall,
+                ]}>
+                {upcomingCampaigns
+                  .slice(0, 5)
+                  .map((campaign: Campaign, index: number) => (
+                    <NewThisWeekCard campaign={campaign} key={index} />
+                  ))}
+              </ScrollView>
+            </View>
+          )}
+          <View
+            style={[
+              flex.flexCol,
+              gap.small,
+              background(COLOR.background.neutral.default),
+            ]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                flex.flexRow,
+                gap.default,
+                padding.horizontal.default,
+              ]}>
+              <SkeletonPlaceholder
+                isLoading={
+                  actionNeededTransactions?.length === undefined ||
+                  (isAdmin && pendingReports?.length === undefined)
+                }>
+                <FilterCard
+                  isActive={activeFilterType === FilterCardType.ActionNeeded}
+                  label={FilterCardType.ActionNeeded}
+                  count={
+                    (actionNeededTransactions?.length || 0) +
+                    (isAdmin ? pendingReports.length : 0)
+                  }
+                  onPress={() =>
+                    setActiveFilterType(FilterCardType.ActionNeeded)
+                  }
+                />
+              </SkeletonPlaceholder>
+              {!isAdmin && (
+                <SkeletonPlaceholder
+                  isLoading={ongoingTransactions?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Ongoing}
+                    label={FilterCardType.Ongoing}
+                    count={ongoingTransactions.length}
+                    onPress={() => setActiveFilterType(FilterCardType.Ongoing)}
+                  />
+                </SkeletonPlaceholder>
+              )}
+              {!isAdmin && (
+                <SkeletonPlaceholder
+                  isLoading={completedTransaction?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Completed}
+                    label={FilterCardType.Completed}
+                    count={completedTransaction.length}
+                    onPress={() =>
+                      setActiveFilterType(FilterCardType.Completed)
+                    }
+                  />
+                </SkeletonPlaceholder>
+              )}
+              {!isAdmin && (
+                <SkeletonPlaceholder
+                  isLoading={terminatedTransactions?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Terminated}
+                    label={FilterCardType.Terminated}
+                    count={terminatedTransactions.length}
+                    onPress={() =>
+                      setActiveFilterType(FilterCardType.Terminated)
+                    }
+                  />
+                </SkeletonPlaceholder>
+              )}
+              {isAdmin && (
+                <SkeletonPlaceholder isLoading={users?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Users}
+                    label={FilterCardType.Users}
+                    count={users.length}
+                    onPress={() => setActiveFilterType(FilterCardType.Users)}
+                  />
+                </SkeletonPlaceholder>
+              )}
+            </ScrollView>
+            {[FilterCardType.ActionNeeded, FilterCardType.Ongoing].find(
+              filter => filter === activeFilterType,
+            ) && (
+              <View style={[flex.flexRow, items.start, padding.vertical.small]}>
+                <FilterPanel
+                  initialFilter={filterStep}
+                  onFilterChange={setFilterStep}
+                />
+              </View>
+            )}
+          </View>
+          {(activeFilterType !== FilterCardType.Users &&
+            ((filteredTransactions && filteredTransactions.length > 0) ||
+              (isAdmin && pendingReports.length > 0))) ||
+          (activeFilterType === FilterCardType.Users &&
+            users &&
+            users.length > 0) ? (
+            <View
+              style={[
+                flex.flex1,
+                flex.flexCol,
+                gap.default,
+                padding.horizontal.default,
+              ]}>
+              {activeFilterType !== FilterCardType.Users &&
+                filteredTransactions?.map(transaction => (
+                  <TransactionCard
+                    key={transaction.id}
+                    transaction={transaction}
+                    role={UserRole.ContentCreator} //dashboard is focusing on cc side
+                  />
+                ))}
+              {isAdmin &&
+                pendingReports.map((report, index) => (
+                  <ReportCard key={index} report={report} />
+                ))}
+              {activeFilterType === FilterCardType.Users &&
+                users?.map((user, index) => (
+                  <UserListCard key={index} user={user} />
+                ))}
+            </View>
+          ) : (
+            <EmptyPlaceholder />
+          )}
+          {/* <View style={[flex.flexCol, gap.large]}>
+            <DashboardPanel transactions={transactions} />
             {isContentCreator && (
               <View style={[flex.flexCol, gap.default]}>
                 <HorizontalPadding>
@@ -175,23 +498,7 @@ const HomeScreen = () => {
                 </ScrollView>
               </View>
             )}
-            <View style={[flex.flexCol, gap.default]}>
-              <HorizontalPadding>
-                <HomeSectionHeader
-                  header="Recent Negotiations"
-                  link="See All"
-                />
-              </HorizontalPadding>
-              <HorizontalScrollView>
-                {offers.map((offer: any, index: number) => (
-                  <RecentNegotiationCard
-                    key={index}
-                    offer={offer}
-                    navigation={navigation}
-                  />
-                ))}
-              </HorizontalScrollView>
-            </View>
+
             {isBusinessPeople && (
               <View style={[flex.flexCol, gap.default]}>
                 <HorizontalPadding>
@@ -299,36 +606,140 @@ const HomeScreen = () => {
                 </View>
               </View>
             </HorizontalPadding>
-          )}
-        </SearchAutocompletePlaceholder>
-      </ScrollView>
-      {isBusinessPeople && (
-        <View
-          style={[
-            {
-              position: 'absolute',
-              bottom: 20,
-              right: 20,
-            },
-          ]}>
-          <AnimatedPressable
-            onPress={() =>
-              navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-            }>
-            <View
-              style={[
-                shadow.large,
-                background(COLOR.green[50]),
-                padding.default,
-                rounded.max,
-              ]}>
-              <Edit width={20} height={20} color={'white'} />
-            </View>
-          </AnimatedPressable>
-        </View>
-      )}
+          )} */}
+        </ScrollView>
+        {isBusinessPeople && (
+          <View
+            style={[
+              {
+                position: 'absolute',
+                bottom: 20,
+                right: 20,
+              },
+            ]}>
+            <AnimatedPressable
+              onPress={() =>
+                navigation.navigate(AuthenticatedNavigation.CreateCampaign)
+              }>
+              <View
+                style={[
+                  shadow.large,
+                  background(COLOR.green[50]),
+                  padding.default,
+                  rounded.max,
+                ]}>
+                <Edit width={20} height={20} color={'white'} />
+              </View>
+            </AnimatedPressable>
+          </View>
+        )}
+      </SearchAutocompletePlaceholder>
       <WarningModal />
     </View>
+  );
+};
+
+type FilterType = CampaignStep | undefined;
+
+interface FilterPanelProps {
+  initialFilter: FilterType;
+  onFilterChange: (filter: FilterType) => void;
+}
+
+const filterStepLabelMap: {[key in CampaignStep]?: string} = {
+  [CampaignStep.Registration]: `${CampaignStep.Registration} · ${TransactionStatus.offering}`,
+  [CampaignStep.Brainstorming]: CampaignStep.Brainstorming,
+  [CampaignStep.ContentCreation]: CampaignStep.ContentCreation,
+  [CampaignStep.ResultSubmission]: CampaignStep.ResultSubmission,
+};
+
+const FilterPanel = ({initialFilter, onFilterChange}: FilterPanelProps) => {
+  const [filterStep, setFilterStep] = useState<FilterType>(initialFilter);
+  const filterSteps = [
+    CampaignStep.Registration,
+    CampaignStep.Brainstorming,
+    CampaignStep.ContentCreation,
+    CampaignStep.ResultSubmission,
+  ];
+
+  useEffect(() => {
+    onFilterChange(filterStep);
+  }, [filterStep, onFilterChange]);
+
+  const onSelectFilter = (filter: FilterType) => {
+    if (filterStep !== filter) {
+      setFilterStep(filter);
+      return;
+    }
+    setFilterStep(undefined);
+  };
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={[
+        flex.flexRow,
+        items.start,
+        gap.default,
+        padding.horizontal.default,
+      ]}>
+      {filterSteps.map(step => (
+        <SelectableTag
+          key={step}
+          text={filterStepLabelMap[step] || ''}
+          onPress={() => onSelectFilter(step)}
+          isSelected={filterStep === step}
+        />
+      ))}
+    </ScrollView>
+  );
+};
+
+interface FilterCardProps extends PressableProps {
+  isActive: boolean;
+  label: string;
+  count: number;
+}
+
+const FilterCard = ({isActive, label, count, ...props}: FilterCardProps) => {
+  return (
+    <Pressable
+      style={[
+        rounded.default,
+        dimension.width.xlarge8,
+        // shadow.small,
+        padding.default,
+        flex.flexCol,
+        gap.default,
+        background(COLOR.black[1]),
+        border({
+          borderWidth: 1,
+          color: COLOR.black[20],
+        }),
+
+        isActive && [
+          background(COLOR.background.neutral.high),
+          border({
+            borderWidth: 1,
+            color: COLOR.green[50],
+          }),
+          shadow.default,
+        ],
+      ]}
+      {...props}>
+      <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+        {label}
+      </Text>
+      <Text
+        style={[
+          font.size[40],
+          font.weight.bold,
+          textColor(COLOR.text.neutral.high),
+        ]}>
+        {count}
+      </Text>
+    </Pressable>
   );
 };
 
@@ -385,8 +796,7 @@ const WarningModal = () => {
         <View style={[flex.flexRow, justify.center, items.center, gap.small]}>
           <ReportIcon size="large" />
           <Text
-            className="font-bold"
-            style={[font.size[40], textColor(COLOR.red[70])]}>
+            style={[font.weight.bold, font.size[40], textColor(COLOR.red[70])]}>
             Warning
           </Text>
         </View>
@@ -406,8 +816,9 @@ const WarningModal = () => {
               key={report.id}
               style={[flex.flex1, flex.flexCol, justify.center, gap.default]}>
               <Text
-                className="font-bold text-center"
                 style={[
+                  text.center,
+                  font.weight.bold,
                   self.center,
                   font.size[30],
                   textColor(COLOR.text.neutral.high),
@@ -415,8 +826,8 @@ const WarningModal = () => {
                 {report.type}
               </Text>
               <Text
-                className="text-center"
                 style={[
+                  text.center,
                   self.center,
                   font.size[30],
                   textColor(COLOR.text.neutral.high),
@@ -457,10 +868,181 @@ const WarningModal = () => {
   );
 };
 
+interface DashboardPanelProps {
+  transactions: Transaction[];
+}
+
+const DashboardPanel = ({transactions}: DashboardPanelProps) => {
+  const {user} = useUser();
+  const navigation = useNavigation<NavigationStackProps>();
+  const balance = transactions
+    .filter(transaction => transaction.isCompleted())
+    .reduce(
+      (acc, transaction) => acc + (transaction.transactionAmount || 0),
+      0,
+    );
+  return (
+    <View style={[padding.horizontal.default]}>
+      <View
+        style={[
+          padding.horizontal.small,
+          padding.vertical.default,
+          rounded.medium,
+          flex.flexRow,
+          gap.small,
+          justify.around,
+          // shadow.default,
+          border({
+            borderWidth: 1,
+            color: COLOR.black[20],
+          }),
+          background(COLOR.black[0]),
+        ]}>
+        <DashboardPanelItem label="Bizboost Balance">
+          <Pressable
+            style={[flex.flexCol, items.center]}
+            onPress={() =>
+              navigation.navigate(AuthenticatedNavigation.WithdrawMoney)
+            }>
+            <CardIcon size="large" />
+            <Text
+              style={[
+                font.size[20],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}
+              numberOfLines={1}>
+              {currencyFormat(balance)}
+            </Text>
+          </Pressable>
+        </DashboardPanelItem>
+        <VerticalSeparator />
+        <DashboardPanelItem
+          label={
+            user?.bankAccountInformation
+              ? user?.bankAccountInformation?.bankName
+              : 'Bank Account'
+          }>
+          {user?.bankAccountInformation ? (
+            <Pressable
+              style={[
+                flex.flexCol,
+                justify.center,
+                {
+                  maxWidth: size.xlarge9,
+                },
+              ]}
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                );
+              }}>
+              <Text
+                style={[
+                  text.center,
+                  font.weight.semibold,
+                  self.center,
+                  font.size[20],
+                  textColor(COLOR.text.neutral.high),
+                ]}
+                numberOfLines={1}>
+                {`${user?.bankAccountInformation?.accountNumber}`}
+              </Text>
+              <Text
+                style={[
+                  text.center,
+                  font.weight.semibold,
+                  self.center,
+                  font.size[20],
+                  textColor(COLOR.text.neutral.high),
+                ]}
+                numberOfLines={1}>
+                {`${user?.bankAccountInformation?.accountHolderName}`}
+              </Text>
+            </Pressable>
+          ) : (
+            <InternalLink
+              text="Update Bank Info"
+              size={20}
+              onPress={() => {
+                navigation.navigate(
+                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                );
+              }}
+            />
+          )}
+        </DashboardPanelItem>
+        <VerticalSeparator />
+        <DashboardPanelItem
+          label={
+            user?.contentCreator?.ratedCount
+              ? `${user?.contentCreator?.ratedCount} Rating`
+              : 'Rating'
+          }>
+          <View style={[flex.flexRow, items.end, gap.xsmall2]}>
+            <RatingStarIcon size="medium" />
+            <Text
+              style={[
+                font.size[20],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
+              {/* {Math.round(user?.contentCreator?.rating || 4.88).toFixed(1)} */}
+              {round(user?.contentCreator?.rating || 0, 1).toFixed(1)}
+            </Text>
+          </View>
+        </DashboardPanelItem>
+      </View>
+    </View>
+  );
+};
+
+interface DashboardPanelItemProps {
+  children?: ReactNode;
+  label: string;
+}
+
+const DashboardPanelItem = ({...props}: DashboardPanelItemProps) => {
+  return (
+    <View style={[flex.flex1, flex.flexCol, items.center, gap.small]}>
+      <View
+        style={[
+          flex.flexCol,
+          justify.center,
+          {
+            height: size.xlarge,
+          },
+        ]}>
+        {props.children}
+      </View>
+      <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+        {props.label}
+      </Text>
+    </View>
+  );
+};
+
+const VerticalSeparator = () => {
+  return (
+    <View
+      style={[
+        styles.verticalSeparator,
+        {
+          marginVertical: size.default,
+        },
+      ]}
+    />
+  );
+};
+
 const styles = StyleSheet.create({
   bottomBorder: {
     borderBottomWidth: 1,
     borderBottomColor: COLOR.black[15],
+  },
+  verticalSeparator: {
+    borderRightWidth: 0.7,
+    borderRightColor: COLOR.black[20],
   },
 });
 

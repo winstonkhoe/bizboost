@@ -915,7 +915,7 @@ const CreateCampaignScreen = () => {
                                           COLOR.background.danger.high,
                                         ),
                                       ]}>
-                                      <AddIcon color={COLOR.black[0]} />
+                                      <AddIcon color={COLOR.absoluteBlack[0]} />
                                     </AnimatedPressable>
                                   </View>
                                   <View
@@ -953,166 +953,158 @@ const CreateCampaignScreen = () => {
                 </KeyboardAvoidingContainer>
               </View>
               <View key={4}>
-                <KeyboardAvoidingContainer>
-                  <HorizontalPadding paddingSize="large">
-                    <View
-                      style={[
-                        flex.flexCol,
-                        gap.xlarge,
-                        padding.top.medium,
-                        padding.bottom.xlarge2,
-                      ]}>
-                      {/* TODO: validate date, extract to component */}
-                      {campaignTimeline.map((timeline, index) => {
-                        const campaignTimelineIndex = getCampaignTimelineIndex(
-                          timeline.step,
-                        );
-                        const timelineField = fieldsTimeline.find(
-                          field => field.step === timeline.step,
-                        );
-                        return (
-                          <View
-                            key={timelineField?.id || index}
-                            style={[flex.flexCol, gap.default]}>
-                            <FormFieldHelper
-                              title={timeline.step}
-                              description={timeline.description}
-                              type={timeline.optional ? 'optional' : 'required'}
-                            />
-                            <Controller
-                              control={control}
-                              name={`timeline.${campaignTimelineIndex}`}
-                              rules={{
-                                validate: (value: CampaignTimeline) => {
-                                  if (
-                                    (timeline.optional && !value?.start) ||
-                                    campaignTimelineIndex === -1
-                                  ) {
-                                    return true;
-                                  }
-                                  const previousTimeline =
-                                    getNearestPreviousTimelineEnd(index);
-                                  if (!previousTimeline) {
-                                    return true;
-                                  }
-                                  return (
-                                    value?.start >=
-                                      previousTimeline.getTime() ||
-                                    `Date must start at least on ${formatDateToDayMonthYear(
-                                      previousTimeline,
-                                    )}`
-                                  );
-                                },
-                              }}
-                              render={({
-                                field: {value},
-                                fieldState: {error},
-                              }) => (
-                                <View style={[flex.flexCol, gap.small]}>
-                                  <View
-                                    style={[
-                                      flex.flexRow,
-                                      gap.default,
-                                      items.start,
-                                    ]}>
-                                    <DatePicker
-                                      minimumDate={
-                                        index > 0
-                                          ? getNearestPreviousTimelineEnd(
-                                              index,
-                                            ) || undefined
-                                          : undefined
+                <ScrollView
+                  contentContainerStyle={[padding.horizontal.default]}>
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                    ]}>
+                    {/* TODO: validate date, extract to component */}
+                    {campaignTimeline.map((timeline, index) => {
+                      const campaignTimelineIndex = getCampaignTimelineIndex(
+                        timeline.step,
+                      );
+                      const timelineField = fieldsTimeline.find(
+                        field => field.step === timeline.step,
+                      );
+                      return (
+                        <View
+                          key={timelineField?.id || index}
+                          style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper
+                            title={timeline.step}
+                            description={timeline.description}
+                            type={timeline.optional ? 'optional' : 'required'}
+                          />
+                          <Controller
+                            control={control}
+                            name={`timeline.${campaignTimelineIndex}`}
+                            rules={{
+                              validate: (value: CampaignTimeline) => {
+                                if (
+                                  (timeline.optional && !value?.start) ||
+                                  campaignTimelineIndex === -1
+                                ) {
+                                  return true;
+                                }
+                                const previousTimeline =
+                                  getNearestPreviousTimelineEnd(index);
+                                if (!previousTimeline) {
+                                  return true;
+                                }
+                                return (
+                                  value?.start >= previousTimeline.getTime() ||
+                                  `Date must start at least on ${formatDateToDayMonthYear(
+                                    previousTimeline,
+                                  )}`
+                                );
+                              },
+                            }}
+                            render={({field: {value}, fieldState: {error}}) => (
+                              <View style={[flex.flexCol, gap.small]}>
+                                <View
+                                  style={[
+                                    flex.flexRow,
+                                    gap.default,
+                                    items.start,
+                                  ]}>
+                                  <DatePicker
+                                    minimumDate={
+                                      index > 0
+                                        ? getNearestPreviousTimelineEnd(
+                                            index,
+                                          ) || undefined
+                                        : undefined
+                                    }
+                                    startDate={
+                                      value?.start
+                                        ? new Date(value.start)
+                                        : undefined
+                                    }
+                                    endDate={
+                                      value?.end
+                                        ? new Date(value.end)
+                                        : undefined
+                                    }
+                                    onDateChange={(startDate, endDate) => {
+                                      updateCampaignTimeline(
+                                        startDate,
+                                        endDate,
+                                        timeline.step,
+                                      );
+                                      trigger('timeline');
+                                    }}>
+                                    <DefaultDatePickerPlaceholder
+                                      text={
+                                        campaignTimelineIndex >= 0 && value?.end
+                                          ? `${formatDateToDayMonthYear(
+                                              new Date(value.start),
+                                            )} - ${formatDateToDayMonthYear(
+                                              new Date(value.end),
+                                            )}`
+                                          : 'Add date'
                                       }
-                                      startDate={
-                                        value?.start
-                                          ? new Date(value.start)
-                                          : undefined
-                                      }
-                                      endDate={
-                                        value?.end
-                                          ? new Date(value.end)
-                                          : undefined
-                                      }
-                                      onDateChange={(startDate, endDate) => {
-                                        updateCampaignTimeline(
-                                          startDate,
-                                          endDate,
-                                          timeline.step,
-                                        );
-                                        trigger('timeline');
-                                      }}>
-                                      <DefaultDatePickerPlaceholder
-                                        text={
-                                          campaignTimelineIndex >= 0 &&
-                                          value?.end
-                                            ? `${formatDateToDayMonthYear(
-                                                new Date(value.start),
-                                              )} - ${formatDateToDayMonthYear(
-                                                new Date(value.end),
-                                              )}`
-                                            : 'Add date'
-                                        }
-                                        isEdit={campaignTimelineIndex >= 0}
-                                        isError={error !== undefined}
-                                        helperText={error?.message}
-                                      />
-                                    </DatePicker>
-                                    {timeline.optional &&
-                                      campaignTimelineIndex >= 0 && (
-                                        <Pressable
-                                          className="rotate-45"
-                                          style={[
-                                            flex.flexRow,
-                                            items.center,
-                                            justify.center,
-                                            dimension.square.xlarge,
-                                            rounded.max,
-                                            background(
-                                              COLOR.background.danger.high,
-                                            ),
-                                            padding.xsmall,
-                                          ]}
-                                          onPress={() => {
-                                            removeTimeline(
-                                              campaignTimelineIndex,
-                                            );
-                                            trigger('timeline');
-                                          }}>
-                                          <AddIcon
-                                            size="default"
-                                            color={COLOR.black[0]}
-                                          />
-                                        </Pressable>
-                                      )}
-                                  </View>
+                                      isEdit={campaignTimelineIndex >= 0}
+                                      isError={error !== undefined}
+                                      helperText={error?.message}
+                                    />
+                                  </DatePicker>
+                                  {timeline.optional &&
+                                    campaignTimelineIndex >= 0 && (
+                                      <Pressable
+                                        className="rotate-45"
+                                        style={[
+                                          flex.flexRow,
+                                          items.center,
+                                          justify.center,
+                                          dimension.square.xlarge,
+                                          rounded.max,
+                                          background(
+                                            COLOR.background.danger.high,
+                                          ),
+                                          padding.xsmall,
+                                        ]}
+                                        onPress={() => {
+                                          removeTimeline(campaignTimelineIndex);
+                                          trigger('timeline');
+                                        }}>
+                                        <AddIcon
+                                          size="default"
+                                          color={COLOR.black[0]}
+                                        />
+                                      </Pressable>
+                                    )}
                                 </View>
-                              )}
-                            />
-                          </View>
-                        );
-                      })}
+                              </View>
+                            )}
+                          />
+                        </View>
+                      );
+                    })}
 
-                      <CustomButton
-                        text="Submit"
-                        rounded="max"
-                        minimumWidth
-                        disabled={
-                          !isValidField(getFieldState('timeline', formState)) ||
-                          campaignTimeline.filter(
-                            timeline =>
-                              getCampaignTimelineIndex(timeline.step) === -1 &&
-                              !timeline.optional,
-                          ).length > 0
-                        }
-                        onPress={() => {
-                          console.log('submit clicked');
-                          onSubmitButtonClicked();
-                          // handleSubmit(onSubmitButtonClicked)();
-                        }}
-                      />
-                    </View>
-                  </HorizontalPadding>
-                </KeyboardAvoidingContainer>
+                    <CustomButton
+                      text="Submit"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('timeline', formState)) ||
+                        campaignTimeline.filter(
+                          timeline =>
+                            getCampaignTimelineIndex(timeline.step) === -1 &&
+                            !timeline.optional,
+                        ).length > 0
+                      }
+                      onPress={() => {
+                        console.log('submit clicked');
+                        onSubmitButtonClicked();
+                        // handleSubmit(onSubmitButtonClicked)();
+                      }}
+                    />
+                  </View>
+                </ScrollView>
               </View>
             </PagerView>
           </ScrollView>

@@ -437,7 +437,6 @@ const RejectTypeCard = ({
         flex.flexCol,
         padding.default,
         rounded.default,
-        shadow.default,
         dimension.width.xlarge9,
         !isSelected && [
           {
@@ -450,7 +449,7 @@ const RejectTypeCard = ({
             borderWidth: 1,
             color: COLOR.green[50],
           }),
-          background(COLOR.green[1]),
+          background(COLOR.green[5]),
         ],
       ]}
       {...props}>

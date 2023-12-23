@@ -1,83 +1,208 @@
-import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import React, {ReactNode} from 'react';
+import {View, Text} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
-import {flex, items, justify} from '../../styles/Flex';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {Message, MessageType} from '../../model/Chat';
 import FastImage from 'react-native-fast-image';
+import {background} from '../../styles/BackgroundColor';
+import {font, text} from '../../styles/Font';
+import {padding} from '../../styles/Padding';
+import {rounded} from '../../styles/BorderRadius';
+import {overflow} from '../../styles/Overflow';
+import {dimension} from '../../styles/Dimension';
+import {formatDateToHourMinute} from '../../utils/date';
+import {gap} from '../../styles/Gap';
+import {SizeType, size} from '../../styles/Size';
 
-const ChatBubble = ({message, isSender, type}: Message) => {
+interface ChatBubbleProps {
+  message: Message;
+  isSender: boolean;
+  isStart?: boolean;
+  isLast?: boolean;
+}
+
+const ChatBubble = ({
+  message,
+  isSender,
+  isStart = false,
+  isLast = false,
+}: ChatBubbleProps) => {
+  const isSystemMessage = message.type === MessageType.System;
+  const isTextMessage = message.type === MessageType.Text;
+  const isPhotoMessage = message.type === MessageType.Photo;
+  const isOfferMessage = message.type === MessageType.Offer;
+  const isNegotiationMessage = message.type === MessageType.Negotiation;
   return (
     <View
-      className="w-full"
       style={[
-        type === MessageType.System
-          ? {...flex.flexRow, ...justify.center, ...items.center}
-          : isSender
-          ? {...flex.flexRowReverse, ...items.end}
-          : {...flex.flexRow, ...items.start},
+        gap.xsmall,
+        items.end,
+        isSystemMessage && [flex.flexRow, justify.center],
+        !isSystemMessage && isSender && [flex.flexRowReverse],
+        !isSystemMessage && !isSender && [flex.flexRow],
       ]}>
-      {type === MessageType.Text && (
-        <View style={styles.chat(isSender)}>
-          <Text style={[textColor(COLOR.black[100])]}>{message}</Text>
-        </View>
-      )}
-      {type === MessageType.Offer && (
-        <View style={styles.chat(isSender)}>
-          <Text style={[textColor(COLOR.black[100])]}>MADE AN OFFER</Text>
-          <Text style={[textColor(COLOR.black[100])]} className="font-bold">
-            Rp. {message}
+      {!isSystemMessage && [
+        <BubbleContainer
+          key={`chat-container-${message.createdAt}`}
+          isSender={isSender}
+          isStart={isStart}
+          isLast={isLast}>
+          {isTextMessage && (
+            <Text
+              style={[
+                textColor(COLOR.text.neutral.high),
+                isSender && [textColor(COLOR.absoluteBlack[90])],
+                font.size[20],
+              ]}>
+              {message.message}
+            </Text>
+          )}
+          {isOfferMessage && (
+            <>
+              <Text style={[textColor(COLOR.absoluteBlack[90]), font.size[30]]}>
+                Made an offer
+              </Text>
+              <Text
+                style={[
+                  font.size[30],
+                  font.weight.bold,
+                  textColor(COLOR.absoluteBlack[90]),
+                ]}>
+                Rp. {message.message}
+              </Text>
+            </>
+          )}
+          {isNegotiationMessage && (
+            <>
+              <Text style={[textColor(COLOR.absoluteBlack[90])]}>
+                MADE A NEGOTIATION
+              </Text>
+              <Text
+                style={[textColor(COLOR.absoluteBlack[90]), font.weight.bold]}>
+                Rp. {message.message}
+              </Text>
+            </>
+          )}
+          {isPhotoMessage && (
+            <>
+              <View
+                style={[
+                  dimension.square.xlarge10,
+                  rounded.medium,
+                  overflow.hidden,
+                ]}>
+                {message && (
+                  <FastImage
+                    source={{uri: message.message}}
+                    style={[dimension.full]}
+                  />
+                )}
+              </View>
+            </>
+          )}
+        </BubbleContainer>,
+        <View
+          key={`date-container-${message.createdAt}`}
+          style={[padding.bottom.xsmall]}>
+          <Text
+            style={[font.size[10], textColor(COLOR.text.neutral.med)]}
+            numberOfLines={1}>
+            {formatDateToHourMinute(new Date(message.createdAt), false)}
           </Text>
-        </View>
-      )}
-      {type === MessageType.Negotiation && (
-        <View style={styles.chat(isSender)}>
-          <Text style={[textColor(COLOR.black[100])]}>MADE A NEGOTIATION</Text>
-          <Text style={[textColor(COLOR.black[100])]} className="font-bold">
-            Rp. {message}
-          </Text>
-        </View>
-      )}
-      {type === MessageType.Photo && (
-        <View style={styles.chat(isSender)}>
-          <View style={styles.container}>
-            {message && (
-              <FastImage source={{uri: message}} style={styles.image} />
-            )}
+        </View>,
+      ]}
+      {isSystemMessage && (
+        <View style={[padding.vertical.default]}>
+          <View
+            style={[
+              background(COLOR.black[40], 0.2),
+              padding.horizontal.medium,
+              padding.vertical.default,
+              rounded.medium,
+            ]}>
+            <Text
+              style={[
+                self.center,
+                text.center,
+                textColor(COLOR.text.neutral.high),
+                font.size[10],
+              ]}>
+              {formatDateToHourMinute(new Date(message.createdAt), false)}
+            </Text>
+            <Text
+              style={[
+                self.center,
+                text.center,
+                textColor(COLOR.text.neutral.high),
+                font.weight.medium,
+                font.size[20],
+              ]}>
+              {message.message}
+            </Text>
           </View>
-          <Text style={[textColor(COLOR.black[100])]}>{message}</Text>
-        </View>
-      )}
-      {type === MessageType.System && (
-        <View>
-          <Text style={[textColor(COLOR.black[100]), styles.system]}>
-            {message}
-          </Text>
         </View>
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: {
-    width: 200,
-    height: 200,
-  },
-  system: {
-    fontWeight: 'bold',
-  },
-  chat: isSender => ({
-    borderRadius: 10,
-    padding: 10,
-    maxWidth: '80%',
-    backgroundColor: isSender ? '#CEE0E8' : '#E5E5EA',
-  }),
-});
+interface BubbleContainerProps {
+  isSender: boolean;
+  isStart: boolean;
+  isLast: boolean;
+  children: ReactNode;
+}
+
+const BubbleContainer = ({...props}: BubbleContainerProps) => {
+  const roundedSize: SizeType = 'large';
+  return (
+    <View
+      style={[
+        !props.isSender && [
+          {
+            borderTopRightRadius: size[roundedSize],
+            borderBottomRightRadius: size[roundedSize],
+          },
+          background(COLOR.black[10], 0.5),
+          props.isStart && [
+            {
+              borderTopLeftRadius: size[roundedSize],
+            },
+          ],
+          props.isLast && [
+            {
+              borderBottomLeftRadius: size[roundedSize],
+            },
+          ],
+        ],
+        props.isSender && [
+          {
+            borderTopLeftRadius: size[roundedSize],
+            borderBottomLeftRadius: size[roundedSize],
+          },
+          background(COLOR.green[10]),
+          props.isStart && [
+            {
+              borderTopRightRadius: size[roundedSize],
+            },
+          ],
+          props.isLast && [
+            {
+              borderBottomRightRadius: size[roundedSize],
+            },
+          ],
+        ],
+        props.isStart && props.isLast && [rounded[roundedSize]],
+        {
+          maxWidth: '70%',
+        },
+        padding.vertical.default,
+        padding.horizontal.medium,
+      ]}>
+      {props.children}
+    </View>
+  );
+};
 
 export default ChatBubble;
