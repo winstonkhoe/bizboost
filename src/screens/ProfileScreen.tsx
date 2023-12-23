@@ -1,4 +1,4 @@
-import {Pressable, Text, View} from 'react-native';
+import {Dimensions, Pressable, Text, View} from 'react-native';
 import {User, UserRole} from '../model/User';
 import SafeAreaContainer from '../containers/SafeAreaContainer';
 import {ScrollView} from 'react-native';
@@ -37,6 +37,7 @@ import {font} from '../styles/Font';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {dimension} from '../styles/Dimension';
 import {usePortfolio} from '../hooks/portfolio';
+import {StyleSheet} from 'react-native';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -199,32 +200,40 @@ const ProfileScreen = () => {
                   </View>
                 </View>
                 {/* TODO: bikin komponen tab samain sama cc detail*/}
-                <View style={flex.flexRow} className="py-3 ">
-                  <Pressable
-                    style={flex.flexRow}
-                    className={`${
-                      selectedTab === 0
-                        ? 'bg-primary'
-                        : 'border border-zinc-200'
-                    } rounded-l-md p-2 justify-center items-center text-center w-1/2`}
-                    onPress={goToInfoTab}>
-                    <Text style={[textColor(COLOR.text.neutral.high)]}>
-                      Info
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    style={flex.flexRow}
-                    className={`${
-                      selectedTab === 1
-                        ? 'bg-primary'
-                        : 'border border-zinc-200'
-                    } rounded-r-md p-2 justify-center items-center text-center w-1/2`}
-                    onPress={goToPortfolioTab}>
-                    <Text style={[textColor(COLOR.text.neutral.high)]}>
-                      Portfolio
-                    </Text>
-                  </Pressable>
-                </View>
+                {activeRole === UserRole.ContentCreator && (
+                  <View style={[flex.flexRow, justify.center]} className="py-3">
+                    <Pressable
+                      style={(flex.flexRow, styles.button)}
+                      className={`${
+                        selectedTab === 0
+                          ? 'bg-primary'
+                          : 'border border-zinc-200'
+                      } rounded-l-md p-2 justify-center items-center text-center`}
+                      onPress={goToInfoTab}>
+                      <Text
+                        className={`${
+                          selectedTab === 0 ? 'text-white' : 'text-black'
+                        }`}>
+                        Info
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={(flex.flexRow, styles.button)}
+                      className={`${
+                        selectedTab === 1
+                          ? 'bg-primary'
+                          : 'border border-zinc-200'
+                      } rounded-r-md p-2 justify-center items-center text-center`}
+                      onPress={goToPortfolioTab}>
+                      <Text
+                        className={`${
+                          selectedTab === 1 ? 'text-white' : 'text-black'
+                        }`}>
+                        Portfolio
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
 
                 <PagerView
                   ref={pagerViewRef}
@@ -430,3 +439,17 @@ const ProfileScreen = () => {
 };
 
 export default ProfileScreen;
+
+const styles = StyleSheet.create({
+  pagerView: {
+    width: '100%',
+    height: '60%',
+  },
+  button: {
+    width: Dimensions.get('window').width * 0.45,
+  },
+  video: {
+    height: 200,
+    borderRadius: 10,
+  },
+});
