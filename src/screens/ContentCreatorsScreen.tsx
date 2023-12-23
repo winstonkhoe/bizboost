@@ -47,6 +47,7 @@ import {InternalLink} from '../components/atoms/Link';
 import {border} from '../styles/Border';
 import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
 import {SearchBar} from '../components/organisms/SearchBar';
+import {MasonryFlashList} from '@shopify/flash-list';
 
 interface SelectedFilters {
   locations: string[];
@@ -106,7 +107,7 @@ const ContentCreatorsScreen: React.FC = () => {
       if (sortConfig.field === SortField.Tiktok) {
         return user.tiktok?.followersCount ?? 0;
       }
-      return user?.contentCreator?.rating ?? 0;
+      return user?.contentCreator?.rating || 0;
     },
     [sortConfig],
   );
@@ -144,13 +145,16 @@ const ContentCreatorsScreen: React.FC = () => {
     }
 
     return sortedContentCreators.sort((a, b) => {
+      if (sortConfig.direction === SortDirection.Normal) {
+        return 0;
+      }
       const fieldA = getFilteredField(a);
       const fieldB = getFilteredField(b);
-      if (fieldA > fieldB) {
-        return sortConfig.direction ?? SortDirection.Descending;
-      }
       if (fieldA < fieldB) {
-        return sortConfig.direction ?? SortDirection.Ascending;
+        return sortConfig.direction === SortDirection.Ascending ? -1 : 1;
+      }
+      if (fieldA > fieldB) {
+        return sortConfig.direction === SortDirection.Ascending ? 1 : -1;
       }
       return 0;
     });
@@ -161,6 +165,11 @@ const ContentCreatorsScreen: React.FC = () => {
     contentCreators,
     getFilteredField,
   ]);
+
+  console.log(
+    'filteredContentCreators',
+    JSON.stringify(filteredContentCreators),
+  );
 
   const modalRef = useRef<BottomSheetModal>(null);
   const handleClosePress = () => setFilterModalState(false);
@@ -362,41 +371,43 @@ const ContentCreatorsScreen: React.FC = () => {
               {filteredContentCreators.length > 0 ? (
                 <View style={[flex.flexRow, justify.between, gap.default]}>
                   <View style={[flex.flexCol, gap.default]}>
-                    {filteredContentCreators.map((item, index) =>
-                      index % 2 === 0 ? (
-                        <ContentCreatorCard
-                          key={item.id}
-                          id={item.id || ''}
-                          name={item.contentCreator?.fullname ?? ''}
-                          categories={
-                            item.contentCreator?.specializedCategoryIds
-                          }
-                          rating={item.contentCreator?.rating || 0}
-                          imageUrl={
-                            item.contentCreator?.profilePicture ||
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                          }
-                        />
-                      ) : null,
+                    {filteredContentCreators.map(
+                      (item, index) =>
+                        index % 2 === 0 && (
+                          <ContentCreatorCard
+                            key={item.id}
+                            id={item.id || ''}
+                            name={item.contentCreator?.fullname ?? ''}
+                            categories={
+                              item.contentCreator?.specializedCategoryIds
+                            }
+                            rating={item.contentCreator?.rating || 0}
+                            imageUrl={
+                              item.contentCreator?.profilePicture ||
+                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                            }
+                          />
+                        ),
                     )}
                   </View>
                   <View style={[flex.flexCol, gap.default]}>
-                    {filteredContentCreators.map((item, index) =>
-                      index % 2 !== 0 ? (
-                        <ContentCreatorCard
-                          key={item.id}
-                          id={item.id || ''}
-                          name={item.contentCreator?.fullname ?? ''}
-                          categories={
-                            item.contentCreator?.specializedCategoryIds
-                          }
-                          rating={item.contentCreator?.rating || 0}
-                          imageUrl={
-                            item.contentCreator?.profilePicture ||
-                            'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                          }
-                        />
-                      ) : null,
+                    {filteredContentCreators.map(
+                      (item, index) =>
+                        index % 2 !== 0 && (
+                          <ContentCreatorCard
+                            key={item.id}
+                            id={item.id || ''}
+                            name={item.contentCreator?.fullname ?? ''}
+                            categories={
+                              item.contentCreator?.specializedCategoryIds
+                            }
+                            rating={item.contentCreator?.rating || 0}
+                            imageUrl={
+                              item.contentCreator?.profilePicture ||
+                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
+                            }
+                          />
+                        ),
                     )}
                   </View>
                 </View>
