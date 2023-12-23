@@ -50,6 +50,7 @@ export class Portfolio extends BaseModel {
   ): Portfolio {
     const data = doc.data();
     if (data && doc.exists) {
+      console.log('doc.id:' + doc.id);
       return new Portfolio({
         id: doc.id,
         description: data?.description,

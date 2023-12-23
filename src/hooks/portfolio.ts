@@ -10,15 +10,15 @@ interface usePortfolioHook {
   portfolios: PortfolioView[];
 }
 
-export const usePortfolio = (): usePortfolioHook => {
+export const usePortfolio = (userId?: string): usePortfolioHook => {
   const [rawPortfolios, setRawPortfolios] = useState<Portfolio[]>([]);
   const {portfolios} = useAppSelector(state => state.portfolio);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    Portfolio.getAll().then(c => {
-      c.forEach(content => {
-        console.log(content.description);
+    const processPortfolioThumbnails = (c?: Portfolio[]) => {
+      c?.forEach(content => {
+        console.log('masuk2: ' + userId);
         if (!content?.thumbnail && content?.uri) {
           createThumbnail({
             url: content?.uri,
@@ -37,9 +37,17 @@ export const usePortfolio = (): usePortfolioHook => {
             .catch(err => console.log({err}));
         }
       });
-      setRawPortfolios(c);
-    });
-  }, []);
+      if (c) {
+        setRawPortfolios(c);
+      }
+    };
+    if (userId) {
+      console.log('masuk: ' + userId);
+      Portfolio.getByUserId(userId).then(processPortfolioThumbnails);
+    } else {
+      Portfolio.getAll().then(processPortfolioThumbnails);
+    }
+  }, [userId]);
 
   useEffect(() => {
     User.getAll(async users => {
@@ -54,8 +62,9 @@ export const usePortfolio = (): usePortfolioHook => {
           };
         })
         .filter(portfolioView => portfolioView?.user?.id);
+      console.log('masuk3: ' + userId);
       dispatch(setPortfolios(processedPortfolios));
     });
-  }, [dispatch, rawPortfolios]);
+  }, [dispatch, rawPortfolios, userId]);
   return {portfolios};
 };

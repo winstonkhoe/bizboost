@@ -36,6 +36,7 @@ import {textColor} from '../styles/Text';
 import {font} from '../styles/Font';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {dimension} from '../styles/Dimension';
+import {usePortfolio} from '../hooks/portfolio';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -47,7 +48,8 @@ const ProfileScreen = () => {
   const pagerViewRef = useRef<PagerView>(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [portfolios, setPortfolios] = useState<Portfolio[]>();
+
+  const {portfolios} = usePortfolio(uid || '');
 
   useEffect(() => {
     // TODO: gatau ini mestinya gabung sama yang di dalem modal transactionsnya apa ngga biar fetch skali? tp kalo kek gitu gabisa dua"nya ngelisten, jadinya cuma salah satu, krn behaviour si modal kan navigate yaa
@@ -66,12 +68,6 @@ const ProfileScreen = () => {
         setCampaigns(c);
       },
     );
-
-    // TODO: ini juga bakal butuh dibuat .onSnapshot kyknya nantinya
-    Portfolio.getByUserId(uid || '').then(content => {
-      setPortfolios(content);
-    });
-
     return () => {
       // TODO: kyknya yang bener kayak campaign aja, di transaction tiap catch eror masih ngethrow lagi, kyknya nanti hapus aja thrownya tktnya bikin ribet
       unsubscribeTransaction && unsubscribeTransaction();
@@ -85,7 +81,7 @@ const ProfileScreen = () => {
       transactions.filter(
         t =>
           t.status !== TransactionStatus.registrationRejected &&
-          t.status !== TransactionStatus.done,
+          t.status !== TransactionStatus.completed,
       ).length,
     );
   }, [transactions]);
@@ -368,18 +364,18 @@ const ProfileScreen = () => {
                           (content, idx) =>
                             idx % 2 === 0 && (
                               <Pressable
-                                key={content.id}
+                                key={idx}
                                 onPress={() => {
                                   navigation.navigate(
                                     AuthenticatedNavigation.SpecificExploreModal,
                                     {
                                       contentCreatorId: uid || '',
-                                      targetContentId: content.id,
+                                      targetContentId: content.portfolio.id,
                                     },
                                   );
                                 }}>
                                 <FastImage
-                                  source={{uri: content.thumbnail}}
+                                  source={{uri: content.portfolio.thumbnail}}
                                   style={{
                                     height: 200,
                                     borderRadius: 10,
@@ -400,18 +396,18 @@ const ProfileScreen = () => {
                           (content, idx) =>
                             idx % 2 !== 0 && (
                               <Pressable
-                                key={content.id}
+                                key={idx}
                                 onPress={() => {
                                   navigation.navigate(
                                     AuthenticatedNavigation.SpecificExploreModal,
                                     {
                                       contentCreatorId: uid || '',
-                                      targetContentId: content.id,
+                                      targetContentId: content.portfolio.id,
                                     },
                                   );
                                 }}>
                                 <FastImage
-                                  source={{uri: content.thumbnail}}
+                                  source={{uri: content.portfolio.thumbnail}}
                                   style={{
                                     height: 200,
                                     borderRadius: 10,
