@@ -119,39 +119,34 @@ export class Chat extends BaseModel {
     }
   }
 
+  static getFieldToCheck(role: UserRole) {
+    if (role === UserRole.BusinessPeople) {
+      return 'businessPeopleId';
+    }
+    if (role === UserRole.ContentCreator) {
+      return 'contentCreatorId';
+    }
+    throw new Error('Chat.getFieldToCheck - Invalid role');
+  }
+
   static getUserChatsReactive(
     userId: string,
     activeRole: UserRole,
     onChange: (chats: Chat[]) => void,
   ) {
     try {
-      const userRef = User.getDocumentReference(userId);
       console.log('Chat:getUserChatsReactive:', activeRole);
-
-      let fieldToCheck = '';
-      if (activeRole === UserRole.BusinessPeople) {
-        fieldToCheck = 'businessPeopleId';
-      } else if (activeRole === UserRole.ContentCreator) {
-        fieldToCheck = 'contentCreatorId';
-      }
-
-      if (fieldToCheck) {
-        const unsubscribe = this.getCollectionReference()
-          .where(fieldToCheck, '==', userRef)
-          .onSnapshot(
-            querySnapshots => {
-              onChange(this.fromQuerySnapshot(querySnapshots));
-            },
-            (error: Error) => {
-              console.log('getUserChatsReactive error', error.message);
-            },
-          );
-
-        return unsubscribe;
-      } else {
-        console.log('Invalid role:', activeRole);
-        return () => {};
-      }
+      const fieldToCheck = this.getFieldToCheck(activeRole);
+      return this.getCollectionReference()
+        .where(fieldToCheck, '==', User.getDocumentReference(userId))
+        .onSnapshot(
+          querySnapshots => {
+            onChange(this.fromQuerySnapshot(querySnapshots));
+          },
+          (error: Error) => {
+            console.log('getUserChatsReactive error', error.message);
+          },
+        );
     } catch (error) {
       console.log('no access', error);
       return () => {};
@@ -176,40 +171,6 @@ export class Chat extends BaseModel {
     }
   }
 
-  // async convertToChatView(currentRole: UserRole): Promise<ChatView> {
-  //   const cv: ChatView = {
-  //     chat: Chat.serialize(this),
-  //     recipient: {},
-  //   };
-  //   console.log('convertToChatView', this.toJSON());
-
-  //   for (const participant of this.participants || []) {
-  //     if (participant.role !== currentRole) {
-  //       const role = participant.role;
-  //       const ref = participant.ref;
-  //       console.log(ref);
-
-  //       const user = await User.getById(ref);
-  //       if (user) {
-  //         const fullname =
-  //           role === 'Business People'
-  //             ? user.businessPeople?.fullname
-  //             : user.contentCreator?.fullname;
-  //         const profilePicture =
-  //           role === 'Business People'
-  //             ? user.businessPeople?.profilePicture
-  //             : user.contentCreator?.profilePicture;
-
-  //         if (cv.recipient) {
-  //           cv.recipient.fullname = fullname;
-  //           cv.recipient.profilePicture = profilePicture;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return cv;
-  // }
-
   static async insertMessage(
     chatId: string,
     type: MessageType,
@@ -231,11 +192,3 @@ export class Chat extends BaseModel {
     }
   }
 }
-
-// export interface ChatView {
-//   chat: Chat;
-//   recipient?: {
-//     fullname?: string;
-//     profilePicture?: string;
-//   };
-// }
