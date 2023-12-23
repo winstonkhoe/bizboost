@@ -18,6 +18,7 @@ export const usePortfolio = (): usePortfolioHook => {
   useEffect(() => {
     Portfolio.getAll().then(c => {
       c.forEach(content => {
+        console.log(content.description);
         if (!content?.thumbnail && content?.uri) {
           createThumbnail({
             url: content?.uri,
