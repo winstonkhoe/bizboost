@@ -27,6 +27,22 @@ export class Portfolio extends BaseModel {
     this.thumbnail = thumbnail;
   }
 
+  //todo: GATAU namanya yang bagus apa
+  toFirestore() {
+    // const {thumbnail, uri, description, userId, ...rest} = this;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {id, userId, ...rest} = this;
+    if (!userId) {
+      throw Error('Portfolio userId is undefined');
+    }
+    const data = {
+      ...rest,
+      userId: User.getDocumentReference(userId),
+    };
+
+    return data;
+  }
+
   private static fromSnapshot(
     doc:
       | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
@@ -71,14 +87,17 @@ export class Portfolio extends BaseModel {
     return this.getCollectionReference().doc(documentId);
   }
 
-  // TODO: gakepake
-  static async setPortfolio(
-    documentId: string,
-    data: Portfolio,
-  ): Promise<void> {
-    await this.getDocumentReference(documentId).set({
-      ...data,
-    });
+  async insert() {
+    try {
+      const data = this.toFirestore();
+      await Portfolio.getCollectionReference().add({
+        ...data,
+        // createdAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Error!');
+    }
   }
 
   // TODO: gakepake
