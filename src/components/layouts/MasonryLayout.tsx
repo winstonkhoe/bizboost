@@ -1,6 +1,7 @@
 import {View} from 'react-native';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
+import {ScrollView} from 'react-native-gesture-handler';
 
 interface MasonryLayoutProps<T = any> {
   data: T[];
@@ -9,14 +10,16 @@ interface MasonryLayoutProps<T = any> {
 
 const MasonryLayout = ({data, renderItem}: MasonryLayoutProps) => {
   return (
-    <View style={[flex.flex1, flex.flexRow, gap.default]}>
-      <View style={[flex.flex1, flex.flexCol]}>
+    <ScrollView
+      style={[flex.flex1]}
+      contentContainerStyle={[flex.flexRow, gap.default]}>
+      <View style={[flex.flex1, flex.flexCol, gap.default]}>
         {data.map((content, idx) => idx % 2 === 0 && renderItem(content, idx))}
       </View>
-      <View style={[flex.flex1, flex.flexCol]}>
+      <View style={[flex.flex1, flex.flexCol, gap.default]}>
         {data.map((content, idx) => idx % 2 !== 0 && renderItem(content, idx))}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

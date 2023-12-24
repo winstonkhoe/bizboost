@@ -1,6 +1,6 @@
 import {ReactNode, useEffect, useRef, useState} from 'react';
 import {Pressable, StyleSheet, View, useWindowDimensions} from 'react-native';
-import {flex, self} from '../../styles/Flex';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {ScrollView} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import {Text} from 'react-native';
@@ -59,6 +59,8 @@ export const TabView = ({labels, children}: TabViewProps) => {
     <View style={[flex.flex1, flex.flexCol, gap.default]}>
       <View
         style={[
+          flex.flexRow,
+          items.start,
           {
             borderBottomColor: COLOR.black[20],
             borderBottomWidth: 1,
@@ -68,7 +70,7 @@ export const TabView = ({labels, children}: TabViewProps) => {
           horizontal
           showsHorizontalScrollIndicator={false}
           scrollEnabled={false}
-          style={[flex.flex1, padding.top.default]}
+          style={[padding.top.default]}
           contentContainerStyle={[
             flex.flexRow,
             gap[labelGapSizeType],
