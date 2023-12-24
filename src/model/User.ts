@@ -74,6 +74,8 @@ export type BusinessPeople = BaseUserData;
 export type SocialData = {
   username?: string;
   followersCount?: number;
+  isSynchronized?: boolean;
+  lastSyncAt?: number;
 };
 
 export interface UserAuthProviderData {
@@ -102,7 +104,7 @@ export class User extends BaseModel {
   tiktok?: SocialData;
   joinedAt?: number;
   isAdmin?: boolean;
-  status?: UserStatus;
+  status: UserStatus;
   bankAccountInformation?: BankAccountInformation;
 
   constructor({
@@ -142,9 +144,15 @@ export class User extends BaseModel {
     };
     this.joinedAt = joinedAt;
     this.isAdmin = isAdmin;
-    this.status = status;
-    this.instagram = instagram;
-    this.tiktok = tiktok;
+    this.status = status || UserStatus.Active;
+    this.instagram = {
+      ...instagram,
+      isSynchronized: instagram?.isSynchronized || false,
+    };
+    this.tiktok = {
+      ...tiktok,
+      isSynchronized: tiktok?.isSynchronized || false,
+    };
     this.bankAccountInformation = bankAccountInformation;
     // Add your non-static methods here
   }
@@ -178,7 +186,7 @@ export class User extends BaseModel {
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt,
         isAdmin: data?.isAdmin,
-        status: data?.status || UserStatus.Active,
+        status: data?.status,
         bankAccountInformation: data.bankAccountInformation,
       });
     }
