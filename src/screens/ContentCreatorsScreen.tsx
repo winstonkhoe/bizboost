@@ -340,7 +340,7 @@ const ContentCreatorsScreen: React.FC = () => {
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={[
-                    padding.horizontal.default,
+                    padding.horizontal.small,
                     flex.flexRow,
                     gap.small,
                   ]}>
