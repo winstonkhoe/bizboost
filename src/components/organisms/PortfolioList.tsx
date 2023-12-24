@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import {PortfolioView} from '../../model/Portfolio';
 import MasonryLayout from '../layouts/MasonryLayout';
 import {PortfolioCard} from '../molecules/PortfolioCard';
