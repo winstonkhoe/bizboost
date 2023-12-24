@@ -1,186 +1,160 @@
 import React from 'react';
-import {View, Text, StyleSheet, Dimensions, Pressable} from 'react-native';
+import {View, Text, StyleSheet, Pressable} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import ScaledImage from './ScaledImage';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
 import {useNavigation} from '@react-navigation/native';
 import {flex, items} from '../../styles/Flex';
-import {font, fontSize} from '../../styles/Font';
+import {font} from '../../styles/Font';
 import {RatingStarIcon} from './Icon';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
-import {size} from '../../styles/Size';
+import {SocialPlatform, User} from '../../model/User';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import FastImage from 'react-native-fast-image';
+import {dimension} from '../../styles/Dimension';
+import {rounded} from '../../styles/BorderRadius';
+import {overflow} from '../../styles/Overflow';
+import {padding} from '../../styles/Padding';
+import {SizeType, size} from '../../styles/Size';
+import {SocialCard} from './SocialCard';
 
 interface ContentCreatorCardProps {
-  id: string;
-  name: string;
-  imageUrl: string;
-  rating: number;
-  categories?: string[];
+  data: User;
 }
-const ContentCreatorCard: React.FC<ContentCreatorCardProps> = React.memo(
-  ({id, name, imageUrl, rating, categories}) => {
-    console.log(name, imageUrl);
-    const navigation = useNavigation<NavigationStackProps>();
+const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
+  const navigation = useNavigation<NavigationStackProps>();
 
-    const renderCategories = () => {
-      const MAX_DISPLAY_CATEGORIES = 1;
+  const concatenatedCategories =
+    data.contentCreator?.specializedCategoryIds?.join(', ');
+  const socialSizeType: SizeType = 'large';
+  const ratingCategoriesSizeType: SizeType = 'medium';
+  const showRatingCategories =
+    (data?.contentCreator && data?.contentCreator?.ratedCount > 0) ||
+    !!concatenatedCategories;
 
-      if (!categories || categories.length === 0) {
-        return null;
-      }
+  const showSocials = !!data?.instagram?.username || !!data?.tiktok?.username;
 
-      const visibleCategories = categories.slice(0, MAX_DISPLAY_CATEGORIES);
-      const remainingCategories = categories.slice(MAX_DISPLAY_CATEGORIES);
+  const containerHeight =
+    170 +
+    (showRatingCategories ? size[ratingCategoriesSizeType] : 0) +
+    (showSocials ? size[socialSizeType] : 0);
 
-      return (
-        <View style={styles.categoriesContainer}>
-          {visibleCategories.map((category, idx) => (
-            <View key={idx} style={styles.categoryContainer}>
-              <Text style={styles.category}>{category}</Text>
-            </View>
-          ))}
-          {remainingCategories.length > 0 && (
-            <View style={styles.categoryContainer}>
-              <Text style={styles.category}>+{remainingCategories.length}</Text>
-            </View>
-          )}
-        </View>
-      );
-    };
-
-    const concatenatedCategories = categories?.join(', ') || '';
-
-    return (
-      <View style={styles.cardContainer}>
-        <Pressable
-          onPress={() => {
-            navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
-              contentCreatorId: id,
-            });
-          }}>
-          <View style={{width: Dimensions.get('window').width * 0.45}}>
-            <ScaledImage
-              uri={imageUrl}
-              style={styles.image}
-              width={Dimensions.get('window').width * 0.45}
-            />
-            <LinearGradient
-              colors={[
-                'transparent',
-                'rgba(0, 0, 0, 0.65)',
-                'rgba(0, 0, 0, 1)',
-              ]}
-              style={styles.nameContainer}>
-              <Text style={styles.name}>{name}</Text>
-              <View style={[flex.flexRow, items.center]}>
-                {rating > 0 && (
-                  <View style={[flex.flexRow, gap.xsmall, items.center]}>
-                    <RatingStarIcon
-                      width={8}
-                      height={8}
-                      fill={'rgb(245, 208, 27)'}
-                    />
-                    <Text
-                      className="font-medium"
-                      style={[
-                        font.size[10],
-                        textColor(COLOR.absoluteBlack[0]),
-                      ]}>
-                      {`${rating} · `}
-                    </Text>
-                  </View>
-                )}
-                {categories && categories?.length > 0 && (
-                  <Text
-                    className="font-medium"
-                    numberOfLines={1}
-                    style={[
-                      flex.flex1,
-                      font.size[10],
-                      textColor(COLOR.absoluteBlack[0]),
-                    ]}>
-                    {concatenatedCategories}
-                  </Text>
-                )}
+  return (
+    <Pressable
+      style={[
+        rounded.medium,
+        overflow.hidden,
+        {
+          height: containerHeight,
+        },
+      ]}
+      onPress={() => {
+        if (!data?.id) {
+          return;
+        }
+        navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
+          contentCreatorId: data?.id,
+        });
+      }}>
+      <FastImage
+        source={getSourceOrDefaultAvatar({
+          uri: data?.contentCreator?.profilePicture,
+        })}
+        style={[dimension.full]}
+      />
+      <LinearGradient
+        colors={[
+          'rgba(0, 0, 0, 0)',
+          'rgba(0, 0, 0, 0.1)',
+          'rgba(0, 0, 0, 0.3)',
+          'rgba(0, 0, 0, 0.65)',
+          'rgba(0, 0, 0, 1)',
+        ]}
+        style={[
+          {
+            position: 'absolute',
+            bottom: 0,
+            padding: 10,
+          },
+          flex.flexCol,
+          dimension.width.full,
+          padding.top.xlarge3,
+        ]}>
+        <Text
+          style={[
+            font.size[30],
+            textColor(COLOR.absoluteBlack[0]),
+            font.weight.semibold,
+          ]}>
+          {data?.contentCreator?.fullname}
+        </Text>
+        {showRatingCategories && (
+          <View
+            style={[
+              flex.flexRow,
+              items.center,
+              dimension.height[ratingCategoriesSizeType],
+            ]}>
+            {data?.contentCreator && data?.contentCreator?.ratedCount > 0 && (
+              <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                <RatingStarIcon
+                  width={8}
+                  height={8}
+                  fill={'rgb(245, 208, 27)'}
+                />
+                <Text
+                  style={[
+                    font.size[10],
+                    font.weight.medium,
+                    textColor(COLOR.absoluteBlack[0]),
+                  ]}>
+                  {`${data?.contentCreator?.rating} · `}
+                </Text>
               </View>
-              {/* <Text style={styles.location}>Tangerang, Indonesia</Text> */}
-            </LinearGradient>
+            )}
+            {concatenatedCategories && (
+              <Text
+                numberOfLines={1}
+                style={[
+                  flex.flex1,
+                  font.weight.medium,
+                  font.size[10],
+                  textColor(COLOR.absoluteBlack[0]),
+                ]}>
+                {concatenatedCategories}
+              </Text>
+            )}
           </View>
-          {/* {renderCategories()} */}
-        </Pressable>
-      </View>
-    );
-  },
-);
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    width: Dimensions.get('window').width * 0.45,
-    overflow: 'hidden',
-  },
-  image: {
-    width: '100%',
-    borderRadius: 10,
-    resizeMode: 'contain',
-  },
-  nameContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: Dimensions.get('window').width * 0.45,
-    padding: 10,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-  },
-  ratingContainer: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    paddingHorizontal: 5,
-    paddingTop: 5,
-    zIndex: 1,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 3,
-    paddingTop: 5,
-    zIndex: 1,
-  },
-  categoryContainer: {
-    backgroundColor: 'rgba(37,136,66, 1)',
-    paddingHorizontal: 5,
-    borderRadius: 5,
-    marginRight: 5,
-  },
-  category: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'normal',
-  },
-  name: {
-    color: 'white',
-    fontSize: fontSize[30],
-    fontWeight: '600',
-    textAlign: 'left',
-  },
-  rating: {
-    fontSize: 8,
-    color: 'white',
-  },
-  location: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'normal',
-    textAlign: 'left',
-  },
-});
+        )}
+        {showSocials && (
+          <View
+            style={[
+              flex.flexRow,
+              items.center,
+              gap.small,
+              dimension.height[socialSizeType],
+            ]}>
+            {data?.instagram && (
+              <SocialCard
+                platform={SocialPlatform.Instagram}
+                data={data?.instagram}
+              />
+            )}
+            {data?.tiktok && (
+              <SocialCard
+                platform={SocialPlatform.Tiktok}
+                data={data?.tiktok}
+              />
+            )}
+          </View>
+        )}
+      </LinearGradient>
+    </Pressable>
+  );
+};
 
 export default ContentCreatorCard;

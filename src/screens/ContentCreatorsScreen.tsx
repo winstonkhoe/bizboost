@@ -22,14 +22,12 @@ import ArrowUpDown from '../assets/vectors/arrow-up-down.svg';
 import Filter from '../assets/vectors/filter.svg';
 import {flex, items, justify} from '../styles/Flex';
 import {COLOR} from '../styles/Color';
-import ContentCreatorCard from '../components/atoms/ContentCreatorCard';
 import {gap} from '../styles/Gap';
 import {User} from '../model/User';
 import {background} from '../styles/BackgroundColor';
 import {CustomButton} from '../components/atoms/Button';
 import {
   SearchAutocompletePlaceholder,
-  PageWithSearchBar,
   HideOnActiveSearch,
 } from '../components/templates/PageWithSearchBar';
 import {Location} from '../model/Location';
@@ -45,9 +43,8 @@ import {font} from '../styles/Font';
 import {textColor} from '../styles/Text';
 import {InternalLink} from '../components/atoms/Link';
 import {border} from '../styles/Border';
-import {EmptyPlaceholder} from '../components/templates/EmptyPlaceholder';
 import {SearchBar} from '../components/organisms/SearchBar';
-import {MasonryFlashList} from '@shopify/flash-list';
+import {ContentCreatorList} from '../components/organisms/ContentCreatorList';
 
 interface SelectedFilters {
   locations: string[];
@@ -72,7 +69,7 @@ interface SortConfig {
 }
 
 const ContentCreatorsScreen: React.FC = () => {
-  const [contentCreators, setContentCreators] = useState<User[]>([]);
+  const [contentCreators, setContentCreators] = useState<User[]>();
   const [filterModalState, setFilterModalState] = useState(false);
   const [navbarState, setNavbarState] = useState(true);
   const {categories} = useCategory();
@@ -93,10 +90,14 @@ const ContentCreatorsScreen: React.FC = () => {
   const windowWidth = Dimensions.get('window').width;
 
   useEffect(() => {
-    User.getContentCreators().then(contentCreatorsData => {
-      setContentCreators(contentCreatorsData);
-    });
-    Location.getAll().then(setLocations);
+    User.getContentCreators()
+      .then(contentCreatorsData => {
+        setContentCreators(contentCreatorsData);
+      })
+      .catch(() => setContentCreators([]));
+    Location.getAll()
+      .then(setLocations)
+      .catch(() => setLocations([]));
   }, []);
 
   const getFilteredField = useCallback(
@@ -113,6 +114,9 @@ const ContentCreatorsScreen: React.FC = () => {
   );
 
   const filteredContentCreators = useMemo(() => {
+    if (!contentCreators) {
+      return Array(6);
+    }
     let sortedContentCreators = [...contentCreators];
 
     if (searchTerm && searchTerm !== '') {
@@ -165,11 +169,6 @@ const ContentCreatorsScreen: React.FC = () => {
     contentCreators,
     getFilteredField,
   ]);
-
-  console.log(
-    'filteredContentCreators',
-    JSON.stringify(filteredContentCreators),
-  );
 
   const modalRef = useRef<BottomSheetModal>(null);
   const handleClosePress = () => setFilterModalState(false);
@@ -255,7 +254,6 @@ const ContentCreatorsScreen: React.FC = () => {
         <ScrollView
           scrollEnabled
           stickyHeaderIndices={[1]}
-          onScrollEndDrag={event => console.log(event)}
           style={[flex.flex1]}
           contentContainerStyle={[flex.flexCol, padding.bottom.large]}>
           {/* Navbar */}
@@ -268,13 +266,19 @@ const ContentCreatorsScreen: React.FC = () => {
                 padding.horizontal.default,
               ]}>
               <Text
-                className="font-bold"
-                style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[50],
+                  font.weight.bold,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
                 Perfect content creators
               </Text>
               <Text
-                className="font-bold"
-                style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[50],
+                  font.weight.bold,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
                 for your campaigns
               </Text>
             </Animated.View>
@@ -302,9 +306,11 @@ const ContentCreatorsScreen: React.FC = () => {
                   onPress={() => setFilterModalState(true)}
                   style={[
                     flex.flexRow,
+                    items.center,
                     padding.horizontal.default,
                     padding.vertical.small,
                     rounded.default,
+                    gap.xsmall,
                     border({
                       borderWidth: 1,
                       color: COLOR.black[25],
@@ -320,8 +326,11 @@ const ContentCreatorsScreen: React.FC = () => {
                         padding.horizontal.small,
                       ]}>
                       <Text
-                        className="font-bold"
-                        style={[font.size[20], textColor(COLOR.black[0])]}>
+                        style={[
+                          font.size[10],
+                          font.weight.bold,
+                          textColor(COLOR.black[0]),
+                        ]}>
                         {selectedFilters.categories.length +
                           selectedFilters.locations.length}
                       </Text>
@@ -330,11 +339,13 @@ const ContentCreatorsScreen: React.FC = () => {
                     <Filter
                       width={15}
                       height={15}
-                      color="rgb(113 113 122)"
-                      className="text-zinc-500"
+                      color={COLOR.text.neutral.low}
                     />
                   )}
-                  <Text className="text-zinc-500 pl-2 text-xs">Filter</Text>
+                  <Text
+                    style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                    Filter
+                  </Text>
                 </Pressable>
                 <ScrollView
                   horizontal
@@ -361,69 +372,8 @@ const ContentCreatorsScreen: React.FC = () => {
             </HideOnActiveSearch>
           </View>
           <SearchAutocompletePlaceholder>
-            <View
-              style={[
-                flex.flex1,
-                flex.flexCol,
-                gap.default,
-                padding.horizontal.default,
-              ]}>
-              {filteredContentCreators.length > 0 ? (
-                <View style={[flex.flexRow, justify.between, gap.default]}>
-                  <View style={[flex.flexCol, gap.default]}>
-                    {filteredContentCreators.map(
-                      (item, index) =>
-                        index % 2 === 0 && (
-                          <ContentCreatorCard
-                            key={item.id}
-                            id={item.id || ''}
-                            name={item.contentCreator?.fullname ?? ''}
-                            categories={
-                              item.contentCreator?.specializedCategoryIds
-                            }
-                            rating={item.contentCreator?.rating || 0}
-                            imageUrl={
-                              item.contentCreator?.profilePicture ||
-                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                            }
-                          />
-                        ),
-                    )}
-                  </View>
-                  <View style={[flex.flexCol, gap.default]}>
-                    {filteredContentCreators.map(
-                      (item, index) =>
-                        index % 2 !== 0 && (
-                          <ContentCreatorCard
-                            key={item.id}
-                            id={item.id || ''}
-                            name={item.contentCreator?.fullname ?? ''}
-                            categories={
-                              item.contentCreator?.specializedCategoryIds
-                            }
-                            rating={item.contentCreator?.rating || 0}
-                            imageUrl={
-                              item.contentCreator?.profilePicture ||
-                              'https://firebasestorage.googleapis.com/v0/b/endorse-aafdb.appspot.com/o/default%2Fdefault-content-creator.jpeg?alt=media&token=fe5aa7a5-1c1c-45bd-bec5-6f3e766e5ea7'
-                            }
-                          />
-                        ),
-                    )}
-                  </View>
-                </View>
-              ) : (
-                <View style={[flex.flexRow, items.center, padding.top.xlarge5]}>
-                  <EmptyPlaceholder
-                    title={
-                      selectedFilters.categories.length > 0 ||
-                      selectedFilters.locations.length > 0
-                        ? 'No ideal content creator for this filter or search'
-                        : "There isn't available content creator yet"
-                    }
-                    description="Try to change the filter or search for another content creator"
-                  />
-                </View>
-              )}
+            <View style={[padding.horizontal.default]}>
+              <ContentCreatorList data={filteredContentCreators} />
             </View>
           </SearchAutocompletePlaceholder>
         </ScrollView>
@@ -441,8 +391,11 @@ const ContentCreatorsScreen: React.FC = () => {
           <View
             style={[flex.flexRow, justify.between, padding.horizontal.medium]}>
             <Text
-              className="font-bold"
-              style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[50],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               Filter
             </Text>
             <InternalLink text="Reset" onPress={resetFilter} />
@@ -456,8 +409,11 @@ const ContentCreatorsScreen: React.FC = () => {
             ]}>
             <View style={[flex.flexCol, gap.default]}>
               <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[40],
+                  font.weight.bold,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
                 Category
               </Text>
               <View style={[flex.flexRow, flex.wrap, gap.default]}>
@@ -483,8 +439,11 @@ const ContentCreatorsScreen: React.FC = () => {
             </View>
             <View style={[flex.flexCol, gap.default]}>
               <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[40],
+                  font.weight.bold,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
                 Content Creator Territory
               </Text>
 
@@ -562,8 +521,8 @@ const FilterElement = ({...props}: FilterElementProps) => {
             ],
       ]}>
       <Text
-        className="font-semibold"
         style={[
+          font.weight.semibold,
           props.isSelected
             ? [textColor(COLOR.black[0])]
             : [textColor(COLOR.text.neutral.med)],
