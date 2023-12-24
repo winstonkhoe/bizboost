@@ -255,6 +255,7 @@ const ContentCreatorsScreen: React.FC = () => {
           scrollEnabled
           stickyHeaderIndices={[1]}
           style={[flex.flex1]}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={[flex.flexCol, padding.bottom.large]}>
           {/* Navbar */}
           {navbarState && (
