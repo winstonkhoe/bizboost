@@ -5,6 +5,7 @@ import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
 import {Transaction} from './Transaction';
 import {Campaign} from './Campaign';
+import {filterAsync} from '../utils/array';
 
 export const REVIEW_COLLECTION = 'reviews';
 
@@ -120,12 +121,24 @@ export class Review extends BaseModel {
     await revieweeUser?.updateRating(rating, revieweeRole);
   }
 
-  static async getReviewsByRevieweeId(revieweeId: string): Promise<Review[]> {
+  static async getReviewsByRevieweeId(
+    revieweeId: string,
+    revieweeRole: UserRole,
+  ): Promise<Review[]> {
     try {
       const reviews = await this.getCollectionReference()
         .where('revieweeId', '==', User.getDocumentReference(revieweeId))
         .get();
-      return reviews.docs.map(this.fromSnapshot);
+      return await filterAsync(
+        reviews.docs.map(this.fromSnapshot),
+        async review => {
+          const isContentCreator = await review.isRevieweeContentCreator();
+          return (
+            (revieweeRole === UserRole.ContentCreator && isContentCreator) ||
+            (revieweeRole === UserRole.BusinessPeople && !isContentCreator)
+          );
+        },
+      );
     } catch (error) {
       throw Error('Review.getReviewsByRevieweeId err: ' + error);
     }
@@ -156,5 +169,24 @@ export class Review extends BaseModel {
           console.log(error.message);
         },
       );
+  }
+
+  async isRevieweeContentCreator(): Promise<boolean> {
+    const {transactionId} = this;
+    if (!transactionId) {
+      return false;
+    }
+    return new Promise(resolve => {
+      let unsubscribe = () => {};
+      try {
+        unsubscribe = Transaction.getById(transactionId, transaction => {
+          unsubscribe();
+          resolve(transaction?.contentCreatorId === this.revieweeId);
+        });
+      } catch (error) {
+        unsubscribe();
+        resolve(false);
+      }
+    });
   }
 }

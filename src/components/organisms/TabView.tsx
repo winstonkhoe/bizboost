@@ -65,6 +65,9 @@ export const TabView = ({labels, children}: TabViewProps) => {
           },
         ]}>
         <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={false}
           style={[flex.flex1, padding.top.default]}
           contentContainerStyle={[
             flex.flexRow,
@@ -114,6 +117,7 @@ export const TabView = ({labels, children}: TabViewProps) => {
       <PagerView
         style={[flex.flex1]}
         ref={pagerViewRef}
+        scrollEnabled={false}
         onPageSelected={e => {
           setActiveIndexTab(e.nativeEvent.position);
         }}>
