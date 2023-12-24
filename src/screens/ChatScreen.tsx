@@ -74,6 +74,7 @@ const ChatScreen = ({route}: Props) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<Offer>();
 
+  // TODO: bikin Chat.getById
   useEffect(() => {
     return Chat.getById(chatId, setChat);
   }, [chatId]);

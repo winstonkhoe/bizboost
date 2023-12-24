@@ -26,7 +26,7 @@ export const ModalSpecificExploreScreen = ({route}: Props) => {
   const targetContentIndex = useMemo(
     () =>
       contentViews.findIndex(
-        contentView => contentView.portfolio.id === targetContentId,
+        contentView => contentView.portfolio?.id === targetContentId,
       ),
     [contentViews, targetContentId],
   );
@@ -42,7 +42,7 @@ export const ModalSpecificExploreScreen = ({route}: Props) => {
           setContentViews(
             contents?.map(content => {
               return {
-                content: content,
+                portfolio: content,
                 user: user,
               };
             }) || [],

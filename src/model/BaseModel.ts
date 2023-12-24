@@ -1,6 +1,6 @@
 import firestore from '@react-native-firebase/firestore';
 
-export class BaseModel {
+export abstract class BaseModel {
   toJSON(): this {
     return Object.assign({}, this);
   }

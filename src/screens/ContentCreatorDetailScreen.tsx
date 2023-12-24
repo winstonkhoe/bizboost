@@ -36,6 +36,7 @@ import {dimension} from '../styles/Dimension';
 import {rounded} from '../styles/BorderRadius';
 import {textColor} from '../styles/Text';
 import {COLOR} from '../styles/Color';
+import {usePortfolio} from '../hooks/portfolio';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -47,16 +48,17 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
-  const [portfolios, setPortfolios] = useState<Portfolio[]>();
+  // const [portfolios, setPortfolios] = useState<Portfolio[]>();
+  const {portfolios} = usePortfolio(param.contentCreatorId);
   const [index, setIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState(0);
   const {uid} = useUser();
 
   useEffect(() => {
     User.getById(param.contentCreatorId).then(user => setContentCreator(user));
-    Portfolio.getByUserId(param.contentCreatorId).then(content => {
-      setPortfolios(content);
-    });
+    // Portfolio.getByUserId(param.contentCreatorId).then(content => {
+    //   setPortfolios(content);
+    // });
   }, [param]);
 
   const profilePictureSource = require('../assets/images/sample-influencer.jpeg');
@@ -303,18 +305,21 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                       (content, idx) =>
                         idx % 2 === 0 && (
                           <Pressable
-                            key={content.id}
+                            key={idx}
                             onPress={() => {
+                              console.log(
+                                'targetContentId:' + content.portfolio.id,
+                              );
                               navigation.navigate(
                                 AuthenticatedNavigation.SpecificExploreModal,
                                 {
                                   contentCreatorId: contentCreator?.id!!,
-                                  targetContentId: content.id,
+                                  targetContentId: content.portfolio.id,
                                 },
                               );
                             }}>
                             <FastImage
-                              source={{uri: content.thumbnail}}
+                              source={{uri: content.portfolio.thumbnail}}
                               style={styles.video}
                             />
                           </Pressable>
@@ -332,18 +337,21 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                       (content, idx) =>
                         idx % 2 !== 0 && (
                           <Pressable
-                            key={content.id}
+                            key={idx}
                             onPress={() => {
+                              console.log(
+                                'targetContentId:' + content.portfolio.id,
+                              );
                               navigation.navigate(
                                 AuthenticatedNavigation.SpecificExploreModal,
                                 {
                                   contentCreatorId: contentCreator?.id!!,
-                                  targetContentId: content.id,
+                                  targetContentId: content.portfolio.id,
                                 },
                               );
                             }}>
                             <FastImage
-                              source={{uri: content.thumbnail}}
+                              source={{uri: content.portfolio.thumbnail}}
                               style={styles.video}
                             />
                           </Pressable>

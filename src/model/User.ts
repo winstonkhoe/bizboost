@@ -362,6 +362,7 @@ export class User extends BaseModel {
     return this.fromSnapshot(snapshot);
   }
 
+  // TODO: jadiin satu sama getbyid
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null) => void,

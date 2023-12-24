@@ -63,6 +63,7 @@ const AboutMeScreen = () => {
     temp.email = d.email;
     temp.phone = d.phone;
 
+    // TODO: show success message perlu gak?
     temp.updateUserData().then(() => {
       navigation.goBack();
     });

@@ -63,6 +63,7 @@ export class Category extends BaseModel {
     return this.fromSnapshot(snapshot);
   }
 
+  // TODO: check, remove unused method (yang dipake cuma getall kayaknya)
   static async getAll(): Promise<Category[]> {
     const querySnapshot = await this.getCollectionReference().get();
     return this.fromQuerySnapshot(querySnapshot);
