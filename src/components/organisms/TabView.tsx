@@ -86,8 +86,9 @@ export const TabView = ({labels, children}: TabViewProps) => {
                   self.center,
                   text.center,
                   font.size[20],
-                  textColor(COLOR.text.neutral.high),
                   font.weight.medium,
+                  textColor(COLOR.text.neutral.med),
+                  activeIndexTab === childIndex && [textColor(COLOR.green[60])],
                 ]}>
                 {labels?.[childIndex]}
               </Text>
