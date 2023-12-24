@@ -5,7 +5,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {User, UserRole} from '../model/User';
+import {SocialPlatform, User, UserRole} from '../model/User';
 import {Dimensions, ScrollView, Text, View} from 'react-native';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {font} from '../styles/Font';
@@ -33,6 +33,10 @@ import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {Review} from '../model/Review';
 import {LoadingScreen} from './LoadingScreen';
 import {ReviewList} from '../components/organisms/ReviewList';
+import {SocialCard} from '../components/atoms/SocialCard';
+import {RatingStarIcon} from '../components/atoms/Icon';
+import {overflow} from '../styles/Overflow';
+import {formatNumberWithSuffix} from '../utils/number';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -74,7 +78,6 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
     <PageWithBackButton fullHeight={true}>
       <View
         style={[
-          flex.flex1,
           flex.grow,
           flex.flexCol,
           {
@@ -82,171 +85,185 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
             paddingBottom: Math.max(safeAreaInsets.bottom, size.large),
           },
         ]}>
-        <View style={[flex.grow, flex.flexCol, justify.center, items.center]}>
-          <View
-            style={[
-              {
-                width: Dimensions.get('window').width * 0.3,
-                height: Dimensions.get('window').width * 0.3,
-              },
-              rounded.max,
-            ]}
-            className="overflow-hidden object-cover">
-            <FastImage
-              style={[dimension.full]}
-              source={getSourceOrDefaultAvatar({
-                uri: contentCreator?.contentCreator?.profilePicture,
-              })}
-            />
-          </View>
-          <Text style={font.size[60]} className="pt-1 font-bold text-black">
-            {contentCreator?.contentCreator?.fullname}
-          </Text>
-          <Text style={font.size[30]}>Content Creator</Text>
-          <View
-            style={flex.flexRow}
-            className="w-full items-center justify-center gap-x-2">
-            {contentCreator?.instagram && (
-              <View style={[flex.flexRow, justify.center, items.center]}>
-                <InstagramLogo width={10} height={10} />
-                <Text>
-                  {contentCreator.instagram.followersCount?.toString()}
-                </Text>
-              </View>
-            )}
-            {contentCreator?.tiktok && (
-              <View style={[flex.flexRow, justify.center, items.center]}>
-                <TiktokLogo width={10} height={10} />
-                <Text>{contentCreator.tiktok.followersCount?.toString()}</Text>
-              </View>
-            )}
-            <View style={[flex.flexRow, justify.center, items.center]}>
-              <StarIcon width={10} height={10} />
-              <Text>
-                {contentCreator?.contentCreator?.rating ?? 'Not rated'}
-              </Text>
+        <View style={[flex.flexRow, gap.default]}>
+          <View style={[padding.left.xlarge2]}>
+            <View
+              style={[
+                dimension.square.xlarge5,
+                overflow.hidden,
+                rounded.medium,
+              ]}>
+              <FastImage
+                style={[dimension.full]}
+                source={getSourceOrDefaultAvatar({
+                  uri: contentCreator?.contentCreator?.profilePicture,
+                })}
+              />
             </View>
           </View>
-          <TabView labels={['Detail', 'Portfolio', 'Reviews']}>
-            <ScrollView
-              bounces={false}
-              contentContainerStyle={[
-                flex.flexCol,
-                gap.medium,
-                padding.horizontal.large,
-                padding.bottom.large,
-              ]}>
-              <View style={[flex.flexCol]}>
+          <View style={[flex.flex1, flex.flexCol, gap.small]}>
+            <View style={[flex.flexCol]}>
+              <Text
+                style={[
+                  font.size[30],
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.semibold,
+                ]}
+                numberOfLines={1}>
+                {contentCreator?.contentCreator?.fullname}
+              </Text>
+              <View
+                style={[flex.flexRow, justify.start, items.center, gap.xsmall]}>
+                <RatingStarIcon size="medium" />
                 <Text
                   style={[
+                    font.size[20],
+                    font.weight.semibold,
                     textColor(COLOR.text.neutral.high),
-                    font.weight.bold,
                   ]}>
-                  About Me
-                </Text>
-                <Text>
-                  Hi there! I'm Emily, a content creator weaving stories and
-                  visuals in the digital realm. From crafting eye-catching
-                  Instagram feeds to whipping up engaging TikTok moments, I
-                  thrive on transforming ideas into captivating digital
-                  experiences. Beyond just creating content, it's about
-                  fostering connections and sparking meaningful conversations.
-                  With a knack for staying on top of trends and a commitment to
-                  authenticity, I love navigating the dynamic world of content
-                  creation, where each post is a brushstroke in my canvas of
-                  digital expression.
+                  {`${
+                    contentCreator?.contentCreator?.rating
+                  } (${formatNumberWithSuffix(
+                    contentCreator?.contentCreator?.ratedCount || 0,
+                  )})` ?? 'Not rated'}
                 </Text>
               </View>
-              {contentCreator?.contentCreator?.preferences &&
-                contentCreator.contentCreator.preferences.length > 0 && (
-                  <View>
-                    <Text
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.weight.bold,
-                      ]}>
-                      Preferences
-                    </Text>
-                    {contentCreator.contentCreator.preferences.map(
-                      (preference, idx) => (
-                        <Text key={idx}>• {preference}</Text>
-                      ),
-                    )}
-                  </View>
-                )}
-
-              {contentCreator?.contentCreator?.preferredLocationIds &&
-                contentCreator?.contentCreator?.preferredLocationIds.length >
-                  0 && (
-                  <View>
-                    <Text
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.weight.bold,
-                      ]}>
-                      Preferred Locations
-                    </Text>
-                    {contentCreator.contentCreator.preferredLocationIds.map(
-                      (loc, idx) => (
-                        <Text key={idx}>• {loc}</Text>
-                      ),
-                    )}
-                  </View>
-                )}
-              {contentCreator?.contentCreator?.postingSchedules &&
-                contentCreator?.contentCreator?.postingSchedules.length > 0 && (
-                  <View>
-                    <Text
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.weight.bold,
-                      ]}>
-                      Posting Schedules
-                    </Text>
-                    {contentCreator?.contentCreator?.postingSchedules?.map(
-                      (sched, idx) => (
-                        <Text key={idx}>
-                          • {formatDateToDayMonthYear(new Date(sched))}
-                        </Text>
-                      ),
-                    )}
-                  </View>
-                )}
-              {contentCreator?.contentCreator?.specializedCategoryIds &&
-                contentCreator?.contentCreator?.specializedCategoryIds.length >
-                  0 && (
-                  <View>
-                    <Text
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.weight.bold,
-                      ]}>
-                      Specialized Categories
-                    </Text>
-                    <ScrollView
-                      horizontal
-                      contentContainerStyle={(flex.flexRow, gap.small)}>
-                      {contentCreator?.contentCreator?.specializedCategoryIds?.map(
-                        (cat, idx) => (
-                          <View style={padding.top.xsmall} key={idx}>
-                            <Text className="bg-primary py-1 px-2 rounded-md text-white">
-                              {cat}
-                            </Text>
-                          </View>
-                        ),
-                      )}
-                    </ScrollView>
-                  </View>
-                )}
-            </ScrollView>
-            <View style={[flex.flex1, padding.horizontal.default]}>
-              <PortfolioList portfolios={portfolios} />
             </View>
-            <View style={[flex.flex1, padding.horizontal.default]}>
-              <ReviewList reviews={reviews} />
+            <View style={[flex.flexCol, items.start, gap.xsmall]}>
+              {contentCreator?.instagram?.username && (
+                <SocialCard
+                  inverted
+                  type="detail"
+                  platform={SocialPlatform.Instagram}
+                  data={contentCreator?.instagram}
+                />
+              )}
+              {contentCreator?.tiktok?.username && (
+                <SocialCard
+                  inverted
+                  type="detail"
+                  platform={SocialPlatform.Tiktok}
+                  data={contentCreator?.tiktok}
+                />
+              )}
             </View>
-          </TabView>
+          </View>
         </View>
+        <TabView labels={['Detail', 'Portfolio', 'Reviews']}>
+          <ScrollView
+            bounces={false}
+            contentContainerStyle={[
+              flex.flexCol,
+              gap.medium,
+              padding.horizontal.large,
+              padding.bottom.large,
+            ]}>
+            <View style={[flex.flexCol]}>
+              <Text
+                style={[textColor(COLOR.text.neutral.high), font.weight.bold]}>
+                About Me
+              </Text>
+              <Text>
+                Hi there! I'm Emily, a content creator weaving stories and
+                visuals in the digital realm. From crafting eye-catching
+                Instagram feeds to whipping up engaging TikTok moments, I thrive
+                on transforming ideas into captivating digital experiences.
+                Beyond just creating content, it's about fostering connections
+                and sparking meaningful conversations. With a knack for staying
+                on top of trends and a commitment to authenticity, I love
+                navigating the dynamic world of content creation, where each
+                post is a brushstroke in my canvas of digital expression.
+              </Text>
+            </View>
+            {contentCreator?.contentCreator?.preferences &&
+              contentCreator.contentCreator.preferences.length > 0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Preferences
+                  </Text>
+                  {contentCreator.contentCreator.preferences.map(
+                    (preference, idx) => (
+                      <Text key={idx}>• {preference}</Text>
+                    ),
+                  )}
+                </View>
+              )}
+
+            {contentCreator?.contentCreator?.preferredLocationIds &&
+              contentCreator?.contentCreator?.preferredLocationIds.length >
+                0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Preferred Locations
+                  </Text>
+                  {contentCreator.contentCreator.preferredLocationIds.map(
+                    (loc, idx) => (
+                      <Text key={idx}>• {loc}</Text>
+                    ),
+                  )}
+                </View>
+              )}
+            {contentCreator?.contentCreator?.postingSchedules &&
+              contentCreator?.contentCreator?.postingSchedules.length > 0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Posting Schedules
+                  </Text>
+                  {contentCreator?.contentCreator?.postingSchedules?.map(
+                    (sched, idx) => (
+                      <Text key={idx}>
+                        • {formatDateToDayMonthYear(new Date(sched))}
+                      </Text>
+                    ),
+                  )}
+                </View>
+              )}
+            {contentCreator?.contentCreator?.specializedCategoryIds &&
+              contentCreator?.contentCreator?.specializedCategoryIds.length >
+                0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Specialized Categories
+                  </Text>
+                  <ScrollView
+                    horizontal
+                    contentContainerStyle={(flex.flexRow, gap.small)}>
+                    {contentCreator?.contentCreator?.specializedCategoryIds?.map(
+                      (cat, idx) => (
+                        <View style={padding.top.xsmall} key={idx}>
+                          <Text className="bg-primary py-1 px-2 rounded-md text-white">
+                            {cat}
+                          </Text>
+                        </View>
+                      ),
+                    )}
+                  </ScrollView>
+                </View>
+              )}
+          </ScrollView>
+          <View style={[flex.flex1, padding.horizontal.default]}>
+            <PortfolioList portfolios={portfolios} />
+          </View>
+          <View style={[flex.flex1, padding.horizontal.default]}>
+            <ReviewList reviews={reviews} />
+          </View>
+        </TabView>
         <View style={[padding.horizontal.default]}>
           <CustomButton text="Make Offer" onPress={openMakeOfferModal} />
         </View>

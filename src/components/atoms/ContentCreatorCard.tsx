@@ -30,7 +30,7 @@ const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
 
   const concatenatedCategories =
     data.contentCreator?.specializedCategoryIds?.join(', ');
-  const socialSizeType: SizeType = 'large';
+  const socialSizeType: SizeType = 'xlarge';
   const ratingCategoriesSizeType: SizeType = 'medium';
   const showRatingCategories =
     (data?.contentCreator && data?.contentCreator?.ratedCount > 0) ||
@@ -39,7 +39,7 @@ const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
   const showSocials = !!data?.instagram?.username || !!data?.tiktok?.username;
 
   const containerHeight =
-    170 +
+    160 +
     (showRatingCategories ? size[ratingCategoriesSizeType] : 0) +
     (showSocials ? size[socialSizeType] : 0);
 

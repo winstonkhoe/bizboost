@@ -12,13 +12,28 @@ import {formatNumberWithSuffix} from '../../utils/number';
 import {background} from '../../styles/BackgroundColor';
 import {dimension} from '../../styles/Dimension';
 import {overflow} from '../../styles/Overflow';
+import {size} from '../../styles/Size';
+import {gap} from '../../styles/Gap';
 
 interface SocialCardProps {
   platform: SocialPlatform;
   data: SocialData;
+  type?: 'summary' | 'detail';
+  inverted?: boolean;
 }
 
-export const SocialCard = ({platform, data}: SocialCardProps) => {
+export const SocialCard = ({
+  type = 'summary',
+  platform,
+  data,
+  inverted = false,
+}: SocialCardProps) => {
+  const textColorCode = inverted
+    ? COLOR.absoluteBlack[0]
+    : COLOR.absoluteBlack[90];
+  const borderColorCode = inverted
+    ? COLOR.absoluteBlack[90]
+    : COLOR.absoluteBlack[0];
   return (
     <View
       style={[
@@ -28,29 +43,48 @@ export const SocialCard = ({platform, data}: SocialCardProps) => {
         overflow.hidden,
         border({
           borderWidth: 1,
-          color: COLOR.absoluteBlack[0],
+          color: borderColorCode,
         }),
       ]}>
       <View
         style={[
           flex.flexRow,
+          gap.xsmall,
           justify.center,
           items.center,
-          dimension.width.large,
-          dimension.height.medium,
-          background(COLOR.background.neutral.default),
-        ]}>
-        <PlatformIcon platform={platform} />
-      </View>
-      <Text
-        style={[
-          font.size[10],
-          font.weight.semibold,
-          textColor(COLOR.absoluteBlack[0]),
+          dimension.height.large,
           padding.horizontal.small,
+          {
+            minWidth: size.large,
+          },
+          background(borderColorCode),
         ]}>
-        {formatNumberWithSuffix(data?.followersCount || 0)}
-      </Text>
+        <PlatformIcon platform={platform} color={textColorCode} />
+        {type === 'detail' && (
+          <Text
+            style={[
+              font.size[20],
+              textColor(textColorCode),
+              {
+                maxWidth: size.xlarge8,
+              },
+            ]}
+            numberOfLines={1}>
+            {`@${data?.username}`}
+          </Text>
+        )}
+      </View>
+      <View style={[flex.flexRow, items.center]}>
+        <Text
+          style={[
+            font.size[10],
+            font.weight.semibold,
+            padding.horizontal.small,
+            textColor(borderColorCode),
+          ]}>
+          {formatNumberWithSuffix(data?.followersCount || 0)}
+        </Text>
+      </View>
     </View>
   );
 };
