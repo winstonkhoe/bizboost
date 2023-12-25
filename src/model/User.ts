@@ -214,14 +214,16 @@ export class User extends BaseModel {
     return {
       ...data,
       id: undefined,
+      password: undefined,
+      confirmPassword: undefined,
       email: data.email?.toLocaleLowerCase(),
       contentCreator: data.contentCreator && {
         ...data.contentCreator,
         specializedCategoryIds: data.contentCreator?.specializedCategoryIds.map(
-          categoryId => Category.getDocumentReference(categoryId),
+          Category.getDocumentReference,
         ),
         preferredLocationIds: data.contentCreator?.preferredLocationIds.map(
-          locationId => Location.getDocumentReference(locationId),
+          Location.getDocumentReference,
         ),
       },
     };
@@ -438,13 +440,9 @@ export class User extends BaseModel {
           method: provider,
         }),
       );
-
-      return true;
     } catch (error: any) {
       console.log(error);
-      handleError(error.code);
-
-      return false;
+      throw Error('User.signUp error ' + error);
     }
   }
 
@@ -507,7 +505,10 @@ export class User extends BaseModel {
       await AccessToken.getCurrentAccessToken();
 
     if (!fbAccessToken) {
-      throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
+      throw Error(
+        'User.continueWithFacebook error ' +
+          ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR,
+      );
     } else {
       const data = {
         id: '',
@@ -530,7 +531,7 @@ export class User extends BaseModel {
               provider: Provider.FACEBOOK,
               token: data.token,
             });
-            console.log('facebook account detected');
+            console.log('User.continueWithFacebook facebook account detected');
           } else {
             finishCallback({
               ...data,
@@ -540,6 +541,8 @@ export class User extends BaseModel {
               instagram: {
                 username: instagramUsername,
                 followersCount: followersCount,
+                isSynchronized: true,
+                lastSyncAt: new Date().getTime(),
               },
             });
             console.log('instagramDataCallback', result);
@@ -617,6 +620,38 @@ export class User extends BaseModel {
       await new GraphRequestManager()
         .addRequest(getUserFacebookPagesListRequest)
         .start();
+    }
+  }
+
+  async signup(token: string, provider: Provider, providerId: string) {
+    try {
+      const {email, password} = this;
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: email,
+        password: password,
+      });
+
+      await User.setUserData(
+        userCredential.user.uid,
+        new User({
+          ...user,
+          password: undefined,
+        }),
+      );
+
+      await AuthMethod.setAuthMethod(
+        userCredential.user.uid,
+        new AuthMethod({
+          providerId: providerId,
+          email: user.email,
+          method: provider,
+        }),
+      );
+    } catch (error: any) {
+      console.log(error);
+      throw Error('User.signUp error ' + error);
     }
   }
 

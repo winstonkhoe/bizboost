@@ -49,7 +49,8 @@ import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrain
 import ReportListScreen from '../screens/report/ReportListScreen';
 import ReportDetailScreen from '../screens/report/ReportDetailScreen';
 import {OfferDetailScreen} from '../screens/OfferDetailScreen';
-import {UserRole} from '../model/User';
+import {SocialData, User, UserRole} from '../model/User';
+import {Providers} from '../model/AuthMethod';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -103,8 +104,17 @@ export enum GeneralNavigation {
 
 export type GuestStack = {
   [GuestNavigation.Welcome]: undefined;
-  [GuestNavigation.Login]: undefined;
-  [GuestNavigation.Signup]: undefined;
+  [GuestNavigation.Login]: {
+    user?: User;
+  };
+  [GuestNavigation.Signup]: {
+    name?: string;
+    profilePicture?: string;
+    user?: User;
+    provider?: Providers;
+    providerId?: string;
+    token?: string;
+  };
   [GuestNavigation.Authenticated]: undefined;
 };
 

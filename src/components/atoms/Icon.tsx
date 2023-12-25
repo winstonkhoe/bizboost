@@ -26,6 +26,7 @@ import Search from '../../assets/vectors/search.svg';
 import Date from '../../assets/vectors/date.svg';
 import Card from '../../assets/vectors/card.svg';
 import CrossMark from '../../assets/vectors/cross-mark-thin.svg';
+import Sync from '../../assets/vectors/sync.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path, SvgProps} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
@@ -485,6 +486,21 @@ export const CrossMarkIcon = ({
 }: IconProps) => {
   return (
     <CrossMark
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
+};
+
+export const SyncIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.green[50],
+  ...props
+}: IconProps) => {
+  return (
+    <Sync
       width={size[sizeType]}
       height={size[sizeType]}
       color={color}
