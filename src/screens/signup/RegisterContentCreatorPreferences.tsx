@@ -182,13 +182,19 @@ export const RegisterContentCreatorPreferences = ({
               <View style={[flex.flexRow, items.center]}>
                 <View style={[flex.flexCol, flex.growShrink, gap.small]}>
                   <Text
-                    className="font-bold"
-                    style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                      font.size[50],
+                    ]}>
                     Content Revision <FormLabel type="required" />
                   </Text>
                   <Text
-                    className="font-medium"
-                    style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
+                    style={[
+                      textColor(COLOR.text.neutral.med),
+                      font.weight.medium,
+                      font.size[30],
+                    ]}>
                     Max revision to limit business people revision request
                   </Text>
                 </View>
@@ -207,13 +213,19 @@ export const RegisterContentCreatorPreferences = ({
               <View style={[flex.flexRow, items.center]}>
                 <View style={[flex.flexCol, flex.growShrink, gap.small]}>
                   <Text
-                    className="font-bold"
-                    style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                      font.size[50],
+                    ]}>
                     Posting Schedule <FormLabel type="optional" />
                   </Text>
                   <Text
-                    className="font-medium"
-                    style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
+                    style={[
+                      textColor(COLOR.text.neutral.med),
+                      font.weight.medium,
+                      font.size[30],
+                    ]}>
                     Let business people know your frequent posting schedule
                   </Text>
                 </View>
@@ -247,8 +259,11 @@ export const RegisterContentCreatorPreferences = ({
                             color={COLOR.green[50]}
                           />
                           <Text
-                            className="font-semibold"
-                            style={[textColor(COLOR.green[60]), font.size[30]]}>
+                            style={[
+                              textColor(COLOR.green[60]),
+                              font.weight.semibold,
+                              font.size[30],
+                            ]}>
                             {formatDateToTime12Hrs(
                               new Date(
                                 watch(`postingSchedules.${index}.value`),
@@ -284,12 +299,12 @@ export const RegisterContentCreatorPreferences = ({
                       padding.horizontal.default,
                       border({
                         borderWidth: 1,
-                        color: COLOR.background.neutral.med,
+                        color: COLOR.black[25],
                       }),
                     ]}>
                     <Text
-                      className="font-semibold"
                       style={[
+                        font.weight.semibold,
                         textColor(COLOR.text.neutral.med),
                         font.size[30],
                       ]}>
@@ -311,13 +326,19 @@ export const RegisterContentCreatorPreferences = ({
               <View style={[flex.flexRow, items.center]}>
                 <View style={[flex.flexCol, flex.growShrink, gap.small]}>
                   <Text
-                    className="font-bold"
-                    style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                      font.size[50],
+                    ]}>
                     Preferences <FormLabel type="optional" />
                   </Text>
                   <Text
-                    className="font-medium"
-                    style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
+                    style={[
+                      textColor(COLOR.text.neutral.med),
+                      font.weight.medium,
+                      font.size[30],
+                    ]}>
                     Let business people know what you like or things you don't
                     like
                   </Text>
@@ -350,9 +371,9 @@ export const RegisterContentCreatorPreferences = ({
                             <View
                               style={[flex.flexRow, items.center, gap.small]}>
                               <Text
-                                className="font-semibold"
                                 style={[
                                   textColor(COLOR.green[60]),
+                                  font.weight.semibold,
                                   font.size[30],
                                 ]}>
                                 {watch(`preferences.${index}.value`)}
@@ -389,7 +410,7 @@ export const RegisterContentCreatorPreferences = ({
                       padding.horizontal.default,
                       border({
                         borderWidth: 1,
-                        color: COLOR.background.neutral.med,
+                        color: COLOR.black[25],
                       }),
                     ]}>
                     <Text

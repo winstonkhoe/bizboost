@@ -633,19 +633,13 @@ export class User extends BaseModel {
         password: password,
       });
 
-      await User.setUserData(
-        userCredential.user.uid,
-        new User({
-          ...user,
-          password: undefined,
-        }),
-      );
+      await User.setUserData(userCredential.user.uid, this);
 
       await AuthMethod.setAuthMethod(
         userCredential.user.uid,
         new AuthMethod({
           providerId: providerId,
-          email: user.email,
+          email: email,
           method: provider,
         }),
       );

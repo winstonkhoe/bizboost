@@ -137,6 +137,7 @@ const SignUpScreen = ({route}: Props) => {
   const {getFieldState, watch, formState, setValue, getValues} = methods;
   const email = watch('email');
   const currentRole = watch('currentRole');
+  const contentCreatorPreference = watch('contentCreatorPreference');
 
   const steps = useMemo(() => {
     let commonSteps = [SignupStep.NAME_PHONE];
@@ -322,6 +323,7 @@ const SignUpScreen = ({route}: Props) => {
 
   const onContentCreatorPreferenceChange = useCallback(
     (preference: ContentCreatorPreference) => {
+      console.log('change preference', preference);
       setValue('contentCreatorPreference', preference);
     },
     [setValue],
@@ -364,8 +366,7 @@ const SignUpScreen = ({route}: Props) => {
             <PagerView
               style={[flex.flex1]}
               ref={pagerViewRef}
-              initialPage={4}
-              // initialPage={steps[activePosition]}
+              initialPage={steps[activePosition]}
               scrollEnabled={false}
               onPageSelected={e => {
                 const position = e.nativeEvent.position;
@@ -498,7 +499,7 @@ const SignUpScreen = ({route}: Props) => {
                   rounded="max"
                   minimumWidth
                   disabled={
-                    !isValidField(getFieldState('fullname', formState)) ||
+                    getValues('fullname').length <= 0 ||
                     !isValidField(getFieldState('phone', formState))
                   }
                   onPress={nextPage}
@@ -573,12 +574,9 @@ const SignUpScreen = ({route}: Props) => {
                       rounded="max"
                       minimumWidth
                       disabled={
-                        watch(
-                          'contentCreatorPreference.contentRevisionLimit',
-                        ) === undefined ||
-                        watch(
-                          'contentCreatorPreference.contentRevisionLimit',
-                        )!! < 0
+                        contentCreatorPreference?.contentRevisionLimit ===
+                          undefined ||
+                        contentCreatorPreference.contentRevisionLimit < 0
                       }
                       onPress={nextPage}
                     />

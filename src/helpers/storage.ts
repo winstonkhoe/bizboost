@@ -27,16 +27,18 @@ export const uploadFile = ({
       );
     });
   }
-  task.then(async () => {
-    reference
-      .getDownloadURL()
-      .then(url => {
-        onUploadComplete(url);
-      })
-      .catch(err => {
-        onUploadError && onUploadError(err);
-      });
-  });
+  task
+    .then(async () => {
+      reference
+        .getDownloadURL()
+        .then(url => {
+          onUploadComplete(url);
+        })
+        .catch(err => {
+          onUploadError && onUploadError(err);
+        });
+    })
+    .catch(err => console.log('storage.uploadFile error ' + err));
 };
 
 export const deleteFileByURL = (url: string): Promise<void> => {
