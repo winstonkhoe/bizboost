@@ -140,3 +140,10 @@ export const getTimeAgo = (date: Date | number) => {
   date = date instanceof Date ? date : new Date(date);
   return timeAgo.format(date);
 };
+
+export const getTimeNearest15Minutes = (date: Date) => {
+  const minutes = date.getMinutes();
+  const remainder = minutes % 15;
+  const roundedMinutes = minutes - remainder;
+  return new Date(2023, 0, 1, date.getHours(), roundedMinutes);
+};

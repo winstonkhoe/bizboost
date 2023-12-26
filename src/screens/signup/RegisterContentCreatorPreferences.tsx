@@ -23,7 +23,10 @@ import DateIcon from '../../assets/vectors/date.svg';
 import {rounded} from '../../styles/BorderRadius';
 import {padding} from '../../styles/Padding';
 import {border} from '../../styles/Border';
-import {formatDateToTime12Hrs} from '../../utils/date';
+import {
+  formatDateToHourMinute,
+  getTimeNearest15Minutes,
+} from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
 import {AddIcon} from '../../components/atoms/Icon';
 import {background} from '../../styles/BackgroundColor';
@@ -34,6 +37,8 @@ import {ContentCreatorPreference} from '../../model/User';
 import {Platform} from 'react-native';
 import FieldArray from '../../components/organisms/FieldArray';
 import {FieldArrayLabel} from '../../components/molecules/FieldArrayLabel';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 interface RegisterContentCreatorPreferencesProps {
   onPreferenceChange: (preference: ContentCreatorPreference) => void;
@@ -53,7 +58,7 @@ export const RegisterContentCreatorPreferences = ({
   const [updatePostingSchedulesIndex, setUpdatePostingSchedulesIndex] =
     useState<number | undefined>(undefined);
   const [temporaryDate, setTemporaryDate] = useState<number>(
-    new Date().getTime(),
+    getTimeNearest15Minutes(new Date()).getTime(),
   );
 
   const methods = useForm<ContentCreatorPreferencesFormData>({
@@ -75,13 +80,14 @@ export const RegisterContentCreatorPreferences = ({
     name: 'postingSchedules',
     control,
   });
+  const postingSchedules = watch('postingSchedules');
 
   const closeDatePickerSheetModal = () => {
     setIsDatePickerModalOpened(false);
   };
 
   const resetDatePickerSheetModal = useCallback(() => {
-    setTemporaryDate(new Date().getTime());
+    setTemporaryDate(getTimeNearest15Minutes(new Date()).getTime());
     if (updatePostingSchedulesIndex !== undefined) {
       setUpdatePostingSchedulesIndex(undefined);
     }
@@ -105,7 +111,9 @@ export const RegisterContentCreatorPreferences = ({
       onPreferenceChange({
         contentRevisionLimit: contentRevisionLimit,
         postingSchedules: (
-          value?.postingSchedules?.map(item => item?.value) || []
+          value?.postingSchedules
+            ?.sort((a, b) => (a?.value || 0) - (b?.value || 0))
+            .map(item => item?.value) || []
         ).filter((item): item is number => item !== undefined),
         preferences: (
           value?.preferences?.map(item => item?.value) || []
@@ -116,15 +124,37 @@ export const RegisterContentCreatorPreferences = ({
     return () => subscription.unsubscribe();
   }, [watch, onPreferenceChange]);
 
+  const postingScheduleExists = (date: number) => {
+    return (
+      postingSchedules.findIndex(schedule => schedule.value === date) !== -1
+    );
+  };
+
   const savePostingSchedule = () => {
-    appendPostingSchedule({
-      value: temporaryDate,
-    });
+    const newDate = getTimeNearest15Minutes(new Date(temporaryDate)).getTime();
+    if (!postingScheduleExists(newDate)) {
+      appendPostingSchedule({
+        value: getTimeNearest15Minutes(new Date(temporaryDate)).getTime(),
+      });
+    } else {
+      showToast({
+        type: ToastType.danger,
+        message: 'Posting schedule already exists',
+      });
+    }
     closeDatePickerSheetModal();
   };
 
   const updatePostingSchedule = (onChange: (...event: any[]) => void) => {
-    onChange(temporaryDate);
+    const newDate = getTimeNearest15Minutes(new Date(temporaryDate)).getTime();
+    if (!postingScheduleExists(newDate)) {
+      onChange(newDate);
+    } else {
+      showToast({
+        type: ToastType.danger,
+        message: 'Posting schedule already exists',
+      });
+    }
     closeDatePickerSheetModal();
   };
 
@@ -155,63 +185,65 @@ export const RegisterContentCreatorPreferences = ({
                 type="optional"
               />
               <View style={[flex.flexRow, flex.wrap, gap.default]}>
-                {fieldsPostingSchedule.map((item, index) => {
-                  return (
-                    <AnimatedPressable
-                      key={item.id}
-                      onPress={() => {
-                        setUpdatePostingSchedulesIndex(index);
-                        setIsDatePickerModalOpened(true);
-                      }}>
-                      <View
-                        style={[
-                          flex.flexRow,
-                          gap.default,
-                          items.center,
-                          rounded.default,
-                          padding.vertical.small,
-                          padding.horizontal.default,
-                          border({
-                            borderWidth: 1,
-                            color: COLOR.green[50],
-                          }),
-                        ]}>
-                        <View style={[flex.flexRow, items.center, gap.small]}>
-                          <DateIcon
-                            width={20}
-                            height={20}
-                            color={COLOR.green[50]}
-                          />
-                          <Text
-                            style={[
-                              textColor(COLOR.green[60]),
-                              font.weight.semibold,
-                              font.size[30],
-                            ]}>
-                            {formatDateToTime12Hrs(
-                              new Date(
-                                watch(`postingSchedules.${index}.value`),
-                              ),
-                            )}
-                          </Text>
-                        </View>
-                        <Pressable
-                          className="rotate-45"
+                {postingSchedules
+                  .sort((a, b) => a.value - b.value)
+                  .map((item, index) => {
+                    return (
+                      <AnimatedPressable
+                        key={index}
+                        onPress={() => {
+                          setUpdatePostingSchedulesIndex(index);
+                          setIsDatePickerModalOpened(true);
+                        }}>
+                        <View
                           style={[
-                            rounded.max,
-                            background(COLOR.background.danger.high),
-                            padding.xsmall,
-                          ]}
-                          onPress={() => removePostingSchedule(index)}>
-                          <AddIcon
-                            size="default"
-                            color={COLOR.absoluteBlack[0]}
-                          />
-                        </Pressable>
-                      </View>
-                    </AnimatedPressable>
-                  );
-                })}
+                            flex.flexRow,
+                            gap.default,
+                            items.center,
+                            rounded.default,
+                            padding.vertical.small,
+                            padding.horizontal.default,
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.green[50],
+                            }),
+                          ]}>
+                          <View style={[flex.flexRow, items.center, gap.small]}>
+                            <DateIcon
+                              width={20}
+                              height={20}
+                              color={COLOR.green[50]}
+                            />
+                            <Text
+                              style={[
+                                textColor(COLOR.green[60]),
+                                font.weight.semibold,
+                                font.size[30],
+                              ]}>
+                              {formatDateToHourMinute(
+                                new Date(
+                                  watch(`postingSchedules.${index}.value`),
+                                ),
+                              )}
+                            </Text>
+                          </View>
+                          <Pressable
+                            className="rotate-45"
+                            style={[
+                              rounded.max,
+                              background(COLOR.background.danger.high),
+                              padding.xsmall,
+                            ]}
+                            onPress={() => removePostingSchedule(index)}>
+                            <AddIcon
+                              size="default"
+                              color={COLOR.absoluteBlack[0]}
+                            />
+                          </Pressable>
+                        </View>
+                      </AnimatedPressable>
+                    );
+                  })}
                 <FieldArrayLabel
                   text="Schedule"
                   type="add"
