@@ -17,6 +17,7 @@ import {useEffect, useState} from 'react';
 import FastImage from 'react-native-fast-image';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {overflow} from '../../styles/Overflow';
+import {padding} from '../../styles/Padding';
 
 interface RegisterProfilePictureProps {
   defaultProfile?: string;
@@ -38,41 +39,35 @@ export const RegisterProfilePicture = ({
   }, [uploadedImage, onProfilePictureChange]);
 
   return (
-    <VerticalPadding paddingSize="large">
-      <HorizontalPadding paddingSize="large">
-        <View style={[flex.flexCol, gap.medium]}>
-          <View style={[flex.flexCol, items.center, gap.xlarge]}>
-            <View style={[flex.flexRow, justify.center, items.center]}>
-              <FormFieldHelper
-                title="Profile Picture"
-                description="You can always change it later"
-                type="optional"
-              />
-            </View>
-            <View style={[dimension.square.xlarge7]}>
-              <MediaUploader
-                targetFolder="profile-pictures"
-                showUploadProgress
-                options={{
-                  width: 400,
-                  height: 400,
-                  cropping: true,
-                }}
-                onUploadSuccess={setUploadedImage}
-                onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-                <View style={[rounded.medium, overflow.hidden]}>
-                  <FastImage
-                    style={[dimension.full]}
-                    source={getSourceOrDefaultAvatar({
-                      uri: uploadedImage,
-                    })}
-                  />
-                </View>
-              </MediaUploader>
-            </View>
+    <View style={[flex.flexCol, items.center, gap.xlarge, padding.large]}>
+      <View style={[flex.flexRow, justify.center, items.center]}>
+        <FormFieldHelper
+          title="Profile Picture"
+          description="You can always change it later"
+          type="optional"
+        />
+      </View>
+      <View style={[dimension.square.xlarge7]}>
+        <MediaUploader
+          targetFolder="profile-pictures"
+          showUploadProgress
+          options={{
+            width: 400,
+            height: 400,
+            cropping: true,
+          }}
+          onUploadSuccess={setUploadedImage}
+          onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
+          <View style={[rounded.medium, overflow.hidden]}>
+            <FastImage
+              style={[dimension.full]}
+              source={getSourceOrDefaultAvatar({
+                uri: uploadedImage,
+              })}
+            />
           </View>
-        </View>
-      </HorizontalPadding>
-    </VerticalPadding>
+        </MediaUploader>
+      </View>
+    </View>
   );
 };
