@@ -87,6 +87,8 @@ import Animated, {
 import ImageView from 'react-native-image-viewing';
 import {getSourceOrDefaultAvatar} from '../../../utils/asset';
 import {overflow} from '../../../styles/Overflow';
+import {showToast} from '../../../helpers/toast';
+import {ToastType} from '../../../providers/ToastProvider';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -123,9 +125,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
-  const [campaign, setCampaign] = useState<Campaign>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const [transactions, setTransactions] = useState<TransactionView[]>([]);
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [transaction, setTransaction] = useState<Transaction | null>();
   const [activeImageClicked, setActiveImageClicked] = useState(-1);
   const [isContentSubmissionModalOpen, setIsContentSubmissionModalOpen] =
     useState(false);
@@ -137,6 +139,22 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const currentActiveTimeline = useMemo(() => {
     return campaign?.getActiveTimeline();
   }, [campaign]);
+
+  useEffect(() => {
+    Campaign.getById(campaignId)
+      .then(setCampaign)
+      .catch(() => setCampaign(null));
+  }, [campaignId]);
+
+  useEffect(() => {
+    if (uid) {
+      return Transaction.getTransactionByContentCreator(
+        campaignId,
+        uid,
+        setTransaction,
+      );
+    }
+  }, [campaignId, uid]);
 
   const contentSubmissionMethods = useForm<SubmissionFormData>({
     defaultValues: {
@@ -296,7 +314,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const registerCampaign = () => {
     if (uid && campaign?.userId) {
       const data = new Transaction({
-        contentCreatorId: uid || '',
+        contentCreatorId: uid,
         campaignId: campaignId,
         businessPeopleId: campaign?.userId,
       });
@@ -305,9 +323,17 @@ const CampaignTimelineScreen = ({route}: Props) => {
       data
         .register()
         .then(() => {
+          showToast({
+            message: 'Registration success',
+            type: ToastType.success,
+          });
           console.log('Joined!');
         })
         .catch(err => {
+          showToast({
+            message: 'Registration failed',
+            type: ToastType.danger,
+          });
           console.log(err);
         })
         .finally(() => {
@@ -353,51 +379,32 @@ const CampaignTimelineScreen = ({route}: Props) => {
   };
 
   useEffect(() => {
-    Campaign.getById(campaignId).then(c => setCampaign(c));
-  }, [campaignId]);
-
-  useEffect(() => {
     if (transaction) {
       resetOriginalField();
     }
   }, [transaction, resetOriginalField]);
 
   useEffect(() => {
-    const unsubscribe = Transaction.getTransactionByContentCreator(
-      campaignId,
-      uid || '',
-      setTransaction,
-    );
-
-    return unsubscribe;
-  }, [campaignId, uid]);
-
-  useEffect(() => {
     if (isCampaignOwner) {
-      const unsubscribe = Transaction.getAllTransactionsByCampaign(
-        campaignId,
-        t => {
-          User.getByIds(
-            t
-              .map(transaction => transaction.contentCreatorId)
-              .filter((id): id is string => id !== undefined),
-          ).then(users => {
-            setTransactions(
-              t.map(transaction => {
-                return {
-                  transaction: transaction,
-                  contentCreator:
-                    users.find(
-                      user => user.id === transaction.contentCreatorId,
-                    ) || null,
-                };
-              }),
-            );
-          });
-        },
-      );
-
-      return unsubscribe;
+      return Transaction.getAllTransactionsByCampaign(campaignId, t => {
+        User.getByIds(
+          t
+            .map(transaction => transaction.contentCreatorId)
+            .filter((id): id is string => id !== undefined),
+        ).then(users => {
+          setTransactions(
+            t.map(transaction => {
+              return {
+                transaction: transaction,
+                contentCreator:
+                  users.find(
+                    user => user.id === transaction.contentCreatorId,
+                  ) || null,
+              };
+            }),
+          );
+        });
+      });
     }
   }, [isCampaignOwner, campaignId, uid]);
 
@@ -414,7 +421,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
     });
   };
 
-  if (!campaign || !transaction) {
+  if (campaign === undefined || transaction === undefined) {
     return <LoadingScreen />;
   }
 
@@ -662,7 +669,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           ]}>
                           {campaign?.description}
                         </Text>
-                        {campaign.importantInformation &&
+                        {campaign?.importantInformation &&
                           campaign.importantInformation?.length > 0 &&
                           campaign.importantInformation.map((info, index) => {
                             return (
@@ -736,7 +743,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           text="Submit idea"
                           onPress={() => {
                             // setIsBrainstormingModalOpened(true);
-                            if (transaction.id) {
+                            if (transaction?.id) {
                               navigation.navigate(
                                 AuthenticatedNavigation.SubmitBrainstorm,
                                 {
@@ -1023,14 +1030,15 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       <CustomButton
                         text="Upload"
                         onPress={() => {
-                          if (transaction.id) {
-                            navigation.navigate(
-                              AuthenticatedNavigation.SubmitResult,
-                              {
-                                transactionId: transaction?.id,
-                              },
-                            );
+                          if (!transaction?.id) {
+                            return;
                           }
+                          navigation.navigate(
+                            AuthenticatedNavigation.SubmitResult,
+                            {
+                              transactionId: transaction.id,
+                            },
+                          );
                         }}
                       />
                     )}
