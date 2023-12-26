@@ -38,16 +38,21 @@ export const FormFieldHelper = ({
     <View style={[flex.flexCol, gap.small]}>
       {title && (
         <Text
-          className="font-bold"
-          style={[textColor(COLOR.text.neutral.high), font.size[titleSize]]}>
+          style={[
+            flex.flex1,
+            textColor(COLOR.text.neutral.high),
+            font.weight.bold,
+            font.size[titleSize],
+          ]}>
           {title} <FormLabel type={props.type} />
         </Text>
       )}
       {description && (
         <Text
-          className="font-medium"
           style={[
+            flex.flex1,
             textColor(COLOR.text.neutral.med),
+            font.weight.medium,
             font.size[descriptionSize],
           ]}>
           {description}

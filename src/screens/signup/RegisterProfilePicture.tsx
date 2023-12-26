@@ -1,12 +1,12 @@
 import {View} from 'react-native';
-import {flex, items} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {MediaUploader} from '../../components/atoms/Input';
 import {Text} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {font} from '../../styles/Font';
-import {FormLabel} from '../../components/atoms/FormLabel';
+import {FormFieldHelper, FormLabel} from '../../components/atoms/FormLabel';
 import {
   HorizontalPadding,
   VerticalPadding,
@@ -16,6 +16,7 @@ import {rounded} from '../../styles/BorderRadius';
 import {useEffect, useState} from 'react';
 import FastImage from 'react-native-fast-image';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {overflow} from '../../styles/Overflow';
 
 interface RegisterProfilePictureProps {
   defaultProfile?: string;
@@ -41,21 +42,14 @@ export const RegisterProfilePicture = ({
       <HorizontalPadding paddingSize="large">
         <View style={[flex.flexCol, gap.medium]}>
           <View style={[flex.flexCol, items.center, gap.xlarge]}>
-            <View style={[flex.flexCol, items.center, gap.small]}>
-              <Text
-                className="font-bold"
-                style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-                Profile Picture <FormLabel type="optional" />
-              </Text>
-              <Text
-                className="font-medium"
-                style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
-                You can always change it later
-              </Text>
+            <View style={[flex.flexRow, justify.center, items.center]}>
+              <FormFieldHelper
+                title="Profile Picture"
+                description="You can always change it later"
+                type="optional"
+              />
             </View>
-            <View
-              className="overflow-hidden"
-              style={[dimension.square.xlarge7, rounded.medium]}>
+            <View style={[dimension.square.xlarge7]}>
               <MediaUploader
                 targetFolder="profile-pictures"
                 showUploadProgress
@@ -66,12 +60,14 @@ export const RegisterProfilePicture = ({
                 }}
                 onUploadSuccess={setUploadedImage}
                 onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-                <FastImage
-                  style={[dimension.full]}
-                  source={getSourceOrDefaultAvatar({
-                    uri: uploadedImage,
-                  })}
-                />
+                <View style={[rounded.medium, overflow.hidden]}>
+                  <FastImage
+                    style={[dimension.full]}
+                    source={getSourceOrDefaultAvatar({
+                      uri: uploadedImage,
+                    })}
+                  />
+                </View>
               </MediaUploader>
             </View>
           </View>
