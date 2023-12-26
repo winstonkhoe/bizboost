@@ -33,7 +33,7 @@ import {useNavigation} from '@react-navigation/native';
 import {flex, items, justify, self} from '../../../styles/Flex';
 import {gap} from '../../../styles/Gap';
 import {ContentStepper, StepperState} from '../../../components/atoms/Stepper';
-import {font} from '../../../styles/Font';
+import {font, text} from '../../../styles/Font';
 import {HorizontalPadding} from '../../../components/atoms/ViewPadding';
 import {padding} from '../../../styles/Padding';
 import {rounded} from '../../../styles/BorderRadius';
@@ -86,6 +86,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import ImageView from 'react-native-image-viewing';
 import {getSourceOrDefaultAvatar} from '../../../utils/asset';
+import {overflow} from '../../../styles/Overflow';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -503,9 +504,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       <View style={[flex.flex1, flex.flexCol, gap.small]}>
                         <View style={[flex.flexCol]}>
                           <Text
-                            className="font-medium"
                             style={[
                               font.size[20],
+                              font.weight.medium,
                               textColor(COLOR.text.neutral.high),
                             ]}>
                             {`${pendingRegistrants.length} Pending Registrants`}
@@ -542,8 +543,11 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                       },
                                     ]}>
                                     <View
-                                      className="overflow-hidden"
-                                      style={[dimension.full, rounded.max]}>
+                                      style={[
+                                        dimension.full,
+                                        rounded.max,
+                                        overflow.hidden,
+                                      ]}>
                                       <FastImage
                                         style={[dimension.full]}
                                         source={getSourceOrDefaultAvatar({
@@ -567,18 +571,18 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                     },
                                   ]}>
                                   <View
-                                    className="overflow-hidden"
                                     style={[
                                       dimension.full,
+                                      overflow.hidden,
                                       flex.flexRow,
                                       justify.center,
                                       items.center,
                                       rounded.max,
                                     ]}>
                                     <Text
-                                      className="font-black"
                                       style={[
                                         font.size[20],
+                                        font.weight.black,
                                         textColor(COLOR.black[0]),
                                       ]}>
                                       {`${
@@ -626,9 +630,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     <View style={[flex.flexCol, gap.default]}>
                       <View style={[flex.flexRow, justify.between]}>
                         <Text
-                          className="font-semibold"
                           style={[
                             font.size[30],
+                            font.weight.semibold,
                             textColor(COLOR.text.neutral.high),
                           ]}>
                           💡 Things to highlight
@@ -683,9 +687,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           <View style={[flex.flexRow, justify.between]}>
                             <View style={[flex.flexCol]}>
                               <Text
-                                className="font-medium"
                                 style={[
                                   font.size[20],
+                                  font.weight.medium,
                                   textColor(COLOR.text.neutral.med),
                                 ]}>
                                 {`${filteredPendingBrainstormApproval.length} review needed`}
@@ -776,9 +780,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                             padding.horizontal.default,
                           ]}>
                           <Text
-                            className="font-semibold"
                             style={[
                               font.size[30],
+                              font.weight.semibold,
                               textColor(COLOR.text.neutral.high),
                             ]}>
                             Your task
@@ -814,9 +818,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                                 ]}>
                                 <PlatformIcon platform={platform.name} />
                                 <Text
-                                  className="font-semibold"
                                   style={[
                                     font.size[20],
+                                    font.weight.semibold,
                                     textColor(COLOR.text.neutral.high),
                                   ]}>
                                   {platform.name}
@@ -891,9 +895,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       style={[flex.flexRow, padding.default, gap.small]}>
                       <View style={[flex.flex1, flex.flexCol]}>
                         <Text
-                          className="font-medium"
                           style={[
                             font.size[20],
+                            font.weight.medium,
                             textColor(COLOR.text.neutral.high),
                           ]}>
                           {`${
@@ -947,9 +951,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     ]}>
                     <View style={[flex.flexRow, justify.between]}>
                       <Text
-                        className="font-semibold"
                         style={[
                           font.size[30],
+                          font.weight.semibold,
                           textColor(COLOR.text.neutral.high),
                         ]}
                         numberOfLines={1}>
@@ -978,8 +982,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       {guidelines.engagements.map((engagement, index) => (
                         <Pressable
                           key={index}
-                          className="overflow-hidden"
                           style={[
+                            overflow.hidden,
                             dimension.width.xlarge3,
                             rounded.default,
                             {
@@ -1042,10 +1046,10 @@ const CampaignTimelineScreen = ({route}: Props) => {
         visible={isConfirmContentSubmissionModalOpen}>
         <View style={[flex.flexCol, padding.default, gap.large]}>
           <View style={[flex.flexRow, justify.center, padding.medium]}>
-            <Text className="text-center font-medium" style={[font.size[30]]}>
+            <Text style={[font.size[30], text.center, font.weight.medium]}>
               Please review your submission carefully. Once you submit your
               task's content,{' '}
-              <Text className="font-bold">
+              <Text style={[font.weight.bold]}>
                 you will not be able to edit it.
               </Text>
             </Text>
@@ -1168,8 +1172,11 @@ const StepperLabel = ({timeline, children}: StepperLabelProps) => {
     <View style={[flex.flex1, flex.flexCol, gap.medium, padding.default]}>
       <View style={[flex.flexRow, justify.between]}>
         <Text
-          className="font-semibold"
-          style={[font.size[40], textColor(COLOR.text.neutral.high)]}
+          style={[
+            font.size[40],
+            font.weight.semibold,
+            textColor(COLOR.text.neutral.high),
+          ]}
           numberOfLines={1}>
           {timeline.step}
         </Text>
@@ -1183,8 +1190,11 @@ const StepperLabel = ({timeline, children}: StepperLabelProps) => {
             {formatDateToDayMonthYear(new Date(timeline.start))}
           </Text>
           <Text
-            className="font-semibold"
-            style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+            style={[
+              font.size[30],
+              font.weight.semibold,
+              textColor(COLOR.text.neutral.high),
+            ]}
             numberOfLines={1}>
             {formatDateToHourMinute(new Date(timeline.start))}
           </Text>
@@ -1199,8 +1209,11 @@ const StepperLabel = ({timeline, children}: StepperLabelProps) => {
             {formatDateToDayMonthYear(new Date(timeline.end))}
           </Text>
           <Text
-            className="font-semibold"
-            style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+            style={[
+              font.size[30],
+              font.weight.semibold,
+              textColor(COLOR.text.neutral.high),
+            ]}
             numberOfLines={1}>
             {formatDateToHourMinute(new Date(timeline.end))}
           </Text>
@@ -1271,8 +1284,13 @@ const TimelineRemaining = ({timeline}: TimelineRemainingProps) => {
   return (
     <View style={[flex.flexCol, gap.xsmall2]}>
       <Text
-        className="text-center font-medium"
-        style={[font.size[10], self.center, textColor(COLOR.text.neutral.med)]}>
+        style={[
+          font.size[10],
+          text.center,
+          font.weight.medium,
+          self.center,
+          textColor(COLOR.text.neutral.med),
+        ]}>
         {formatTimeDifferenceInDayHourMinute(
           new Date(timeline.start),
           new Date(timeline.end),
@@ -1295,8 +1313,12 @@ const TimelineRemaining = ({timeline}: TimelineRemainingProps) => {
       </View>
       {remainingTime !== '' && (
         <Animated.Text
-          className="font-bold"
-          style={[self.center, font.size[10], remainingTimeTextStyle]}>
+          style={[
+            self.center,
+            font.size[10],
+            font.weight.bold,
+            remainingTimeTextStyle,
+          ]}>
           {remainingTime}
         </Animated.Text>
       )}
