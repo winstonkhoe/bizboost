@@ -3,7 +3,6 @@ import {Text} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
-  BasicStatus,
   PaymentStatus,
   Transaction,
   TransactionStatus,
@@ -14,11 +13,9 @@ import {ReactNode, useEffect, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
-import {shadow} from '../../styles/Shadow';
 import {Campaign, CampaignType} from '../../model/Campaign';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
-import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import Private from '../../assets/vectors/private.svg';
 import Public from '../../assets/vectors/public.svg';
 import Business from '../../assets/vectors/business.svg';
@@ -28,7 +25,6 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
-import {getTimeAgo} from '../../utils/date';
 import {gap} from '../../styles/Gap';
 import FastImage, {Source} from 'react-native-fast-image';
 import {ImageRequireSource} from 'react-native';
@@ -43,6 +39,7 @@ import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {SkeletonPlaceholder} from './SkeletonPlaceholder';
 import ReviewSheetModal from './ReviewSheetModal';
 import {Review} from '../../model/Review';
+import {overflow} from '../../styles/Overflow';
 
 type Props = {
   transaction: Transaction;
@@ -53,13 +50,18 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [review, setReview] = useState<Review | null>();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [campaign, setCampaign] = useState<Campaign>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   useEffect(() => {
-    User.getById(transaction.contentCreatorId || '').then(setContentCreator);
-  }, [transaction]);
-
-  useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(setCampaign);
+    if (transaction.contentCreatorId) {
+      User.getById(transaction.contentCreatorId)
+        .then(setContentCreator)
+        .catch(() => setContentCreator(null));
+    }
+    if (transaction.campaignId) {
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
+    }
   }, [transaction]);
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
@@ -101,8 +103,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       );
     }
   }, [transaction]);
-
-  console.log('transaction', transaction);
 
   return (
     <>
@@ -331,8 +331,8 @@ export const BaseCard = ({
   const isLoading = !headerTextLeading || !bodyText;
   return (
     <View
-      className="overflow-hidden"
       style={[
+        overflow.hidden,
         flex.flexCol,
         rounded.medium,
         background(COLOR.background.neutral.default),
@@ -391,16 +391,25 @@ export const BaseCard = ({
         <View style={[flex.flex1, flex.flexRow, gap.default, items.center]}>
           <SkeletonPlaceholder isLoading={isLoading}>
             <View
-              className="items-center justify-center overflow-hidden"
-              style={[flex.flexRow, rounded.default, imageDimension]}>
+              style={[
+                flex.flexRow,
+                items.center,
+                justify.center,
+                overflow.hidden,
+                rounded.default,
+                imageDimension,
+              ]}>
               <FastImage style={[dimension.full]} source={imageSource} />
             </View>
           </SkeletonPlaceholder>
           <SkeletonPlaceholder style={[flex.flex1]} isLoading={isLoading}>
             <View style={[flex.flex1, flex.flexCol, gap.xsmall]}>
               <Text
-                className="font-semibold"
-                style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+                style={[
+                  font.size[30],
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.semibold,
+                ]}
                 numberOfLines={1}>
                 {bodyText}
               </Text>

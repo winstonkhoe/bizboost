@@ -4,7 +4,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Offer, OfferStatus} from '../model/Offer';
+import {Offer} from '../model/Offer';
 import {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
@@ -14,9 +14,6 @@ import {COLOR} from '../styles/Color';
 import {textColor} from '../styles/Text';
 import {font} from '../styles/Font';
 import {flex, items, justify} from '../styles/Flex';
-import {rounded} from '../styles/BorderRadius';
-import FastImage from 'react-native-fast-image';
-import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {CampaignDetailSection} from './transaction/TransactionDetailScreen';
 import {User, UserRole} from '../model/User';
 import CampaignPlatformAccordion from '../components/molecules/CampaignPlatformAccordion';
@@ -26,7 +23,6 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../components/atoms/ViewPadding';
-import {TouchableOpacity} from 'react-native';
 import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
 import {useUser} from '../hooks/user';
@@ -38,6 +34,7 @@ import {Transaction, TransactionStatus} from '../model/Transaction';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 import {ErrorMessage} from '../constants/errorMessage';
+import {BackButtonLabel} from '../components/atoms/Header';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -47,9 +44,9 @@ type Props = NativeStackScreenProps<
 export const OfferDetailScreen = ({route}: Props) => {
   const {offerId} = route.params;
 
-  const [offer, setOffer] = useState<Offer>();
+  const [offer, setOffer] = useState<Offer | null>();
   const [campaign, setCampaign] = useState<Campaign>();
-  const [businessPeople, setBusinessPeople] = useState<User>();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
   const {user, activeRole} = useUser();
 
   const navigation = useNavigation<NavigationStackProps>();
@@ -58,17 +55,26 @@ export const OfferDetailScreen = ({route}: Props) => {
   const ccId = offer?.contentCreatorId ?? '';
 
   useEffect(() => {
-    Offer.getById(offerId).then(offer => {
-      if (offer) {
-        setOffer(offer);
+    if (offerId) {
+      Offer.getById(offerId)
+        .then(setOffer)
+        .catch(() => setOffer(null));
+    }
+  }, [offer, offerId]);
 
-        Campaign.getByIdReactive(offer.campaignId || '', c => setCampaign(c));
-        User.getById(offer.businessPeopleId || '').then(u =>
-          setBusinessPeople(u),
-        );
-      }
-    });
-  }, []);
+  useEffect(() => {
+    if (offer && offer.campaignId) {
+      return Campaign.getByIdReactive(offer.campaignId, setCampaign);
+    }
+  }, [offer]);
+
+  useEffect(() => {
+    if (offer && offer.businessPeopleId) {
+      User.getById(offer.businessPeopleId)
+        .then(setBusinessPeople)
+        .catch(() => setBusinessPeople(null));
+    }
+  }, [offer]);
 
   const onAcceptOfferClicked = () => {
     if (
@@ -167,6 +173,9 @@ export const OfferDetailScreen = ({route}: Props) => {
   };
 
   const openModalNegotiate = () => {
+    if (!offer || !campaign || !activeRole) {
+      return;
+    }
     openNegotiateModal({
       selectedOffer: offer,
       campaign: campaign,
@@ -181,15 +190,7 @@ export const OfferDetailScreen = ({route}: Props) => {
     <PageWithBackButton
       enableSafeAreaContainer
       fullHeight
-      backButtonPlaceholder={
-        <View style={[flex.flex1, flex.flexCol]}>
-          <Text
-            className="font-bold bg-white"
-            style={[font.size[60], textColor(COLOR.text.neutral.high)]}>
-            Offer Detail
-          </Text>
-        </View>
-      }>
+      backButtonPlaceholder={<BackButtonLabel text="Offer Detail" />}>
       <View className="pt-12">
         {campaign && businessPeople && (
           <CampaignDetailSection
@@ -203,8 +204,12 @@ export const OfferDetailScreen = ({route}: Props) => {
           <View style={(flex.flexCol, padding.top.medium)}>
             <View>
               <Text
-                className="font-bold pb-2"
-                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                className="pb-2"
+                style={[
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                  font.size[40],
+                ]}>
                 {offer?.negotiatedBy ? 'Previous Task' : 'Original Task'}
               </Text>
               {offer?.negotiatedBy
@@ -230,8 +235,12 @@ export const OfferDetailScreen = ({route}: Props) => {
             {offer?.negotiatedTasks && offer?.negotiatedTasks.length > 0 && (
               <View>
                 <Text
-                  className="font-bold pb-2"
-                  style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                  className="pb-2"
+                  style={[
+                    textColor(COLOR.text.neutral.high),
+                    font.weight.bold,
+                    font.size[40],
+                  ]}>
                   {'Task Negotitated'}
                 </Text>
                 {offer?.negotiatedTasks?.map((fp, index) => (
@@ -249,8 +258,12 @@ export const OfferDetailScreen = ({route}: Props) => {
 
           <View>
             <Text
-              className="font-bold pb-2"
-              style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+              className="pb-2"
+              style={[
+                textColor(COLOR.text.neutral.high),
+                font.weight.bold,
+                font.size[40],
+              ]}>
               Important Notes
             </Text>
             <Text>{offer?.importantNotes}</Text>
@@ -259,8 +272,12 @@ export const OfferDetailScreen = ({route}: Props) => {
           {offer?.negotiatedNotes && (
             <View style={padding.top.medium}>
               <Text
-                className="font-bold pb-2"
-                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                className="pb-2"
+                style={[
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                  font.size[40],
+                ]}>
                 Negotiated Notes
               </Text>
               <Text>{offer?.negotiatedNotes}</Text>
@@ -275,13 +292,21 @@ export const OfferDetailScreen = ({route}: Props) => {
               items.center,
             ]}>
             <Text
-              className="font-bold pb-2"
-              style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+              className="pb-2"
+              style={[
+                textColor(COLOR.text.neutral.high),
+                font.weight.bold,
+                font.size[40],
+              ]}>
               Offered Fee
             </Text>
             <Text
-              className="font-bold pb-2"
-              style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+              className="pb-2"
+              style={[
+                textColor(COLOR.text.neutral.high),
+                font.weight.bold,
+                font.size[40],
+              ]}>
               Rp. {offer?.offeredPrice}
             </Text>
           </View>
@@ -294,13 +319,21 @@ export const OfferDetailScreen = ({route}: Props) => {
                 items.center,
               ]}>
               <Text
-                className="font-bold pb-2"
-                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                className="pb-2"
+                style={[
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                  font.size[40],
+                ]}>
                 Negotiated Fee
               </Text>
               <Text
-                className="font-bold pb-2"
-                style={[textColor(COLOR.text.neutral.high), font.size[40]]}>
+                className="pb-2"
+                style={[
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                  font.size[40],
+                ]}>
                 Rp. {offer?.negotiatedPrice}
               </Text>
             </View>
@@ -324,9 +357,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                             padding.top.xsmall,
                           ]}>
                           <Text
-                            className="font-bold pb-2"
+                            className="pb-2"
                             style={[
                               textColor(COLOR.text.neutral.high),
+                              font.weight.bold,
                               font.size[30],
                             ]}>
                             {offer?.negotiatedBy
@@ -334,9 +368,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                               : 'Offered Fee'}
                           </Text>
                           <Text
-                            className="font-bold pb-2"
+                            className="pb-2"
                             style={[
                               textColor(COLOR.text.neutral.high),
+                              font.weight.bold,
                               font.size[30],
                             ]}>
                             Rp.{' '}
@@ -377,9 +412,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                             padding.top.xsmall,
                           ]}>
                           <Text
-                            className="font-bold pb-2"
+                            className="pb-2"
                             style={[
                               textColor(COLOR.text.neutral.high),
+                              font.weight.bold,
                               font.size[30],
                             ]}>
                             {offer?.negotiatedBy
@@ -387,9 +423,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                               : 'Offered Fee'}
                           </Text>
                           <Text
-                            className="font-bold pb-2"
+                            className="pb-2"
                             style={[
                               textColor(COLOR.text.neutral.high),
+                              font.weight.bold,
                               font.size[30],
                             ]}>
                             Rp.{' '}
@@ -424,9 +461,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                           padding.top.xsmall,
                         ]}>
                         <Text
-                          className="font-bold pb-2"
+                          className="pb-2"
                           style={[
                             textColor(COLOR.text.neutral.high),
+                            font.weight.bold,
                             font.size[30],
                           ]}>
                           {offer?.negotiatedBy
@@ -434,9 +472,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                             : 'Offered Fee'}
                         </Text>
                         <Text
-                          className="font-bold pb-2"
+                          className="pb-2"
                           style={[
                             textColor(COLOR.text.neutral.high),
+                            font.weight.bold,
                             font.size[30],
                           ]}>
                           Rp.{' '}
@@ -468,9 +507,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                           padding.top.xsmall,
                         ]}>
                         <Text
-                          className="font-bold pb-2"
+                          className="pb-2"
                           style={[
                             textColor(COLOR.text.neutral.high),
+                            font.weight.bold,
                             font.size[30],
                           ]}>
                           {offer?.negotiatedBy
@@ -478,9 +518,10 @@ export const OfferDetailScreen = ({route}: Props) => {
                             : 'Offered Fee'}
                         </Text>
                         <Text
-                          className="font-bold pb-2"
+                          className="pb-2"
                           style={[
                             textColor(COLOR.text.neutral.high),
+                            font.weight.bold,
                             font.size[30],
                           ]}>
                           Rp.{' '}

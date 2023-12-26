@@ -43,9 +43,13 @@ export const usePortfolio = (userId?: string): usePortfolioHook => {
     };
     if (userId) {
       console.log('masuk: ' + userId);
-      Portfolio.getByUserId(userId).then(processPortfolioThumbnails);
+      Portfolio.getByUserId(userId)
+        .then(processPortfolioThumbnails)
+        .catch(() => setRawPortfolios([]));
     } else {
-      Portfolio.getAll().then(processPortfolioThumbnails);
+      Portfolio.getAll()
+        .then(processPortfolioThumbnails)
+        .catch(() => setRawPortfolios([]));
     }
   }, [userId]);
 

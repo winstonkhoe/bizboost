@@ -43,7 +43,9 @@ const ModalCategoryScreen = ({route}: Props) => {
   );
   const [categories, setCategories] = useState<Category[]>([]);
   useEffect(() => {
-    Category.getAll().then(setCategories);
+    Category.getAll()
+      .then(setCategories)
+      .catch(() => setCategories([]));
   }, []);
 
   const toggleCategorySelection = (category: Category) => {
