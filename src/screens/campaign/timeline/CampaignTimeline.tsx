@@ -99,13 +99,6 @@ type CampaignTimelineMap = {
   [key in CampaignStep]?: CampaignTimeline;
 };
 
-type SubmissionFormData = {
-  submission: {
-    platform: SocialPlatform;
-    tasks: StringObject[][];
-  }[];
-};
-
 const guidelines = {
   engagements: [
     require('../../../assets/images/guidelines/engagement-1.png'),
@@ -129,12 +122,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
   const [transactions, setTransactions] = useState<TransactionView[]>([]);
   const [transaction, setTransaction] = useState<Transaction | null>();
   const [activeImageClicked, setActiveImageClicked] = useState(-1);
-  const [isContentSubmissionModalOpen, setIsContentSubmissionModalOpen] =
-    useState(false);
-  const [
-    isConfirmContentSubmissionModalOpen,
-    setIsConfirmContentSubmissionModalOpen,
-  ] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentActiveTimeline = useMemo(() => {
     return campaign?.getActiveTimeline();
@@ -155,29 +142,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
       );
     }
   }, [campaignId, uid]);
-
-  const contentSubmissionMethods = useForm<SubmissionFormData>({
-    defaultValues: {
-      submission: [],
-    },
-  });
-
-  const {
-    reset: contentSubmissionReset,
-    control: contentSubmissionControl,
-    getValues: getContentSubmissionValues,
-  } = contentSubmissionMethods;
-
-  const resetOriginalField = useCallback(() => {
-    contentSubmissionReset({
-      submission: transaction?.platformTasks?.map(platformTask => {
-        return {
-          platform: platformTask.name,
-          tasks: [],
-        };
-      }),
-    });
-  }, [contentSubmissionReset, transaction]);
 
   const filteredPendingBrainstormApproval = useMemo(() => {
     return transactions
@@ -342,48 +306,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
     }
   };
 
-  const submitContentSubmission = () => {
-    const data = getContentSubmissionValues();
-    const transactionContent: TransactionContent[] = data.submission.map(
-      submission => {
-        return {
-          platform: submission.platform,
-          tasks: submission.tasks.map(task => {
-            return {
-              uri: task.map(getStringObjectValue),
-            };
-          }),
-        };
-      },
-    );
-    setIsConfirmContentSubmissionModalOpen(false);
-    setIsLoading(true);
-    transaction
-      ?.submitContent(transactionContent)
-      .then(isSuccess => {
-        if (isSuccess) {
-          console.log('submit content success!');
-          setIsContentSubmissionModalOpen(false);
-          if (transaction) {
-            resetOriginalField();
-          }
-          return;
-        }
-        console.log('submit content failed!');
-      })
-      .catch(err => console.log('submitContentSubmission err', err))
-      .finally(() => {
-        setIsLoading(false);
-      });
-    console.log(data);
-  };
-
-  useEffect(() => {
-    if (transaction) {
-      resetOriginalField();
-    }
-  }, [transaction, resetOriginalField]);
-
   useEffect(() => {
     if (isCampaignOwner) {
       return Transaction.getAllTransactionsByCampaign(campaignId, t => {
@@ -443,7 +365,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
               currentPosition={currentActiveIndex}
               stepperStates={stepperStates}
               decreasePreviousVisibility={!isCampaignOwner}
-              // currentPosition={2}
               maxPosition={0}>
               {campaignTimelineMap?.[CampaignStep.Registration] && (
                 <View
@@ -886,7 +807,14 @@ const CampaignTimelineScreen = ({route}: Props) => {
                           <CustomButton
                             text="Upload"
                             onPress={() => {
-                              setIsContentSubmissionModalOpen(true);
+                              if (transaction?.id) {
+                                navigation.navigate(
+                                  AuthenticatedNavigation.SubmitContentCreation,
+                                  {
+                                    transactionId: transaction.id,
+                                  },
+                                );
+                              }
                             }}
                           />
                         </View>
@@ -1049,123 +977,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
           </View>
         </HorizontalPadding>
       </PageWithBackButton>
-      <CustomModal
-        transparent={true}
-        visible={isConfirmContentSubmissionModalOpen}>
-        <View style={[flex.flexCol, padding.default, gap.large]}>
-          <View style={[flex.flexRow, justify.center, padding.medium]}>
-            <Text style={[font.size[30], text.center, font.weight.medium]}>
-              Please review your submission carefully. Once you submit your
-              task's content,{' '}
-              <Text style={[font.weight.bold]}>
-                you will not be able to edit it.
-              </Text>
-            </Text>
-          </View>
-          <View style={[flex.flexRow, gap.large, justify.center]}>
-            <CustomButton
-              text="Adjust again"
-              type="tertiary"
-              customTextColor={{
-                default: COLOR.text.danger.default,
-                disabled: COLOR.red[10],
-              }}
-              onPress={() => {
-                setIsConfirmContentSubmissionModalOpen(false);
-              }}
-            />
-            <CustomButton text="Submit" onPress={submitContentSubmission} />
-          </View>
-        </View>
-      </CustomModal>
-      <SheetModal
-        open={isContentSubmissionModalOpen}
-        onDismiss={() => {
-          setIsContentSubmissionModalOpen(false);
-        }}
-        snapPoints={[windowDimension.height - safeAreaInsets.top]}
-        disablePanDownToClose
-        fullHeight
-        enableHandlePanningGesture={false}
-        enableOverDrag={false}
-        overDragResistanceFactor={0}
-        enableDynamicSizing={false}>
-        <BottomSheetModalWithTitle
-          title={CampaignStep.ContentCreation}
-          fullHeight
-          type="modal"
-          onPress={() => {
-            setIsContentSubmissionModalOpen(false);
-          }}>
-          <FormProvider {...contentSubmissionMethods}>
-            <View
-              style={[
-                flex.grow,
-                flex.flexCol,
-                gap.medium,
-                padding.horizontal.large,
-              ]}>
-              <BottomSheetScrollView style={[flex.flex1]} bounces={false}>
-                <View style={[flex.flex1, flex.flexCol, gap.xlarge2]}>
-                  {transaction?.platformTasks?.map(
-                    (platform, platformIndex) => (
-                      <View
-                        key={platform.name}
-                        style={[flex.flexCol, gap.medium]}>
-                        {platform.tasks.map((task, taskIndex) => (
-                          <View
-                            key={taskIndex}
-                            style={[flex.flexRow, gap.medium, items.center]}>
-                            <FieldArray
-                              title={`${platform.name} · ${campaignTaskToString(
-                                task,
-                              )}`}
-                              description={task.description}
-                              placeholder="Add url"
-                              maxFieldLength={0}
-                              helperText={`Make sure url is publicly accessible.\nEx. https://drive.google.com/file/d/1Go0RYsRgia9ZoMy10O8XBrfnIWMCopHs/view?usp=sharing`}
-                              control={contentSubmissionControl}
-                              fieldType="textarea"
-                              type="required"
-                              rules={{
-                                required: 'URL is required',
-                                pattern: {
-                                  value: /^(http|https):\/\/[^ "]+$/,
-                                  message: 'Invalid URL',
-                                },
-                              }}
-                              parentName={`submission.${platformIndex}.tasks.${taskIndex}`}
-                              childName="value"
-                            />
-                          </View>
-                        ))}
-                      </View>
-                    ),
-                  )}
-                </View>
-              </BottomSheetScrollView>
-              <CustomButton
-                text="Submit"
-                disabled={
-                  transaction?.platformTasks &&
-                  transaction.platformTasks.filter(
-                    (platform, platformIndex) =>
-                      platform.tasks?.filter(
-                        (task, taskIndex) =>
-                          getContentSubmissionValues(
-                            `submission.${platformIndex}.tasks.${taskIndex}`,
-                          )?.length < task.quantity,
-                      ).length > 0,
-                  ).length > 0
-                }
-                onPress={() => {
-                  setIsConfirmContentSubmissionModalOpen(true);
-                }}
-              />
-            </View>
-          </FormProvider>
-        </BottomSheetModalWithTitle>
-      </SheetModal>
     </>
   );
 };

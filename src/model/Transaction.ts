@@ -408,23 +408,21 @@ export class Transaction extends BaseModel {
 
   static getById(
     id: string,
-    onComplete: (transaction: Transaction | undefined) => void,
+    onComplete: (transaction: Transaction | null) => void,
   ) {
     try {
-      const unsubscribe = Transaction.getDocumentReference(id).onSnapshot(
+      return Transaction.getDocumentReference(id).onSnapshot(
         docSnapshot => {
           if (docSnapshot.exists) {
             onComplete(Transaction.fromSnapshot(docSnapshot));
             return;
           }
-          onComplete(undefined);
+          onComplete(null);
         },
         error => {
           console.log(error);
         },
       );
-
-      return unsubscribe;
     } catch (error) {
       console.error(error);
       throw Error('Transaction.getById Error: ' + error);

@@ -51,6 +51,7 @@ import ReportDetailScreen from '../screens/report/ReportDetailScreen';
 import {OfferDetailScreen} from '../screens/OfferDetailScreen';
 import {SocialData, User, UserRole} from '../model/User';
 import {Providers} from '../model/AuthMethod';
+import ModalSubmitContentCreation from '../screens/campaign/timeline/ModalSubmitContentCreation';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -74,6 +75,7 @@ export enum AuthenticatedNavigation {
   CampaignTimeline = 'Campaign Timeline',
   SubmitResult = 'Submit Result',
   SubmitBrainstorm = 'Submit Brainstorm',
+  SubmitContentCreation = 'Submit Content Creation',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'Transactions',
@@ -149,6 +151,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.SubmitResult]: {transactionId: string};
   [AuthenticatedNavigation.SubmitBrainstorm]: {transactionId: string};
+  [AuthenticatedNavigation.SubmitContentCreation]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MakeOffer]: {
@@ -346,6 +349,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.SubmitBrainstorm}
                   component={ModalSubmitBrainstorm}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.SubmitContentCreation}
+                  component={ModalSubmitContentCreation}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.SubmitResult}
