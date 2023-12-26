@@ -43,7 +43,6 @@ import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {ChevronRight, DateIcon} from '../../components/atoms/Icon';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
-import {CollapsiblePanel} from '../transaction/TransactionDetailScreen';
 import {font} from '../../styles/Font';
 import {background} from '../../styles/BackgroundColor';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -62,7 +61,6 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [transaction, setTransaction] = useState<Transaction>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
-  const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [approvedTransactionsCount, setApprovedTransactionsCount] = useState(0);
 
@@ -94,7 +92,9 @@ const CampaignDetailScreen = ({route}: Props) => {
 
   useEffect(() => {
     if (campaign?.userId) {
-      User.getById(campaign?.userId).then(setBusinessPeople);
+      User.getById(campaign.userId)
+        .then(setBusinessPeople)
+        .catch(() => setBusinessPeople(null));
     }
   }, [campaign]);
 
