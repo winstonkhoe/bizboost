@@ -37,6 +37,7 @@ interface Props extends Partial<ControllerProps> {
   parentName: any; // string
   childName: string;
   type?: FormFieldType;
+  labelAdd?: string;
   placeholder?: string;
   fieldType?: 'default' | 'textarea';
   maxFieldLength?: number;
@@ -52,6 +53,7 @@ const FieldArray = ({
   parentName,
   childName,
   placeholder,
+  labelAdd = placeholder,
   type = 'required',
   fieldType = 'default',
   maxFieldLength = 40,
@@ -145,7 +147,7 @@ const FieldArray = ({
           <View style={[flex.flexRow, justify.start]}>
             <FieldArrayLabel
               type="add"
-              text={placeholder ? placeholder : 'Add'}
+              text={labelAdd ? labelAdd : 'Add'}
               onPress={() => {
                 setIsModalOpened(true);
               }}
