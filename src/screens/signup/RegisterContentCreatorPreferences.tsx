@@ -224,13 +224,14 @@ export const RegisterContentCreatorPreferences = ({
             <View style={[flex.flexCol, gap.medium]}>
               <FieldArray
                 title="Preferences"
+                description="Let business people know what you like or things you don't like"
                 parentName="preferences"
                 control={control}
                 childName="value"
                 fieldType="textarea"
                 labelAdd="Preference"
                 placeholder="I don't accept cigarette campaigns"
-                description="Write things that you want to let business people know about you"
+                helperText="Write things that you want to let business people know about you"
                 type="optional"
               />
             </View>
