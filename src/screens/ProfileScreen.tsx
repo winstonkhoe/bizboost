@@ -279,12 +279,14 @@ const ProfileScreen = () => {
               subtitle="See your reports and their status"
             />
           </ScrollView>
-          <View style={[flex.flex1, padding.horizontal.default]}>
+          <ScrollView
+            contentContainerStyle={[flex.flex1, padding.horizontal.default]}>
             <PortfolioList portfolios={portfolios} />
-          </View>
-          <View style={[flex.flex1, padding.horizontal.default]}>
+          </ScrollView>
+          <ScrollView
+            contentContainerStyle={[flex.flex1, padding.horizontal.default]}>
             <ReviewList reviews={reviews} />
-          </View>
+          </ScrollView>
         </TabView>
       </View>
     </SafeAreaContainer>
