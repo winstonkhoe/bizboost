@@ -210,6 +210,15 @@ const TransactionDetailScreen = ({route}: Props) => {
     }
   };
 
+  const handleReject = () => {
+    if (transaction && transaction.id) {
+      setIsOthersSheetModalOpen(false);
+      navigation.navigate(AuthenticatedNavigation.RejectTransaction, {
+        transactionId: transaction.id,
+      });
+    }
+  };
+
   const closeOthersSheetModal = () => {
     setIsOthersSheetModalOpen(false);
   };
@@ -747,17 +756,7 @@ const TransactionDetailScreen = ({route}: Props) => {
             <AnimatedPressable
               scale={1}
               style={[padding.vertical.default, padding.horizontal.large]}
-              onPress={() => {
-                if (transaction.id) {
-                  setIsOthersSheetModalOpen(false);
-                  navigation.navigate(
-                    AuthenticatedNavigation.RejectTransaction,
-                    {
-                      transactionId: transaction.id,
-                    },
-                  );
-                }
-              }}>
+              onPress={handleReject}>
               <Text
                 className="font-bold"
                 style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
