@@ -171,12 +171,19 @@ export const RegisterSocialPlatform = ({
           const index = fieldsSocialData.findIndex(
             ({platform: socialPlatform}) => socialPlatform === platform,
           );
+          const socialData = fieldsSocialData.find(
+            ({platform: socialPlatform}) => socialPlatform === platform,
+          );
+          const isSynchronized = socialData && socialData?.data.isSynchronized;
           const isError = index >= 0 ? !isPlatformDataValid(index) : false;
           return (
             <SocialPlatformChip
               key={platform}
               error={isError}
               onPress={() => {
+                if (isSynchronized) {
+                  return;
+                }
                 if (index >= 0) {
                   removeSocialData(index);
                   return;
@@ -198,48 +205,11 @@ export const RegisterSocialPlatform = ({
                 });
               }}
               platform={platform}
+              isDisabled={isSynchronized}
               isSelected={index >= 0}
             />
           );
         })}
-        {/* <SocialPlatformChip
-                error={
-                  !isValidField(
-                    getFieldState('instagramUsername', formState),
-                    !verifiedPlatforms.includes(SocialPlatform.Instagram),
-                  ) ||
-                  !isValidField(
-                    getFieldState('instagramFollowers', formState),
-                    !verifiedPlatforms.includes(SocialPlatform.Instagram),
-                  )
-                }
-                onPress={() => {
-                  toggleSelectPlatform(SocialPlatform.Instagram);
-                }}
-                platform={SocialPlatform.Instagram}
-                isSelected={selectedSocialPlatforms.includes(
-                  SocialPlatform.Instagram,
-                )}
-              />
-              <SocialPlatformChip
-                error={
-                  !isValidField(
-                    getFieldState('tiktokUsername', formState),
-                    !verifiedPlatforms.includes(SocialPlatform.Tiktok),
-                  ) ||
-                  !isValidField(
-                    getFieldState('tiktokFollowers', formState),
-                    !verifiedPlatforms.includes(SocialPlatform.Tiktok),
-                  )
-                }
-                onPress={() => {
-                  toggleSelectPlatform(SocialPlatform.Tiktok);
-                }}
-                platform={SocialPlatform.Tiktok}
-                isSelected={selectedSocialPlatforms.includes(
-                  SocialPlatform.Tiktok,
-                )}
-              /> */}
       </ScrollView>
       <FormProvider {...methods}>
         <View

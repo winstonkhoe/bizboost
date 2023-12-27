@@ -9,7 +9,7 @@ import {COLOR} from '../../styles/Color';
 import {useCallback, useEffect} from 'react';
 import {SocialData, SocialPlatform} from '../../model/User';
 import {formatNumberWithThousandSeparator} from '../../utils/number';
-import {flex} from '../../styles/Flex';
+import {flex, items} from '../../styles/Flex';
 import {Badge} from '../atoms/Badge';
 import {padding} from '../../styles/Padding';
 import {gap} from '../../styles/Gap';
@@ -17,10 +17,15 @@ import {rounded} from '../../styles/BorderRadius';
 import InstagramLogo from '../../assets/vectors/instagram.svg';
 import TiktokLogo from '../../assets/vectors/tiktok.svg';
 import {textColor} from '../../styles/Text';
+import {border} from '../../styles/Border';
+import {background} from '../../styles/BackgroundColor';
+import {PlatformIcon} from '../atoms/Icon';
+import {font} from '../../styles/Font';
 
 interface SocialPlatformProps extends PressableProps {
   platform: SocialPlatform;
   isSelected: boolean;
+  isDisabled?: boolean;
   error?: boolean;
 }
 
@@ -32,6 +37,7 @@ export const SocialPlatformChip = ({
   isSelected,
   platform,
   error = false,
+  isDisabled = false,
   ...props
 }: SocialPlatformProps) => {
   const getTargetValue = useCallback(() => {
@@ -76,20 +82,22 @@ export const SocialPlatformChip = ({
           {
             borderWidth: 1,
           },
-          animatedStyle,
+          !isDisabled && animatedStyle,
+          isDisabled && [
+            border({
+              borderWidth: 1,
+              color: COLOR.black[25],
+            }),
+            background(COLOR.black[5]),
+            {
+              opacity: 0.7,
+            },
+          ],
         ]}>
-        <View className="items-center" style={[flex.flexRow, gap.xsmall]}>
-          <View>
-            {SocialPlatform.Instagram === platform && (
-              <InstagramLogo width={25} height={25} />
-            )}
-            {SocialPlatform.Tiktok === platform && (
-              <TiktokLogo width={25} height={25} />
-            )}
-          </View>
+        <View style={[flex.flexRow, gap.xsmall, items.center]}>
+          <PlatformIcon platform={platform} />
           <Text
-            className="font-semibold"
-            style={[textColor(COLOR.text.neutral.med)]}>
+            style={[textColor(COLOR.text.neutral.med), font.weight.semibold]}>
             {platform}
           </Text>
         </View>
