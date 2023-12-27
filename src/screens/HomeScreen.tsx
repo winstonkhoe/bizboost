@@ -873,7 +873,7 @@ interface DashboardPanelProps {
 }
 
 const DashboardPanel = ({transactions}: DashboardPanelProps) => {
-  const {user} = useUser();
+  const {user, isBusinessPeople, isContentCreator} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
   const balance = transactions
     .filter(transaction => transaction.isCompleted())
@@ -881,6 +881,17 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
       (acc, transaction) => acc + (transaction.transactionAmount || 0),
       0,
     );
+
+  const getRatingLabel = () => {
+    if (isContentCreator) {
+      return user?.contentCreator?.ratedCount
+        ? `${user?.contentCreator?.ratedCount} Rating`
+        : 'Rating';
+    }
+    return user?.businessPeople?.ratedCount
+      ? `${user?.businessPeople?.ratedCount} Rating`
+      : 'Rating';
+  };
   return (
     <View style={[padding.horizontal.default]}>
       <View
@@ -973,12 +984,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
           )}
         </DashboardPanelItem>
         <VerticalSeparator />
-        <DashboardPanelItem
-          label={
-            user?.contentCreator?.ratedCount
-              ? `${user?.contentCreator?.ratedCount} Rating`
-              : 'Rating'
-          }>
+        <DashboardPanelItem label={getRatingLabel()}>
           <View style={[flex.flexRow, items.end, gap.xsmall2]}>
             <RatingStarIcon size="medium" />
             <Text
@@ -988,7 +994,12 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
                 textColor(COLOR.text.neutral.high),
               ]}>
               {/* {Math.round(user?.contentCreator?.rating || 4.88).toFixed(1)} */}
-              {round(user?.contentCreator?.rating || 0, 1).toFixed(1)}
+              {round(
+                (isContentCreator
+                  ? user?.contentCreator?.rating
+                  : user?.businessPeople?.rating) || 0,
+                1,
+              ).toFixed(1)}
             </Text>
           </View>
         </DashboardPanelItem>
