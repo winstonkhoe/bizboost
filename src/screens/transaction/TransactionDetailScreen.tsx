@@ -224,6 +224,11 @@ const TransactionDetailScreen = ({route}: Props) => {
     }
   };
 
+  const navigateToReportList = () => {
+    setIsReportSheetModalOpen(false);
+    navigation.navigate(AuthenticatedNavigation.ReportList);
+  };
+
   const closeOthersSheetModal = () => {
     setIsOthersSheetModalOpen(false);
   };
@@ -825,7 +830,11 @@ const TransactionDetailScreen = ({route}: Props) => {
                       ]}>
                       Your reports
                     </Text>
-                    <InternalLink text="See all" size={30} />
+                    <InternalLink
+                      text="See all"
+                      size={30}
+                      onPress={navigateToReportList}
+                    />
                   </View>
                   <ScrollView
                     style={[

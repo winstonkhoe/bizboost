@@ -8,7 +8,7 @@ import {
 } from '../../model/Report';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {StyleSheet, View} from 'react-native';
-import {flex, items, justify} from '../../styles/Flex';
+import {flex, items} from '../../styles/Flex';
 import {shadow} from '../../styles/Shadow';
 import {Text} from 'react-native';
 import {font, lineHeight} from '../../styles/Font';
@@ -37,12 +37,13 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
 import {BackButtonLabel} from '../../components/atoms/Header';
+import {ScrollView} from 'react-native-gesture-handler';
 
 const ReportListScreen = () => {
-  const {uid, activeRole} = useUser();
+  const {uid, isAdmin} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const [reports, setReports] = useState<Report[]>([]);
-  const isAdmin = UserRole.Admin === activeRole;
+
   useEffect(() => {
     return fetchReport({
       isAdmin: isAdmin,
@@ -50,20 +51,25 @@ const ReportListScreen = () => {
       onComplete: setReports,
     });
   }, [isAdmin, uid]);
+
   return (
     <PageWithBackButton
       fullHeight
       threshold={0}
       backButtonPlaceholder={<BackButtonLabel text="Report List" />}>
-      <View
+      <ScrollView
         style={[
+          flex.flex1,
+          {
+            paddingTop:
+              Math.max(safeAreaInsets.top, size.default) + size.xlarge3,
+            paddingBottom: safeAreaInsets.bottom + size.large,
+          },
+        ]}
+        contentContainerStyle={[
           flex.flexCol,
           gap.default,
           padding.horizontal.default,
-          {
-            paddingTop: Math.max(safeAreaInsets.top, size.xlarge4),
-            paddingBottom: safeAreaInsets.bottom + size.large,
-          },
         ]}>
         {reports
           .sort(
@@ -75,7 +81,7 @@ const ReportListScreen = () => {
           .map(report => (
             <ReportCard key={report.id} report={report} />
           ))}
-      </View>
+      </ScrollView>
     </PageWithBackButton>
   );
 };
@@ -92,6 +98,7 @@ export const ReportCard = ({report}: ReportCardProps) => {
   const [transaction, setTransaction] = useState<Transaction | null>();
   const isLoading = !transaction || !campaign || !reporterUser || !reportedUser;
   const isReporterCampaignOwner = report?.reporterId === campaign?.userId;
+  const personalization = true;
 
   useEffect(() => {
     if (report?.transactionId) {
@@ -143,8 +150,11 @@ export const ReportCard = ({report}: ReportCardProps) => {
             <ReportIcon size="large" />
             <View style={[flex.flex1, flex.flexCol]}>
               <Text
-                className="font-bold"
-                style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[20],
+                  font.weight.bold,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
                 {report.type}
               </Text>
               <Text
@@ -157,7 +167,9 @@ export const ReportCard = ({report}: ReportCardProps) => {
                 {`${formatDateToDayMonthYear(
                   new Date(report.createdAt!!),
                 )} · Reported by ${
-                  isReporterCampaignOwner
+                  personalization
+                    ? 'You'
+                    : isReporterCampaignOwner
                     ? reporterUser?.businessPeople?.fullname
                     : reporterUser?.contentCreator?.fullname
                 }`}
@@ -194,18 +206,23 @@ export const ReportCard = ({report}: ReportCardProps) => {
           <SkeletonPlaceholder
             isLoading={isLoading}
             height={lineHeight[20] * 1}>
-            <View style={[flex.flexRow, items.center, gap.default]}>
+            <View style={[flex.flexCol]}>
               <Text
-                className="font-medium"
                 numberOfLines={1}
                 style={[
                   flex.flex1,
                   font.size[20],
+                  font.weight.medium,
                   textColor(COLOR.text.neutral.high),
                 ]}>
                 {isReporterCampaignOwner
                   ? reportedUser?.contentCreator?.fullname
                   : reportedUser?.businessPeople?.fullname}
+              </Text>
+              <Text style={[font.size[10], textColor(COLOR.text.neutral.med)]}>
+                {isReporterCampaignOwner
+                  ? UserRole.BusinessPeople
+                  : UserRole.ContentCreator}
               </Text>
             </View>
           </SkeletonPlaceholder>
@@ -213,22 +230,23 @@ export const ReportCard = ({report}: ReportCardProps) => {
             <SkeletonPlaceholder
               isLoading={isLoading}
               height={lineHeight[20] * 2}>
-              <View
-                style={[
-                  background(COLOR.red[5]),
-                  padding.small,
-                  rounded.small,
-                ]}>
-                <Text
-                  className="font-medium"
-                  numberOfLines={2}
+              <View style={[flex.flexRow]}>
+                <View
                   style={[
-                    flex.flex1,
-                    font.size[10],
-                    textColor(COLOR.text.danger.default),
+                    background(COLOR.red[5]),
+                    padding.small,
+                    rounded.small,
                   ]}>
-                  {report.reason}
-                </Text>
+                  <Text
+                    numberOfLines={2}
+                    style={[
+                      font.size[10],
+                      font.weight.medium,
+                      textColor(COLOR.text.danger.default),
+                    ]}>
+                    {report.reason}
+                  </Text>
+                </View>
               </View>
             </SkeletonPlaceholder>
           )}

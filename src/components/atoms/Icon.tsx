@@ -18,6 +18,7 @@ import PhotoRevision from '../../assets/vectors/photo-revision.svg';
 import Upload from '../../assets/vectors/upload.svg';
 import MissingDocument from '../../assets/vectors/document-missing.svg';
 import Report from '../../assets/vectors/report.svg';
+import ReportIssue from '../../assets/vectors/report-issue.svg';
 import Dashboard from '../../assets/vectors/dashboard.svg';
 import RatingStar from '../../assets/vectors/rating-star.svg';
 import Campaign from '../../assets/vectors/campaign.svg';
@@ -362,6 +363,21 @@ export const ReportIcon = ({
       height={size[sizeType]}
       color={color}
       strokeWidth={strokeWidth}
+    />
+  );
+};
+
+export const ReportIssueIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.red[60],
+  ...props
+}: IconProps) => {
+  return (
+    <ReportIssue
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
     />
   );
 };
