@@ -187,27 +187,32 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [transactionId, uid]);
 
   const handleApprove = () => {
-    if (transaction) {
-      setIsLoading(true);
-      transaction
-        .approve()
-        .then(() => {
-          showToast({
-            message: 'Transaction Approved!',
-            type: ToastType.success,
-          });
-        })
-        .catch(err => {
-          showToast({
-            message: 'Failed to approve transaction',
-            type: ToastType.danger,
-          });
-          console.log(err);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+    if (!transaction) {
+      return;
     }
+    if (transaction.status === TransactionStatus.registrationPending) {
+      setIsPaymentModalOpened(true);
+      return;
+    }
+    setIsLoading(true);
+    transaction
+      .approve()
+      .then(() => {
+        showToast({
+          message: 'Transaction Approved!',
+          type: ToastType.success,
+        });
+      })
+      .catch(err => {
+        showToast({
+          message: 'Failed to approve transaction',
+          type: ToastType.danger,
+        });
+        console.log(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   const handleReject = () => {

@@ -1173,6 +1173,7 @@ export class Transaction extends BaseModel {
     return (
       status &&
       [
+        TransactionStatus.registrationPending,
         TransactionStatus.brainstormSubmitted,
         TransactionStatus.contentSubmitted,
         TransactionStatus.engagementSubmitted,

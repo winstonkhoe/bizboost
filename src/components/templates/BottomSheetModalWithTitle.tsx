@@ -1,6 +1,6 @@
 import {View} from 'react-native';
 import {padding} from '../../styles/Padding';
-import {flex, justify, self} from '../../styles/Flex';
+import {flex, items, justify, self} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {Text} from 'react-native';
 import {font} from '../../styles/Font';
@@ -12,6 +12,8 @@ import {
   BackButtonPlaceholderProps,
 } from '../molecules/BackButtonPlaceholder';
 import {size} from '../../styles/Size';
+import {BackButtonLabel} from '../atoms/Header';
+import {dimension} from '../../styles/Dimension';
 
 interface BottomSheetModalWithTitleProps
   extends Partial<BackButtonPlaceholderProps> {
@@ -31,13 +33,14 @@ export const BottomSheetModalWithTitle = ({
   icon = 'close',
   ...props
 }: BottomSheetModalWithTitleProps) => {
+  const isDefault = type === 'default';
+  const isModal = type === 'modal';
   return (
     <View style={[fullHeight && flex.flex1, padding.bottom.large]}>
       <View style={[fullHeight && flex.flex1, flex.flexCol]}>
         <View
           style={[
             padding.default,
-            padding.top.medium,
             gap.default,
             {
               borderBottomWidth: 0.5,
@@ -47,15 +50,20 @@ export const BottomSheetModalWithTitle = ({
           <View
             style={[
               flex.flexRow,
-              type === 'default' && justify.center,
-              type === 'modal' && [justify.start],
+              items.center,
+              dimension.height.xlarge,
+              isDefault && justify.center,
+              isModal && [justify.start],
               {
                 position: 'relative',
               },
             ]}>
-            {(showIcon || type === 'modal') && (
+            {(showIcon || isModal) && (
               <View
                 style={[
+                  flex.flexRow,
+                  items.center,
+                  gap.small,
                   {
                     position: 'absolute',
                     left: 0,
@@ -63,13 +71,10 @@ export const BottomSheetModalWithTitle = ({
                   },
                 ]}>
                 <BackButtonPlaceholder {...props} icon={icon} />
+                {isModal && <BackButtonLabel text={title} />}
               </View>
             )}
-            <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-              {title}
-            </Text>
+            {!isModal && <BackButtonLabel text={title} />}
           </View>
         </View>
         {children}

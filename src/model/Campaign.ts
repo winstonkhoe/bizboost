@@ -362,4 +362,9 @@ export class Campaign extends BaseModel {
     const now = new Date().getTime();
     return this.getTimelineEnd()?.end >= now;
   }
+
+  isCompleted() {
+    const now = new Date().getTime();
+    return this.getTimelineEnd()?.end <= now;
+  }
 }

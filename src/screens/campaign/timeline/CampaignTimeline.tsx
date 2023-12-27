@@ -51,7 +51,6 @@ import StatusTag, {StatusType} from '../../../components/atoms/StatusTag';
 import {
   BasicStatus,
   Transaction,
-  TransactionContent,
   TransactionStatus,
   transactionStatusCampaignStepMap,
   transactionStatusIndexMap,
@@ -60,21 +59,14 @@ import {
 } from '../../../model/Transaction';
 import {LoadingScreen} from '../../LoadingScreen';
 import {shadow} from '../../../styles/Shadow';
-import {SheetModal} from '../../../containers/SheetModal';
-import {BottomSheetModalWithTitle} from '../../../components/templates/BottomSheetModalWithTitle';
 import {ScrollView} from 'react-native-gesture-handler';
 import {dimension} from '../../../styles/Dimension';
-import {CustomModal} from '../../../components/atoms/CustomModal';
 import FastImage from 'react-native-fast-image';
-import {SocialPlatform, User} from '../../../model/User';
+import {User} from '../../../model/User';
 import {AnimatedPressable} from '../../../components/atoms/AnimatedPressable';
 import {clamp, formatNumberWithThousandSeparator} from '../../../utils/number';
-import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {InternalLink} from '../../../components/atoms/Link';
-import FieldArray from '../../../components/organisms/FieldArray';
-import {FormProvider, useForm} from 'react-hook-form';
-import {StringObject, getStringObjectValue} from '../../../utils/stringObject';
 import {ChevronRight, PlatformIcon} from '../../../components/atoms/Icon';
 import {size} from '../../../styles/Size';
 import {campaignTaskToString} from '../../../utils/campaign';
@@ -169,19 +161,15 @@ const CampaignTimelineScreen = ({route}: Props) => {
     [transactions],
   );
 
-  const currentActiveIndex = useMemo(
-    () =>
-      currentActiveTimeline
-        ? Object.values(CampaignStep)
-            .filter(step =>
-              campaign?.timeline?.some(timeline => timeline.step === step),
-            )
-            .indexOf(currentActiveTimeline?.step)
-        : Object.values(CampaignStep).filter(step =>
-            campaign?.timeline?.some(timeline => timeline.step === step),
-          ).length + 1,
-    [currentActiveTimeline, campaign],
-  );
+  const currentActiveIndex = useMemo(() => {
+    const filteredCampaignStep = Object.values(CampaignStep).filter(step =>
+      campaign?.timeline?.some(timeline => timeline.step === step),
+    );
+    if (currentActiveTimeline) {
+      return filteredCampaignStep.indexOf(currentActiveTimeline?.step);
+    }
+    return filteredCampaignStep.length + 1;
+  }, [currentActiveTimeline, campaign]);
 
   const campaignTimelineMap = useMemo(
     () =>
@@ -196,84 +184,91 @@ const CampaignTimelineScreen = ({route}: Props) => {
     [campaign],
   );
 
-  const stepperStates = useMemo(() => {
-    if (campaign && transaction?.status) {
-      if (isCampaignOwner) {
-        return [
-          ...Array(
-            (currentActiveTimeline
-              ? campaignIndexMap[currentActiveTimeline?.step]
-              : campaignIndexMap[CampaignStep.Completed]) + 1,
-          ),
-        ].map(() => StepperState.success);
-      }
-      const transactionStatusIndex =
-        transactionStatusIndexMap[transaction?.status];
-      if (transactionStatusIndex >= 0) {
-        const campaignHaveBrainstorming = campaign.isTimelineAvailable(
-          CampaignStep.Brainstorming,
-        );
-        const indexOffset = !campaignHaveBrainstorming
-          ? Math.abs(
-              campaignIndexMap[CampaignStep.Brainstorming] -
-                campaignIndexMap[CampaignStep.ContentCreation],
-            )
-          : 0;
-        console.log('indexOffset', indexOffset);
-        const calculatedTransactionStatusIndex =
-          transactionStatusIndex >=
-          transactionStatusIndexMap[TransactionStatus.brainstormApproved]
-            ? transactionStatusIndex - indexOffset
-            : transactionStatusIndex;
-        const currentTransactionStep =
-          transactionStatusCampaignStepMap[transaction.status];
-        const isContentCreatorNotSubmitCurrentActiveTimeline =
-          currentActiveTimeline &&
-          currentTransactionStep !== currentActiveTimeline.step;
-        let steps = [
-          ...Array(
-            Math.max(
-              calculatedTransactionStatusIndex,
-              campaignIndexMap[
-                currentActiveTimeline?.step || CampaignStep.Registration
-              ],
-            ) + 1,
-          ),
-        ].map(() => StepperState.success);
-        console.log(
-          'calculatedtransactionstatusindex',
-          calculatedTransactionStatusIndex,
-        );
-        console.log(
-          'before update current transaction step',
-          currentTransactionStep,
-          'before update steps',
-          steps,
-        );
-        steps[steps.length - 1] =
-          transactionStatusStepperStateMap[transaction.status];
+  const getIndexOffset = useCallback(() => {
+    if (!campaign) {
+      return 0;
+    }
 
-        console.log(
-          'current transaction step',
-          currentTransactionStep,
-          'steps',
-          steps,
-        );
-        console.log(
-          'current active timeline',
-          currentActiveTimeline,
-          'currentTransactionStep',
-          currentTransactionStep,
-        );
-        if (isContentCreatorNotSubmitCurrentActiveTimeline) {
-          steps[steps.length - 1] = StepperState.inProgress;
-        }
-        return steps;
-      }
+    const nowTime = new Date().getTime();
+    const campaignSteps = Object.values(CampaignStep);
+
+    const sortedPassedTimeline = campaign.timeline
+      .sort((timelineA, timelineB) => timelineA.start - timelineB.start)
+      .filter(timeline => nowTime >= timeline.start);
+
+    if (sortedPassedTimeline.length === 0) {
+      return 0;
+    }
+
+    const latestPassedTimeline =
+      sortedPassedTimeline[sortedPassedTimeline.length - 1];
+
+    const missingSteps = campaignSteps.filter(
+      step =>
+        !sortedPassedTimeline.find(timeline => timeline.step === step) &&
+        campaignIndexMap[step] < campaignIndexMap[latestPassedTimeline.step],
+    );
+
+    return missingSteps.length;
+  }, [campaign]);
+
+  const stepperStates = useMemo(() => {
+    if (!campaign || !transaction?.status) {
+      return [];
+    }
+
+    if (transaction.isTerminated()) {
       return [StepperState.terminated];
     }
-    return [];
-  }, [campaign, transaction, currentActiveTimeline, isCampaignOwner]);
+
+    if (
+      transaction.status === TransactionStatus.completed ||
+      campaign.isCompleted()
+    ) {
+      console.log('iscompleted');
+      return Array(campaignIndexMap[CampaignStep.Completed]).fill(
+        StepperState.success,
+      );
+    }
+
+    if (isCampaignOwner && currentActiveTimeline) {
+      return Array(campaignIndexMap[currentActiveTimeline?.step]).fill(
+        StepperState.success,
+      );
+    }
+
+    console.log('current active timeline', currentActiveTimeline);
+
+    const currentTransactionStep =
+      transactionStatusCampaignStepMap[transaction.status];
+    const isContentCreatorNotDoneActiveTimeline =
+      currentActiveTimeline &&
+      currentTransactionStep !== currentActiveTimeline.step;
+
+    const numberOfSteps =
+      campaignIndexMap[
+        currentActiveTimeline?.step || CampaignStep.Registration
+      ] +
+      1 -
+      getIndexOffset();
+
+    const steps = Array(numberOfSteps).fill(StepperState.success);
+
+    steps[steps.length - 1] =
+      transactionStatusStepperStateMap[transaction.status];
+
+    if (isContentCreatorNotDoneActiveTimeline) {
+      steps[steps.length - 1] = StepperState.inProgress;
+    }
+
+    return steps;
+  }, [
+    campaign,
+    transaction,
+    currentActiveTimeline,
+    isCampaignOwner,
+    getIndexOffset,
+  ]);
 
   const registerCampaign = () => {
     if (uid && campaign?.userId) {

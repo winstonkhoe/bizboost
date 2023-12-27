@@ -413,7 +413,12 @@ const CreateCampaignScreen = () => {
                       render={({field: {value}, fieldState: {error}}) => (
                         <View style={[flex.flexCol, gap.default]}>
                           <FormFieldHelper title="Campaign Image" />
-                          <View style={[flex.flexRow, justify.start]}>
+                          <View
+                            style={[
+                              flex.flexRow,
+                              dimension.width.xlarge5,
+                              justify.start,
+                            ]}>
                             <MediaUploader
                               targetFolder="campaigns"
                               options={{
@@ -432,7 +437,6 @@ const CreateCampaignScreen = () => {
                                 ]}>
                                 {value ? (
                                   <FastImage
-                                    className=""
                                     style={[dimension.full]}
                                     source={{
                                       uri: value,
@@ -510,236 +514,226 @@ const CreateCampaignScreen = () => {
                   </View>
                 </KeyboardAvoidingContainer>
               </ScrollView>
-              <View key={1}>
+              <ScrollView key={1}>
                 <KeyboardAvoidingContainer>
-                  <HorizontalPadding paddingSize="large">
-                    <View
-                      style={[
-                        flex.flexCol,
-                        gap.xlarge,
-                        padding.top.medium,
-                        padding.bottom.xlarge2,
-                      ]}>
-                      <Controller
-                        control={control}
-                        name="type"
-                        rules={{required: 'Type is required!'}}
-                        render={({
-                          field: {value, name},
-                          fieldState: {error},
-                        }) => (
-                          <View style={[flex.flexCol, gap.default]}>
-                            <View style={[flex.flexCol, gap.xsmall]}>
-                              <FormFieldHelper title="Campaign type" />
-                              {CampaignType.Public === value ? (
-                                <FormFieldHelper description="Public campaigns are accessible to all content creators, and you will later shortlist each registrant." />
-                              ) : CampaignType.Private === value ? (
-                                <FormFieldHelper description="For private campaigns, it is necessary to individually contact each content creator privately." />
-                              ) : null}
-                            </View>
-                            <View style={[flex.flexRow, gap.small]}>
-                              {Object.values(CampaignType).map(
-                                (type, index) => (
-                                  <View key={index}>
-                                    <SelectableTag
-                                      text={type}
-                                      isSelected={value === type}
-                                      onPress={() =>
-                                        setValue(name, type, {
-                                          shouldValidate: true,
-                                          shouldDirty: true,
-                                          shouldTouch: true,
-                                        })
-                                      }
-                                    />
-                                  </View>
-                                ),
-                              )}
-                            </View>
-                            {error && (
-                              <Text className="text-xs mt-2 font-medium text-red-500">
-                                {`${error?.message}`}
-                              </Text>
-                            )}
+                  <View
+                    style={[
+                      flex.grow,
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                      padding.horizontal.large,
+                    ]}>
+                    <Controller
+                      control={control}
+                      name="type"
+                      rules={{required: 'Type is required!'}}
+                      render={({field: {value, name}, fieldState: {error}}) => (
+                        <View style={[flex.flexCol, gap.default]}>
+                          <View style={[flex.flexCol, gap.xsmall]}>
+                            <FormFieldHelper title="Campaign type" />
+                            {CampaignType.Public === value ? (
+                              <FormFieldHelper description="Public campaigns are accessible to all content creators, and you will later shortlist each registrant." />
+                            ) : CampaignType.Private === value ? (
+                              <FormFieldHelper description="For private campaigns, it is necessary to individually contact each content creator privately." />
+                            ) : null}
                           </View>
-                        )}
-                      />
-
-                      {watch('type') === 'Public' ? (
-                        <View style={[flex.flexCol, gap.medium]}>
-                          <View style={[flex.flexCol, gap.default]}>
-                            <FormFieldHelper
-                              title="Campaign fee"
-                              description="This will be the total earnings for each content creator if they finish all the tasks."
-                            />
-                            <CustomTextInput
-                              label="Campaign Fee"
-                              name="fee"
-                              inputType="price"
-                              rules={{
-                                required: 'Fee is required',
-                                validate: value => {
-                                  return (
-                                    parseInt(value, 10) >= 50000 ||
-                                    'Minimum fee is Rp50.000'
-                                  );
-                                },
-                              }}
-                            />
+                          <View style={[flex.flexRow, gap.small]}>
+                            {Object.values(CampaignType).map((type, index) => (
+                              <View key={index}>
+                                <SelectableTag
+                                  text={type}
+                                  isSelected={value === type}
+                                  onPress={() =>
+                                    setValue(name, type, {
+                                      shouldValidate: true,
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                    })
+                                  }
+                                />
+                              </View>
+                            ))}
                           </View>
-
-                          <View style={[flex.flexCol, gap.default]}>
-                            <FormFieldHelper title="Total open slot" />
-                            <CustomNumberInput
-                              label="Campaign Slot"
-                              name="slot"
-                              type="field"
-                              min={1}
-                              rules={{
-                                required: 'Slot is required',
-                              }}
-                            />
-                          </View>
-                          <View style={[flex.flexCol, items.start]}>
-                            <Text
-                              className="font-semibold"
-                              style={[
-                                font.size[30],
-                                textColor(COLOR.text.neutral.med),
-                              ]}>
-                              Total campaign fee
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {`${error?.message}`}
                             </Text>
-                            <Text
-                              className="font-bold"
-                              style={[
-                                font.size[50],
-                                textColor(COLOR.text.neutral.high),
-                              ]}>
-                              {`Rp ${
-                                formatNumberWithThousandSeparator(
-                                  watch('fee') * watch('slot'),
-                                ) || 0
-                              }`}
-                            </Text>
-                          </View>
+                          )}
                         </View>
-                      ) : null}
+                      )}
+                    />
 
-                      <CustomButton
-                        text="Next"
-                        rounded="max"
-                        minimumWidth
-                        disabled={
-                          !isValidField(getFieldState('type', formState)) ||
-                          (watch('type') === CampaignType.Public &&
-                            (!isValidField(getFieldState('fee', formState)) ||
-                              !isValidField(
-                                getFieldState('slot', formState),
-                                false,
-                              )))
-                        }
-                        onPress={nextPage}
-                      />
-                    </View>
-                  </HorizontalPadding>
-                </KeyboardAvoidingContainer>
-              </View>
-              <View key={2}>
-                <KeyboardAvoidingContainer>
-                  <HorizontalPadding paddingSize="large">
-                    <View
-                      style={[
-                        flex.flexCol,
-                        gap.xlarge,
-                        padding.top.medium,
-                        padding.bottom.xlarge2,
-                      ]}>
-                      <Controller
-                        control={control}
-                        name="platforms"
-                        rules={{required: 'Platform is required!'}}
-                        render={({
-                          field: {value: platforms},
-                          fieldState: {error},
-                        }) => (
-                          <View style={[flex.flexCol, gap.default]}>
-                            <FormFieldHelper
-                              title="Campaign platforms"
-                              description="Choose platforms for the campaign tasks."
-                            />
-                            <View className="flex flex-row gap-2">
-                              {Object.values(SocialPlatform).map(
-                                (value: SocialPlatform, index) => (
-                                  <View key={index}>
-                                    <SelectableTag
-                                      text={value}
-                                      isSelected={
-                                        platforms.find(
-                                          p => p.name === value,
-                                        ) !== undefined
-                                      }
-                                      onPress={() => {
-                                        const searchIndex = platforms.findIndex(
-                                          p => p.name === value,
-                                        );
-                                        if (searchIndex !== -1) {
-                                          removePlatform(searchIndex);
-                                        } else {
-                                          appendPlatform({
-                                            name: value,
-                                            tasks: [],
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </View>
-                                ),
-                              )}
-                            </View>
-                            {error && (
-                              <Text className="text-xs mt-2 font-medium text-red-500">
-                                {/* {`${error}`} */}
-                                Platform is required!
-                              </Text>
-                            )}
-                          </View>
-                        )}
-                      />
-                      {fieldsPlatform.map((fp, index) => (
-                        <View key={fp.id}>
-                          <SocialFieldArray
-                            platform={fp.name}
-                            control={control}
-                            title={`${fp.name}'s Task`}
-                            fieldType="textarea"
-                            maxFieldLength={150}
-                            parentName={`platforms.${index}.tasks`}
-                            helperText='Ex. "minimum 30s / story"'
-                            placeholder="Add task"
+                    {watch('type') === 'Public' ? (
+                      <View style={[flex.flexCol, gap.medium]}>
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper
+                            title="Campaign fee"
+                            description="This will be the total earnings for each content creator if they finish all the tasks."
+                          />
+                          <CustomTextInput
+                            label="Campaign Fee"
+                            name="fee"
+                            inputType="price"
+                            rules={{
+                              required: 'Fee is required',
+                              validate: value => {
+                                return (
+                                  parseInt(value, 10) >= 50000 ||
+                                  'Minimum fee is Rp50.000'
+                                );
+                              },
+                            }}
                           />
                         </View>
-                      ))}
-                      <CustomButton
-                        text="Next"
-                        rounded="max"
-                        minimumWidth
-                        disabled={
-                          !isValidField(
-                            getFieldState('platforms', formState),
-                          ) ||
-                          fieldsPlatform.filter(
-                            (f, index) =>
-                              getValues(`platforms.${index}.tasks`)?.length ===
-                              0,
-                          ).length > 0
-                        }
-                        onPress={nextPage}
-                      />
-                    </View>
-                  </HorizontalPadding>
+
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper title="Total open slot" />
+                          <CustomNumberInput
+                            label="Campaign Slot"
+                            name="slot"
+                            type="field"
+                            min={1}
+                            rules={{
+                              required: 'Slot is required',
+                            }}
+                          />
+                        </View>
+                        <View style={[flex.flexCol, items.start]}>
+                          <Text
+                            className="font-semibold"
+                            style={[
+                              font.size[30],
+                              textColor(COLOR.text.neutral.med),
+                            ]}>
+                            Total campaign fee
+                          </Text>
+                          <Text
+                            className="font-bold"
+                            style={[
+                              font.size[50],
+                              textColor(COLOR.text.neutral.high),
+                            ]}>
+                            {`Rp ${
+                              formatNumberWithThousandSeparator(
+                                watch('fee') * watch('slot'),
+                              ) || 0
+                            }`}
+                          </Text>
+                        </View>
+                      </View>
+                    ) : null}
+
+                    <CustomButton
+                      text="Next"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('type', formState)) ||
+                        (watch('type') === CampaignType.Public &&
+                          (!isValidField(getFieldState('fee', formState)) ||
+                            !isValidField(
+                              getFieldState('slot', formState),
+                              false,
+                            )))
+                      }
+                      onPress={nextPage}
+                    />
+                  </View>
                 </KeyboardAvoidingContainer>
-              </View>
-              <View key={3}>
+              </ScrollView>
+              <ScrollView key={2}>
+                <KeyboardAvoidingContainer>
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.xlarge,
+                      padding.top.medium,
+                      padding.bottom.xlarge2,
+                      padding.horizontal.large,
+                    ]}>
+                    <Controller
+                      control={control}
+                      name="platforms"
+                      rules={{required: 'Platform is required!'}}
+                      render={({
+                        field: {value: platforms},
+                        fieldState: {error},
+                      }) => (
+                        <View style={[flex.flexCol, gap.default]}>
+                          <FormFieldHelper
+                            title="Campaign platforms"
+                            description="Choose platforms for the campaign tasks."
+                          />
+                          <View className="flex flex-row gap-2">
+                            {Object.values(SocialPlatform).map(
+                              (value: SocialPlatform, index) => (
+                                <View key={index}>
+                                  <SelectableTag
+                                    text={value}
+                                    isSelected={
+                                      platforms.find(p => p.name === value) !==
+                                      undefined
+                                    }
+                                    onPress={() => {
+                                      const searchIndex = platforms.findIndex(
+                                        p => p.name === value,
+                                      );
+                                      if (searchIndex !== -1) {
+                                        removePlatform(searchIndex);
+                                      } else {
+                                        appendPlatform({
+                                          name: value,
+                                          tasks: [],
+                                        });
+                                      }
+                                    }}
+                                  />
+                                </View>
+                              ),
+                            )}
+                          </View>
+                          {error && (
+                            <Text className="text-xs mt-2 font-medium text-red-500">
+                              {/* {`${error}`} */}
+                              Platform is required!
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    />
+                    {fieldsPlatform.map((fp, index) => (
+                      <View key={fp.id}>
+                        <SocialFieldArray
+                          platform={fp.name}
+                          control={control}
+                          title={`${fp.name}'s Task`}
+                          fieldType="textarea"
+                          maxFieldLength={150}
+                          parentName={`platforms.${index}.tasks`}
+                          helperText='Ex. "minimum 30s / story"'
+                          placeholder="Add task"
+                        />
+                      </View>
+                    ))}
+                    <CustomButton
+                      text="Next"
+                      rounded="max"
+                      minimumWidth
+                      disabled={
+                        !isValidField(getFieldState('platforms', formState)) ||
+                        fieldsPlatform.filter(
+                          (f, index) =>
+                            getValues(`platforms.${index}.tasks`)?.length === 0,
+                        ).length > 0
+                      }
+                      onPress={nextPage}
+                    />
+                  </View>
+                </KeyboardAvoidingContainer>
+              </ScrollView>
+              <ScrollView key={3}>
                 <KeyboardAvoidingContainer>
                   <View
                     style={[
@@ -951,7 +945,7 @@ const CreateCampaignScreen = () => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
+              </ScrollView>
               <View key={4}>
                 <ScrollView
                   contentContainerStyle={[padding.horizontal.default]}>
@@ -1279,7 +1273,7 @@ export const SocialFieldArray = ({
                 ]}>
                 {currentTask && (
                   <View style={[flex.flexCol, gap.default]}>
-                    <FormFieldHelper title="Task type" />
+                    <FormFieldHelper title="Task type" disableFlex />
                     <View style={[flex.flexRow, gap.default]}>
                       {currentTask.tasks.map((task, index) => (
                         <View key={index}>
@@ -1297,7 +1291,7 @@ export const SocialFieldArray = ({
                 )}
                 {taskName.length > 0 && currentTaskTypes && (
                   <View style={[flex.flexCol, gap.default]}>
-                    <FormFieldHelper title={`${taskName} type`} />
+                    <FormFieldHelper title={`${taskName} type`} disableFlex />
                     <View style={[flex.flexRow, flex.wrap, gap.default]}>
                       {currentTaskTypes?.map((types, index) => (
                         <View key={index}>
@@ -1314,7 +1308,11 @@ export const SocialFieldArray = ({
                   </View>
                 )}
                 <View style={[flex.flexCol, gap.default, items.start]}>
-                  <FormFieldHelper title="Description" type="optional" />
+                  <FormFieldHelper
+                    title="Description"
+                    type="optional"
+                    disableFlex
+                  />
                   <View style={[flex.flexRow, gap.default, items.end]}>
                     <View style={[flex.flex1, padding.top.default]}>
                       <FormlessCustomTextInput
