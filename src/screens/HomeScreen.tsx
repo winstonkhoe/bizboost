@@ -459,7 +459,7 @@ const HomeScreen = () => {
                   <TransactionCard
                     key={transaction.id}
                     transaction={transaction}
-                    role={UserRole.ContentCreator} //dashboard is focusing on cc side
+                    role={activeRole}
                   />
                 ))}
               {isAdmin &&
@@ -873,14 +873,25 @@ interface DashboardPanelProps {
 }
 
 const DashboardPanel = ({transactions}: DashboardPanelProps) => {
-  const {user, isBusinessPeople, isContentCreator} = useUser();
+  const {user, isContentCreator} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
-  const balance = transactions
-    .filter(transaction => transaction.isCompleted())
-    .reduce(
-      (acc, transaction) => acc + (transaction.transactionAmount || 0),
-      0,
-    );
+
+  const calculateBalance = () => {
+    if (isContentCreator) {
+      return transactions
+        .filter(transaction => transaction.isCompleted())
+        .reduce(
+          (acc, transaction) => acc + (transaction.transactionAmount || 0),
+          0,
+        );
+    }
+    return transactions
+      .filter(transaction => transaction.isTerminated())
+      .reduce(
+        (acc, transaction) => acc + (transaction.transactionAmount || 0),
+        0,
+      );
+  };
 
   const getRatingLabel = () => {
     if (isContentCreator) {
@@ -923,7 +934,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
                 textColor(COLOR.text.neutral.high),
               ]}
               numberOfLines={1}>
-              {currencyFormat(balance)}
+              {currencyFormat(calculateBalance())}
             </Text>
           </Pressable>
         </DashboardPanelItem>
