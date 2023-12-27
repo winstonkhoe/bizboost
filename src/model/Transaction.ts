@@ -1222,13 +1222,22 @@ export class Transaction extends BaseModel {
   }
 
   isWaitingBusinessPeopleAction() {
-    const {status} = this;
+    const {status, payment} = this;
     if (this.isTerminated() || this.isCompleted()) {
       return false;
     }
+    if (status === TransactionStatus.registrationPending) {
+      if (!payment?.status) {
+        return true;
+      }
+      return (
+        [PaymentStatus.proofRejected].findIndex(
+          paymentStatus => paymentStatus === payment?.status,
+        ) >= 0
+      );
+    }
     return (
       [
-        TransactionStatus.registrationPending,
         TransactionStatus.offerWaitingForPayment,
         TransactionStatus.brainstormSubmitted,
         TransactionStatus.contentSubmitted,
