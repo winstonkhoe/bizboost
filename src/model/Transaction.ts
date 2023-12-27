@@ -434,7 +434,7 @@ export class Transaction extends BaseModel {
   };
 
   static getDocumentReference = (documentId: string) => {
-    this.setFirestoreSettings();
+    Transaction.setFirestoreSettings();
     return this.getCollectionReference().doc(documentId);
   };
 

@@ -45,27 +45,27 @@ export class Category extends BaseModel {
   };
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    Category.setFirestoreSettings();
+    return Category.getCollectionReference().doc(documentId);
   }
 
   static async setCategory(documentId: string, data: Category): Promise<void> {
-    await this.getDocumentReference(documentId).set({
+    await Category.getDocumentReference(documentId).set({
       ...data,
     });
   }
 
   static async getById(documentId: string): Promise<Category | null> {
-    const snapshot = await this.getDocumentReference(documentId).get();
+    const snapshot = await Category.getDocumentReference(documentId).get();
     if (!snapshot.exists) {
       return null;
     }
-    return this.fromSnapshot(snapshot);
+    return Category.fromSnapshot(snapshot);
   }
 
   // TODO: check, remove unused method (yang dipake cuma getall kayaknya)
   static async getAll(): Promise<Category[]> {
-    const querySnapshot = await this.getCollectionReference().get();
-    return this.fromQuerySnapshot(querySnapshot);
+    const querySnapshot = await Category.getCollectionReference().get();
+    return Category.fromQuerySnapshot(querySnapshot);
   }
 }

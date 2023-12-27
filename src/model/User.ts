@@ -199,8 +199,8 @@ export class User extends BaseModel {
   }
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    User.setFirestoreSettings();
+    return User.getCollectionReference().doc(documentId);
   }
 
   static async createUserWithEmailAndPassword(
@@ -230,8 +230,8 @@ export class User extends BaseModel {
   }
 
   static async setUserData(documentId: string, data: User): Promise<void> {
-    await this.getDocumentReference(documentId).set({
-      ...this.mappingUserFields(data),
+    await User.getDocumentReference(documentId).set({
+      ...User.mappingUserFields(data),
       joinedAt: new Date().getTime(),
     });
   }
@@ -320,7 +320,7 @@ export class User extends BaseModel {
   //     if (users.empty) {
   //       throw Error('No Users!');
   //     }
-  //     return users.docs.map(doc => this.fromSnapshot(doc));
+  //     return users.docs.map(doc => User.fromSnapshot(doc));
   //   } catch (error) {
   //     console.log(error);
   //     throw Error('Error!');
@@ -334,7 +334,7 @@ export class User extends BaseModel {
       // .where('isAdmin', '!=', true)
       .onSnapshot(
         querySnapshot => {
-          onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          onComplete(querySnapshot.docs.map(User.fromSnapshot));
         },
         error => {
           console.log(error);
@@ -349,7 +349,7 @@ export class User extends BaseModel {
       const users = await this.getCollectionReference()
         .where(firestore.FieldPath.documentId(), 'in', documentIds)
         .get();
-      return users.docs.map(this.fromSnapshot);
+      return users.docs.map(User.fromSnapshot);
     } catch (error) {
       console.log(error);
       return [];
@@ -357,11 +357,11 @@ export class User extends BaseModel {
   }
 
   static async getById(documentId: string): Promise<User | null> {
-    const snapshot = await this.getDocumentReference(documentId).get();
+    const snapshot = await User.getDocumentReference(documentId).get();
     if (!snapshot.exists) {
       return null;
     }
-    return this.fromSnapshot(snapshot);
+    return User.fromSnapshot(snapshot);
   }
 
   // TODO: jadiin satu sama getbyid
@@ -371,12 +371,12 @@ export class User extends BaseModel {
     onError?: (error?: any) => void,
   ) {
     try {
-      const unsubscribe = this.getDocumentReference(documentId).onSnapshot(
+      const unsubscribe = User.getDocumentReference(documentId).onSnapshot(
         (
           documentSnapshot: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
         ) => {
           try {
-            const user = this.fromSnapshot(documentSnapshot);
+            const user = User.fromSnapshot(documentSnapshot);
             callback(user);
           } catch (error) {
             onError && onError(error);
@@ -404,7 +404,7 @@ export class User extends BaseModel {
         throw Error('No content creators!');
       }
 
-      return users.docs.map(doc => this.fromSnapshot(doc));
+      return users.docs.map(doc => User.fromSnapshot(doc));
     } catch (error) {
       throw error; // Handle the error appropriately
     }
@@ -424,7 +424,7 @@ export class User extends BaseModel {
         password: user.password,
       });
 
-      await this.setUserData(
+      await User.setUserData(
         userCredential.user.uid,
         new User({
           ...user,

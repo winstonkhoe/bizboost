@@ -37,7 +37,7 @@ export class Location extends BaseModel {
   private static fromQuerySnapshot(
     querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): Location[] {
-    return querySnapshots.docs.map(this.fromSnapshot);
+    return querySnapshots.docs.map(Location.fromSnapshot);
   }
 
   static getCollectionReference = () => {
@@ -45,30 +45,30 @@ export class Location extends BaseModel {
   };
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    Location.setFirestoreSettings();
+    return Location.getCollectionReference().doc(documentId);
   }
 
   static async setLocation(documentId: string, data: Location): Promise<void> {
-    await this.getDocumentReference(documentId).set({
+    await Location.getDocumentReference(documentId).set({
       ...data,
     });
   }
 
   static async getById(documentId: string): Promise<Location | null> {
-    const snapshot = await this.getDocumentReference(documentId).get();
+    const snapshot = await Location.getDocumentReference(documentId).get();
     if (!snapshot.exists) {
       return null;
     }
-    return this.fromSnapshot(snapshot);
+    return Location.fromSnapshot(snapshot);
   }
 
   // TODO: dihapus aja yang ga kepake, yg dipake cuma getall
   static async getAll(): Promise<Location[]> {
-    const querySnapshot = await this.getCollectionReference().get();
+    const querySnapshot = await Location.getCollectionReference().get();
 
     if (!querySnapshot.empty) {
-      return this.fromQuerySnapshot(querySnapshot);
+      return Location.fromQuerySnapshot(querySnapshot);
     }
     return [];
   }

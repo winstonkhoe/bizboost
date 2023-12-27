@@ -141,7 +141,7 @@ export class Campaign extends BaseModel {
   private static fromQuerySnapshot(
     querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): Campaign[] {
-    return querySnapshots.docs.map(this.fromSnapshot);
+    return querySnapshots.docs.map(Campaign.fromSnapshot);
   }
 
   static getCollectionReference = () => {
@@ -149,8 +149,8 @@ export class Campaign extends BaseModel {
   };
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    Campaign.setFirestoreSettings();
+    return Campaign.getCollectionReference().doc(documentId);
   }
 
   static sortByTimelineStart(a: Campaign, b: Campaign) {
@@ -160,13 +160,13 @@ export class Campaign extends BaseModel {
   static async getAll(): Promise<Campaign[]> {
     try {
       console.log('model:Campaign getAll');
-      const campaigns = await this.getCollectionReference()
+      const campaigns = await Campaign.getCollectionReference()
         .where('type', '==', CampaignType.Public)
         .get();
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
-      return campaigns.docs.map(this.fromSnapshot);
+      return campaigns.docs.map(Campaign.fromSnapshot);
     } catch (error) {
       throw Error('Error!');
     }
@@ -175,13 +175,13 @@ export class Campaign extends BaseModel {
   static async getUserCampaigns(userId: string): Promise<Campaign[]> {
     try {
       const userRef = User.getDocumentReference(userId);
-      const campaigns = await this.getCollectionReference()
+      const campaigns = await Campaign.getCollectionReference()
         .where('userId', '==', userRef)
         .get();
       if (campaigns.empty) {
         throw Error('No Campaigns!');
       }
-      return campaigns.docs.map(this.fromSnapshot);
+      return campaigns.docs.map(Campaign.fromSnapshot);
     } catch (error) {
       throw Error('Campaign.getUserCampaigns err' + error);
     }
@@ -194,7 +194,7 @@ export class Campaign extends BaseModel {
       // Get today's timestamp in milliseconds
       const todayTimestamp = new Date().getTime();
 
-      const campaigns = await this.getUserCampaigns(userId);
+      const campaigns = await Campaign.getUserCampaigns(userId);
 
       const validCampaigns = campaigns.filter(campaign => {
         if (campaign.timeline) {
@@ -223,11 +223,11 @@ export class Campaign extends BaseModel {
   ): (() => void) | undefined {
     try {
       const userRef = User.getDocumentReference(userId);
-      return this.getCollectionReference()
+      return Campaign.getCollectionReference()
         .where('userId', '==', userRef)
         .onSnapshot(
           querySnapshots => {
-            const userCampaigns = this.fromQuerySnapshot(querySnapshots);
+            const userCampaigns = Campaign.fromQuerySnapshot(querySnapshots);
             callback(userCampaigns);
           },
           (error: Error) => {
@@ -242,13 +242,13 @@ export class Campaign extends BaseModel {
 
   static async getById(id: string): Promise<Campaign> {
     try {
-      const snapshot = await this.getDocumentReference(id).get();
+      const snapshot = await Campaign.getDocumentReference(id).get();
       if (!snapshot.exists) {
         //TODO: throw error ilangin aja deh keknya ribet handlingnya
         throw Error('Campaign not found!');
       }
 
-      const campaign = this.fromSnapshot(snapshot);
+      const campaign = Campaign.fromSnapshot(snapshot);
       return campaign;
     } catch (error) {}
     throw Error('Error!');
@@ -258,12 +258,12 @@ export class Campaign extends BaseModel {
     id: string,
     onComplete: (campaign: Campaign | undefined) => void,
   ) {
-    const unsubscribe = this.getDocumentReference(id).onSnapshot(
+    const unsubscribe = Campaign.getDocumentReference(id).onSnapshot(
       docSnapshot => {
         if (!docSnapshot.exists) {
           onComplete(undefined);
         } else {
-          onComplete(this.fromSnapshot(docSnapshot));
+          onComplete(Campaign.fromSnapshot(docSnapshot));
         }
       },
       error => {

@@ -67,8 +67,8 @@ export class Review extends BaseModel {
   };
 
   static getDocumentReference = (documentId: string) => {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    Review.setFirestoreSettings();
+    return Review.getCollectionReference().doc(documentId);
   };
 
   toFirestore() {
@@ -126,11 +126,11 @@ export class Review extends BaseModel {
     revieweeRole: UserRole,
   ): Promise<Review[]> {
     try {
-      const reviews = await this.getCollectionReference()
+      const reviews = await Review.getCollectionReference()
         .where('revieweeId', '==', User.getDocumentReference(revieweeId))
         .get();
       return await filterAsync(
-        reviews.docs.map(this.fromSnapshot),
+        reviews.docs.map(Review.fromSnapshot),
         async review => {
           const isContentCreator = await review.isRevieweeContentCreator();
           return (
@@ -149,7 +149,7 @@ export class Review extends BaseModel {
     reviewerId: string,
     onComplete: (review: Review | null) => void,
   ) {
-    return this.getCollectionReference()
+    return Review.getCollectionReference()
       .where(
         'transactionId',
         '==',
@@ -161,7 +161,7 @@ export class Review extends BaseModel {
           if (querySnapshot.empty) {
             onComplete(null);
           } else {
-            onComplete(this.fromSnapshot(querySnapshot.docs[0]));
+            onComplete(Review.fromSnapshot(querySnapshot.docs[0]));
           }
         },
         error => {

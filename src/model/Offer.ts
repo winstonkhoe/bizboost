@@ -122,18 +122,17 @@ export class Offer extends BaseModel {
     firestore().settings({
       ignoreUndefinedProperties: true,
     });
-    return this.getCollectionReference().doc(documentId);
+    return Offer.getCollectionReference().doc(documentId);
   }
 
   static async getById(id: string): Promise<Offer> {
     try {
-      const snapshot = await this.getDocumentReference(id).get();
+      const snapshot = await Offer.getDocumentReference(id).get();
       if (!snapshot.exists) {
         throw Error('Transaction not found!');
       }
 
-      const offer = this.fromSnapshot(snapshot);
-      return offer;
+      return Offer.fromSnapshot(snapshot);
     } catch (error) {
       console.error('Error in getById:', error);
     }
@@ -221,7 +220,7 @@ export class Offer extends BaseModel {
               onComplete([]);
             }
 
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            onComplete(querySnapshot.docs.map(Offer.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -243,13 +242,13 @@ export class Offer extends BaseModel {
     try {
       let query;
       if (activeRole === UserRole.BusinessPeople) {
-        query = this.getCollectionReference().where(
+        query = Offer.getCollectionReference().where(
           'businessPeopleId',
           '==',
           User.getDocumentReference(userId),
         );
       } else if (activeRole === UserRole.ContentCreator) {
-        query = this.getCollectionReference().where(
+        query = Offer.getCollectionReference().where(
           'contentCreatorId',
           '==',
           User.getDocumentReference(userId),
@@ -262,7 +261,7 @@ export class Offer extends BaseModel {
         .where('status', 'in', [OfferStatus.pending, OfferStatus.negotiate])
         .onSnapshot(
           querySnapshot => {
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            onComplete(querySnapshot.docs.map(Offer.fromSnapshot));
           },
           error => {
             console.log(error);

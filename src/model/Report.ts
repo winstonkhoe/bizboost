@@ -176,8 +176,8 @@ export class Report extends BaseModel {
   };
 
   static getDocumentReference = (documentId: string) => {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    Report.setFirestoreSettings();
+    return Report.getCollectionReference().doc(documentId);
   };
 
   static getById(id: string, onComplete: (report: Report | null) => void) {
@@ -238,7 +238,7 @@ export class Report extends BaseModel {
     try {
       const unsubscribe = Report.getCollectionReference().onSnapshot(
         querySnapshot => {
-          onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          onComplete(querySnapshot.docs.map(Report.fromSnapshot));
         },
         error => {
           console.log(error);
@@ -265,7 +265,7 @@ export class Report extends BaseModel {
         )
         .onSnapshot(
           querySnapshot => {
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            onComplete(querySnapshot.docs.map(Report.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -288,7 +288,7 @@ export class Report extends BaseModel {
         .where('reporterId', '==', User.getDocumentReference(reporterId))
         .onSnapshot(
           querySnapshot => {
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            onComplete(querySnapshot.docs.map(Report.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -328,7 +328,7 @@ export class Report extends BaseModel {
       if (querySnapshot.empty) {
         return [];
       }
-      return querySnapshot.docs.map(this.fromSnapshot);
+      return querySnapshot.docs.map(Report.fromSnapshot);
     } catch (error) {
       console.log(error);
       throw Error('Report.getAllWarnings err!');

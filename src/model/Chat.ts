@@ -82,14 +82,14 @@ export class Chat extends BaseModel {
   }
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
+    Chat.setFirestoreSettings();
     return firestore().collection(CHAT_COLLECTION).doc(documentId);
   }
 
   private static fromQuerySnapshot(
     querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): Chat[] {
-    return querySnapshots.docs.map(this.fromSnapshot);
+    return querySnapshots.docs.map(Chat.fromSnapshot);
   }
 
   static getCollectionReference = () => {
@@ -137,11 +137,11 @@ export class Chat extends BaseModel {
     try {
       console.log('Chat:getUserChatsReactive:', activeRole);
       const fieldToCheck = this.getFieldToCheck(activeRole);
-      return this.getCollectionReference()
+      return Chat.getCollectionReference()
         .where(fieldToCheck, '==', User.getDocumentReference(userId))
         .onSnapshot(
           querySnapshots => {
-            onChange(this.fromQuerySnapshot(querySnapshots));
+            onChange(Chat.fromQuerySnapshot(querySnapshots));
           },
           (error: Error) => {
             console.log('getUserChatsReactive error', error.message);
@@ -155,9 +155,9 @@ export class Chat extends BaseModel {
 
   static getById(id: string, onChange: (chat: Chat) => void) {
     try {
-      const unsubscribe = this.getDocumentReference(id).onSnapshot(
+      const unsubscribe = Chat.getDocumentReference(id).onSnapshot(
         doc => {
-          onChange(this.fromSnapshot(doc));
+          onChange(Chat.fromSnapshot(doc));
         },
         (error: Error) => {
           console.log('getById error', error.message);
@@ -176,7 +176,7 @@ export class Chat extends BaseModel {
     businessPeopleId: string,
   ): Promise<Chat> {
     try {
-      const querySnapshot = await this.getCollectionReference()
+      const querySnapshot = await Chat.getCollectionReference()
         .where(
           'contentCreatorId',
           '==',
@@ -198,7 +198,7 @@ export class Chat extends BaseModel {
         return chat;
       }
 
-      return this.fromSnapshot(querySnapshot.docs[0]);
+      return Chat.fromSnapshot(querySnapshot.docs[0]);
     } catch (error) {
       console.log(
         'Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId error ' + error,
@@ -216,7 +216,7 @@ export class Chat extends BaseModel {
     message: string,
   ) {
     try {
-      await this.getDocumentReference(chatId).update({
+      await Chat.getDocumentReference(chatId).update({
         messages: firestore.FieldValue.arrayUnion({
           message: message,
           role: role,

@@ -76,7 +76,7 @@ export class Portfolio extends BaseModel {
   private static fromQuerySnapshot(
     querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): Portfolio[] {
-    return querySnapshots.docs.map(this.fromSnapshot);
+    return querySnapshots.docs.map(Portfolio.fromSnapshot);
   }
 
   static getCollectionReference = () => {
@@ -84,8 +84,8 @@ export class Portfolio extends BaseModel {
   };
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    Portfolio.setFirestoreSettings();
+    return Portfolio.getCollectionReference().doc(documentId);
   }
 
   async insert() {
@@ -103,19 +103,19 @@ export class Portfolio extends BaseModel {
 
   // TODO: gakepake
   static async getById(documentId: string): Promise<Portfolio | undefined> {
-    const snapshot = await this.getDocumentReference(documentId).get();
+    const snapshot = await Portfolio.getDocumentReference(documentId).get();
     if (snapshot.exists) {
-      return this.fromSnapshot(snapshot);
+      return Portfolio.fromSnapshot(snapshot);
     }
   }
 
   static async getByUserId(userId: string): Promise<Portfolio[] | undefined> {
-    const querySnapshot = await this.getCollectionReference()
+    const querySnapshot = await Portfolio.getCollectionReference()
       .where('userId', '==', User.getDocumentReference(userId))
       .get();
 
     if (!querySnapshot.empty) {
-      return this.fromQuerySnapshot(querySnapshot);
+      return Portfolio.fromQuerySnapshot(querySnapshot);
     }
     return [];
   }
