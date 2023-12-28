@@ -128,8 +128,6 @@ interface CampaignModalProps {
 
 interface NegotiateModalProps {
   offer: Offer;
-  eventType: string;
-  campaign: Campaign;
 }
 
 export type AuthenticatedStack = {

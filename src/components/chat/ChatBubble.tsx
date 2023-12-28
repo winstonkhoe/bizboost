@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useEffect, useState} from 'react';
 import {View, Text} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
@@ -14,25 +14,34 @@ import {dimension} from '../../styles/Dimension';
 import {formatDateToHourMinute} from '../../utils/date';
 import {gap} from '../../styles/Gap';
 import {SizeType, size} from '../../styles/Size';
+import {Negotiation, Offer} from '../../model/Offer';
+import {SkeletonPlaceholder} from '../molecules/SkeletonPlaceholder';
+import {currencyFormat} from '../../utils/currency';
+import {LoadingSpinner} from '../atoms/LoadingSpinner';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {Campaign} from '../../model/Campaign';
+import {useUser} from '../../hooks/user';
+import {User, UserRole} from '../../model/User';
 
 interface ChatBubbleProps {
-  message: Message;
+  data: Message;
   isSender: boolean;
   isStart?: boolean;
   isLast?: boolean;
 }
 
 const ChatBubble = ({
-  message,
+  data,
   isSender,
   isStart = false,
   isLast = false,
 }: ChatBubbleProps) => {
-  const isSystemMessage = message.type === MessageType.System;
-  const isTextMessage = message.type === MessageType.Text;
-  const isPhotoMessage = message.type === MessageType.Photo;
-  const isOfferMessage = message.type === MessageType.Offer;
-  const isNegotiationMessage = message.type === MessageType.Negotiation;
+  const isSystemMessage = data.type === MessageType.System;
+  const isTextMessage = data.type === MessageType.Text;
+  const isPhotoMessage = data.type === MessageType.Photo;
+  const isOfferMessage = data.type === MessageType.Offer;
+  const isNegotiationMessage = data.type === MessageType.Negotiation;
+  console.log(data);
   return (
     <View
       style={[
@@ -44,7 +53,7 @@ const ChatBubble = ({
       ]}>
       {!isSystemMessage && [
         <BubbleContainer
-          key={`chat-container-${message.createdAt}`}
+          key={`chat-container-${data.createdAt}`}
           isSender={isSender}
           isStart={isStart}
           isLast={isLast}>
@@ -55,24 +64,10 @@ const ChatBubble = ({
                 isSender && [textColor(COLOR.absoluteBlack[90])],
                 font.size[20],
               ]}>
-              {message.message}
+              {data.message.content}
             </Text>
           )}
-          {isOfferMessage && (
-            <>
-              <Text style={[textColor(COLOR.absoluteBlack[90]), font.size[30]]}>
-                Made an offer
-              </Text>
-              <Text
-                style={[
-                  font.size[30],
-                  font.weight.bold,
-                  textColor(COLOR.absoluteBlack[90]),
-                ]}>
-                Rp. {message.message}
-              </Text>
-            </>
-          )}
+          {isOfferMessage && <OfferBubbleContent data={data} />}
           {isNegotiationMessage && (
             <>
               <Text style={[textColor(COLOR.absoluteBlack[90])]}>
@@ -80,7 +75,7 @@ const ChatBubble = ({
               </Text>
               <Text
                 style={[textColor(COLOR.absoluteBlack[90]), font.weight.bold]}>
-                Rp. {message.message}
+                Rp. {data.message.content}
               </Text>
             </>
           )}
@@ -92,9 +87,9 @@ const ChatBubble = ({
                   rounded.medium,
                   overflow.hidden,
                 ]}>
-                {message && (
+                {data && (
                   <FastImage
-                    source={{uri: message.message}}
+                    source={{uri: data.message.content}}
                     style={[dimension.full]}
                   />
                 )}
@@ -103,12 +98,12 @@ const ChatBubble = ({
           )}
         </BubbleContainer>,
         <View
-          key={`date-container-${message.createdAt}`}
+          key={`date-container-${data.createdAt}`}
           style={[padding.bottom.xsmall]}>
           <Text
             style={[font.size[10], textColor(COLOR.text.neutral.med)]}
             numberOfLines={1}>
-            {formatDateToHourMinute(new Date(message.createdAt), false)}
+            {formatDateToHourMinute(new Date(data.createdAt), false)}
           </Text>
         </View>,
       ]}
@@ -128,7 +123,7 @@ const ChatBubble = ({
                 textColor(COLOR.text.neutral.high),
                 font.size[10],
               ]}>
-              {formatDateToHourMinute(new Date(message.createdAt), false)}
+              {formatDateToHourMinute(new Date(data.createdAt), false)}
             </Text>
             <Text
               style={[
@@ -138,7 +133,7 @@ const ChatBubble = ({
                 font.weight.medium,
                 font.size[20],
               ]}>
-              {message.message}
+              {data.message.content}
             </Text>
           </View>
         </View>
@@ -195,12 +190,155 @@ const BubbleContainer = ({...props}: BubbleContainerProps) => {
         ],
         props.isStart && props.isLast && [rounded[roundedSize]],
         {
-          maxWidth: '70%',
+          maxWidth: '75%',
         },
         padding.vertical.default,
-        padding.horizontal.medium,
+        padding.horizontal.default,
       ]}>
       {props.children}
+    </View>
+  );
+};
+
+interface OfferBubbleContentProps {
+  data: Message;
+}
+
+const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
+  const offerId = data.message.offer?.offerId;
+  const offerAt = data.message.offer?.offerAt;
+  const {activeRole, isContentCreator} = useUser();
+  const [offer, setOffer] = useState<Offer | null>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
+  const [negotiate, setNegotiate] = useState<Negotiation | null>();
+  const [opponent, setOpponent] = useState<User | null>();
+
+  useEffect(() => {
+    if (offerId) {
+      Offer.getById(offerId)
+        .then(setOffer)
+        .catch(() => setOffer(null));
+    }
+  }, [offerId]);
+
+  useEffect(() => {
+    if (offer && offer.campaignId) {
+      Campaign.getById(offer.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
+    }
+  }, [offer]);
+
+  useEffect(() => {
+    if (offer && offer.contentCreatorId && offer.businessPeopleId) {
+      if (activeRole === UserRole.BusinessPeople) {
+        User.getById(offer.contentCreatorId)
+          .then(setOpponent)
+          .catch(() => setOpponent(null));
+      }
+      if (activeRole === UserRole.ContentCreator) {
+        User.getById(offer.businessPeopleId)
+          .then(setOpponent)
+          .catch(() => setOpponent(null));
+      }
+    }
+  }, [offer, activeRole]);
+
+  useEffect(() => {
+    if (offer) {
+      const foundNegotiation = offer.negotiations.find(
+        n => n.createdAt === offerAt,
+      );
+      if (!foundNegotiation) {
+        setNegotiate(null);
+        return;
+      }
+      setNegotiate(foundNegotiation);
+    }
+  }, [offer, offerAt]);
+
+  if (
+    negotiate === undefined ||
+    campaign === undefined ||
+    opponent === undefined
+  ) {
+    return <LoadingSpinner size="large" />;
+  }
+
+  if (negotiate === null) {
+    return <Text>Offer not found</Text>;
+  }
+
+  const getOpponentData = () => {
+    if (isContentCreator && opponent?.businessPeople) {
+      return opponent.businessPeople;
+    }
+    if (opponent?.contentCreator) {
+      return opponent.contentCreator;
+    }
+    return undefined;
+  };
+
+  const opponentData = getOpponentData();
+
+  return (
+    <View style={[flex.flexCol, gap.small]}>
+      <Text
+        style={[
+          textColor(COLOR.text.neutral.high),
+          font.weight.medium,
+          font.size[20],
+        ]}
+        numberOfLines={1}>
+        {negotiate.negotiatedBy === activeRole ? 'You' : opponentData?.fullname}{' '}
+        Made an offer
+      </Text>
+      {campaign && (
+        <View
+          style={[
+            flex.flexRow,
+            gap.small,
+            padding.small,
+            rounded.medium,
+            background(COLOR.background.neutral.default),
+          ]}>
+          <View
+            style={[
+              dimension.square.xlarge2,
+              rounded.default,
+              overflow.hidden,
+            ]}>
+            <FastImage
+              style={[dimension.full]}
+              source={getSourceOrDefaultAvatar({
+                uri: campaign.image,
+              })}
+            />
+          </View>
+          <View style={[flex.flexCol]}>
+            <Text
+              style={[
+                {
+                  width: size.xlarge9,
+                },
+                font.size[20],
+                textColor(COLOR.text.neutral.high),
+              ]}
+              numberOfLines={1}>
+              {campaign.title}
+            </Text>
+            <Text
+              style={[
+                font.size[30],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}
+              numberOfLines={1}>
+              {currencyFormat(negotiate.fee || 0)}
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };

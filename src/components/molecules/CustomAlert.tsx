@@ -10,7 +10,7 @@ import {CustomButton, CustomButtonProps} from '../atoms/Button';
 import {ReactNode, isValidElement, useState} from 'react';
 import {Text} from 'react-native';
 
-interface CustomAlertProps extends Partial<CustomButtonProps> {
+export interface CustomAlertProps extends Partial<CustomButtonProps> {
   text: string;
   confirmationText?: string | ReactNode;
   approveButtonText?: string;

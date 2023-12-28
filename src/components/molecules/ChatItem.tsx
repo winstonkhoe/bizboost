@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Pressable, View, Text, StyleSheet} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import {useNavigation} from '@react-navigation/native';
-import {Chat, Recipient} from '../../model/Chat';
+import {Chat, MessageType, Recipient} from '../../model/Chat';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -59,6 +59,19 @@ const ChatItem = ({chat}: ChatItemProps) => {
     }
   }, [isBusinessPeople, isContentCreator, chat]);
 
+  const getLatestMessage = () => {
+    if (!latestMessage) {
+      return '';
+    }
+    if (latestMessage.type === MessageType.Offer) {
+      return 'New Offer';
+    }
+    if (latestMessage.type === MessageType.Photo) {
+      return 'New Photo';
+    }
+    return latestMessage.message.content;
+  };
+
   return (
     <Pressable
       onPress={() => {
@@ -103,7 +116,7 @@ const ChatItem = ({chat}: ChatItemProps) => {
               <Text
                 numberOfLines={1}
                 style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                {latestMessage?.message}
+                {getLatestMessage()}
               </Text>
             )}
           </SkeletonPlaceholder>

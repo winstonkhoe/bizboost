@@ -35,12 +35,11 @@ import {COLOR} from '../../styles/Color';
 import {ChevronRight} from '../../components/atoms/Icon';
 import {useUser} from '../../hooks/user';
 import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
-import {useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {SocialPlatform} from '../../model/User';
 import SelectableTag from '../../components/atoms/SelectableTag';
-import {CampaignPlatform} from '../../model/Campaign';
+import {Campaign, CampaignPlatform} from '../../model/Campaign';
 import {padding} from '../../styles/Padding';
-import {SocialFieldArray} from '../campaign/CreateCampaignScreen';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import {dimension} from '../../styles/Dimension';
@@ -48,10 +47,16 @@ import {overflow} from '../../styles/Overflow';
 import {showToast} from '../../helpers/toast';
 import {ErrorMessage} from '../../constants/errorMessage';
 import {ToastType} from '../../providers/ToastProvider';
+import {
+  SocialFieldArray,
+  TaskFieldArray,
+} from '../../components/molecules/TaskFieldArray';
+import {LoadingScreen} from '../LoadingScreen';
+import {Seperator} from '../../components/atoms/Separator';
 
 export type NegotiateFormData = {
   fee: number;
-  importantNotes: string;
+  notes: string;
   platforms: CampaignPlatform[];
 };
 
@@ -62,23 +67,28 @@ type Props = StackScreenProps<
 
 const ModalNegotiateScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const {offer, eventType, campaign} = route.params;
+  const {offer} = route.params;
+  const latestNegotiation = offer.getLatestNegotiation();
   const methods = useForm<NegotiateFormData>({
-    mode: 'all',
+    mode: 'onSubmit',
     defaultValues: {
-      fee: offer.negotiatedPrice ? offer.negotiatedPrice : offer.offeredPrice,
-      importantNotes: offer.negotiatedNotes
-        ? offer.negotiatedNotes
-        : offer.importantNotes,
-      platforms: offer.negotiatedTasks
-        ? offer.negotiatedTasks
-        : campaign.platformTasks,
+      fee: 150000,
+      notes: latestNegotiation?.notes,
+      platforms: latestNegotiation?.tasks,
     },
   });
+  const {setValue, getValues} = methods;
 
-  const [modify, setModify] = useState(false);
-
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const {activeRole} = useUser();
+
+  useEffect(() => {
+    if (offer.campaignId) {
+      Campaign.getById(offer.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
+    }
+  }, [offer]);
 
   const onSubmit = (data: NegotiateFormData) => {
     console.log('onsubmit:', data);
@@ -91,26 +101,26 @@ const ModalNegotiateScreen = ({route}: Props) => {
       return;
     }
     offer
-      .negotiate(data.fee, data.importantNotes, data.platforms, activeRole)
+      .negotiate(data.fee, data.notes, data.platforms, activeRole)
       .then(() => {
-        DeviceEventEmitter.emit(eventType, data.fee.toString());
-        closeModal({
-          navigation: navigation,
-          triggerEventOnClose: 'close.negotiate',
-        });
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+        navigation.navigate(AuthenticatedNavigation.Home);
       });
   };
 
-  const {control, getValues} = methods;
+  const onChangeTasks = useCallback(
+    (platformTasks: CampaignPlatform[]) => {
+      setValue('platforms', platformTasks);
+    },
+    [setValue],
+  );
 
-  const {
-    fields: fieldsPlatform,
-    append: appendPlatform,
-    remove: removePlatform,
-  } = useFieldArray({
-    name: 'platforms',
-    control,
-  });
+  if (campaign === undefined) {
+    return <LoadingScreen />;
+  }
 
   return (
     <PageWithBackButton
@@ -122,9 +132,9 @@ const ModalNegotiateScreen = ({route}: Props) => {
         <FormProvider {...methods}>
           <ScrollView style={[flex.flex1, flex.flexCol, padding.top.xlarge3]}>
             <KeyboardAvoidingContainer>
-              <View
-                style={[flex.flexCol, padding.horizontal.default, gap.medium]}>
-                <View style={[flex.flexCol, gap.small]}>
+              <View style={[flex.flexCol, gap.medium]}>
+                <View
+                  style={[flex.flexCol, gap.small, padding.horizontal.default]}>
                   <Text
                     style={[
                       textColor(COLOR.text.neutral.high),
@@ -169,127 +179,44 @@ const ModalNegotiateScreen = ({route}: Props) => {
                   </Pressable>
                 </View>
 
-                <View style={[flex.flexCol, gap.small]}>
+                <View
+                  style={[flex.flexCol, gap.small, padding.horizontal.default]}>
                   <FormFieldHelper title="Your Negotiation" />
                   <CustomTextInput
                     name="fee"
                     inputType="price"
                     rules={{
                       required: 'Fee is required',
-                      min: 500000,
+                      validate: value => {
+                        return (
+                          parseInt(value, 10) >= 50000 ||
+                          'Minimum fee is Rp50.000'
+                        );
+                      },
                     }}
                   />
                 </View>
-
-                <View>
-                  <View
-                    style={flex.flexRow}
-                    className="items-center justify-between">
-                    <Text
-                      className="font-bold pb-2"
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.size[50],
-                      ]}>
-                      {'Campaign Task'}
-                    </Text>
-                    <Pressable onPress={() => setModify(!modify)}>
-                      <Text style={textColor(COLOR.green[50])}>
-                        {modify ? 'Done' : 'Modify'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                  {campaign?.platformTasks && (
-                    <View style={flex.flexCol}>
-                      {fieldsPlatform.map((fp, index) => (
-                        <CampaignPlatformAccordion
-                          platform={{
-                            name: fp.name,
-                            tasks: getValues(`platforms.${index}.tasks`) || [],
-                          }}
-                          key={index}
-                        />
-                      ))}
-                    </View>
-                  )}
-                  {modify && (
-                    <View style={[flex.flexCol, gap.medium]}>
-                      <Controller
-                        control={control}
-                        name="platforms"
-                        rules={{required: 'Platform is required!'}}
-                        render={({
-                          field: {value: platforms},
-                          fieldState: {error},
-                        }) => (
-                          <View style={[flex.flexCol, gap.default]}>
-                            <FormFieldHelper
-                              title="Campaign platforms"
-                              description="Choose platforms for the campaign tasks."
-                            />
-                            <View className="flex flex-row gap-2">
-                              {Object.values(SocialPlatform).map(
-                                (value: SocialPlatform, index) => (
-                                  <View key={index}>
-                                    <SelectableTag
-                                      text={value}
-                                      isSelected={
-                                        platforms.find(
-                                          p => p.name === value,
-                                        ) !== undefined
-                                      }
-                                      onPress={() => {
-                                        const searchIndex = platforms.findIndex(
-                                          p => p.name === value,
-                                        );
-                                        if (searchIndex !== -1) {
-                                          removePlatform(searchIndex);
-                                        } else {
-                                          appendPlatform({
-                                            name: value,
-                                            tasks: [],
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </View>
-                                ),
-                              )}
-                            </View>
-                            {error && (
-                              <Text className="text-xs mt-2 font-medium text-red-500">
-                                {/* {`${error}`} */}
-                                Platform is required!
-                              </Text>
-                            )}
-                          </View>
-                        )}
-                      />
-                      {fieldsPlatform.map((fp, index) => (
-                        <View key={fp.id}>
-                          <SocialFieldArray
-                            platform={fp.name}
-                            control={control}
-                            title={`${fp.name}'s Task`}
-                            fieldType="textarea"
-                            maxFieldLength={150}
-                            parentName={`platforms.${index}.tasks`}
-                            helperText='Ex. "minimum 30s / story"'
-                            placeholder="Add task"
-                          />
-                        </View>
-                      ))}
-                    </View>
-                  )}
+                <Seperator />
+                <View style={[padding.horizontal.default]}>
+                  <TaskFieldArray
+                    isInitiallyEditable={false}
+                    onChange={onChangeTasks}
+                    defaultValue={getValues('platforms')}
+                  />
                 </View>
-
-                <View style={[flex.flexCol, gap.default]}>
+                <Seperator />
+                <View
+                  style={[
+                    flex.flexCol,
+                    gap.default,
+                    padding.horizontal.default,
+                  ]}>
                   <FormFieldHelper title="Important Notes" type="optional" />
                   <CustomTextInput
                     placeholder="Things to note for your offer"
-                    name="importantNotes"
+                    name="notes"
                     type="textarea"
-                    defaultValue={offer.importantNotes}
+                    defaultValue={getValues('notes')}
                   />
                 </View>
               </View>

@@ -43,6 +43,7 @@ import {LoadingScreen} from './LoadingScreen';
 import {overflow} from '../styles/Overflow';
 import {shadow} from '../styles/Shadow';
 import {dimension} from '../styles/Dimension';
+import {currencyFormat} from '../utils/currency';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -200,7 +201,9 @@ const ChatScreen = ({route}: Props) => {
       return;
     }
     chat
-      ?.addMessage(MessageType.Text, activeRole, message)
+      ?.addMessage(MessageType.Text, activeRole, {
+        content: message,
+      })
       .catch(() => {
         showToast({
           type: ToastType.info,
@@ -226,7 +229,9 @@ const ChatScreen = ({route}: Props) => {
       return;
     }
     chat
-      ?.addMessage(MessageType.Photo, activeRole, imageUrl)
+      ?.addMessage(MessageType.Photo, activeRole, {
+        content: imageUrl,
+      })
       .catch(() => {
         showToast({
           type: ToastType.info,
@@ -423,7 +428,7 @@ const ChatScreen = ({route}: Props) => {
                         (message: Message, messageIndex) => (
                           <ChatBubble
                             key={`${dateGroupedMessage.date}-${roleGroupedMessageIndex}-${messageIndex}`}
-                            message={message}
+                            data={message}
                             isSender={message.role === activeRole}
                             isStart={messageIndex === 0}
                             isLast={
@@ -478,7 +483,6 @@ const ChatScreen = ({route}: Props) => {
             console.log('ondismissed', isModalOpened);
           }}
           offer={selectedOffer}
-          navigation={navigation}
         />
       )}
     </View>
@@ -507,8 +511,23 @@ const OfferCard = ({
   const {activeRole} = useUser();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   const [contentCreator, setContentCreator] = useState<User | null>();
+  const latestNegotiation = offer.getLatestNegotiation();
+  const negotiatedByCurrentUser =
+    latestNegotiation?.negotiatedBy === activeRole;
   const negotiatedByContentCreator =
-    offer.negotiatedBy === UserRole.ContentCreator;
+    latestNegotiation?.negotiatedBy === UserRole.ContentCreator;
+
+  const getNegotiatedByName = () => {
+    if (negotiatedByCurrentUser) {
+      return 'You';
+    }
+    if (negotiatedByContentCreator) {
+      return contentCreator?.contentCreator?.fullname;
+    }
+    return businessPeople?.businessPeople?.fullname;
+  };
+
+  const offeredByName = getNegotiatedByName();
 
   useEffect(() => {
     if (offer.campaignId) {
@@ -555,34 +574,13 @@ const OfferCard = ({
           <View>
             <Text style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
               {offer.isNegotiating() ? 'Negotiation: ' : 'Offer: '}
-              <Text style={[font.weight.bold, font.size[20]]}>
-                {offer.isPending() || offer.isNegotiationRejected()
-                  ? offer?.offeredPrice?.toLocaleString('en-ID')
-                  : offer?.negotiatedPrice?.toLocaleString('en-ID')}
+              <Text style={[font.weight.bold, font.size[30]]}>
+                {currencyFormat(latestNegotiation?.fee || 0)}
               </Text>
             </Text>
-            {offer.isPending() ? (
-              <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                {`by ${contentCreator?.contentCreator?.fullname}`}
-              </Text>
-            ) : (
-              <View>
-                {(offer.isNegotiationRejected() || offer.isNegotiating()) && (
-                  <Text
-                    style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                    Last Offer: {offer.offeredPrice}
-                  </Text>
-                )}
-                <Text
-                  style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-                  {`by ${
-                    negotiatedByContentCreator
-                      ? contentCreator?.contentCreator?.fullname
-                      : businessPeople?.businessPeople?.fullname
-                  }`}
-                </Text>
-              </View>
-            )}
+            <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+              {`by ${offeredByName}`}
+            </Text>
           </View>
         </Pressable>
         {!isExpanded && (
@@ -602,17 +600,15 @@ const OfferCard = ({
           </TouchableOpacity>
         )}
       </View>
-      {isExpanded &&
-        ((offer.negotiatedBy && offer.negotiatedBy !== activeRole) ||
-          (!offer.negotiatedBy && activeRole === UserRole.ContentCreator)) && (
-          <TouchableOpacity
-            onPress={() => {
-              setIsModalOpened(true);
-              setSelectedOffer(offer);
-            }}>
-            <MeatballMenuIcon size="xsmall" />
-          </TouchableOpacity>
-        )}
+      {isExpanded && !negotiatedByCurrentUser && (
+        <TouchableOpacity
+          onPress={() => {
+            setIsModalOpened(true);
+            setSelectedOffer(offer);
+          }}>
+          <MeatballMenuIcon size="xsmall" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

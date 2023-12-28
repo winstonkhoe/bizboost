@@ -11,8 +11,14 @@ import {font} from '../../styles/Font';
 interface Props extends PressableProps {
   text: string;
   isSelected?: boolean;
+  isDisabled?: boolean;
 }
-const SelectableTag = ({text, isSelected = false, ...props}: Props) => {
+const SelectableTag = ({
+  text,
+  isSelected = false,
+  isDisabled = false,
+  ...props
+}: Props) => {
   return (
     <Pressable
       {...props}
@@ -35,6 +41,13 @@ const SelectableTag = ({text, isSelected = false, ...props}: Props) => {
               }),
               background(COLOR.black[1]),
             ],
+        isDisabled && [
+          background(COLOR.background.neutral.disabled),
+          border({
+            borderWidth: 1,
+            color: COLOR.black[20],
+          }),
+        ],
       ]}>
       <Text
         style={[
@@ -43,6 +56,7 @@ const SelectableTag = ({text, isSelected = false, ...props}: Props) => {
           isSelected
             ? [textColor(COLOR.green[50])]
             : [textColor(COLOR.text.neutral.med)],
+          isDisabled && [textColor(COLOR.text.neutral.disabled)],
         ]}>
         {text}
       </Text>

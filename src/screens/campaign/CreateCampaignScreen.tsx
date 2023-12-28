@@ -1,7 +1,6 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Pressable, Text} from 'react-native';
 import {CustomButton} from '../../components/atoms/Button';
-import {HorizontalPadding} from '../../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import PhotosIcon from '../../assets/vectors/photos.svg';
 import {flex, items, justify} from '../../styles/Flex';
@@ -10,17 +9,13 @@ import {COLOR} from '../../styles/Color';
 import {
   CustomNumberInput,
   CustomTextInput,
-  FormlessCustomNumberInput,
-  FormlessCustomTextInput,
   MediaUploader,
 } from '../../components/atoms/Input';
 import {
-  Control,
   Controller,
   FormProvider,
   useFieldArray,
   useForm,
-  useFormContext,
 } from 'react-hook-form';
 import SelectableTag from '../../components/atoms/SelectableTag';
 import {
@@ -67,16 +62,12 @@ import {formatDateToDayMonthYear} from '../../utils/date';
 import {Category} from '../../model/Category';
 import FastImage from 'react-native-fast-image';
 import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
-import {SocialPlatform} from '../../model/User';
-import {FieldArrayLabel} from '../../components/molecules/FieldArrayLabel';
-import {SheetModal} from '../../containers/SheetModal';
-import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
 import {LoadingScreen} from '../LoadingScreen';
-import {useWindowDimensions} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
+import {TaskFieldArray} from '../../components/molecules/TaskFieldArray';
 
 export type CampaignFormData = {
   title: string;
@@ -117,49 +108,6 @@ const campaignTimeline = [
     optional: false,
     description:
       'Content creators can submit their engagement results for evaluation, including verifying the originality of the proof of task completion. Once reviewed, campaign earnings will be deposited into their accounts.',
-  },
-];
-
-interface SocialTaskOptions {
-  name: string;
-  types?: string[];
-}
-
-interface SocialTask {
-  name: SocialPlatform;
-  tasks: SocialTaskOptions[];
-}
-
-const taskTypes: SocialTask[] = [
-  {
-    name: SocialPlatform.Instagram,
-    tasks: [
-      {
-        name: 'Feed Post',
-        types: [
-          'Photo',
-          'Video',
-          'Carousel Photo',
-          'Carousel Video',
-          'Carousel Mix',
-        ],
-      },
-      {
-        name: 'Story',
-        types: ['Photo', 'Video'],
-      },
-      {
-        name: 'Reels',
-      },
-    ],
-  },
-  {
-    name: SocialPlatform.Tiktok,
-    tasks: [
-      {
-        name: 'Post',
-      },
-    ],
   },
 ];
 
@@ -254,11 +202,7 @@ const CreateCampaignScreen = () => {
     }
   };
 
-  const {
-    fields: fieldsPlatform,
-    append: appendPlatform,
-    remove: removePlatform,
-  } = useFieldArray({
+  const {fields: fieldsPlatform} = useFieldArray({
     name: 'platforms',
     control,
   });
@@ -355,6 +299,14 @@ const CreateCampaignScreen = () => {
     return previousEndDates.length === 0 ? null : previousEndDates[0];
   };
 
+  const onChangePlatformTasks = useCallback(
+    (platformTasks: CampaignPlatform[]) => {
+      console.log('onchange platformtasks', platformTasks);
+      setValue('platforms', platformTasks);
+    },
+    [setValue],
+  );
+
   return (
     <>
       {isUploading && <LoadingScreen />}
@@ -394,6 +346,7 @@ const CreateCampaignScreen = () => {
             <PagerView
               style={[flex.flex1, flex.grow]}
               ref={pagerViewRef}
+              initialPage={2}
               scrollEnabled={false}>
               <ScrollView style={[flex.flex1]} key={0}>
                 <KeyboardAvoidingContainer>
@@ -653,76 +606,13 @@ const CreateCampaignScreen = () => {
                       padding.bottom.xlarge2,
                       padding.horizontal.large,
                     ]}>
-                    <Controller
-                      control={control}
-                      name="platforms"
-                      rules={{required: 'Platform is required!'}}
-                      render={({
-                        field: {value: platforms},
-                        fieldState: {error},
-                      }) => (
-                        <View style={[flex.flexCol, gap.default]}>
-                          <FormFieldHelper
-                            title="Campaign platforms"
-                            description="Choose platforms for the campaign tasks."
-                          />
-                          <View className="flex flex-row gap-2">
-                            {Object.values(SocialPlatform).map(
-                              (value: SocialPlatform, index) => (
-                                <View key={index}>
-                                  <SelectableTag
-                                    text={value}
-                                    isSelected={
-                                      platforms.find(p => p.name === value) !==
-                                      undefined
-                                    }
-                                    onPress={() => {
-                                      const searchIndex = platforms.findIndex(
-                                        p => p.name === value,
-                                      );
-                                      if (searchIndex !== -1) {
-                                        removePlatform(searchIndex);
-                                      } else {
-                                        appendPlatform({
-                                          name: value,
-                                          tasks: [],
-                                        });
-                                      }
-                                    }}
-                                  />
-                                </View>
-                              ),
-                            )}
-                          </View>
-                          {error && (
-                            <Text className="text-xs mt-2 font-medium text-red-500">
-                              {/* {`${error}`} */}
-                              Platform is required!
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                    />
-                    {fieldsPlatform.map((fp, index) => (
-                      <View key={fp.id}>
-                        <SocialFieldArray
-                          platform={fp.name}
-                          control={control}
-                          title={`${fp.name}'s Task`}
-                          fieldType="textarea"
-                          maxFieldLength={150}
-                          parentName={`platforms.${index}.tasks`}
-                          helperText='Ex. "minimum 30s / story"'
-                          placeholder="Add task"
-                        />
-                      </View>
-                    ))}
+                    <TaskFieldArray onChange={onChangePlatformTasks} />
                     <CustomButton
                       text="Next"
                       rounded="max"
                       minimumWidth
                       disabled={
-                        !isValidField(getFieldState('platforms', formState)) ||
+                        fieldsPlatform.length === 0 ||
                         fieldsPlatform.filter(
                           (f, index) =>
                             getValues(`platforms.${index}.tasks`)?.length === 0,
@@ -1104,257 +994,6 @@ const CreateCampaignScreen = () => {
           </ScrollView>
         </PageWithBackButton>
       </FormProvider>
-    </>
-  );
-};
-
-type SocialFieldArrayProps = {
-  control: Control<any>;
-  platform: SocialPlatform;
-  title: string;
-  parentName: any; // string
-  childName?: string;
-  placeholder?: string;
-  fieldType?: 'default' | 'textarea';
-  maxFieldLength?: number;
-  helperText?: string;
-};
-export const SocialFieldArray = ({
-  control,
-  platform,
-  title,
-  parentName,
-  childName,
-  placeholder,
-  fieldType = 'default',
-  maxFieldLength = 40,
-  helperText,
-}: SocialFieldArrayProps) => {
-  const safeAreaInsets = useSafeAreaInsets();
-  const windowDimension = useWindowDimensions();
-  const [taskQuantity, setTaskQuantity] = useState<number>(1);
-  const [taskName, setTaskName] = useState<string>('');
-  const [taskType, setTaskType] = useState<string>('');
-  const [temporaryText, setTemporaryText] = useState<string>('');
-  const currentTask = useMemo(() => {
-    return taskTypes.find(t => t.name === platform);
-  }, [platform]);
-  const currentTaskTypes = useMemo(() => {
-    return currentTask?.tasks.filter(task => task.name === taskName)?.[0]
-      ?.types;
-  }, [currentTask, taskName]);
-  const [updateIndex, setUpdateIndex] = useState<number | null>(null);
-  const [isModalOpened, setIsModalOpened] = useState(false);
-  const {getValues} = useFormContext();
-  const {fields, append, remove} = useFieldArray({
-    name: parentName,
-    control,
-  });
-
-  const updateText = (text: string) => {
-    setTemporaryText(text);
-  };
-
-  useEffect(() => {
-    if (isModalOpened === false) {
-      setUpdateIndex(null);
-      setTemporaryText('');
-      setTaskName('');
-      setTaskType('');
-      setTaskQuantity(1);
-    }
-  }, [isModalOpened]);
-
-  useEffect(() => {
-    if (updateIndex !== null) {
-      const currentTask = getValues(
-        `${parentName}.${updateIndex}${childName ? `.${childName}` : ''}`,
-      );
-      setTaskName(currentTask?.name);
-      setTaskType(currentTask?.type);
-      setTaskQuantity(currentTask?.quantity);
-    }
-  }, [updateIndex, getValues, parentName, childName]);
-
-  const addNewEntry = () => {
-    append({
-      name: taskName,
-      type:
-        taskType !== '' && currentTaskTypes?.find(t => t === taskType)
-          ? taskType
-          : undefined,
-      description: temporaryText,
-      quantity: taskQuantity,
-    });
-    setIsModalOpened(false);
-  };
-
-  const updateEntry = (onChange: (...event: any[]) => void) => {
-    onChange({
-      name: taskName,
-      type:
-        taskType !== '' && currentTaskTypes?.find(t => t === taskType)
-          ? taskType
-          : undefined,
-      description: temporaryText,
-      quantity: taskQuantity,
-    });
-    setIsModalOpened(false);
-  };
-
-  return (
-    <>
-      <View style={[flex.flexCol, gap.default]}>
-        <FormFieldHelper title={title} />
-        <View style={[flex.flexCol, gap.medium]}>
-          {fields.length > 0 && (
-            <View style={[flex.flexCol, gap.small]}>
-              {fields.map((f, index) => (
-                <View key={f.id} style={[flex.flexRow, justify.start]}>
-                  <Controller
-                    control={control}
-                    name={`${parentName}.${index}${
-                      childName ? `.${childName}` : ''
-                    }`}
-                    render={({field: {value}}) => (
-                      <FieldArrayLabel
-                        type="field"
-                        text={`${value?.quantity} x ${value?.name} ${
-                          value?.type ? `(${value?.type})` : ''
-                        } ${
-                          value?.description.length > 0
-                            ? `[${value?.description}]`
-                            : ''
-                        }`}
-                        onPress={() => {
-                          setUpdateIndex(index);
-                          setIsModalOpened(true);
-                        }}
-                        onRemovePress={() => remove(index)}
-                      />
-                    )}
-                  />
-                </View>
-              ))}
-            </View>
-          )}
-          <View style={[flex.flexRow, justify.start]}>
-            <FieldArrayLabel
-              type="add"
-              text={placeholder ? placeholder : 'Add'}
-              onPress={() => {
-                setIsModalOpened(true);
-              }}
-            />
-          </View>
-        </View>
-      </View>
-      <SheetModal
-        fullHeight
-        snapPoints={[windowDimension.height - safeAreaInsets.top]}
-        open={isModalOpened}
-        onDismiss={() => {
-          setIsModalOpened(false);
-        }}
-        enableDynamicSizing={false}>
-        <BottomSheetModalWithTitle fullHeight title={title}>
-          <Controller
-            control={control}
-            name={`${parentName}.${updateIndex}${
-              childName ? `.${childName}` : ''
-            }`}
-            render={({field: {value, onChange}}) => (
-              <View
-                style={[
-                  flex.flex1,
-                  flex.flexCol,
-                  gap.medium,
-                  padding.horizontal.large,
-                ]}>
-                {currentTask && (
-                  <View style={[flex.flexCol, gap.default]}>
-                    <FormFieldHelper title="Task type" disableFlex />
-                    <View style={[flex.flexRow, gap.default]}>
-                      {currentTask.tasks.map((task, index) => (
-                        <View key={index}>
-                          <SelectableTag
-                            text={task.name}
-                            isSelected={taskName === task.name}
-                            onPress={() => {
-                              setTaskName(task.name);
-                            }}
-                          />
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-                {taskName.length > 0 && currentTaskTypes && (
-                  <View style={[flex.flexCol, gap.default]}>
-                    <FormFieldHelper title={`${taskName} type`} disableFlex />
-                    <View style={[flex.flexRow, flex.wrap, gap.default]}>
-                      {currentTaskTypes?.map((types, index) => (
-                        <View key={index}>
-                          <SelectableTag
-                            text={types}
-                            isSelected={taskType === types}
-                            onPress={() => {
-                              setTaskType(types);
-                            }}
-                          />
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-                <View style={[flex.flexCol, gap.default, items.start]}>
-                  <FormFieldHelper
-                    title="Description"
-                    type="optional"
-                    disableFlex
-                  />
-                  <View style={[flex.flexRow, gap.default, items.end]}>
-                    <View style={[flex.flex1, padding.top.default]}>
-                      <FormlessCustomTextInput
-                        counter
-                        type={fieldType}
-                        max={maxFieldLength}
-                        defaultValue={`${value?.description || ''}`}
-                        placeholder={placeholder ?? `Add ${parentName}`}
-                        description={helperText}
-                        onChange={updateText}
-                      />
-                    </View>
-                    <FormlessCustomNumberInput
-                      min={1}
-                      max={5}
-                      type="field"
-                      onChange={setTaskQuantity}
-                    />
-                  </View>
-                </View>
-                <CustomButton
-                  disabled={
-                    taskQuantity < 1 ||
-                    taskName.length === 0 ||
-                    (currentTaskTypes &&
-                      currentTaskTypes?.length > 0 &&
-                      taskType?.length === 0)
-                  }
-                  text={updateIndex !== null ? 'Update' : 'Save'}
-                  onPress={() => {
-                    if (updateIndex !== null) {
-                      updateEntry(onChange);
-                    } else {
-                      addNewEntry();
-                    }
-                  }}
-                />
-              </View>
-            )}
-          />
-        </BottomSheetModalWithTitle>
-      </SheetModal>
     </>
   );
 };

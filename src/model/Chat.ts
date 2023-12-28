@@ -3,6 +3,7 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {User, UserRole} from './User';
 import {BaseModel} from './BaseModel';
+import {Offer} from './Offer';
 
 export enum MessageType {
   Photo = 'Photo',
@@ -12,8 +13,18 @@ export enum MessageType {
   System = 'System',
 }
 
+export type MessageOffer = {
+  offerId?: string;
+  offerAt?: number;
+};
+
+export type MessageContent = {
+  content?: string;
+  offer?: MessageOffer;
+};
+
 export type Message = {
-  message: string;
+  message: MessageContent;
   type: MessageType;
   role: UserRole;
   createdAt: number;
@@ -74,7 +85,25 @@ export class Chat extends BaseModel {
         id: doc.id,
         businessPeopleId: data.businessPeopleId.id,
         contentCreatorId: data.contentCreatorId.id,
-        messages: data.messages,
+        messages: data.messages.map((message: any) => {
+          const getMessage = () => {
+            if (message.type === MessageType.Offer) {
+              return {
+                offer: {
+                  offerId: message.message.offer?.offerId.id,
+                  offerAt: message.message.offer?.offerAt,
+                },
+              };
+            }
+            return message.message;
+          };
+          return {
+            message: {...message.message, ...getMessage()},
+            type: message.type,
+            role: message.role,
+            createdAt: message.createdAt,
+          };
+        }),
       });
     }
 
@@ -230,14 +259,39 @@ export class Chat extends BaseModel {
     }
   }
 
-  async addMessage(type: MessageType, role: UserRole, message: string) {
+  async addMessage(type: MessageType, role: UserRole, message: MessageContent) {
     const {id} = this;
     try {
+      if (type === MessageType.Offer) {
+        throw new Error('Chat.addMessage - use addOfferMessage instead');
+      }
       await Chat.getDocumentReference(id).update({
         messages: firestore.FieldValue.arrayUnion({
           message: message,
           role: role,
           type: type,
+          createdAt: new Date().getTime(),
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      throw new Error('Chat.insertMessage error ' + error);
+    }
+  }
+
+  async addOfferMessage(role: UserRole, offerId: string, offerAt: number) {
+    const {id} = this;
+    try {
+      await Chat.getDocumentReference(id).update({
+        messages: firestore.FieldValue.arrayUnion({
+          message: {
+            offer: {
+              offerId: Offer.getDocumentReference(offerId),
+              offerAt: offerAt,
+            },
+          },
+          role: role,
+          type: MessageType.Offer,
           createdAt: new Date().getTime(),
         }),
       });
