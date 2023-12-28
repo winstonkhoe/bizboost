@@ -56,7 +56,7 @@ export const TabView = ({labels, children}: TabViewProps) => {
   });
 
   return (
-    <View style={[flex.flex1, flex.flexCol, gap.default]}>
+    <View style={[flex.flex1, flex.flexCol]}>
       <View
         style={[
           flex.flexRow,
