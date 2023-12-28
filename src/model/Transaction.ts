@@ -1282,4 +1282,25 @@ export class Transaction extends BaseModel {
 
     return false;
   }
+
+  isWaitingBrainstormSubmission() {
+    return (
+      !this?.getLatestBrainstorm() ||
+      this?.getLatestBrainstorm()?.status === BasicStatus.rejected
+    );
+  }
+
+  isWaitingContentSubmission() {
+    return (
+      !this?.getLatestContentSubmission() ||
+      this?.getLatestContentSubmission()?.status === BasicStatus.rejected
+    );
+  }
+
+  isWaitingEngagementSubmission() {
+    return (
+      !this?.getLatestEngagementSubmission() ||
+      this?.getLatestEngagementSubmission()?.status === BasicStatus.rejected
+    );
+  }
 }
