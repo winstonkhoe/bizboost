@@ -1,6 +1,6 @@
 import {ReactNode, useEffect, useRef, useState} from 'react';
 import {Pressable, StyleSheet, View, useWindowDimensions} from 'react-native';
-import {flex, items, justify, self} from '../../styles/Flex';
+import {flex, items, self} from '../../styles/Flex';
 import {ScrollView} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import {Text} from 'react-native';
