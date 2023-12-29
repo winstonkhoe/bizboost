@@ -138,13 +138,13 @@ const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
               gap.small,
               dimension.height[socialSizeType],
             ]}>
-            {data?.instagram && (
+            {data?.instagram?.username && (
               <SocialCard
                 platform={SocialPlatform.Instagram}
                 data={data?.instagram}
               />
             )}
-            {data?.tiktok && (
+            {data?.tiktok?.username && (
               <SocialCard
                 platform={SocialPlatform.Tiktok}
                 data={data?.tiktok}

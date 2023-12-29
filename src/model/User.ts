@@ -244,6 +244,32 @@ export class User extends BaseModel {
     await User.getDocumentReference(id).update(User.mappingUserFields(this));
   }
 
+  async createContentCreatorAccount() {
+    const {id} = this;
+    if (!id) {
+      throw Error('User id is not defined!');
+    }
+    await User.getDocumentReference(id).update({
+      tiktok: this.tiktok,
+      instagram: this.instagram,
+      contentCreator: {
+        ...this.contentCreator,
+      },
+    });
+  }
+
+  async createBusinessPeopleAccount() {
+    const {id} = this;
+    if (!id) {
+      throw Error('User id is not defined!');
+    }
+    await User.getDocumentReference(id).update({
+      businessPeople: {
+        ...this.businessPeople,
+      },
+    });
+  }
+
   async updateProfilePicture(
     activeRole: UserRole | undefined,
     profilePictureUrl: string,
