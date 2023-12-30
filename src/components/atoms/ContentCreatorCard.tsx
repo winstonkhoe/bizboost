@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, Text, StyleSheet, Pressable} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
@@ -28,6 +28,7 @@ interface ContentCreatorCardProps {
 }
 const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const [isLoading, setIsLoading] = useState(false);
 
   const concatenatedCategories =
     data?.contentCreator?.specializedCategoryIds?.join(', ');
@@ -45,7 +46,7 @@ const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
     (showSocials ? size[socialSizeType] : 0);
 
   return (
-    <SkeletonPlaceholder isLoading={data === null}>
+    <SkeletonPlaceholder isLoading={data === null || isLoading}>
       <Pressable
         style={[
           rounded.medium,
@@ -66,6 +67,8 @@ const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
           source={getSourceOrDefaultAvatar({
             uri: data?.contentCreator?.profilePicture,
           })}
+          onLoadStart={() => setIsLoading(true)}
+          onLoadEnd={() => setIsLoading(false)}
           style={[dimension.full]}
         />
         <LinearGradient
