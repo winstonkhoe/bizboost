@@ -425,7 +425,7 @@ export class User extends BaseModel {
     try {
       const users = await firestore()
         .collection(USER_COLLECTION)
-        .where('contentCreator', '!=', null)
+        .where('contentCreator.fullname', '!=', '')
         .get();
 
       if (users.empty) {
