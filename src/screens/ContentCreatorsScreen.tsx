@@ -45,6 +45,7 @@ import {InternalLink} from '../components/atoms/Link';
 import {border} from '../styles/Border';
 import {SearchBar} from '../components/organisms/SearchBar';
 import {ContentCreatorList} from '../components/organisms/ContentCreatorList';
+import {useUser} from '../hooks/user';
 
 interface SelectedFilters {
   locations: string[];
@@ -69,6 +70,7 @@ interface SortConfig {
 }
 
 const ContentCreatorsScreen: React.FC = () => {
+  const {uid} = useUser();
   const [contentCreators, setContentCreators] = useState<User[]>();
   const [filterModalState, setFilterModalState] = useState(false);
   const [navbarState, setNavbarState] = useState(true);
@@ -117,7 +119,9 @@ const ContentCreatorsScreen: React.FC = () => {
     if (!contentCreators) {
       return Array(6);
     }
-    let sortedContentCreators = [...contentCreators];
+    let sortedContentCreators = [...contentCreators].filter(
+      contentCreator => contentCreator.id !== uid,
+    );
 
     if (searchTerm && searchTerm !== '') {
       sortedContentCreators = getSimilarContentCreators(
@@ -163,6 +167,7 @@ const ContentCreatorsScreen: React.FC = () => {
       return 0;
     });
   }, [
+    uid,
     selectedFilters,
     sortConfig,
     searchTerm,
