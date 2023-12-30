@@ -164,7 +164,7 @@ export class User extends BaseModel {
   ): User {
     const data = doc.data();
     if (data && doc.exists) {
-      return new User({
+      const user = new User({
         id: doc.id,
         email: data?.email,
         phone: data?.phone,
@@ -189,6 +189,8 @@ export class User extends BaseModel {
         status: data?.status,
         bankAccountInformation: data.bankAccountInformation,
       });
+      user.syncSocialData();
+      return user;
     }
 
     throw Error("Error, document doesn't exist!");
@@ -646,6 +648,114 @@ export class User extends BaseModel {
       await new GraphRequestManager()
         .addRequest(getUserFacebookPagesListRequest)
         .start();
+    }
+  }
+
+  async syncSocialData() {
+    const {id, instagram} = this;
+    if (!id || !instagram?.isSynchronized) {
+      return;
+    }
+    const TWO_HOURS = 2 * 60 * 60 * 1000;
+    const currentTime = new Date().getTime();
+    const lastSyncTime = instagram.lastSyncAt || 0;
+    const timeDifference = currentTime - lastSyncTime;
+
+    if (timeDifference < TWO_HOURS) {
+      return;
+    }
+    if (instagram?.isSynchronized === true) {
+      try {
+        const fbAccessToken = await AccessToken.getCurrentAccessToken();
+        if (!fbAccessToken) {
+          return;
+        }
+
+        const instagramDataCallback = async (error?: Object, result?: any) => {
+          if (error) {
+            return;
+          }
+          const followersCount = result?.followers_count;
+          const instagramUsername = result?.username;
+          await User.getDocumentReference(id).update({
+            instagram: {
+              username: instagramUsername,
+              followersCount: followersCount,
+              isSynchronized: true,
+              lastSyncAt: new Date().getTime(),
+            },
+          });
+        };
+
+        const userInstagramBusinessAccountCallback = async (
+          error?: Object,
+          result?: any,
+        ) => {
+          if (error) {
+            return;
+          }
+          const instagramBusinessAccount = result?.instagram_business_account;
+          const instagramId = instagramBusinessAccount?.id;
+          const getInstagramDataRequest = new GraphRequest(
+            `/${instagramId}`,
+            {
+              parameters: {
+                fields: {
+                  string:
+                    'id,followers_count,media_count,username,website,biography,name,media,profile_picture_url',
+                },
+              },
+            },
+            instagramDataCallback,
+          );
+          await new GraphRequestManager()
+            .addRequest(getInstagramDataRequest)
+            .start();
+          console.log('userInstagramBusinessAccountCallback', result);
+        };
+
+        const userFacebookPagesListCallback = async (
+          error?: Object,
+          result?: any,
+        ) => {
+          if (error) {
+            return;
+          }
+          const data = result?.data;
+          if (data && data?.length > 0) {
+            const page = data?.[0];
+            if (page) {
+              const page_id = page?.id;
+              const getInstagramBusinessAccountRequest = new GraphRequest(
+                `/${page_id}`,
+                {
+                  parameters: {
+                    fields: {
+                      string: 'instagram_business_account',
+                    },
+                  },
+                },
+                userInstagramBusinessAccountCallback,
+              );
+              await new GraphRequestManager()
+                .addRequest(getInstagramBusinessAccountRequest)
+                .start();
+            }
+          }
+          console.log('userFacebookPagesListCallback', result);
+        };
+        const getUserFacebookPagesListRequest = new GraphRequest(
+          '/me/accounts',
+          {},
+          userFacebookPagesListCallback,
+        );
+
+        await new GraphRequestManager()
+          .addRequest(getUserFacebookPagesListRequest)
+          .start();
+      } catch (error) {
+        console.error('Error getting Facebook access token:', error);
+      }
     }
   }
 
