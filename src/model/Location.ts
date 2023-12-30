@@ -15,7 +15,6 @@ export class Location extends BaseModel {
     this.id = id;
     this.latitude = latitude;
     this.longitude = longitude;
-    // Add your non-static methods here
   }
 
   private static fromSnapshot(
@@ -49,21 +48,6 @@ export class Location extends BaseModel {
     return Location.getCollectionReference().doc(documentId);
   }
 
-  static async setLocation(documentId: string, data: Location): Promise<void> {
-    await Location.getDocumentReference(documentId).set({
-      ...data,
-    });
-  }
-
-  static async getById(documentId: string): Promise<Location | null> {
-    const snapshot = await Location.getDocumentReference(documentId).get();
-    if (!snapshot.exists) {
-      return null;
-    }
-    return Location.fromSnapshot(snapshot);
-  }
-
-  // TODO: dihapus aja yang ga kepake, yg dipake cuma getall
   static async getAll(): Promise<Location[]> {
     const querySnapshot = await Location.getCollectionReference().get();
 

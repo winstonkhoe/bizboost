@@ -35,12 +35,11 @@ export class Portfolio extends BaseModel {
     if (!userId) {
       throw Error('Portfolio userId is undefined');
     }
-    const data = {
+
+    return {
       ...rest,
       userId: User.getDocumentReference(userId),
     };
-
-    return data;
   }
 
   private static fromSnapshot(
@@ -60,17 +59,6 @@ export class Portfolio extends BaseModel {
       });
     }
     throw Error("Error, document doesn't exist!");
-  }
-
-  async updatePortfolioData(
-    documentId: string,
-    data: Portfolio,
-  ): Promise<void> {
-    await Portfolio.getDocumentReference(documentId).update({
-      ...data,
-      id: undefined,
-      userId: User.getDocumentReference(data.userId!!),
-    });
   }
 
   private static fromQuerySnapshot(
@@ -98,14 +86,6 @@ export class Portfolio extends BaseModel {
     } catch (error) {
       console.log(error);
       throw Error('Error!');
-    }
-  }
-
-  // TODO: gakepake
-  static async getById(documentId: string): Promise<Portfolio | undefined> {
-    const snapshot = await Portfolio.getDocumentReference(documentId).get();
-    if (snapshot.exists) {
-      return Portfolio.fromSnapshot(snapshot);
     }
   }
 

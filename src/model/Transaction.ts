@@ -23,7 +23,6 @@ export enum BasicStatus {
   rejected = 'Rejected',
 }
 
-// TODO: status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
 export enum PaymentStatus {
   proofWaitingForVerification = 'Waiting For Verification',
   proofApproved = 'Proof Approved',
@@ -359,21 +358,6 @@ export class Transaction extends BaseModel {
     this.payment = payment;
   }
 
-  toString(): string {
-    return `
-      Transaction ID: ${this.id}
-      Content Creator ID: ${this.contentCreatorId}
-      Campaign ID: ${this.campaignId}
-      Business People ID: ${this.businessPeopleId}
-      Offered Price: ${this.transactionAmount}
-      Important Notes: ${this.importantNotes?.join(', ') || 'N/A'}
-      Status: ${this.status}
-      Updated At: ${
-        this.updatedAt ? new Date(this.updatedAt).toLocaleString() : 'N/A'
-      }
-    `;
-  }
-
   private static fromSnapshot(
     doc:
       | FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>
@@ -617,11 +601,6 @@ export class Transaction extends BaseModel {
     return unsubscribe;
   }
 
-  async acceptOffer(transactionAmount: number) {
-    this.transactionAmount = transactionAmount;
-    return await this.updateStatus(TransactionStatus.offerApproved);
-  }
-
   async updateTermination(): Promise<boolean> {
     const {campaignId, lastCheckedAt, status} = this;
     if (
@@ -643,6 +622,9 @@ export class Transaction extends BaseModel {
     }
     try {
       const campaign = await Campaign.getById(campaignId);
+      if (!campaign) {
+        return false;
+      }
       const activeStep = campaign.getActiveTimeline()?.step;
       const campaignHaveBrainstorming =
         campaign.timeline?.find(
@@ -814,7 +796,6 @@ export class Transaction extends BaseModel {
     }
   }
 
-  // Approve regis abis bayar, sekalian offer yg dibayar jg
   async approveRegistration(): Promise<boolean> {
     const {campaignId, contentCreatorId} = this;
     if (!campaignId) {

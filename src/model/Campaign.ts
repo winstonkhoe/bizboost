@@ -240,25 +240,24 @@ export class Campaign extends BaseModel {
     }
   }
 
-  static async getById(id: string): Promise<Campaign> {
+  static async getById(id: string): Promise<Campaign | null> {
     try {
       const snapshot = await Campaign.getDocumentReference(id).get();
       if (!snapshot.exists) {
-        //TODO: throw error ilangin aja deh keknya ribet handlingnya
-        throw Error('Campaign not found!');
+        return null;
       }
-
-      const campaign = Campaign.fromSnapshot(snapshot);
-      return campaign;
-    } catch (error) {}
-    throw Error('Error!');
+      return Campaign.fromSnapshot(snapshot);
+    } catch (error) {
+      console.log('Campaign.getById error', error);
+    }
+    return null;
   }
 
   static getByIdReactive(
     id: string,
     onComplete: (campaign: Campaign | undefined) => void,
   ) {
-    const unsubscribe = Campaign.getDocumentReference(id).onSnapshot(
+    return Campaign.getDocumentReference(id).onSnapshot(
       docSnapshot => {
         if (!docSnapshot.exists) {
           onComplete(undefined);
@@ -271,8 +270,6 @@ export class Campaign extends BaseModel {
         console.log(error.message);
       },
     );
-
-    return unsubscribe;
   }
 
   //todo: GATAU namanya yang bagus apa
@@ -308,17 +305,6 @@ export class Campaign extends BaseModel {
       console.log(error);
       throw Error('Error!');
     }
-  }
-
-  async update() {
-    const {id} = this;
-    if (!id) {
-      throw Error('Campaign id is undefined');
-    }
-    Campaign.getDocumentReference(id).update({
-      ...this.toFirestore(),
-      updatedAt: new Date().getTime(),
-    });
   }
 
   getActiveTimeline(): CampaignTimeline {

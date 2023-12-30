@@ -15,7 +15,6 @@ export class Category extends BaseModel {
     this.id = id;
     this.alias = alias;
     this.image = image;
-    // Add your non-static methods here
   }
 
   private static fromSnapshot(
@@ -49,21 +48,6 @@ export class Category extends BaseModel {
     return Category.getCollectionReference().doc(documentId);
   }
 
-  static async setCategory(documentId: string, data: Category): Promise<void> {
-    await Category.getDocumentReference(documentId).set({
-      ...data,
-    });
-  }
-
-  static async getById(documentId: string): Promise<Category | null> {
-    const snapshot = await Category.getDocumentReference(documentId).get();
-    if (!snapshot.exists) {
-      return null;
-    }
-    return Category.fromSnapshot(snapshot);
-  }
-
-  // TODO: check, remove unused method (yang dipake cuma getall kayaknya)
   static async getAll(): Promise<Category[]> {
     const querySnapshot = await Category.getCollectionReference().get();
     return Category.fromQuerySnapshot(querySnapshot);
