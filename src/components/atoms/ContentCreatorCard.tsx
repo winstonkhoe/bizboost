@@ -21,15 +21,16 @@ import {overflow} from '../../styles/Overflow';
 import {padding} from '../../styles/Padding';
 import {SizeType, size} from '../../styles/Size';
 import {SocialCard} from './SocialCard';
+import {SkeletonPlaceholder} from '../molecules/SkeletonPlaceholder';
 
 interface ContentCreatorCardProps {
-  data: User;
+  data: User | null;
 }
 const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
   const navigation = useNavigation<NavigationStackProps>();
 
   const concatenatedCategories =
-    data.contentCreator?.specializedCategoryIds?.join(', ');
+    data?.contentCreator?.specializedCategoryIds?.join(', ');
   const socialSizeType: SizeType = 'xlarge';
   const ratingCategoriesSizeType: SizeType = 'medium';
   const showRatingCategories =
@@ -44,116 +45,118 @@ const ContentCreatorCard = ({data}: ContentCreatorCardProps) => {
     (showSocials ? size[socialSizeType] : 0);
 
   return (
-    <Pressable
-      style={[
-        rounded.medium,
-        overflow.hidden,
-        {
-          height: containerHeight,
-        },
-      ]}
-      onPress={() => {
-        if (!data?.id) {
-          return;
-        }
-        navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
-          contentCreatorId: data?.id,
-        });
-      }}>
-      <FastImage
-        source={getSourceOrDefaultAvatar({
-          uri: data?.contentCreator?.profilePicture,
-        })}
-        style={[dimension.full]}
-      />
-      <LinearGradient
-        colors={[
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0.1)',
-          'rgba(0, 0, 0, 0.3)',
-          'rgba(0, 0, 0, 0.65)',
-          'rgba(0, 0, 0, 1)',
-        ]}
+    <SkeletonPlaceholder isLoading={data === null}>
+      <Pressable
         style={[
+          rounded.medium,
+          overflow.hidden,
           {
-            position: 'absolute',
-            bottom: 0,
-            padding: 10,
+            height: containerHeight,
           },
-          flex.flexCol,
-          dimension.width.full,
-          padding.top.xlarge3,
-        ]}>
-        <Text
+        ]}
+        onPress={() => {
+          if (!data?.id) {
+            return;
+          }
+          navigation.navigate(AuthenticatedNavigation.ContentCreatorDetail, {
+            contentCreatorId: data?.id,
+          });
+        }}>
+        <FastImage
+          source={getSourceOrDefaultAvatar({
+            uri: data?.contentCreator?.profilePicture,
+          })}
+          style={[dimension.full]}
+        />
+        <LinearGradient
+          colors={[
+            'rgba(0, 0, 0, 0)',
+            'rgba(0, 0, 0, 0.1)',
+            'rgba(0, 0, 0, 0.3)',
+            'rgba(0, 0, 0, 0.65)',
+            'rgba(0, 0, 0, 1)',
+          ]}
           style={[
-            font.size[30],
-            textColor(COLOR.absoluteBlack[0]),
-            font.weight.semibold,
+            {
+              position: 'absolute',
+              bottom: 0,
+              padding: 10,
+            },
+            flex.flexCol,
+            dimension.width.full,
+            padding.top.xlarge3,
           ]}>
-          {data?.contentCreator?.fullname}
-        </Text>
-        {showRatingCategories && (
-          <View
+          <Text
             style={[
-              flex.flexRow,
-              items.center,
-              dimension.height[ratingCategoriesSizeType],
+              font.size[30],
+              textColor(COLOR.absoluteBlack[0]),
+              font.weight.semibold,
             ]}>
-            {data?.contentCreator && data?.contentCreator?.ratedCount > 0 && (
-              <View style={[flex.flexRow, gap.xsmall, items.center]}>
-                <RatingStarIcon
-                  width={8}
-                  height={8}
-                  fill={'rgb(245, 208, 27)'}
-                />
+            {data?.contentCreator?.fullname}
+          </Text>
+          {showRatingCategories && (
+            <View
+              style={[
+                flex.flexRow,
+                items.center,
+                dimension.height[ratingCategoriesSizeType],
+              ]}>
+              {data?.contentCreator && data?.contentCreator?.ratedCount > 0 && (
+                <View style={[flex.flexRow, gap.xsmall, items.center]}>
+                  <RatingStarIcon
+                    width={8}
+                    height={8}
+                    fill={'rgb(245, 208, 27)'}
+                  />
+                  <Text
+                    style={[
+                      font.size[10],
+                      font.weight.medium,
+                      textColor(COLOR.absoluteBlack[0]),
+                    ]}>
+                    {`${data?.contentCreator?.rating} · `}
+                  </Text>
+                </View>
+              )}
+              {concatenatedCategories && (
                 <Text
+                  numberOfLines={1}
                   style={[
-                    font.size[10],
+                    flex.flex1,
                     font.weight.medium,
+                    font.size[10],
                     textColor(COLOR.absoluteBlack[0]),
                   ]}>
-                  {`${data?.contentCreator?.rating} · `}
+                  {concatenatedCategories}
                 </Text>
-              </View>
-            )}
-            {concatenatedCategories && (
-              <Text
-                numberOfLines={1}
-                style={[
-                  flex.flex1,
-                  font.weight.medium,
-                  font.size[10],
-                  textColor(COLOR.absoluteBlack[0]),
-                ]}>
-                {concatenatedCategories}
-              </Text>
-            )}
-          </View>
-        )}
-        {showSocials && (
-          <View
-            style={[
-              flex.flexRow,
-              items.center,
-              gap.small,
-              dimension.height[socialSizeType],
-            ]}>
-            {data?.instagram?.username && (
-              <SocialCard
-                platform={SocialPlatform.Instagram}
-                data={data?.instagram}
-              />
-            )}
-            {data?.tiktok?.username && (
-              <SocialCard
-                platform={SocialPlatform.Tiktok}
-                data={data?.tiktok}
-              />
-            )}
-          </View>
-        )}
-      </LinearGradient>
-    </Pressable>
+              )}
+            </View>
+          )}
+          {showSocials && (
+            <View
+              style={[
+                flex.flexRow,
+                items.center,
+                gap.small,
+                dimension.height[socialSizeType],
+              ]}>
+              {data?.instagram?.username && (
+                <SocialCard
+                  platform={SocialPlatform.Instagram}
+                  data={data?.instagram}
+                />
+              )}
+              {data?.tiktok?.username && (
+                <SocialCard
+                  platform={SocialPlatform.Tiktok}
+                  data={data?.tiktok}
+                />
+              )}
+            </View>
+          )}
+        </LinearGradient>
+      </Pressable>
+    </SkeletonPlaceholder>
   );
 };
 

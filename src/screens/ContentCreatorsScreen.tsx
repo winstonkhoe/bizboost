@@ -117,7 +117,7 @@ const ContentCreatorsScreen: React.FC = () => {
 
   const filteredContentCreators = useMemo(() => {
     if (!contentCreators) {
-      return Array(6);
+      return new Array(6).fill(null);
     }
     let sortedContentCreators = [...contentCreators].filter(
       contentCreator => contentCreator.id !== uid,
