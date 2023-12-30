@@ -50,7 +50,14 @@ const ChatListScreen = () => {
                   },
                 ]}
               />
-              <Text className="text-black">No chat available</Text>
+              <Text
+                style={[
+                  font.size[40],
+                  font.weight.medium,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
+                No chat available
+              </Text>
             </View>
           )}
         </ScrollView>
