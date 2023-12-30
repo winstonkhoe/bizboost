@@ -4,12 +4,10 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../../components/atoms/ViewPadding';
-import {Pressable, Text, View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
-import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
-import {font} from '../../styles/Font';
 import {InternalLink} from '../../components/atoms/Link';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
@@ -20,6 +18,7 @@ import {openCategoryModal} from '../../utils/modal';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationStackProps} from '../../navigation/StackNavigation';
 import FastImage from 'react-native-fast-image';
+import {FormFieldHelper} from '../../components/atoms/FormLabel';
 
 interface RegisterFocusCategoryProps {
   onCategoriesChange: (categories: Category[]) => void;
@@ -53,17 +52,12 @@ export const RegisterFocusCategory = ({
       <HorizontalPadding paddingSize="large">
         <View style={[flex.flexCol, gap.xlarge2]}>
           <View style={[flex.flexRow, items.center]}>
-            <View style={[flex.flexCol, flex.growShrink, gap.small]}>
-              <Text
-                className="font-bold"
-                style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-                Category
-              </Text>
-              <Text
-                className="font-semibold"
-                style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
-                Category that you are focusing on
-              </Text>
+            <View style={[flex.flex1]}>
+              <FormFieldHelper
+                title="Category"
+                description="Category that you are focusing on"
+                type="optional"
+              />
             </View>
             <InternalLink text="Add" onPress={openModalCategory} />
           </View>

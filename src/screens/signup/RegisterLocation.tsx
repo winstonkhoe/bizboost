@@ -1,4 +1,4 @@
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {
   HorizontalPadding,
   VerticalPadding,
@@ -11,10 +11,8 @@ import {Location} from '../../model/Location';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationStackProps} from '../../navigation/StackNavigation';
 import {InternalLink} from '../../components/atoms/Link';
-import {textColor} from '../../styles/Text';
-import {COLOR} from '../../styles/Color';
-import {font} from '../../styles/Font';
 import {RemovableChip} from '../../components/atoms/Chip';
+import {FormFieldHelper} from '../../components/atoms/FormLabel';
 
 interface RegisterLocationProps {
   onLocationsChange: (locations: Location[]) => void;
@@ -41,17 +39,12 @@ export const RegisterLocation = ({
       <HorizontalPadding paddingSize="large">
         <View style={[flex.flexCol, gap.xlarge]}>
           <View style={[flex.flexRow, items.center]}>
-            <View style={[flex.flexCol, flex.growShrink, gap.small]}>
-              <Text
-                className="font-bold"
-                style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-                Preferred Job Location
-              </Text>
-              <Text
-                className="font-semibold"
-                style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
-                Optimize job recommendations
-              </Text>
+            <View style={[flex.flex1]}>
+              <FormFieldHelper
+                title="Content Territory"
+                description="Let business people understand your target audience and content reach"
+                type="optional"
+              />
             </View>
             <InternalLink
               text="Add"
