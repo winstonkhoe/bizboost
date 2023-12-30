@@ -6,13 +6,10 @@ import {
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {SocialPlatform, User, UserRole} from '../model/User';
-import {Dimensions, ScrollView, Text, View} from 'react-native';
+import {ScrollView, Text, View} from 'react-native';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {font} from '../styles/Font';
 import {flex, items, justify} from '../styles/Flex';
-import StarIcon from '../assets/vectors/star.svg';
-import InstagramLogo from '../assets/vectors/instagram.svg';
-import TiktokLogo from '../assets/vectors/tiktok.svg';
 import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
 import {formatDateToDayMonthYear} from '../utils/date';
@@ -37,6 +34,7 @@ import {SocialCard} from '../components/atoms/SocialCard';
 import {RatingStarIcon} from '../components/atoms/Icon';
 import {overflow} from '../styles/Overflow';
 import {formatNumberWithSuffix} from '../utils/number';
+import {SocialSummary} from '../components/molecules/SocialCard';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -85,79 +83,79 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
             paddingBottom: Math.max(safeAreaInsets.bottom, size.large),
           },
         ]}>
-        <View style={[flex.flexRow, gap.default]}>
-          <View style={[padding.left.xlarge2]}>
-            <View
-              style={[
-                dimension.square.xlarge5,
-                overflow.hidden,
-                rounded.medium,
-              ]}>
-              <FastImage
-                style={[dimension.full]}
-                source={getSourceOrDefaultAvatar({
-                  uri: contentCreator?.contentCreator?.profilePicture,
-                })}
-              />
-            </View>
-          </View>
-          <View style={[flex.flex1, flex.flexCol, gap.small]}>
-            <View style={[flex.flexCol]}>
-              <Text
-                style={[
-                  font.size[30],
-                  textColor(COLOR.text.neutral.high),
-                  font.weight.semibold,
-                ]}
-                numberOfLines={1}>
-                {contentCreator?.contentCreator?.fullname}
-              </Text>
+        <View style={[flex.flexCol, gap.default, padding.horizontal.medium]}>
+          <View style={[flex.flexRow, gap.default]}>
+            <View style={[padding.left.xlarge2]}>
               <View
-                style={[flex.flexRow, justify.start, items.center, gap.xsmall]}>
-                <RatingStarIcon size="medium" />
-                <Text
-                  style={[
-                    font.size[20],
-                    font.weight.semibold,
-                    textColor(COLOR.text.neutral.high),
-                  ]}>
-                  {`${
-                    contentCreator?.contentCreator?.rating
-                  } (${formatNumberWithSuffix(
-                    contentCreator?.contentCreator?.ratedCount || 0,
-                  )})` ?? 'Not rated'}
-                </Text>
+                style={[
+                  dimension.square.xlarge3,
+                  overflow.hidden,
+                  rounded.medium,
+                ]}>
+                <FastImage
+                  style={[dimension.full]}
+                  source={getSourceOrDefaultAvatar({
+                    uri: contentCreator?.contentCreator?.profilePicture,
+                  })}
+                />
               </View>
             </View>
-            <View style={[flex.flexCol, items.start, gap.xsmall]}>
-              {contentCreator?.instagram?.username && (
-                <SocialCard
-                  inverted
-                  type="detail"
-                  platform={SocialPlatform.Instagram}
-                  data={contentCreator?.instagram}
-                />
-              )}
-              {contentCreator?.tiktok?.username && (
-                <SocialCard
-                  inverted
-                  type="detail"
-                  platform={SocialPlatform.Tiktok}
-                  data={contentCreator?.tiktok}
-                />
-              )}
+            <View style={[flex.flex1, flex.flexCol, gap.small]}>
+              <View style={[flex.flexCol]}>
+                <Text
+                  style={[
+                    font.size[30],
+                    textColor(COLOR.text.neutral.high),
+                    font.weight.semibold,
+                  ]}
+                  numberOfLines={1}>
+                  {contentCreator?.contentCreator?.fullname}
+                </Text>
+                <View
+                  style={[
+                    flex.flexRow,
+                    justify.start,
+                    items.center,
+                    gap.xsmall,
+                  ]}>
+                  <RatingStarIcon size="medium" />
+                  <Text
+                    style={[
+                      font.size[20],
+                      font.weight.semibold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}>
+                    {`${
+                      contentCreator?.contentCreator?.rating
+                    } (${formatNumberWithSuffix(
+                      contentCreator?.contentCreator?.ratedCount || 0,
+                    )})` ?? 'Not rated'}
+                  </Text>
+                </View>
+              </View>
             </View>
+          </View>
+          <View style={[flex.flexRow, gap.default]}>
+            {contentCreator?.instagram?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Instagram}
+                data={contentCreator?.instagram}
+              />
+            )}
+            {contentCreator?.tiktok?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Tiktok}
+                data={contentCreator?.tiktok}
+              />
+            )}
           </View>
         </View>
         <TabView labels={['Detail', 'Portfolio', 'Reviews']}>
           <ScrollView
             bounces={false}
-            contentContainerStyle={[
-              flex.flexCol,
-              gap.medium,
-              padding.horizontal.large,
-              padding.bottom.large,
-            ]}>
+            contentContainerStyle={[flex.flexCol, gap.medium, padding.large]}>
             <View style={[flex.flexCol]}>
               <Text
                 style={[textColor(COLOR.text.neutral.high), font.weight.bold]}>

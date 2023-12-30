@@ -18,6 +18,7 @@ import {formatDateToHourMinute} from '../../utils/date';
 import {PlatformData} from '../../screens/signup/RegisterSocialPlatform';
 import {background} from '../../styles/BackgroundColor';
 import {formatNumberWithThousandSeparator} from '../../utils/number';
+import {SocialCard} from '../atoms/SocialCard';
 
 interface ContentCreatorSectionProps {
   title?: string;
@@ -126,79 +127,22 @@ export const ContentCreatorCard = ({...props}: ContentCreatorCardProps) => {
         <>
           <View style={[styles.bottomBorder]} />
           <View style={[flex.flexRow, flex.wrap, gap.small, justify.around]}>
-            {props.contentCreator?.instagram && (
-              <SocialDetail
-                platformData={{
-                  platform: SocialPlatform.Instagram,
-                  data: props.contentCreator?.instagram,
-                }}
+            {props.contentCreator?.instagram?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Instagram}
+                data={props.contentCreator.instagram}
               />
             )}
-            {props.contentCreator?.tiktok && (
-              <SocialDetail
-                platformData={{
-                  platform: SocialPlatform.Tiktok,
-                  data: props.contentCreator?.tiktok,
-                }}
+            {props.contentCreator?.tiktok?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Tiktok}
+                data={props.contentCreator.tiktok}
               />
             )}
           </View>
         </>
-      )}
-    </View>
-  );
-};
-
-interface SocialDetailProps {
-  platformData: PlatformData;
-}
-
-const SocialDetail = ({platformData}: SocialDetailProps) => {
-  return (
-    <View
-      style={[
-        flex.flex1,
-        flex.flexCol,
-        items.center,
-        border({
-          borderWidth: 1,
-          color: COLOR.black[20],
-        }),
-        gap.small,
-        rounded.default,
-        padding.small,
-      ]}>
-      <View
-        style={[
-          flex.flex1,
-          flex.flexRow,
-          gap.small,
-          items.center,
-          rounded.small,
-          background(COLOR.black[20]),
-          padding.small,
-        ]}>
-        <PlatformIcon platform={platformData.platform} size="default" />
-        <View style={[flex.flex1]}>
-          <Text
-            className="font-medium"
-            style={[textColor(COLOR.text.neutral.high), font.size[10]]}
-            numberOfLines={1}>{`@${platformData.data.username}`}</Text>
-        </View>
-      </View>
-      {platformData.data.followersCount && (
-        <View style={[flex.flexCol, items.center]}>
-          <Text
-            className="font-medium"
-            style={[textColor(COLOR.text.neutral.high), font.size[20]]}>
-            {formatNumberWithThousandSeparator(
-              platformData.data.followersCount,
-            )}
-          </Text>
-          <Text style={[textColor(COLOR.text.neutral.high), font.size[10]]}>
-            Followers
-          </Text>
-        </View>
       )}
     </View>
   );

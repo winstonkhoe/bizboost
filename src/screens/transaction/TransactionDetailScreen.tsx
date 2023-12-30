@@ -757,8 +757,11 @@ const TransactionDetailScreen = ({route}: Props) => {
                 setIsReportSheetModalOpen(true);
               }}>
               <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[40],
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                ]}>
                 Report
               </Text>
             </AnimatedPressable>
@@ -768,8 +771,11 @@ const TransactionDetailScreen = ({route}: Props) => {
               style={[padding.vertical.default, padding.horizontal.large]}
               onPress={handleReject}>
               <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[40],
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                ]}>
                 Reject
               </Text>
             </AnimatedPressable>
@@ -823,9 +829,9 @@ const TransactionDetailScreen = ({route}: Props) => {
                       padding.horizontal.default,
                     ]}>
                     <Text
-                      className="font-semibold"
                       style={[
                         font.size[30],
+                        font.weight.semibold,
                         textColor(COLOR.text.neutral.high),
                       ]}>
                       Your reports

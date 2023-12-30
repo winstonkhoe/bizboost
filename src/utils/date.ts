@@ -110,6 +110,19 @@ export const formatDateToDayMonthYearHourMinute = (date: Date): string => {
   return `${date.toLocaleDateString('en-US', options)} WIB`;
 };
 
+export const formatDateToDayMonthYearHourMinuteShort = (date: Date): string => {
+  const options = {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Jakarta',
+  } as const;
+  return `${date.toLocaleDateString('en-US', options)}`;
+};
+
 export const formatDateToHourMinute = (
   date: Date,
   withZone: boolean = true,
