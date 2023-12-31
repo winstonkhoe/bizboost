@@ -346,7 +346,6 @@ const CreateCampaignScreen = () => {
             <PagerView
               style={[flex.flex1, flex.grow]}
               ref={pagerViewRef}
-              initialPage={2}
               scrollEnabled={false}>
               <ScrollView style={[flex.flex1]} key={0}>
                 <KeyboardAvoidingContainer>
