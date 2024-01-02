@@ -283,10 +283,9 @@ export class User extends BaseModel {
       }
 
       const {profilePicture} = businessPeople;
-      if (!profilePicture) {
-        throw Error('Profile picture is not defined!');
+      if (profilePicture) {
+        await deleteFileByURL(profilePicture);
       }
-      await deleteFileByURL(profilePicture);
 
       this.businessPeople = {
         ...businessPeople,
