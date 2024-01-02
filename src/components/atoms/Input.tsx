@@ -210,8 +210,8 @@ export const CustomTextInput = ({
                 {(prefix || inputType === 'price') && (
                   <View style={[flex.flexRow, justify.start, items.end]}>
                     <Text
-                      className="font-semibold"
                       style={[
+                        font.weight.semibold,
                         textColor(COLOR.text.neutral.low),
                         font.size[30],
                       ]}>
@@ -222,7 +222,7 @@ export const CustomTextInput = ({
                 <TextInput
                   autoCorrect={false}
                   autoCapitalize="none"
-                  scrollEnabled={false}
+                  scrollEnabled={type === 'textarea'}
                   placeholderTextColor={COLOR.text.neutral.med}
                   keyboardType={
                     keyboardType
@@ -236,15 +236,15 @@ export const CustomTextInput = ({
                   textAlignVertical={type === 'textarea' ? 'top' : 'bottom'}
                   multiline={type === 'textarea'}
                   style={[
-                    flex.flexRow,
                     self.start,
-                    font.size[30],
-                    font.lineHeight[30],
+                    font.size[20],
+                    font.lineHeight[20],
                     padding.vertical.zero,
                     padding.horizontal.zero,
                     type === 'textarea' && {
-                      minHeight: lineHeight[30] * 3,
+                      minHeight: lineHeight[20] * 3,
                     },
+                    font.weight.medium,
                     textColor(
                       controllerProps.disabled
                         ? COLOR.text.neutral.low
@@ -266,7 +266,7 @@ export const CustomTextInput = ({
                   editable={!controllerProps.disabled}
                   onChangeText={text => handleChangeText(text, onChange)}
                   placeholder={placeholder}
-                  className="w-full font-medium"
+                  className="w-full"
                 />
               </Animated.View>
 
