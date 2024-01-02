@@ -187,100 +187,108 @@ const ProfileScreen = () => {
         </Pressable>
       </View>
       {/* TODO: tab labels sesuai role */}
-      <TabView labels={['Home', 'Portfolio', 'Reviews']}>
-        <ScrollView
-          contentContainerStyle={[
-            flex.flexRow,
-            flex.wrap,
-            justify.between,
-            items.center,
-            padding.default,
-          ]}>
-          {!isAdmin && (
+      {activeRole !== UserRole.Admin && (
+        <TabView labels={['Home', 'Portfolio', 'Reviews']}>
+          <ScrollView
+            contentContainerStyle={[
+              flex.flexRow,
+              flex.wrap,
+              justify.between,
+              items.center,
+              padding.default,
+            ]}>
+            {!isAdmin && (
+              <ProfileMenuCard
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyTransactions, {
+                    userId: uid || '',
+                    role: activeRole,
+                  });
+                }}
+                icon={
+                  <TransactionIcon fill={'#72B3FF'} height={80} width={80} />
+                }
+                title="My Transactions"
+                subtitle={`${ongoingTransactionsCount} Ongoing\n${completedTransactionsCount} Finished`}
+              />
+            )}
             <ProfileMenuCard
               handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.MyTransactions, {
-                  userId: uid || '',
-                  role: activeRole,
-                });
+                navigation.navigate(AuthenticatedNavigation.AboutMe);
               }}
-              icon={<TransactionIcon fill={'#72B3FF'} height={80} width={80} />}
-              title="My Transactions"
-              subtitle={`${ongoingTransactionsCount} Ongoing\n${completedTransactionsCount} Finished`}
+              icon={<AboutIcon fill={'#FB8A2E'} height={80} width={80} />}
+              title="About Me"
+              subtitle={'Edit Information people see on your profile'}
             />
-          )}
-          <ProfileMenuCard
-            handleOnClick={() => {
-              navigation.navigate(AuthenticatedNavigation.AboutMe);
-            }}
-            icon={<AboutIcon fill={'#FB8A2E'} height={80} width={80} />}
-            title="About Me"
-            subtitle={'Edit Information people see on your profile'}
-          />
 
-          {isContentCreator && [
+            {isContentCreator && [
+              <ProfileMenuCard
+                key={'Withdraw Money'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.WithdrawMoney);
+                }}
+                icon={
+                  <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
+                }
+                title={'Withdraw Money'}
+                subtitle={'2 Transactions ready to be withdrawn'}
+              />,
+              <ProfileMenuCard
+                key={'Upload Video'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.UploadVideo);
+                }}
+                icon={<AddIcon fill={COLOR.red[40]} height={80} width={80} />}
+                title="Upload Video"
+                subtitle={'Add more videos to promote yourself.'}
+              />,
+            ]}
+            {isBusinessPeople && [
+              <ProfileMenuCard
+                key={'My Campaigns'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyCampaigns);
+                }}
+                icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
+                title="My Campaigns"
+                subtitle={`${publicCampaignsCount} Public\n${
+                  campaigns.length - publicCampaignsCount
+                } Private`}
+              />,
+              // TODO: ini kayaknya ga perlu lagi
+              <ProfileMenuCard
+                key={'Pay Content Creator'}
+                handleOnClick={() => {
+                  navigation.navigate(
+                    AuthenticatedNavigation.PayContentCreator,
+                  );
+                }}
+                icon={
+                  <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
+                }
+                title={'Pay Content Creator'}
+                subtitle={'0 Pending Payment'}
+              />,
+            ]}
             <ProfileMenuCard
-              key={'Withdraw Money'}
               handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.WithdrawMoney);
+                navigation.navigate(AuthenticatedNavigation.ReportList);
               }}
-              icon={<MoneyIcon fill={COLOR.green[50]} height={80} width={80} />}
-              title={'Withdraw Money'}
-              subtitle={'2 Transactions ready to be withdrawn'}
-            />,
-            <ProfileMenuCard
-              key={'Upload Video'}
-              handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.UploadVideo);
-              }}
-              icon={<AddIcon fill={COLOR.red[40]} height={80} width={80} />}
-              title="Upload Video"
-              subtitle={'Add more videos to promote yourself.'}
-            />,
-          ]}
-          {isBusinessPeople && [
-            <ProfileMenuCard
-              key={'My Campaigns'}
-              handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.MyCampaigns);
-              }}
-              icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
-              title="My Campaigns"
-              subtitle={`${publicCampaignsCount} Public\n${
-                campaigns.length - publicCampaignsCount
-              } Private`}
-            />,
-            // TODO: ini kayaknya ga perlu lagi
-            <ProfileMenuCard
-              key={'Pay Content Creator'}
-              handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.PayContentCreator);
-              }}
-              icon={<MoneyIcon fill={COLOR.green[50]} height={80} width={80} />}
-              title={'Pay Content Creator'}
-              subtitle={'0 Pending Payment'}
-            />,
-          ]}
-          <ProfileMenuCard
-            handleOnClick={() => {
-              navigation.navigate(AuthenticatedNavigation.ReportList);
-            }}
-            icon={<ReportIssueIcon size="xlarge5" />}
-            title="My Reports"
-            subtitle="See your reports and their status"
-          />
-        </ScrollView>
-        {activeRole === UserRole.ContentCreator && (
-          <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
-            <PortfolioList portfolios={portfolios} />
+              icon={<ReportIssueIcon size="xlarge5" />}
+              title="My Reports"
+              subtitle="See your reports and their status"
+            />
           </ScrollView>
-        )}
-        {activeRole !== UserRole.Admin && (
+          {activeRole === UserRole.ContentCreator && (
+            <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
+              <PortfolioList portfolios={portfolios} />
+            </ScrollView>
+          )}
           <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
             <ReviewList reviews={reviews} />
           </ScrollView>
-        )}
-      </TabView>
+        </TabView>
+      )}
     </View>
   );
 };
