@@ -81,17 +81,10 @@ const ChatItem = ({chat}: ChatItemProps) => {
           });
         }
       }}>
-      <View
-        style={[
-          flex.flexRow,
-          items.center,
-          styles.borderHorizontal,
-          padding.default,
-          gap.default,
-        ]}>
+      <View style={[flex.flexRow, items.start, padding.default, gap.default]}>
         <SkeletonPlaceholder isLoading={recipient === undefined}>
           <View
-            style={[dimension.square.xlarge2, rounded.max, overflow.hidden]}>
+            style={[dimension.square.xlarge3, rounded.max, overflow.hidden]}>
             <FastImage
               style={[dimension.full]}
               source={getSourceOrDefaultAvatar({
@@ -108,13 +101,13 @@ const ChatItem = ({chat}: ChatItemProps) => {
                 font.weight.medium,
                 textColor(COLOR.text.neutral.high),
               ]}>
-              {recipient ? recipient.fullname : 'User'}
+              {recipient?.fullname || 'Unknown User'}
             </Text>
           </SkeletonPlaceholder>
           <SkeletonPlaceholder isLoading={recipient === undefined}>
             {latestMessage && (
               <Text
-                numberOfLines={1}
+                numberOfLines={2}
                 style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
                 {getLatestMessage()}
               </Text>
@@ -123,7 +116,12 @@ const ChatItem = ({chat}: ChatItemProps) => {
         </View>
         {latestMessage && (
           <SkeletonPlaceholder isLoading={recipient === undefined}>
-            <Text style={[font.size[10], textColor(COLOR.text.neutral.med)]}>
+            <Text
+              style={[
+                font.size[20],
+                textColor(COLOR.text.neutral.med),
+                font.weight.normal,
+              ]}>
               {formatDateToHourMinute(new Date(latestMessage.createdAt))}
             </Text>
           </SkeletonPlaceholder>
@@ -132,13 +130,5 @@ const ChatItem = ({chat}: ChatItemProps) => {
     </Pressable>
   );
 };
-
-const styles = StyleSheet.create({
-  borderHorizontal: {
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: COLOR.black[20],
-  },
-});
 
 export default ChatItem;
