@@ -102,7 +102,8 @@ const ProfileScreen = () => {
     updatedUser.updateProfilePicture(activeRole, url);
   };
 
-  if (!reviews || !transactions) {
+  // TODO: kondisi buat admin
+  if ((!reviews || !transactions) && activeRole !== UserRole.Admin) {
     return <LoadingScreen />;
   }
 
@@ -185,6 +186,7 @@ const ProfileScreen = () => {
           />
         </Pressable>
       </View>
+      {/* TODO: tab labels sesuai role */}
       <TabView labels={['Home', 'Portfolio', 'Reviews']}>
         <ScrollView
           contentContainerStyle={[
@@ -268,12 +270,16 @@ const ProfileScreen = () => {
             subtitle="See your reports and their status"
           />
         </ScrollView>
-        <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
-          <PortfolioList portfolios={portfolios} />
-        </ScrollView>
-        <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
-          <ReviewList reviews={reviews} />
-        </ScrollView>
+        {activeRole === UserRole.ContentCreator && (
+          <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
+            <PortfolioList portfolios={portfolios} />
+          </ScrollView>
+        )}
+        {activeRole !== UserRole.Admin && (
+          <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
+            <ReviewList reviews={reviews} />
+          </ScrollView>
+        )}
       </TabView>
     </View>
   );
