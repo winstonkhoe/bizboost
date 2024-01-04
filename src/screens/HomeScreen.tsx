@@ -956,7 +956,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
               ]}
               onPress={() => {
                 navigation.navigate(
-                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                  AuthenticatedNavigation.EditBankAccountInformation,
                 );
               }}>
               <Text
@@ -988,7 +988,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
               size={20}
               onPress={() => {
                 navigation.navigate(
-                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                  AuthenticatedNavigation.EditBankAccountInformation,
                 );
               }}
             />

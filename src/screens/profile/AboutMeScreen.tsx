@@ -141,7 +141,35 @@ const AboutMeScreen = () => {
                     Content Creator Information
                   </Text>
                 </View>
-
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(AuthenticatedNavigation.EditBiodata);
+                  }}>
+                  <Text
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Biodata
+                  </Text>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View className="w-3/5 flex flex-row items-center justify-end">
+                      <Text
+                        className="overflow-hidden text-right"
+                        numberOfLines={1}
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {user?.contentCreator?.biodata
+                          ? user?.contentCreator?.biodata
+                          : 'None'}
+                      </Text>
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
                 <Pressable
                   className="flex flex-row items-center justify-between"
                   onPress={() => {
@@ -381,7 +409,7 @@ const AboutMeScreen = () => {
               className="flex flex-row items-center justify-between"
               onPress={() => {
                 navigation.navigate(
-                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                  AuthenticatedNavigation.EditBankAccountInformation,
                 );
               }}>
               <Text

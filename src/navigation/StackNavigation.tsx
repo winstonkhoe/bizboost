@@ -52,6 +52,7 @@ import {OfferDetailScreen} from '../screens/OfferDetailScreen';
 import {SocialData, User, UserRole} from '../model/User';
 import {Providers} from '../model/AuthMethod';
 import ModalSubmitContentCreation from '../screens/campaign/timeline/ModalSubmitContentCreation';
+import EditBiodataScreen from '../screens/profile/edit/EditBiodataScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -82,10 +83,11 @@ export enum AuthenticatedNavigation {
   MyCampaigns = 'My Campaigns',
   AboutMe = 'About Me',
   ChangePassword = 'Change Password',
+  EditBiodata = 'Edit Biodata',
   EditMaxContentRevision = 'Edit Max Content Revision',
   EditPostingSchedule = 'Edit Posting Schedule',
   EditPreferences = 'Edit Preferences',
-  EditBankAccountInformationScreen = 'Edit Bank Account Information',
+  EditBankAccountInformation = 'Edit Bank Account Information',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -161,10 +163,11 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.MyCampaigns]: undefined;
   [AuthenticatedNavigation.AboutMe]: undefined;
   [AuthenticatedNavigation.ChangePassword]: undefined;
+  [AuthenticatedNavigation.EditBiodata]: undefined;
   [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
   [AuthenticatedNavigation.EditPostingSchedule]: undefined;
   [AuthenticatedNavigation.EditPreferences]: undefined;
-  [AuthenticatedNavigation.EditBankAccountInformationScreen]: undefined;
+  [AuthenticatedNavigation.EditBankAccountInformation]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
@@ -382,6 +385,10 @@ const StackNavigator = () => {
                   component={ChangePasswordScreen}
                 />
                 <Stack.Screen
+                  name={AuthenticatedNavigation.EditBiodata}
+                  component={EditBiodataScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.EditMaxContentRevision}
                   component={EditMaxContentRevisionScreen}
                 />
@@ -394,9 +401,7 @@ const StackNavigator = () => {
                   component={EditPreferencesScreen}
                 />
                 <Stack.Screen
-                  name={
-                    AuthenticatedNavigation.EditBankAccountInformationScreen
-                  }
+                  name={AuthenticatedNavigation.EditBankAccountInformation}
                   component={EditBankAccountInformationScreen}
                 />
                 <Stack.Screen

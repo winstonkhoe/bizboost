@@ -576,7 +576,7 @@ const TransactionDetailScreen = ({route}: Props) => {
                             ? onRequestWithdraw
                             : () =>
                                 navigation.navigate(
-                                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                                  AuthenticatedNavigation.EditBankAccountInformation,
                                 ),
                           style: 'default',
                         },
