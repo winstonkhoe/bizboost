@@ -67,6 +67,7 @@ export type ContentCreator = BaseUserData &
   ContentCreatorPreference & {
     specializedCategoryIds: string[];
     preferredLocationIds: string[];
+    biodata: string;
   };
 
 export type BusinessPeople = BaseUserData;
@@ -135,6 +136,7 @@ export class User extends BaseModel {
       fullname: contentCreator?.fullname || '',
       rating: contentCreator?.rating || 0,
       ratedCount: contentCreator?.ratedCount || 0,
+      biodata: contentCreator?.biodata || '',
     };
     this.businessPeople = {
       ...businessPeople,
