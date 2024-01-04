@@ -12,7 +12,7 @@ import {font} from '../styles/Font';
 import {flex, items, justify} from '../styles/Flex';
 import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
-import {formatDateToDayMonthYear} from '../utils/date';
+import {formatDateToDayMonthYear, formatDateToTime12Hrs} from '../utils/date';
 import FastImage from 'react-native-fast-image';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {padding} from '../styles/Padding';
@@ -31,10 +31,12 @@ import {Review} from '../model/Review';
 import {LoadingScreen} from './LoadingScreen';
 import {ReviewList} from '../components/organisms/ReviewList';
 import {SocialCard} from '../components/atoms/SocialCard';
-import {RatingStarIcon} from '../components/atoms/Icon';
+import {DateIcon, RatingStarIcon} from '../components/atoms/Icon';
 import {overflow} from '../styles/Overflow';
 import {formatNumberWithSuffix} from '../utils/number';
 import {SocialSummary} from '../components/molecules/SocialCard';
+import TagCard from '../components/atoms/TagCard';
+import {border} from '../styles/Border';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -209,13 +211,45 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     ]}>
                     Posting Schedules
                   </Text>
-                  {contentCreator?.contentCreator?.postingSchedules?.map(
-                    (sched, idx) => (
-                      <Text key={idx}>
-                        • {formatDateToDayMonthYear(new Date(sched))}
-                      </Text>
-                    ),
-                  )}
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}
+                    className="w-full">
+                    {contentCreator?.contentCreator?.postingSchedules?.map(
+                      (sched, idx) => (
+                        <View
+                          key={idx}
+                          style={[
+                            flex.flexRow,
+                            gap.small,
+                            items.center,
+                            rounded.default,
+                            padding.vertical.small,
+                            padding.horizontal.default,
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.green[50],
+                            }),
+                          ]}>
+                          <DateIcon
+                            width={20}
+                            height={20}
+                            color={COLOR.green[50]}
+                          />
+                          <Text
+                            className="font-semibold"
+                            style={[textColor(COLOR.green[60]), font.size[30]]}>
+                            {formatDateToTime12Hrs(new Date(sched))}
+                          </Text>
+                        </View>
+                      ),
+                    )}
+                  </View>
                 </View>
               )}
             {contentCreator?.contentCreator?.specializedCategoryIds &&
@@ -229,19 +263,15 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     ]}>
                     Specialized Categories
                   </Text>
-                  <ScrollView
-                    horizontal
-                    contentContainerStyle={(flex.flexRow, gap.small)}>
+                  <View style={[flex.flexRow, gap.small]}>
                     {contentCreator?.contentCreator?.specializedCategoryIds?.map(
                       (cat, idx) => (
                         <View style={padding.top.xsmall} key={idx}>
-                          <Text className="bg-primary py-1 px-2 rounded-md text-white">
-                            {cat}
-                          </Text>
+                          <TagCard text={cat} />
                         </View>
                       ),
                     )}
-                  </ScrollView>
+                  </View>
                 </View>
               )}
           </ScrollView>
