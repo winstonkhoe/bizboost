@@ -161,17 +161,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                 style={[textColor(COLOR.text.neutral.high), font.weight.bold]}>
                 About Me
               </Text>
-              <Text>
-                Hi there! I'm Emily, a content creator weaving stories and
-                visuals in the digital realm. From crafting eye-catching
-                Instagram feeds to whipping up engaging TikTok moments, I thrive
-                on transforming ideas into captivating digital experiences.
-                Beyond just creating content, it's about fostering connections
-                and sparking meaningful conversations. With a knack for staying
-                on top of trends and a commitment to authenticity, I love
-                navigating the dynamic world of content creation, where each
-                post is a brushstroke in my canvas of digital expression.
-              </Text>
+              <Text>{contentCreator?.contentCreator?.biodata || '-'}</Text>
             </View>
             {contentCreator?.contentCreator?.preferences &&
               contentCreator.contentCreator.preferences.length > 0 && (
