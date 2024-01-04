@@ -34,9 +34,9 @@ import {SocialCard} from '../components/atoms/SocialCard';
 import {DateIcon, RatingStarIcon} from '../components/atoms/Icon';
 import {overflow} from '../styles/Overflow';
 import {formatNumberWithSuffix} from '../utils/number';
-import {SocialSummary} from '../components/molecules/SocialCard';
-import TagCard from '../components/atoms/TagCard';
 import {border} from '../styles/Border';
+import StatusTag, {StatusType} from '../components/atoms/StatusTag';
+import LocationTag from '../components/atoms/LocationTag';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -194,11 +194,22 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     ]}>
                     Preferred Locations
                   </Text>
-                  {contentCreator.contentCreator.preferredLocationIds.map(
-                    (loc, idx) => (
-                      <Text key={idx}>• {loc}</Text>
-                    ),
-                  )}
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}>
+                    {contentCreator?.contentCreator?.preferredLocationIds?.map(
+                      (loc, idx) => (
+                        <View style={padding.top.xsmall} key={idx}>
+                          <LocationTag text={loc} />
+                        </View>
+                      ),
+                    )}
+                  </View>
                 </View>
               )}
             {contentCreator?.contentCreator?.postingSchedules &&
@@ -228,9 +239,9 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                             flex.flexRow,
                             gap.small,
                             items.center,
-                            rounded.default,
-                            padding.vertical.small,
-                            padding.horizontal.default,
+                            rounded.small,
+                            padding.vertical.xsmall,
+                            padding.horizontal.small,
                             border({
                               borderWidth: 1,
                               color: COLOR.green[50],
@@ -263,11 +274,22 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     ]}>
                     Specialized Categories
                   </Text>
-                  <View style={[flex.flexRow, gap.small]}>
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}>
                     {contentCreator?.contentCreator?.specializedCategoryIds?.map(
                       (cat, idx) => (
                         <View style={padding.top.xsmall} key={idx}>
-                          <TagCard text={cat} />
+                          <StatusTag
+                            status={cat}
+                            fontSize={30}
+                            statusType={StatusType.success}
+                          />
                         </View>
                       ),
                     )}

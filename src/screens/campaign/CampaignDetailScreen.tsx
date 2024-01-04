@@ -7,7 +7,7 @@ import {
 } from '../../navigation/StackNavigation';
 import {Pressable, StyleSheet, Text} from 'react-native';
 import {View} from 'react-native';
-import TagCard from '../../components/atoms/TagCard';
+import LocationTag from '../../components/atoms/LocationTag';
 import {Campaign} from '../../model/Campaign';
 import {formatDateToDayMonthYear} from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
@@ -47,6 +47,7 @@ import {font} from '../../styles/Font';
 import {background} from '../../styles/BackgroundColor';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
+import StatusTag, {StatusType} from '../../components/atoms/StatusTag';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -238,7 +239,11 @@ const CampaignDetailScreen = ({route}: Props) => {
                 {campaign.criterias &&
                   campaign.criterias.map((criteria: string, index: number) => (
                     <View key={index}>
-                      <TagCard text={criteria} />
+                      <StatusTag
+                        status={criteria}
+                        fontSize={20}
+                        statusType={StatusType.terminated}
+                      />
                     </View>
                   ))}
               </View>
@@ -384,7 +389,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                     {campaign.locations &&
                       campaign.locations.map(
                         (location: string, index: number) => (
-                          <TagCard key={index} text={location} />
+                          <LocationTag key={index} text={location} />
                         ),
                       )}
                   </View>
