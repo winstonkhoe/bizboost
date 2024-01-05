@@ -321,12 +321,11 @@ const UserDetailScreen = ({route}: Props) => {
               <HomeSectionHeader
                 header="Business People Campaigns"
                 link={'See All'}
-                onPressLink={
-                  () => {}
-                  // setOngoingCampaignsLimit(
-                  //   ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
-                  // )
-                }
+                onPressLink={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyCampaigns, {
+                    userId: userId || '',
+                  });
+                }}
               />
             </View>
             <View style={[flex.flexCol, gap.medium]}>

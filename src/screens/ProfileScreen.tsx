@@ -247,7 +247,9 @@ const ProfileScreen = () => {
               <ProfileMenuCard
                 key={'My Campaigns'}
                 handleOnClick={() => {
-                  navigation.navigate(AuthenticatedNavigation.MyCampaigns);
+                  navigation.navigate(AuthenticatedNavigation.MyCampaigns, {
+                    userId: uid || '',
+                  });
                 }}
                 icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
                 title="My Campaigns"

@@ -160,7 +160,7 @@ export type AuthenticatedStack = {
   };
   [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
   [AuthenticatedNavigation.MyTransactions]: {userId?: string; role?: UserRole};
-  [AuthenticatedNavigation.MyCampaigns]: undefined;
+  [AuthenticatedNavigation.MyCampaigns]: {userId?: string};
   [AuthenticatedNavigation.AboutMe]: undefined;
   [AuthenticatedNavigation.ChangePassword]: undefined;
   [AuthenticatedNavigation.EditBiodata]: undefined;
