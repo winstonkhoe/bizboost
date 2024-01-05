@@ -201,9 +201,7 @@ const ModalSubmitContentCreation = ({route}: Props) => {
                           {platform.tasks.map((task, taskIndex) => (
                             <FieldArray
                               key={taskIndex}
-                              title={`${platform.name} · ${campaignTaskToString(
-                                task,
-                              )}`}
+                              title={campaignTaskToString(task)}
                               description={task.description}
                               placeholder="Add url"
                               maxFieldLength={0}
