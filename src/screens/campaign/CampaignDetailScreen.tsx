@@ -173,42 +173,14 @@ const CampaignDetailScreen = ({route}: Props) => {
               />
             </View>
             <View style={[flex.flexCol, padding.medium, gap.default]}>
-              <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                {campaign.title}
-              </Text>
-              <View className="flex flex-row justify-between">
-                <Pressable
-                  style={[
-                    flex.flexRow,
-                    gap.small,
-                    items.center,
-                    padding.horizontal.default,
-                    padding.vertical.small,
-                    rounded.default,
-                    border({
-                      borderWidth: 1,
-                      color: COLOR.green[60],
-                    }),
-                    background(COLOR.green[5]),
-                  ]}
-                  onPress={navigateToCampaignTimeline}>
-                  <DateIcon size="medium" color={COLOR.green[60]} />
+              <View className="flex flex-row justify-between items-start">
+                <View className="w-2/3">
                   <Text
                     className="font-bold"
-                    style={[font.size[20], textColor(COLOR.green[60])]}>
-                    {`${formatDateToDayMonthYear(
-                      new Date(
-                        new Campaign(campaign).getTimelineStart()?.start,
-                      ),
-                    )} - ${formatDateToDayMonthYear(
-                      // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
-                      new Date(new Campaign(campaign).getTimelineEnd()?.end),
-                    )}`}
+                    style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                    {campaign.title}
                   </Text>
-                  <ChevronRight size="medium" color={COLOR.green[60]} />
-                </Pressable>
+                </View>
                 <View style={[flex.flexRow, items.center, gap.small]}>
                   <People
                     width={20}
@@ -219,11 +191,11 @@ const CampaignDetailScreen = ({route}: Props) => {
                     style={[
                       background(COLOR.black[20]),
                       rounded.default,
-                      padding.horizontal.default,
-                      padding.vertical.small,
+                      padding.horizontal.small,
+                      padding.vertical.xsmall,
                     ]}>
                     <Text
-                      className="font-bold"
+                      className="font-semibold"
                       style={[
                         font.size[20],
                         textColor(COLOR.text.neutral.high),
@@ -233,6 +205,22 @@ const CampaignDetailScreen = ({route}: Props) => {
                   </View>
                 </View>
               </View>
+              <Pressable
+                style={[flex.flexRow, gap.small, items.center]}
+                onPress={navigateToCampaignTimeline}>
+                <DateIcon size="medium" color={COLOR.green[60]} />
+                <Text
+                  className="font-bold"
+                  style={[font.size[20], textColor(COLOR.green[60])]}>
+                  {`${formatDateToDayMonthYear(
+                    new Date(new Campaign(campaign).getTimelineStart()?.start),
+                  )} - ${formatDateToDayMonthYear(
+                    // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
+                    new Date(new Campaign(campaign).getTimelineEnd()?.end),
+                  )}`}
+                </Text>
+                <ChevronRight size="medium" color={COLOR.green[60]} />
+              </Pressable>
 
               {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
               <View style={[flex.flexRow, flex.wrap, gap.small]}>
