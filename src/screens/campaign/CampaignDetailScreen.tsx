@@ -222,20 +222,6 @@ const CampaignDetailScreen = ({route}: Props) => {
                 <ChevronRight size="medium" color={COLOR.green[60]} />
               </Pressable>
 
-              {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
-              <View style={[flex.flexRow, flex.wrap, gap.small]}>
-                {campaign.criterias &&
-                  campaign.criterias.map((criteria: string, index: number) => (
-                    <View key={index}>
-                      <StatusTag
-                        status={criteria}
-                        fontSize={20}
-                        statusType={StatusType.terminated}
-                      />
-                    </View>
-                  ))}
-              </View>
-
               <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
                 {campaign.description}
               </Text>
@@ -309,7 +295,27 @@ const CampaignDetailScreen = ({route}: Props) => {
                   <ChevronRight color={COLOR.black[20]} />
                 </Pressable>
               )}
-
+              <View className="flex flex-col">
+                <Text
+                  className="font-semibold pb-2"
+                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                  Criteria
+                </Text>
+                <View style={[flex.flexRow, flex.wrap, gap.small]}>
+                  {campaign.criterias &&
+                    campaign.criterias.map(
+                      (criteria: string, index: number) => (
+                        <View key={index}>
+                          <StatusTag
+                            status={criteria}
+                            fontSize={20}
+                            statusType={StatusType.terminated}
+                          />
+                        </View>
+                      ),
+                    )}
+                </View>
+              </View>
               <View className="flex flex-col" style={[gap.medium]}>
                 <View style={[flex.flexCol, gap.xsmall]}>
                   <Text
