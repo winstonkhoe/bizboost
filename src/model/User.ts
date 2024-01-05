@@ -3,7 +3,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {ErrorMessage} from '../constants/errorMessage';
+import {ErrorCode, ErrorMessage} from '../constants/errorMessage';
 import {handleError} from '../utils/error';
 import {BaseModel} from './BaseModel';
 import {
@@ -478,9 +478,19 @@ export class User extends BaseModel {
 
   static async login(email: string, password: string) {
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      const credential = await auth().signInWithEmailAndPassword(
+        email,
+        password,
+      );
 
-      return true;
+      const user = await User.getById(credential.user.uid);
+
+      if (user?.status === UserStatus.Active) {
+        return true;
+      } else {
+        auth().signOut();
+        handleError(ErrorCode.AUTH_USER_SUSPENDED, ErrorMessage.USER_SUSPENDED);
+      }
     } catch (error: any) {
       console.log('err: ' + error);
       handleError(error.code, ErrorMessage.LOGIN_FAILED);
