@@ -84,8 +84,7 @@ const UserDetailScreen = ({route}: Props) => {
   const onSuspendButtonClick = async () => {
     if (user.status === UserStatus.Active) {
       await user.suspend();
-    }
-    if (user.status === UserStatus.Suspended) {
+    } else if (user.status === UserStatus.Suspended) {
       await user.activate();
     }
   };
