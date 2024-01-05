@@ -1,7 +1,13 @@
 import {useCallback, useEffect, useRef} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {setUser, switchRole} from '../redux/slices/userSlice';
-import {BusinessPeople, ContentCreator, User, UserRole} from '../model/User';
+import {
+  BusinessPeople,
+  ContentCreator,
+  User,
+  UserRole,
+  UserStatus,
+} from '../model/User';
 
 export const useUser = () => {
   const unsubscribe = useRef<(() => void) | undefined>(undefined);
@@ -30,7 +36,11 @@ export const useUser = () => {
   const updateUserState = useCallback(
     (u: User | null) => {
       if (u) {
-        dispatch(setUser(u.toJSON()));
+        if (u?.status === UserStatus.Active) {
+          dispatch(setUser(u.toJSON()));
+        } else {
+          dispatch(setUser(null));
+        }
       }
     },
     [dispatch],

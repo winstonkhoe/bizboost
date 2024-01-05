@@ -485,11 +485,11 @@ export class User extends BaseModel {
 
       const user = await User.getById(credential.user.uid);
 
-      if (user?.status === UserStatus.Active) {
-        return true;
-      } else {
+      if (user?.status === UserStatus.Suspended) {
         auth().signOut();
         handleError(ErrorCode.AUTH_USER_SUSPENDED, ErrorMessage.USER_SUSPENDED);
+      } else {
+        return true;
       }
     } catch (error: any) {
       console.log('err: ' + error);
