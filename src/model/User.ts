@@ -483,14 +483,14 @@ export class User extends BaseModel {
         password,
       );
 
-      const user = await User.getById(credential.user.uid);
+      // const user = await User.getById(credential.user.uid);
 
-      if (user?.status === UserStatus.Suspended) {
-        auth().signOut();
-        handleError(ErrorCode.AUTH_USER_SUSPENDED, ErrorMessage.USER_SUSPENDED);
-      } else {
-        return true;
-      }
+      // if (user?.status === UserStatus.Suspended) {
+      //   auth().signOut();
+      //   handleError(ErrorCode.AUTH_USER_SUSPENDED, ErrorMessage.USER_SUSPENDED);
+      // } else {
+      return true;
+      // }
     } catch (error: any) {
       console.log('err: ' + error);
       handleError(error.code, ErrorMessage.LOGIN_FAILED);

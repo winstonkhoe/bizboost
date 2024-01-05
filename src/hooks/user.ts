@@ -8,6 +8,8 @@ import {
   UserRole,
   UserStatus,
 } from '../model/User';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 
 export const useUser = () => {
   const unsubscribe = useRef<(() => void) | undefined>(undefined);
@@ -40,6 +42,10 @@ export const useUser = () => {
           dispatch(setUser(u.toJSON()));
         } else {
           dispatch(setUser(null));
+          showToast({
+            message: 'Login failed! Your account has been suspended.',
+            type: ToastType.danger,
+          });
         }
       }
     },
