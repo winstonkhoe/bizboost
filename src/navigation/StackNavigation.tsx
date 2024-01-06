@@ -53,6 +53,7 @@ import {SocialData, User, UserRole} from '../model/User';
 import {Providers} from '../model/AuthMethod';
 import ModalSubmitContentCreation from '../screens/campaign/timeline/ModalSubmitContentCreation';
 import EditBiodataScreen from '../screens/profile/edit/EditBiodataScreen';
+import EditSocialPlatformScreen from '../screens/profile/edit/EditSocialPlatformScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -84,6 +85,7 @@ export enum AuthenticatedNavigation {
   AboutMe = 'About Me',
   ChangePassword = 'Change Password',
   EditBiodata = 'Edit Biodata',
+  EditSocialPlatform = 'Edit Social Platform',
   EditMaxContentRevision = 'Edit Max Content Revision',
   EditPostingSchedule = 'Edit Posting Schedule',
   EditPreferences = 'Edit Preferences',
@@ -164,6 +166,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.AboutMe]: undefined;
   [AuthenticatedNavigation.ChangePassword]: undefined;
   [AuthenticatedNavigation.EditBiodata]: undefined;
+  [AuthenticatedNavigation.EditSocialPlatform]: undefined;
   [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
   [AuthenticatedNavigation.EditPostingSchedule]: undefined;
   [AuthenticatedNavigation.EditPreferences]: undefined;
@@ -387,6 +390,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.EditBiodata}
                   component={EditBiodataScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditSocialPlatform}
+                  component={EditSocialPlatformScreen}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.EditMaxContentRevision}
