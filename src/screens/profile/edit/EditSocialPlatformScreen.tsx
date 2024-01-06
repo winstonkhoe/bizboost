@@ -1,7 +1,7 @@
 import {View} from 'react-native';
 import {CloseModal} from '../../../components/atoms/Close';
 import SafeAreaContainer from '../../../containers/SafeAreaContainer';
-import {flex, items} from '../../../styles/Flex';
+import {flex, items, justify} from '../../../styles/Flex';
 import {gap} from '../../../styles/Gap';
 import {padding} from '../../../styles/Padding';
 import {Text} from 'react-native';
@@ -19,33 +19,48 @@ import {CustomButton} from '../../../components/atoms/Button';
 import {SocialPlatform, User} from '../../../model/User';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationStackProps} from '../../../navigation/StackNavigation';
-import {RegisterSocialPlatform} from '../../signup/RegisterSocialPlatform';
+import {
+  PlatformData,
+  RegisterSocialPlatform,
+} from '../../signup/RegisterSocialPlatform';
+import {useMemo, useState} from 'react';
 
-type FormData = {
-  biodata: string;
-};
-const rules = {
-  biodata: {
-    min: 20,
-    max: 500,
-  },
-};
 const EditSocialPlatformScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
-
+  const [isValidPlatformData, setIsValidPlatformData] = useState(false);
   const {user} = useUser();
-  const methods = useForm<FormData>({
-    mode: 'all',
-    defaultValues: {
-      biodata: user?.contentCreator?.biodata,
-    },
-  });
 
-  const onSubmit = (d: FormData) => {
+  const [platformDatas, setPlatformDatas] = useState<PlatformData[]>();
+  const initialPlatformDatas = useMemo(() => {
+    const datas = [];
+    if (user?.instagram?.username) {
+      datas.push({
+        platform: SocialPlatform.Instagram,
+        data: user?.instagram,
+      });
+    }
+    if (user?.tiktok?.username) {
+      datas.push({
+        platform: SocialPlatform.Tiktok,
+        data: user?.tiktok,
+      });
+    }
+    return datas;
+  }, [user?.instagram, user?.tiktok]);
+  const onSubmit = () => {
     const temp = new User({...user});
-    temp.contentCreator = {
-      ...temp.contentCreator!,
-      biodata: d.biodata,
+    temp.tiktok = {
+      isSynchronized: temp.tiktok?.isSynchronized,
+      // platformDatas below might be undefined when user tries to 'delete' their social media, which won't update the firestore. The isSynchronized assigning above is the workaround for it
+      ...platformDatas?.find(
+        platform => platform.platform === SocialPlatform.Tiktok,
+      )?.data,
+    };
+    temp.instagram = {
+      isSynchronized: temp.instagram?.isSynchronized,
+      ...platformDatas?.find(
+        platform => platform.platform === SocialPlatform.Instagram,
+      )?.data,
     };
 
     temp.updateUserData().then(() => {
@@ -55,16 +70,20 @@ const EditSocialPlatformScreen = () => {
   return (
     <SafeAreaContainer enable>
       <CloseModal />
-      <FormProvider {...methods}>
+      <View
+        style={[flex.flexCol, padding.horizontal.default, justify.between]}
+        className="flex-1">
         <RegisterSocialPlatform
-          onValidRegistration={v => {}}
-          onChangeSocialData={sd => {}}
-          // TODO: fix
-          initialData={[
-            {platform: SocialPlatform.Instagram, data: user?.instagram!},
-          ]}
+          onValidRegistration={setIsValidPlatformData}
+          onChangeSocialData={setPlatformDatas}
+          initialData={initialPlatformDatas}
         />
-      </FormProvider>
+        <CustomButton
+          text="Save"
+          onPress={onSubmit}
+          disabled={!isValidPlatformData}
+        />
+      </View>
     </SafeAreaContainer>
   );
 };
