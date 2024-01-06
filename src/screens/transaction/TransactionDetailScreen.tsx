@@ -55,7 +55,7 @@ import {border} from '../../styles/Border';
 import {textColor} from '../../styles/Text';
 import {LoadingScreen} from '../LoadingScreen';
 import FastImage from 'react-native-fast-image';
-import {font} from '../../styles/Font';
+import {font, text} from '../../styles/Font';
 import {background} from '../../styles/BackgroundColor';
 import {dimension} from '../../styles/Dimension';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -1216,16 +1216,8 @@ interface BrainstormSubmissionCardProps {
 export const BrainstormSubmissionCard = ({
   ...props
 }: BrainstormSubmissionCardProps) => {
-  const [activeUri, setActiveUri] = useState<string>('');
   return (
     <>
-      <ModalWebView
-        url={activeUri}
-        visible={activeUri !== ''}
-        onClose={() => {
-          setActiveUri('');
-        }}
-      />
       <View
         style={[
           flex.flexCol,
@@ -1260,9 +1252,9 @@ export const BrainstormSubmissionCard = ({
                   <View style={[flex.flexRow, gap.xsmall, items.center]}>
                     <PlatformIcon platform={transactionContent.platform} />
                     <Text
-                      className="font-bold"
                       style={[
                         font.size[20],
+                        font.weight.bold,
                         textColor(COLOR.text.neutral.high),
                       ]}>
                       {transactionContent.platform}
@@ -1280,9 +1272,9 @@ export const BrainstormSubmissionCard = ({
                             style={[flex.flexCol, gap.small]}>
                             {transactionTask && (
                               <Text
-                                className="font-medium"
                                 style={[
                                   font.size[20],
+                                  font.weight.medium,
                                   textColor(COLOR.text.neutral.med),
                                 ]}>
                                 {campaignTaskToString(transactionTask)}
@@ -1292,10 +1284,15 @@ export const BrainstormSubmissionCard = ({
                               style={[
                                 flex.flexCol,
                                 gap.default,
-                                border({
+                                {
                                   borderWidth: 1,
-                                  color: COLOR.black[20],
-                                }),
+                                  borderTopColor: COLOR.black[20],
+                                  borderRightColor: COLOR.black[20],
+                                  borderBottomColor: COLOR.black[20],
+                                  borderLeftColor: COLOR.black[30],
+                                  borderLeftWidth: size.small,
+                                },
+                                background(COLOR.black[1]),
                                 padding.default,
                                 rounded.default,
                               ]}>
@@ -1325,8 +1322,11 @@ export const BrainstormSubmissionCard = ({
                 rounded.default,
               ]}>
               <Text
-                className="font-bold"
-                style={[font.size[20], textColor(COLOR.red[60])]}>
+                style={[
+                  font.size[20],
+                  font.weight.bold,
+                  textColor(COLOR.red[60]),
+                ]}>
                 {props.content.rejection.type}
               </Text>
               <Text style={[font.size[20], textColor(COLOR.red[60])]}>
@@ -1362,8 +1362,11 @@ const ContentSubmissionDetailSection = ({
           style={[flex.flexRow, gap.default, items.center, justify.between]}>
           <View style={[flex.flexCol]}>
             <Text
-              className="font-semibold"
-              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[30],
+                font.weight.semibold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               {CampaignStep.ContentCreation}
             </Text>
             <Text
@@ -1889,8 +1892,11 @@ export const CollapsiblePanel = ({
           setIsSeeMore(!isSeeMore);
         }}>
         <Text
-          className="font-semibold"
-          style={[font.size[30], textColor(COLOR.text.green.default)]}>
+          style={[
+            font.size[30],
+            font.weight.semibold,
+            textColor(COLOR.text.green.default),
+          ]}>
           {!isSeeMore ? hiddenText : visibleText}
         </Text>
         <Animated.View
@@ -1906,8 +1912,12 @@ const EmptyContent = () => {
   return (
     <View style={[flex.flexCol, justify.center, padding.medium]}>
       <Text
-        className="text-center"
-        style={[self.center, font.size[30], textColor(COLOR.text.neutral.med)]}>
+        style={[
+          self.center,
+          text.center,
+          font.size[30],
+          textColor(COLOR.text.neutral.med),
+        ]}>
         No submission yet
       </Text>
     </View>
