@@ -572,6 +572,11 @@ const OfferCard = ({
             />
           </View>
           <View>
+            <Text
+              style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+              numberOfLines={1}>
+              {campaign?.title}
+            </Text>
             <Text style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
               {offer.isNegotiating() ? 'Negotiation: ' : 'Offer: '}
               <Text style={[font.weight.bold, font.size[30]]}>
