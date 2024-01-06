@@ -1,5 +1,5 @@
 import {Pressable, Text, View} from 'react-native';
-import {User, UserRole} from '../model/User';
+import {SocialPlatform, User, UserRole} from '../model/User';
 import {ScrollView} from 'react-native';
 import {flex, items, justify} from '../styles/Flex';
 import {useUser} from '../hooks/user';
@@ -42,6 +42,7 @@ import {overflow} from '../styles/Overflow';
 import {ReportIssueIcon} from '../components/atoms/Icon';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../styles/Size';
+import {SocialCard} from '../components/atoms/SocialCard';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -185,6 +186,28 @@ const ProfileScreen = () => {
             strokeWidth={3}
           />
         </Pressable>
+      </View>
+      <View
+        style={[
+          flex.flexRow,
+          gap.default,
+          padding.horizontal.default,
+          padding.top.default,
+        ]}>
+        {user?.instagram?.username && (
+          <SocialCard
+            type="detail"
+            platform={SocialPlatform.Instagram}
+            data={user?.instagram}
+          />
+        )}
+        {user?.tiktok?.username && (
+          <SocialCard
+            type="detail"
+            platform={SocialPlatform.Tiktok}
+            data={user?.tiktok}
+          />
+        )}
       </View>
       {/* TODO: tab labels sesuai role */}
       {activeRole !== UserRole.Admin && (
