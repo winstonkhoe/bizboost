@@ -1189,9 +1189,6 @@ export class Transaction extends BaseModel {
 
   isWaitingAdminAction() {
     const {payment} = this;
-    if (this.isTerminated()) {
-      return false;
-    }
     return (
       [
         PaymentStatus.proofWaitingForVerification,
