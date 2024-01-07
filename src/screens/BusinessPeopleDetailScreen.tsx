@@ -120,13 +120,19 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
         </View>
         <TabView labels={['Campaigns', 'Reviews']}>
           <ScrollView
-            style={[padding.horizontal.default]}
-            contentContainerStyle={[flex.flexCol, gap.medium]}>
+            style={[flex.flex1, padding.horizontal.default]}
+            contentContainerStyle={[
+              flex.flexCol,
+              gap.medium,
+              padding.vertical.default,
+            ]}>
             {campaigns.map((c, index) => (
               <OngoingCampaignCard campaign={c} key={index} />
             ))}
           </ScrollView>
-          <ScrollView style={[flex.flex1, padding.horizontal.default]}>
+          <ScrollView
+            style={[flex.flex1, padding.default]}
+            contentContainerStyle={[flex.flex1]}>
             <ReviewList reviews={reviews} />
           </ScrollView>
         </TabView>
