@@ -492,67 +492,7 @@ const TransactionDetailScreen = ({route}: Props) => {
 
             {(transaction.payment !== undefined ||
               transaction.status ===
-                TransactionStatus.offerWaitingForPayment) &&
-              activeRole !== UserRole.ContentCreator && (
-                <>
-                  <View style={[styles.bottomBorder]} />
-
-                  <Pressable
-                    onPress={() => setIsPaymentModalOpened(true)}
-                    style={[flex.flexRow, justify.between, items.center]}>
-                    <View style={[flex.flexRow, items.center, gap.default]}>
-                      <Text
-                        style={[
-                          font.size[30],
-                          textColor(COLOR.text.neutral.med),
-                        ]}>
-                        Payment
-                      </Text>
-                      {transaction.payment?.status ===
-                      PaymentStatus.proofRejected ? (
-                        <CrossIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.red[50]}
-                        />
-                      ) : transaction.payment?.status ===
-                          PaymentStatus.proofWaitingForVerification ||
-                        transaction.payment?.status === undefined ||
-                        // Tujuannya supaya tanda warning kl withdrawal requested tu dari admin aja sih keliatannya
-                        (transaction.payment?.status ===
-                          PaymentStatus.withdrawalRequested &&
-                          activeRole === UserRole.Admin) ? (
-                        <WarningIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.yellow[20]}
-                        />
-                      ) : transaction.payment?.status ===
-                          PaymentStatus.proofApproved ||
-                        transaction.payment?.status ===
-                          PaymentStatus.withdrawn ||
-                        activeRole === UserRole.BusinessPeople ? (
-                        <CheckmarkIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.green[40]}
-                        />
-                      ) : (
-                        <></>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.green.default),
-                      ]}>
-                      {activeRole !== UserRole.Admin ? 'Proof' : 'Manage'}
-                    </Text>
-                  </Pressable>
-                </>
-              )}
-            {/* TODO: jadi satu deh ama yg atas abis ini */}
-            {transaction.payment && activeRole === UserRole.ContentCreator && (
+                TransactionStatus.offerWaitingForPayment) && (
               <>
                 <View style={[styles.bottomBorder]} />
 
@@ -565,68 +505,121 @@ const TransactionDetailScreen = ({route}: Props) => {
                       ]}>
                       Payment
                     </Text>
-                    {transaction.payment.status === PaymentStatus.withdrawn ? (
-                      <CheckmarkIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.green[40]}
-                      />
-                    ) : transaction.payment.status ===
-                      PaymentStatus.withdrawalRequested ? (
-                      <WarningIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.yellow[20]}
-                      />
-                    ) : (
-                      <></>
+                    {/* BP or admin */}
+                    {activeRole !== UserRole.ContentCreator && (
+                      <>
+                        {transaction.payment?.status ===
+                        PaymentStatus.proofRejected ? (
+                          <CrossIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.red[50]}
+                          />
+                        ) : transaction.payment?.status ===
+                            PaymentStatus.proofWaitingForVerification ||
+                          transaction.payment?.status === undefined ||
+                          (transaction.payment?.status ===
+                            PaymentStatus.withdrawalRequested &&
+                            activeRole === UserRole.Admin) ? (
+                          <WarningIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.yellow[20]}
+                          />
+                        ) : (
+                          <CheckmarkIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.green[40]}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {/* CC */}
+                    {activeRole === UserRole.ContentCreator && (
+                      <>
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawn && (
+                          <CheckmarkIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.green[40]}
+                          />
+                        )}
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawalRequested && (
+                          <WarningIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.yellow[20]}
+                          />
+                        )}
+                      </>
                     )}
                   </View>
+                  {activeRole !== UserRole.ContentCreator && (
+                    <Pressable onPress={() => setIsPaymentModalOpened(true)}>
+                      <Text
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.green.default),
+                        ]}>
+                        {activeRole !== UserRole.Admin ? 'Proof' : 'Manage'}
+                      </Text>
+                    </Pressable>
+                  )}
 
-                  {transaction.payment.status ===
-                    PaymentStatus.withdrawalRequested ||
-                  transaction.payment.status === PaymentStatus.withdrawn ? (
-                    <StatusTag
-                      fontSize={20}
-                      status={transaction.payment.status}
-                      statusType={
-                        paymentStatusTypeMap[transaction.payment.status]
-                      }
-                    />
-                  ) : (
-                    <CustomAlert
-                      text="Withdraw"
-                      type="tertiary"
-                      verticalPadding="zero"
-                      horizontalPadding="zero"
-                      rejectButtonText="Cancel"
-                      approveButtonText="OK"
-                      disabled={
-                        transaction.status !== TransactionStatus.completed ||
-                        transaction.payment.status !==
-                          PaymentStatus.proofApproved
-                      }
-                      confirmationText={
-                        <Text
-                          className="text-center"
-                          style={[
-                            font.size[30],
-                            textColor(COLOR.text.neutral.med),
-                          ]}>
-                          {user?.bankAccountInformation
-                            ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
-                            : 'You have not set your payment information yet, do you want to set it now?'}
-                        </Text>
-                      }
-                      onApprove={
-                        user?.bankAccountInformation
-                          ? onRequestWithdraw
-                          : () =>
-                              navigation.navigate(
-                                AuthenticatedNavigation.EditBankAccountInformation,
-                              )
-                      }
-                    />
+                  {activeRole === UserRole.ContentCreator && (
+                    <>
+                      {transaction.payment?.status ===
+                        PaymentStatus.withdrawalRequested ||
+                      transaction.payment?.status ===
+                        PaymentStatus.withdrawn ? (
+                        <StatusTag
+                          fontSize={20}
+                          status={transaction.payment.status}
+                          statusType={
+                            paymentStatusTypeMap[transaction.payment.status]
+                          }
+                        />
+                      ) : (
+                        <CustomAlert
+                          text="Withdraw"
+                          type="tertiary"
+                          verticalPadding="zero"
+                          horizontalPadding="zero"
+                          rejectButtonText="Cancel"
+                          approveButtonText="OK"
+                          disabled={
+                            transaction.status !==
+                              TransactionStatus.completed ||
+                            transaction.payment?.status !==
+                              PaymentStatus.proofApproved
+                          }
+                          confirmationText={
+                            <Text
+                              className="text-center"
+                              style={[
+                                font.size[30],
+                                textColor(COLOR.text.neutral.med),
+                              ]}>
+                              {user?.bankAccountInformation
+                                ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                                : 'You have not set your payment information yet, do you want to set it now?'}
+                            </Text>
+                          }
+                          onApprove={
+                            user?.bankAccountInformation
+                              ? onRequestWithdraw
+                              : () =>
+                                  navigation.navigate(
+                                    AuthenticatedNavigation.EditBankAccountInformation,
+                                  )
+                          }
+                        />
+                      )}
+                    </>
                   )}
                 </View>
               </>
