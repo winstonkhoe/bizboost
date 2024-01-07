@@ -366,8 +366,18 @@ export const BaseCard = ({
                   handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
                 ),
                 font.size[20],
+                headerTextTrailing
+                  ? [
+                      {
+                        width: '60%',
+                      },
+                    ]
+                  : [
+                      {
+                        width: '91.67%',
+                      },
+                    ],
               ]}
-              className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
               numberOfLines={1}>
               {headerTextLeading}
             </Text>
