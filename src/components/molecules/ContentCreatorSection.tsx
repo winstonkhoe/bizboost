@@ -1,4 +1,4 @@
-import {StyleSheet, View} from 'react-native';
+import {Pressable, StyleSheet, View} from 'react-native';
 import {SocialPlatform, User} from '../../model/User';
 import {Seperator} from '../atoms/Separator';
 import {Text} from 'react-native';
@@ -17,6 +17,11 @@ import {Label} from '../atoms/Label';
 import {formatDateToHourMinute} from '../../utils/date';
 import {SocialCard} from '../atoms/SocialCard';
 import {overflow} from '../../styles/Overflow';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 interface ContentCreatorSectionProps {
   title?: string;
@@ -27,6 +32,10 @@ export const ContentCreatorSection = ({
   title = 'Content Creator Detail',
   ...props
 }: ContentCreatorSectionProps) => {
+  const navigation = useNavigation<NavigationStackProps>();
+  if (!props.contentCreator) {
+    return null;
+  }
   return (
     <>
       <Seperator />
@@ -40,7 +49,17 @@ export const ContentCreatorSection = ({
             ]}>
             {title}
           </Text>
-          <View
+          <Pressable
+            onPress={() => {
+              if (props.contentCreator?.id) {
+                navigation.navigate(
+                  AuthenticatedNavigation.ContentCreatorDetail,
+                  {
+                    contentCreatorId: props.contentCreator?.id,
+                  },
+                );
+              }
+            }}
             style={[
               flex.flex1,
               flex.flexRow,
@@ -71,7 +90,7 @@ export const ContentCreatorSection = ({
               {props.contentCreator?.contentCreator?.fullname}
             </Text>
             <ChevronRight size="large" color={COLOR.text.neutral.med} />
-          </View>
+          </Pressable>
         </View>
         <ContentCreatorCard contentCreator={props.contentCreator} />
       </View>
