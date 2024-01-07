@@ -111,6 +111,10 @@ import {Report, ReportType, reportTypeLabelMap} from '../../model/Report';
 import PagerView from 'react-native-pager-view';
 import {InternalLink} from '../../components/atoms/Link';
 import {ContentCreatorSection} from '../../components/molecules/ContentCreatorSection';
+import {overflow} from '../../styles/Overflow';
+import {position} from '../../styles/Position';
+import {Offer} from '../../model/Offer';
+import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -654,12 +658,11 @@ const TransactionDetailScreen = ({route}: Props) => {
 
             {/* <View style={[styles.bottomBorder]} /> */}
           </View>
-          {!isCampaignOwner && (
-            <CampaignDetailSection
-              businessPeople={businessPeople}
-              campaign={campaign}
-            />
-          )}
+          <CampaignDetailSection
+            transaction={transaction}
+            businessPeople={businessPeople}
+            campaign={campaign}
+          />
           {isCampaignOwner && (
             <ContentCreatorSection contentCreator={contentCreator} />
           )}
@@ -1043,6 +1046,27 @@ export const CampaignDetailSection = ({
   ...props
 }: CampaignDetailSectionProps) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const [offer, setOffer] = useState<Offer | null>();
+  useEffect(() => {
+    if (
+      props.transaction?.campaignId &&
+      props.transaction?.businessPeopleId &&
+      props.transaction?.contentCreatorId
+    ) {
+      Offer.getLatestOfferByCampaignIdBusinessPeopleIdContentCreatorId(
+        props.transaction.campaignId,
+        props.transaction?.businessPeopleId,
+        props.transaction?.contentCreatorId,
+      )
+        .then(setOffer)
+        .catch(() => setOffer(null));
+    } else {
+      setOffer(null);
+    }
+  }, [props.transaction]);
+  const latestNegotiation = offer?.getLatestNegotiation();
+  const fee =
+    props.transaction?.transactionAmount || latestNegotiation?.fee || 0;
   // TODO: fee should use transaction fee rather than campaign fee/price
   // TODO: show transaction important notes for private campaign
   return (
@@ -1052,8 +1076,11 @@ export const CampaignDetailSection = ({
         <View style={[flex.flexRow, gap.xlarge, justify.between]}>
           <View style={[flex.flexCol]}>
             <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[40],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               Campaign Detail
             </Text>
 
@@ -1083,8 +1110,11 @@ export const CampaignDetailSection = ({
               }
             }}>
             <View
-              className="overflow-hidden"
-              style={[dimension.square.large, rounded.default]}>
+              style={[
+                dimension.square.large,
+                overflow.hidden,
+                rounded.default,
+              ]}>
               <FastImage
                 source={getSourceOrDefaultAvatar({
                   uri: props.businessPeople?.businessPeople?.profilePicture,
@@ -1093,8 +1123,11 @@ export const CampaignDetailSection = ({
               />
             </View>
             <Text
-              className="font-medium"
-              style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+              style={[
+                font.size[20],
+                font.weight.medium,
+                textColor(COLOR.text.neutral.high),
+              ]}
               numberOfLines={1}>
               {props.businessPeople?.businessPeople?.fullname}
             </Text>
@@ -1120,8 +1153,11 @@ export const CampaignDetailSection = ({
           }}>
           <View style={[flex.flexRow, gap.small]}>
             <View
-              className="overflow-hidden"
-              style={[dimension.square.xlarge3, rounded.default]}>
+              style={[
+                dimension.square.xlarge3,
+                overflow.hidden,
+                rounded.default,
+              ]}>
               <FastImage
                 source={{uri: props.campaign.image}}
                 style={[dimension.full]}
@@ -1129,17 +1165,51 @@ export const CampaignDetailSection = ({
             </View>
             <View style={[flex.flexCol]}>
               <Text
-                className="font-medium"
-                style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+                style={[
+                  font.size[30],
+                  font.weight.medium,
+                  textColor(COLOR.text.neutral.high),
+                ]}
                 numberOfLines={2}>
                 {props.campaign.title}
               </Text>
-              <Text
-                className="font-semibold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}
-                numberOfLines={1}>
-                {formatToRupiah(props.campaign.fee)}
-              </Text>
+              <SkeletonPlaceholder isLoading={offer === undefined}>
+                <Text
+                  style={[
+                    font.size[40],
+                    font.weight.semibold,
+                    textColor(COLOR.text.neutral.high),
+                  ]}
+                  numberOfLines={1}>
+                  {formatToRupiah(fee)}
+                </Text>
+              </SkeletonPlaceholder>
+              <SkeletonPlaceholder isLoading={offer === undefined}>
+                {latestNegotiation?.notes && (
+                  <View
+                    style={[
+                      padding.small,
+                      background(COLOR.black[5]),
+                      rounded.small,
+                    ]}>
+                    <Text
+                      style={[
+                        font.size[20],
+                        font.weight.medium,
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      Notes:
+                    </Text>
+                    <Text
+                      style={[
+                        font.size[20],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {latestNegotiation.notes}
+                    </Text>
+                  </View>
+                )}
+              </SkeletonPlaceholder>
             </View>
           </View>
         </AnimatedPressable>
@@ -1464,8 +1534,11 @@ export const ContentSubmissionCard = ({
                 <View style={[flex.flexRow, gap.xsmall, items.center]}>
                   <PlatformIcon platform={transactionContent.platform} />
                   <Text
-                    className="font-bold"
-                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    style={[
+                      font.size[20],
+                      font.weight.bold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}>
                     {transactionContent.platform}
                   </Text>
                 </View>
@@ -1479,9 +1552,9 @@ export const ContentSubmissionCard = ({
                       <View key={taskIndex} style={[flex.flexCol, gap.small]}>
                         {transactionTask && (
                           <Text
-                            className="font-medium"
                             style={[
                               font.size[20],
+                              font.weight.medium,
                               textColor(COLOR.text.neutral.med),
                             ]}>
                             {campaignTaskToString(transactionTask)}
@@ -1505,9 +1578,9 @@ export const ContentSubmissionCard = ({
                                   setActiveUri(taskUri);
                                 }}>
                                 <Text
-                                  className="font-bold"
                                   style={[
                                     flex.flex1,
+                                    font.weight.bold,
                                     font.size[20],
                                     textColor(COLOR.black[60]),
                                   ]}
@@ -1553,8 +1626,11 @@ export const ContentSubmissionCard = ({
                 rounded.default,
               ]}>
               <Text
-                className="font-bold"
-                style={[font.size[20], textColor(COLOR.red[60])]}>
+                style={[
+                  font.size[20],
+                  font.weight.bold,
+                  textColor(COLOR.red[60]),
+                ]}>
                 {props.content.rejection.type}
               </Text>
               <Text style={[font.size[20], textColor(COLOR.red[60])]}>
@@ -1591,8 +1667,11 @@ const EngagementResultSubmissionDetailSection = ({
           style={[flex.flexRow, gap.default, items.center, justify.between]}>
           <View style={[flex.flexCol]}>
             <Text
-              className="font-semibold"
-              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[30],
+                font.weight.semibold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               {CampaignStep.ResultSubmission}
             </Text>
           </View>
@@ -1706,8 +1785,11 @@ export const EngagementSubmissionCard = ({
                 <View style={[flex.flexRow, gap.xsmall, items.center]}>
                   <PlatformIcon platform={transactionEngagement.platform} />
                   <Text
-                    className="font-bold"
-                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    style={[
+                      font.size[20],
+                      font.weight.bold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}>
                     {transactionEngagement.platform}
                   </Text>
                 </View>
@@ -1721,9 +1803,9 @@ export const EngagementSubmissionCard = ({
                       <View key={taskIndex} style={[flex.flexCol, gap.small]}>
                         {transactionTask && (
                           <Text
-                            className="font-medium"
                             style={[
                               font.size[20],
+                              font.weight.medium,
                               textColor(COLOR.text.neutral.med),
                             ]}>
                             {campaignTaskToString(transactionTask)}
@@ -1747,9 +1829,9 @@ export const EngagementSubmissionCard = ({
                                   setActiveUri(taskUri);
                                 }}>
                                 <Text
-                                  className="font-bold"
                                   style={[
                                     flex.flex1,
+                                    font.weight.bold,
                                     font.size[20],
                                     textColor(COLOR.black[60]),
                                   ]}
@@ -1784,10 +1866,12 @@ export const EngagementSubmissionCard = ({
                           contentContainerStyle={[flex.flexRow, gap.small]}>
                           {task.attachments.map(
                             (attachment, attachmentIndex) => (
-                              <View key={attachmentIndex} className="relative">
+                              <View
+                                key={attachmentIndex}
+                                style={[position.relative]}>
                                 <Pressable
-                                  className="overflow-hidden"
                                   style={[
+                                    overflow.hidden,
                                     dimension.width.xlarge4,
                                     {
                                       aspectRatio: 1 / 1.3,
@@ -1829,8 +1913,11 @@ export const EngagementSubmissionCard = ({
                 rounded.default,
               ]}>
               <Text
-                className="font-bold"
-                style={[font.size[20], textColor(COLOR.red[60])]}>
+                style={[
+                  font.size[20],
+                  font.weight.bold,
+                  textColor(COLOR.red[60]),
+                ]}>
                 {props.engagement.rejection.type}
               </Text>
               <Text style={[font.size[20], textColor(COLOR.red[60])]}>
@@ -1876,8 +1963,8 @@ export const CollapsiblePanel = ({
   return (
     <View style={[flex.flexCol, gap.large]}>
       <View
-        className="overflow-hidden"
         style={[
+          overflow.hidden,
           !isSeeMore && {
             maxHeight: 0,
           },

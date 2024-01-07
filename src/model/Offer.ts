@@ -375,6 +375,42 @@ export class Offer extends BaseModel {
     }
   }
 
+  static async getLatestOfferByCampaignIdBusinessPeopleIdContentCreatorId(
+    campaignId: string,
+    businessPeopleId: string,
+    contentCreatorId: string,
+  ) {
+    try {
+      const querySnapshot = await firestore()
+        .collection(OFFER_COLLECTION)
+        .where(
+          'businessPeopleId',
+          '==',
+          User.getDocumentReference(businessPeopleId),
+        )
+        .where(
+          'contentCreatorId',
+          '==',
+          User.getDocumentReference(contentCreatorId),
+        )
+        .where('campaignId', '==', Campaign.getDocumentReference(campaignId))
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      if (querySnapshot.size === 0) {
+        return null;
+      }
+
+      return Offer.fromSnapshot(querySnapshot.docs[0]);
+    } catch (error) {
+      console.error(error);
+      throw new Error(
+        'Offer.getLatestOfferByCampaignIdBusinessPeopleIdContentCreatorId error ' +
+          error,
+      );
+    }
+  }
+
   getEarliestNegotiation() {
     if (this.negotiations.length === 0) {
       return null;
