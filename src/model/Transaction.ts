@@ -1148,7 +1148,7 @@ export class Transaction extends BaseModel {
   }
 
   isApprovable() {
-    const {status} = this;
+    const {status, payment} = this;
     return (
       status &&
       [
@@ -1156,7 +1156,11 @@ export class Transaction extends BaseModel {
         TransactionStatus.brainstormSubmitted,
         TransactionStatus.contentSubmitted,
         TransactionStatus.engagementSubmitted,
-      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+      ].findIndex(
+        transactionStatus =>
+          transactionStatus === status &&
+          payment?.status !== PaymentStatus.proofWaitingForVerification,
+      ) >= 0
     );
   }
 
