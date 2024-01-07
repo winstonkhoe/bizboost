@@ -17,45 +17,131 @@ import PhotosIcon from '../../assets/vectors/photos.svg';
 import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useUser} from '../../hooks/user';
-import {BankAccountInformation, UserRole} from '../../model/User';
-import {PaymentStatus, paymentStatusTypeMap} from '../../model/Transaction';
+import {User} from '../../model/User';
+import {
+  PaymentStatus,
+  Transaction,
+  paymentStatusTypeMap,
+} from '../../model/Transaction';
 import StatusTag, {StatusType} from '../atoms/StatusTag';
 import {border} from '../../styles/Border';
 import {background} from '../../styles/BackgroundColor';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
+import {overflow} from '../../styles/Overflow';
 
 type Props = {
   isModalOpened: boolean;
   onModalDismiss: () => void;
-  amount: number;
-  onProofUploaded: (url: string) => void;
-  defaultImage?: string;
-  onProofAccepted?: () => void;
-  onProofRejected?: () => void;
-  onWithdrawalAccepted?: () => void;
-  paymentStatus?: PaymentStatus;
-  contentCreatorBankAccount?: BankAccountInformation;
+  transaction: Transaction;
 };
 
 const PaymentSheetModal = ({
   isModalOpened,
   onModalDismiss,
-  amount,
-  onProofUploaded,
-  defaultImage = undefined,
-  onProofAccepted = undefined,
-  onProofRejected = undefined,
-  onWithdrawalAccepted = undefined,
-  paymentStatus,
-  contentCreatorBankAccount = undefined,
+  transaction,
 }: Props) => {
-  const {isBusinessPeople, isAdmin, activeRole, isContentCreator} = useUser();
-  const [uploadedImage, setUploadedImage] = useState<string | undefined>();
+  const {isBusinessPeople, isAdmin} = useUser();
+  const [uploadedImage, setUploadedImage] = useState<string | undefined>(
+    transaction.payment?.proofImage,
+  );
+  const [contentCreator, setContentCreator] = useState<User | null>();
+  const contentCreatorBankAccount = contentCreator?.bankAccountInformation;
+  const amount = transaction.transactionAmount || 0; //TODO: cek kalo approve offer negotiate pricenya udh update ke transactionAmountnya blm
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
+  const onUploadSuccess = (url: string) => {
+    setUploadedImage(url);
+    transaction
+      .submitProof(url)
+      .then(() => {
+        console.log('updated proof!');
+        showToast({
+          message:
+            'Registration Approved! Your payment is being reviewed by our Admin',
+          type: ToastType.success,
+        });
+      })
+      .catch(err => {
+        console.log('error updating proof', err);
+        showToast({
+          message: 'Failed to upload proof',
+          type: ToastType.danger,
+        });
+      });
+  };
+
+  const onProofAccepted = () => {
+    transaction
+      ?.approveProof()
+      .then(() => {
+        transaction
+          ?.approveRegistration()
+          .then(() => {
+            showToast({
+              message: 'Payment Approved! Registration Status has changed.',
+              type: ToastType.success,
+            });
+          })
+          .catch(() => {
+            showToast({
+              message:
+                'Payment Approved! Failed to change registration status.',
+              type: ToastType.danger,
+            });
+          });
+      })
+      .catch(() => {
+        showToast({
+          message: 'Failed to approve payment',
+          type: ToastType.danger,
+        });
+      });
+  };
+
+  const onProofRejected = () => {
+    transaction
+      ?.rejectProof()
+      .then(() => {
+        showToast({
+          message: 'Payment Rejected!',
+          type: ToastType.danger,
+        });
+      })
+      .catch(() => {
+        showToast({
+          message: 'Failed to reject payment',
+          type: ToastType.danger,
+        });
+      });
+  };
+
+  const onWithdrawalAccepted = () => {
+    transaction
+      ?.acceptWithdrawal()
+      .then(() => {
+        showToast({
+          message: 'Payment status has been changed to "Withdrawn".',
+          type: ToastType.success,
+        });
+      })
+      .catch(() => {
+        showToast({
+          message: 'Failed to change payment status.',
+          type: ToastType.danger,
+        });
+      });
+  };
+
   useEffect(() => {
-    if (defaultImage) {
-      setUploadedImage(defaultImage);
+    if (transaction.contentCreatorId) {
+      User.getById(transaction.contentCreatorId)
+        .then(setContentCreator)
+        .catch(err => {
+          console.log('error getting content creator', err);
+          setContentCreator(null);
+        });
     }
-  }, [defaultImage]);
+  }, [transaction]);
 
   // TODO: kalo reupload, apus yang lama
   return (
@@ -72,15 +158,18 @@ const PaymentSheetModal = ({
           <View style={[flex.flexCol, gap.default]}>
             <View style={[flex.flexRow, items.center, justify.between]}>
               <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[40],
+                  font.weight.bold,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
                 Payment Proof
               </Text>
               <StatusTag
-                status={paymentStatus || 'Not Uploaded'}
+                status={transaction.payment?.status || 'Not Uploaded'}
                 statusType={
-                  paymentStatus
-                    ? paymentStatusTypeMap[paymentStatus]
+                  transaction.payment?.status
+                    ? paymentStatusTypeMap[transaction.payment?.status]
                     : StatusType.terminated
                 }
               />
@@ -95,13 +184,14 @@ const PaymentSheetModal = ({
 
               {isAdmin && (
                 <>
-                  {paymentStatus ===
+                  {transaction.payment?.status ===
                     PaymentStatus.proofWaitingForVerification &&
                     `Business People have paid ${formatToRupiah(
                       amount,
                     )}, please verify the payment.`}
                   {/* TODO: taro bank account CC */}
-                  {paymentStatus === PaymentStatus.withdrawalRequested &&
+                  {transaction.payment?.status ===
+                    PaymentStatus.withdrawalRequested &&
                     `Content creator have requested to withdraw their money, you need to pay ${formatToRupiah(
                       amount,
                     )} to the following bank account: ${
@@ -118,8 +208,11 @@ const PaymentSheetModal = ({
             {uploadedImage && (
               <TouchableOpacity onPress={() => setIsImageViewOpened(true)}>
                 <View
-                  className="overflow-hidden"
-                  style={[dimension.square.xlarge15, rounded.medium]}>
+                  style={[
+                    dimension.square.xlarge15,
+                    rounded.medium,
+                    overflow.hidden,
+                  ]}>
                   <FastImage
                     style={[dimension.full]}
                     source={{uri: uploadedImage}}
@@ -128,9 +221,10 @@ const PaymentSheetModal = ({
               </TouchableOpacity>
             )}
             {isBusinessPeople &&
-            (paymentStatus === PaymentStatus.proofWaitingForVerification ||
-              paymentStatus === PaymentStatus.proofRejected ||
-              paymentStatus === undefined) ? (
+            (transaction.payment?.status ===
+              PaymentStatus.proofWaitingForVerification ||
+              transaction.payment?.status === PaymentStatus.proofRejected ||
+              transaction.payment?.status === undefined) ? (
               <View style={[dimension.square.xlarge12]}>
                 <MediaUploader
                   targetFolder="payment"
@@ -141,10 +235,7 @@ const PaymentSheetModal = ({
                     compressImageQuality: 0.5,
                     //   cropping: true,
                   }}
-                  onUploadSuccess={url => {
-                    setUploadedImage(url);
-                    onProofUploaded(url);
-                  }}
+                  onUploadSuccess={onUploadSuccess}
                   onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
                   {uploadedImage ? (
                     <Text
@@ -184,7 +275,7 @@ const PaymentSheetModal = ({
               </View>
             ) : (
               <View style={[flex.flexRow, gap.default, padding.top.default]}>
-                {paymentStatus ===
+                {transaction.payment?.status ===
                   PaymentStatus.proofWaitingForVerification && (
                   <>
                     <View style={[flex.flex1]}>
@@ -197,7 +288,7 @@ const PaymentSheetModal = ({
                         customTextSize={20}
                       />
                     </View>
-                    {/* {paymentStatus === */}
+                    {/* {transaction.payment?.status === */}
                     {/* PaymentStatus.proofWaitingForVerification && ( */}
                     <View style={[flex.flex1]}>
                       <CustomButton
@@ -210,7 +301,8 @@ const PaymentSheetModal = ({
                     {/* )} */}
                   </>
                 )}
-                {paymentStatus === PaymentStatus.withdrawalRequested &&
+                {transaction.payment?.status ===
+                  PaymentStatus.withdrawalRequested &&
                   isAdmin && (
                     <View style={[flex.flex1]}>
                       <CustomButton

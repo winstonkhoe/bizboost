@@ -66,34 +66,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
 
-  // TODO: redundant, kalo sempet refactor
-  const onProofUploaded = (url: string) => {
-    console.log('url: ' + url);
-    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
-    transaction
-      .update({
-        payment: {
-          proofImage: url,
-          status: PaymentStatus.proofWaitingForVerification,
-        },
-      })
-      .then(() => {
-        console.log('updated proof!');
-        showToast({
-          message:
-            'Registration Approved! Your payment is being reviewed by our Admin',
-          type: ToastType.success,
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        showToast({
-          message: 'Failed to update proof!',
-          type: ToastType.danger,
-        });
-      });
-  };
-
   useEffect(() => {
     if (transaction.id && transaction.businessPeopleId) {
       return Review.getReviewByTransactionIdAndReviewerId(
@@ -192,10 +164,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
           // amount={campaign?.fee || -1}
-          amount={transaction.transactionAmount || -1}
-          onProofUploaded={onProofUploaded}
-          defaultImage={transaction.payment?.proofImage}
-          paymentStatus={transaction.payment?.status}
+          transaction={transaction}
         />
       )}
     </>

@@ -121,13 +121,6 @@ type Props = NativeStackScreenProps<
   AuthenticatedNavigation.TransactionDetail
 >;
 
-const rules = {
-  rejectReason: {
-    min: 20,
-    max: 500,
-  },
-};
-
 const TransactionDetailScreen = ({route}: Props) => {
   // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
@@ -238,64 +231,17 @@ const TransactionDetailScreen = ({route}: Props) => {
   };
   const onRequestWithdraw = () => {
     transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.withdrawalRequested,
-        },
-      })
+      ?.requestWithdrawal()
       .then(() => {
         showToast({
           message:
             'Withdrawal Requested! You will receive your money in no later than 7 x 24 hours.',
           type: ToastType.success,
         });
-      });
-  };
-  const onProofAccepted = () => {
-    transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.proofApproved,
-        },
       })
-      .then(() => {
-        transaction?.approveRegistration();
+      .catch(() => {
         showToast({
-          message: 'Payment Approved! Registration Status has changed.',
-          type: ToastType.success,
-        });
-      });
-  };
-
-  const onWithdrawalAccepted = () => {
-    transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.withdrawn,
-        },
-      })
-      .then(() => {
-        showToast({
-          message: 'Payment status has been changed to "Withdrawn".',
-          type: ToastType.success,
-        });
-      });
-  };
-
-  const onProofRejected = () => {
-    transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.proofRejected,
-        },
-      })
-      .then(() => {
-        showToast({
-          message: 'Payment Rejected!',
+          message: 'Failed to request withdrawal',
           type: ToastType.danger,
         });
       });
@@ -309,34 +255,6 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [campaign]);
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
-
-  // TODO: duplicate with RegisteredUserListCard
-  const onProofUploaded = (url: string) => {
-    if (!transaction) return;
-    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
-    transaction
-      .update({
-        payment: {
-          proofImage: url,
-          status: PaymentStatus.proofWaitingForVerification,
-        },
-      })
-      .then(() => {
-        console.log('updated proof!');
-        showToast({
-          message:
-            'Registration Approved! Your payment is being reviewed by our Admin',
-          type: ToastType.success,
-        });
-      })
-      .catch(err => {
-        console.log('error updating proof', err);
-        showToast({
-          message: 'Failed to upload proof',
-          type: ToastType.danger,
-        });
-      });
-  };
 
   const submitReport = () => {
     const reportedId = isCampaignOwner
@@ -1019,15 +937,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          // amount={campaign?.fee || -1}
-          amount={transaction.transactionAmount || -1}
-          onProofUploaded={onProofUploaded}
-          defaultImage={transaction.payment?.proofImage}
-          onProofAccepted={onProofAccepted}
-          onProofRejected={onProofRejected}
-          paymentStatus={transaction.payment?.status}
-          onWithdrawalAccepted={onWithdrawalAccepted}
-          contentCreatorBankAccount={contentCreator?.bankAccountInformation}
+          transaction={transaction}
         />
       )}
     </>

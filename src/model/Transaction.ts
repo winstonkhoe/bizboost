@@ -1076,6 +1076,89 @@ export class Transaction extends BaseModel {
     throw Error('Missing transaction id or engagements');
   }
 
+  async submitProof(imageUrl: string) {
+    const {id} = this;
+    if (!id) {
+      throw Error('Missing id');
+    }
+    try {
+      await Transaction.getDocumentReference(id).update({
+        payment: {
+          proofImage: imageUrl,
+          status: PaymentStatus.proofWaitingForVerification,
+        },
+        updatedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Transaction.submitProof err!');
+    }
+  }
+
+  async approveProof() {
+    const {id} = this;
+    if (!id) {
+      throw Error('Missing id');
+    }
+    try {
+      await Transaction.getDocumentReference(id).update({
+        'payment.status': PaymentStatus.proofApproved,
+        updatedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Transaction.approveProof err!');
+    }
+  }
+
+  async rejectProof() {
+    const {id} = this;
+    if (!id) {
+      throw Error('Missing id');
+    }
+    try {
+      await Transaction.getDocumentReference(id).update({
+        'payment.status': PaymentStatus.proofRejected,
+        updatedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Transaction.rejectProof err!');
+    }
+  }
+
+  async requestWithdrawal() {
+    const {id} = this;
+    if (!id) {
+      throw Error('Missing id');
+    }
+    try {
+      await Transaction.getDocumentReference(id).update({
+        'payment.status': PaymentStatus.withdrawalRequested,
+        updatedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Transaction.requestWithdrawal err!');
+    }
+  }
+
+  async acceptWithdrawal() {
+    const {id} = this;
+    if (!id) {
+      throw Error('Missing id');
+    }
+    try {
+      await Transaction.getDocumentReference(id).update({
+        'payment.status': PaymentStatus.withdrawn,
+        updatedAt: new Date().getTime(),
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Transaction.acceptWithdrawal err!');
+    }
+  }
+
   getLatestBrainstorm(): Brainstorm | null {
     const {brainstorms} = this;
     if (brainstorms && brainstorms?.length > 0) {
