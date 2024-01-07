@@ -1189,7 +1189,7 @@ export class Transaction extends BaseModel {
 
   isWaitingAdminAction() {
     const {payment} = this;
-    if (this.isTerminated() || this.isCompleted()) {
+    if (this.isTerminated()) {
       return false;
     }
     return (
