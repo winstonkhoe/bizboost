@@ -41,6 +41,7 @@ import {
   basicStatusTypeMap,
   transactionStatusCampaignStepMap,
   transactionStatusTypeMap,
+  paymentStatusTypeMap,
 } from '../../model/Transaction';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 
@@ -585,13 +586,13 @@ const TransactionDetailScreen = ({route}: Props) => {
                   {transaction.payment.status ===
                     PaymentStatus.withdrawalRequested ||
                   transaction.payment.status === PaymentStatus.withdrawn ? (
-                    <Text
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.neutral.disabled),
-                      ]}>
-                      {transaction.payment.status}
-                    </Text>
+                    <StatusTag
+                      fontSize={20}
+                      status={transaction.payment.status}
+                      statusType={
+                        paymentStatusTypeMap[transaction.payment.status]
+                      }
+                    />
                   ) : (
                     <CustomAlert
                       text="Withdraw"
@@ -600,6 +601,11 @@ const TransactionDetailScreen = ({route}: Props) => {
                       horizontalPadding="zero"
                       rejectButtonText="Cancel"
                       approveButtonText="OK"
+                      disabled={
+                        transaction.status !== TransactionStatus.completed ||
+                        transaction.payment.status !==
+                          PaymentStatus.proofApproved
+                      }
                       confirmationText={
                         <Text
                           className="text-center"
