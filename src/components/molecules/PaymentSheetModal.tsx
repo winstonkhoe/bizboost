@@ -9,7 +9,7 @@ import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
 import {formatToRupiah} from '../../utils/currency';
 import {MediaUploader} from '../atoms/Input';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import FastImage from 'react-native-fast-image';
@@ -18,39 +18,68 @@ import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useUser} from '../../hooks/user';
 import {BankAccountInformation, UserRole} from '../../model/User';
-import {PaymentStatus, paymentStatusTypeMap} from '../../model/Transaction';
+import {
+  PaymentStatus,
+  Transaction,
+  paymentStatusTypeMap,
+} from '../../model/Transaction';
 import StatusTag, {StatusType} from '../atoms/StatusTag';
 import {border} from '../../styles/Border';
 import {background} from '../../styles/BackgroundColor';
+import {Campaign, CampaignStep} from '../../model/Campaign';
+import {formatDateToDayMonthYear, getDate} from '../../utils/date';
 
 type Props = {
   isModalOpened: boolean;
   onModalDismiss: () => void;
-  amount: number;
+  // amount: number;
   onProofUploaded: (url: string) => void;
-  defaultImage?: string;
+  // defaultImage?: string;
   onProofAccepted?: () => void;
   onProofRejected?: () => void;
   onWithdrawalAccepted?: () => void;
-  paymentStatus?: PaymentStatus;
+  // paymentStatus?: PaymentStatus;
   contentCreatorBankAccount?: BankAccountInformation;
+  transaction: Transaction;
+  campaign: Campaign;
 };
 
 const PaymentSheetModal = ({
   isModalOpened,
   onModalDismiss,
-  amount,
   onProofUploaded,
-  defaultImage = undefined,
   onProofAccepted = undefined,
   onProofRejected = undefined,
   onWithdrawalAccepted = undefined,
-  paymentStatus,
   contentCreatorBankAccount = undefined,
+  transaction,
+  campaign,
 }: Props) => {
   const {isBusinessPeople, isAdmin, activeRole, isContentCreator} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
+  const amount = useMemo(
+    () => transaction.transactionAmount || campaign.fee || -1,
+    [transaction, campaign],
+  );
+  const defaultImage = useMemo(
+    () => transaction.payment?.proofImage,
+    [transaction],
+  );
+  const paymentStatus = useMemo(
+    () => transaction.payment?.status,
+    [transaction],
+  );
+  const campaignRegistrationEndDate = useMemo(
+    () =>
+      formatDateToDayMonthYear(
+        getDate(
+          campaign.timeline.find(t => t.step === CampaignStep.Registration)
+            ?.end || 0,
+        ),
+      ),
+    [campaign],
+  );
   useEffect(() => {
     if (defaultImage) {
       setUploadedImage(defaultImage);
@@ -86,12 +115,11 @@ const PaymentSheetModal = ({
               />
             </View>
             <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-              {/* TODO: fix copywriting */}
               {/* TODO: taro bank account admin */}
               {isBusinessPeople &&
                 `You need to pay ${formatToRupiah(
                   amount,
-                )} to Account Number xxxxxxxxxx [admin bank account] by [End Date regis]. Upload your payment proof here.`}
+                )} to Account Number xxxxxxxxxx [admin bank account] by ${campaignRegistrationEndDate}. Upload your payment proof here.`}
 
               {isAdmin && (
                 <>

@@ -191,11 +191,9 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          // amount={campaign?.fee || -1}
-          amount={transaction.transactionAmount || -1}
           onProofUploaded={onProofUploaded}
-          defaultImage={transaction.payment?.proofImage}
-          paymentStatus={transaction.payment?.status}
+          transaction={transaction}
+          campaign={campaign}
         />
       )}
     </>
