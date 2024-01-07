@@ -21,7 +21,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import {View} from 'react-native';
-import {Campaign, CampaignStep} from '../../model/Campaign';
+import {Campaign, CampaignStep, CampaignType} from '../../model/Campaign';
 import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
@@ -655,6 +655,7 @@ const TransactionDetailScreen = ({route}: Props) => {
             <CampaignDetailSection
               businessPeople={businessPeople}
               campaign={campaign}
+              transaction={transaction}
             />
           )}
           {isCampaignOwner && (
@@ -1135,7 +1136,11 @@ export const CampaignDetailSection = ({
                 className="font-semibold"
                 style={[font.size[40], textColor(COLOR.text.neutral.high)]}
                 numberOfLines={1}>
-                {formatToRupiah(props.campaign.fee)}
+                {formatToRupiah(
+                  props.campaign.type === CampaignType.Public
+                    ? props.campaign.fee
+                    : props.transaction?.transactionAmount,
+                )}
               </Text>
             </View>
           </View>

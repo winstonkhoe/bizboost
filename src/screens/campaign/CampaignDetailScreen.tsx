@@ -8,7 +8,7 @@ import {
 import {Pressable, StyleSheet, Text} from 'react-native';
 import {View} from 'react-native';
 import LocationTag from '../../components/atoms/LocationTag';
-import {Campaign} from '../../model/Campaign';
+import {Campaign, CampaignType} from '../../model/Campaign';
 import {formatDateToDayMonthYear} from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
 import {useUser} from '../../hooks/user';
@@ -226,26 +226,31 @@ const CampaignDetailScreen = ({route}: Props) => {
                 {campaign.description}
               </Text>
 
-              <View
-                style={[
-                  flex.flexRow,
-                  flex.wrap,
-                  justify.between,
-                  items.center,
-                ]}>
-                <Text
-                  className="font-semibold"
-                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                  Fee
-                </Text>
-                {campaign.fee && (
+              {campaign.type === CampaignType.Public && (
+                <View
+                  style={[
+                    flex.flexRow,
+                    flex.wrap,
+                    justify.between,
+                    items.center,
+                  ]}>
                   <Text
-                    className="font-medium"
+                    className="font-semibold"
                     style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                    {formatToRupiah(campaign.fee)}
+                    Fee
                   </Text>
-                )}
-              </View>
+                  {campaign.fee && (
+                    <Text
+                      className="font-medium"
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {formatToRupiah(campaign.fee)}
+                    </Text>
+                  )}
+                </View>
+              )}
 
               {/* TODO: extract component */}
               {businessPeople && (
