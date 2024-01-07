@@ -570,57 +570,58 @@ const TransactionDetailScreen = ({route}: Props) => {
                     </Pressable>
                   )}
 
-                  {activeRole === UserRole.ContentCreator && (
-                    <>
-                      {transaction.payment?.status ===
-                        PaymentStatus.withdrawalRequested ||
-                      transaction.payment?.status ===
-                        PaymentStatus.withdrawn ? (
-                        <StatusTag
-                          fontSize={20}
-                          status={transaction.payment.status}
-                          statusType={
-                            paymentStatusTypeMap[transaction.payment.status]
-                          }
-                        />
-                      ) : (
-                        <CustomAlert
-                          text="Withdraw"
-                          type="tertiary"
-                          verticalPadding="zero"
-                          horizontalPadding="zero"
-                          rejectButtonText="Cancel"
-                          approveButtonText="OK"
-                          disabled={
-                            transaction.status !==
-                              TransactionStatus.completed ||
-                            transaction.payment?.status !==
-                              PaymentStatus.proofApproved
-                          }
-                          confirmationText={
-                            <Text
-                              className="text-center"
-                              style={[
-                                font.size[30],
-                                textColor(COLOR.text.neutral.med),
-                              ]}>
-                              {user?.bankAccountInformation
-                                ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
-                                : 'You have not set your payment information yet, do you want to set it now?'}
-                            </Text>
-                          }
-                          onApprove={
-                            user?.bankAccountInformation
-                              ? onRequestWithdraw
-                              : () =>
-                                  navigation.navigate(
-                                    AuthenticatedNavigation.EditBankAccountInformation,
-                                  )
-                          }
-                        />
-                      )}
-                    </>
-                  )}
+                  {activeRole === UserRole.ContentCreator &&
+                    transaction.isCompleted() && (
+                      <>
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawalRequested ||
+                        transaction.payment?.status ===
+                          PaymentStatus.withdrawn ? (
+                          <StatusTag
+                            fontSize={20}
+                            status={transaction.payment.status}
+                            statusType={
+                              paymentStatusTypeMap[transaction.payment.status]
+                            }
+                          />
+                        ) : (
+                          <CustomAlert
+                            text="Withdraw"
+                            type="tertiary"
+                            verticalPadding="zero"
+                            horizontalPadding="zero"
+                            rejectButtonText="Cancel"
+                            approveButtonText="OK"
+                            disabled={
+                              transaction.status !==
+                                TransactionStatus.completed ||
+                              transaction.payment?.status !==
+                                PaymentStatus.proofApproved
+                            }
+                            confirmationText={
+                              <Text
+                                className="text-center"
+                                style={[
+                                  font.size[30],
+                                  textColor(COLOR.text.neutral.med),
+                                ]}>
+                                {user?.bankAccountInformation
+                                  ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                                  : 'You have not set your payment information yet, do you want to set it now?'}
+                              </Text>
+                            }
+                            onApprove={
+                              user?.bankAccountInformation
+                                ? onRequestWithdraw
+                                : () =>
+                                    navigation.navigate(
+                                      AuthenticatedNavigation.EditBankAccountInformation,
+                                    )
+                            }
+                          />
+                        )}
+                      </>
+                    )}
                 </View>
               </>
             )}
@@ -1011,7 +1012,11 @@ const TransactionDetailScreen = ({route}: Props) => {
           onProofAccepted={onProofAccepted}
           onProofRejected={onProofRejected}
           onWithdrawalAccepted={onWithdrawalAccepted}
-          contentCreatorBankAccount={contentCreator?.bankAccountInformation}
+          withdrawerBankAccount={
+            transaction.isTerminated()
+              ? businessPeople?.bankAccountInformation
+              : contentCreator?.bankAccountInformation
+          }
           transaction={transaction}
           campaign={campaign}
         />

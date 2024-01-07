@@ -21,6 +21,7 @@ import {BankAccountInformation, UserRole} from '../../model/User';
 import {
   PaymentStatus,
   Transaction,
+  TransactionStatus,
   paymentStatusTypeMap,
 } from '../../model/Transaction';
 import StatusTag, {StatusType} from '../atoms/StatusTag';
@@ -28,20 +29,25 @@ import {border} from '../../styles/Border';
 import {background} from '../../styles/BackgroundColor';
 import {Campaign, CampaignStep} from '../../model/Campaign';
 import {formatDateToDayMonthYear, getDate} from '../../utils/date';
+import {CustomAlert} from './CustomAlert';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 type Props = {
   isModalOpened: boolean;
   onModalDismiss: () => void;
-  // amount: number;
   onProofUploaded: (url: string) => void;
-  // defaultImage?: string;
   onProofAccepted?: () => void;
   onProofRejected?: () => void;
   onWithdrawalAccepted?: () => void;
-  // paymentStatus?: PaymentStatus;
-  contentCreatorBankAccount?: BankAccountInformation;
+  withdrawerBankAccount?: BankAccountInformation;
   transaction: Transaction;
-  campaign: Campaign;
+  campaign?: Campaign | null;
 };
 
 const PaymentSheetModal = ({
@@ -51,15 +57,16 @@ const PaymentSheetModal = ({
   onProofAccepted = undefined,
   onProofRejected = undefined,
   onWithdrawalAccepted = undefined,
-  contentCreatorBankAccount = undefined,
+  withdrawerBankAccount = undefined,
   transaction,
   campaign,
 }: Props) => {
-  const {isBusinessPeople, isAdmin, activeRole, isContentCreator} = useUser();
+  const {isBusinessPeople, isAdmin, user} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>();
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
+  const navigation = useNavigation<NavigationStackProps>();
   const amount = useMemo(
-    () => transaction.transactionAmount || campaign.fee || -1,
+    () => transaction.transactionAmount || campaign?.fee || -1,
     [transaction, campaign],
   );
   const defaultImage = useMemo(
@@ -80,6 +87,23 @@ const PaymentSheetModal = ({
       ),
     [campaign],
   );
+
+  const onRequestWithdraw = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.withdrawalRequested,
+        },
+      })
+      .then(() => {
+        showToast({
+          message:
+            'Withdrawal Requested! You will receive your money in no later than 7 x 24 hours.',
+          type: ToastType.success,
+        });
+      });
+  };
   useEffect(() => {
     if (defaultImage) {
       setUploadedImage(defaultImage);
@@ -116,10 +140,18 @@ const PaymentSheetModal = ({
             </View>
             <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
               {/* TODO: taro bank account admin */}
-              {isBusinessPeople &&
-                `You need to pay ${formatToRupiah(
-                  amount,
-                )} to Account Number xxxxxxxxxx [admin bank account] by ${campaignRegistrationEndDate}. Upload your payment proof here.`}
+              {isBusinessPeople && (
+                <>
+                  {transaction.status ===
+                    TransactionStatus.registrationPending &&
+                    `You need to pay ${formatToRupiah(
+                      amount,
+                    )} to Account Number xxxxxxxxxx [admin bank account] by ${campaignRegistrationEndDate}. Upload your payment proof here.`}
+                  {transaction.status === TransactionStatus.terminated &&
+                    paymentStatus === PaymentStatus.proofApproved &&
+                    `This transaction has been terminated. You can request a withdrawal, and your money will be processed within 7 x 24 hours.`}
+                </>
+              )}
 
               {isAdmin && (
                 <>
@@ -128,14 +160,17 @@ const PaymentSheetModal = ({
                     `Business People have paid ${formatToRupiah(
                       amount,
                     )}, please verify the payment.`}
-                  {/* TODO: taro bank account CC */}
                   {paymentStatus === PaymentStatus.withdrawalRequested &&
-                    `Content creator have requested to withdraw their money, you need to pay ${formatToRupiah(
+                    `${
+                      transaction.isTerminated()
+                        ? 'Business People'
+                        : 'Content Creator'
+                    } have requested to withdraw their money, you need to pay ${formatToRupiah(
                       amount,
                     )} to the following bank account: ${
-                      contentCreatorBankAccount?.bankName
-                    } - ${contentCreatorBankAccount?.accountNumber} (${
-                      contentCreatorBankAccount?.accountHolderName
+                      withdrawerBankAccount?.bankName
+                    } - ${withdrawerBankAccount?.accountNumber} (${
+                      withdrawerBankAccount?.accountHolderName
                     })`}
                 </>
               )}
@@ -158,7 +193,8 @@ const PaymentSheetModal = ({
             {isBusinessPeople &&
             (paymentStatus === PaymentStatus.proofWaitingForVerification ||
               paymentStatus === PaymentStatus.proofRejected ||
-              paymentStatus === undefined) ? (
+              paymentStatus === undefined) &&
+            transaction.status === TransactionStatus.registrationPending ? (
               <View style={[dimension.square.xlarge12]}>
                 <MediaUploader
                   targetFolder="payment"
@@ -251,6 +287,40 @@ const PaymentSheetModal = ({
                   )}
               </View>
             )}
+
+            {isBusinessPeople &&
+              transaction.status === TransactionStatus.terminated &&
+              paymentStatus === PaymentStatus.proofApproved && (
+                <View style={[flex.flexRow]}>
+                  <View style={[flex.flex1]}>
+                    <CustomAlert
+                      text="Withdraw"
+                      rejectButtonText="Cancel"
+                      approveButtonText="OK"
+                      confirmationText={
+                        <Text
+                          className="text-center"
+                          style={[
+                            font.size[30],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>
+                          {user?.bankAccountInformation
+                            ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                            : 'You have not set your payment information yet, do you want to set it now?'}
+                        </Text>
+                      }
+                      onApprove={
+                        user?.bankAccountInformation
+                          ? onRequestWithdraw
+                          : () =>
+                              navigation.navigate(
+                                AuthenticatedNavigation.EditBankAccountInformation,
+                              )
+                      }
+                    />
+                  </View>
+                </View>
+              )}
           </View>
         </View>
       </SheetModal>
@@ -266,19 +336,6 @@ const PaymentSheetModal = ({
           onRequestClose={() => setIsImageViewOpened(false)}
           swipeToCloseEnabled
           backgroundColor="white"
-          // TODO: extract footer
-          //   FooterComponent={({imageIndex}) => (
-          //     <View style={[padding.horizontal.large, padding.bottom.xlarge2]}>
-          //       <View
-          //         style={[
-          //           padding.default,
-          //           rounded.default,
-          //           {backgroundColor: 'rgba(255,255,255,0.8)'},
-          //         ]}>
-          //         <Text>Payment Proof</Text>
-          //       </View>
-          //     </View>
-          //   )}
         />
       )}
     </>
