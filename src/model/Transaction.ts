@@ -44,8 +44,6 @@ export enum TransactionStatus {
   offerApproved = 'Offer Approved',
   offerRejected = 'Offer Rejected',
 
-  // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
-
   brainstormSubmitted = 'Brainstorm Submitted',
   brainstormRejected = 'Brainstorm Rejected',
   brainstormApproved = 'Brainstorm Approved',

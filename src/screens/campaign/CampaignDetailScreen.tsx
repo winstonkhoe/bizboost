@@ -448,10 +448,8 @@ const CampaignDetailScreen = ({route}: Props) => {
             )}
           {isCampaignOwner && (
             <CustomButton
-              customBackgroundColor={{
-                default: COLOR.background.neutral.high,
-                disabled: COLOR.background.neutral.disabled,
-              }}
+              // customBackgroundColor={COLOR.background.danger}
+              type="secondary"
               text="View Registrants"
               rounded="default"
               onPress={() =>

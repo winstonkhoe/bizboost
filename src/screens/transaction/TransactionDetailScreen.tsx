@@ -555,39 +555,7 @@ const TransactionDetailScreen = ({route}: Props) => {
               <>
                 <View style={[styles.bottomBorder]} />
 
-                <Pressable
-                  onPress={() => {
-                    // TODO: masukin no rek -> keknya dari profile aja? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
-                    Alert.alert(
-                      'Withdraw',
-                      user?.bankAccountInformation
-                        ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
-                        : 'You have not set your payment information yet, do you want to set it now?',
-                      [
-                        {
-                          text: 'Cancel',
-                          onPress: () =>
-                            console.log('Cancel Withdrawal Pressed'),
-                          style: 'cancel',
-                        },
-                        {
-                          text: 'OK',
-                          onPress: user?.bankAccountInformation
-                            ? onRequestWithdraw
-                            : () =>
-                                navigation.navigate(
-                                  AuthenticatedNavigation.EditBankAccountInformation,
-                                ),
-                          style: 'default',
-                        },
-                      ],
-                    );
-                  }}
-                  disabled={
-                    transaction.status !== TransactionStatus.completed ||
-                    transaction.payment.status !== PaymentStatus.proofApproved
-                  }
-                  style={[flex.flexRow, justify.between, items.center]}>
+                <View style={[flex.flexRow, justify.between, items.center]}>
                   <View style={[flex.flexRow, items.center, gap.default]}>
                     <Text
                       style={[
@@ -613,25 +581,48 @@ const TransactionDetailScreen = ({route}: Props) => {
                       <></>
                     )}
                   </View>
-                  <Text
-                    style={[
-                      font.size[30],
-                      textColor(
-                        transaction.status !== TransactionStatus.completed ||
-                          transaction.payment.status !==
-                            PaymentStatus.proofApproved
-                          ? COLOR.text.neutral.disabled
-                          : COLOR.text.green.default,
-                      ),
-                    ]}>
-                    {/* TODO: gatau ini bagusnya nampilin chip juga apa message panjang */}
-                    {transaction.payment.status ===
-                      PaymentStatus.withdrawalRequested ||
-                    transaction.payment.status === PaymentStatus.withdrawn
-                      ? transaction.payment.status
-                      : 'Withdraw'}
-                  </Text>
-                </Pressable>
+
+                  {transaction.payment.status ===
+                    PaymentStatus.withdrawalRequested ||
+                  transaction.payment.status === PaymentStatus.withdrawn ? (
+                    <Text
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.disabled),
+                      ]}>
+                      {transaction.payment.status}
+                    </Text>
+                  ) : (
+                    <CustomAlert
+                      text="Withdraw"
+                      type="tertiary"
+                      verticalPadding="zero"
+                      horizontalPadding="zero"
+                      rejectButtonText="Cancel"
+                      approveButtonText="OK"
+                      confirmationText={
+                        <Text
+                          className="text-center"
+                          style={[
+                            font.size[30],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>
+                          {user?.bankAccountInformation
+                            ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                            : 'You have not set your payment information yet, do you want to set it now?'}
+                        </Text>
+                      }
+                      onApprove={
+                        user?.bankAccountInformation
+                          ? onRequestWithdraw
+                          : () =>
+                              navigation.navigate(
+                                AuthenticatedNavigation.EditBankAccountInformation,
+                              )
+                      }
+                    />
+                  )}
+                </View>
               </>
             )}
             {transaction.createdAt && (
