@@ -24,6 +24,7 @@ import {LoadingScreen} from './LoadingScreen';
 import {overflow} from '../styles/Overflow';
 import {padding} from '../styles/Padding';
 import {ScrollView} from 'react-native-gesture-handler';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -47,13 +48,6 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
       .catch(() => setBusinessPeople(null));
   }, [businessPeopleId]);
 
-  const getProfilePicture = () => {
-    if (businessPeople?.businessPeople?.profilePicture) {
-      return {uri: businessPeople.businessPeople.profilePicture};
-    }
-    return require('../assets/images/bizboost-avatar.png');
-  };
-
   if (
     campaigns === undefined ||
     reviews === undefined ||
@@ -69,15 +63,21 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
       fullHeight
       backButtonPlaceholder={
         <View style={[flex.flexRow, items.center, gap.default]}>
-          <View
-            className="overflow-hidden"
-            style={[dimension.square.xlarge, rounded.max]}>
-            <FastImage style={[dimension.full]} source={getProfilePicture()} />
+          <View style={[dimension.square.xlarge, rounded.max, overflow.hidden]}>
+            <FastImage
+              style={[dimension.full]}
+              source={getSourceOrDefaultAvatar({
+                uri: businessPeople?.businessPeople?.profilePicture,
+              })}
+            />
           </View>
           <Text
-            className="font-bold"
             numberOfLines={1}
-            style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+            style={[
+              font.size[40],
+              font.weight.bold,
+              textColor(COLOR.text.neutral.high),
+            ]}>
             {businessPeople?.businessPeople?.fullname}
           </Text>
         </View>
@@ -94,7 +94,12 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
           ]}>
           <View
             style={[dimension.square.xlarge4, rounded.max, overflow.hidden]}>
-            <FastImage style={[dimension.full]} source={getProfilePicture()} />
+            <FastImage
+              style={[dimension.full]}
+              source={getSourceOrDefaultAvatar({
+                uri: businessPeople?.businessPeople?.profilePicture,
+              })}
+            />
           </View>
           <View style={[flex.flexCol, gap.xsmall]}>
             <Text
@@ -120,13 +125,19 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
         </View>
         <TabView labels={['Campaigns', 'Reviews']}>
           <ScrollView
-            style={[padding.horizontal.default]}
-            contentContainerStyle={[flex.flexCol, gap.medium]}>
+            style={[flex.flex1, padding.horizontal.default]}
+            contentContainerStyle={[
+              flex.flexCol,
+              gap.medium,
+              padding.vertical.default,
+            ]}>
             {campaigns.map((c, index) => (
               <OngoingCampaignCard campaign={c} key={index} />
             ))}
           </ScrollView>
-          <ScrollView style={[flex.flex1, padding.horizontal.default]}>
+          <ScrollView
+            style={[flex.flex1, padding.default]}
+            contentContainerStyle={[flex.flex1]}>
             <ReviewList reviews={reviews} />
           </ScrollView>
         </TabView>

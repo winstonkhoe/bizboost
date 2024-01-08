@@ -3,7 +3,6 @@ import {Text} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
-  PaymentStatus,
   Transaction,
   TransactionStatus,
   transactionStatusTypeMap,
@@ -65,34 +64,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   }, [transaction]);
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
-
-  // TODO: redundant, kalo sempet refactor
-  const onProofUploaded = (url: string) => {
-    console.log('url: ' + url);
-    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
-    transaction
-      .update({
-        payment: {
-          proofImage: url,
-          status: PaymentStatus.proofWaitingForVerification,
-        },
-      })
-      .then(() => {
-        console.log('updated proof!');
-        showToast({
-          message:
-            'Registration Approved! Your payment is being reviewed by our Admin',
-          type: ToastType.success,
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        showToast({
-          message: 'Failed to update proof!',
-          type: ToastType.danger,
-        });
-      });
-  };
 
   useEffect(() => {
     if (transaction.id && transaction.businessPeopleId) {
@@ -191,9 +162,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          onProofUploaded={onProofUploaded}
           transaction={transaction}
-          campaign={campaign}
         />
       )}
     </>
@@ -364,8 +333,18 @@ export const BaseCard = ({
                   handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
                 ),
                 font.size[20],
+                headerTextTrailing
+                  ? [
+                      {
+                        width: '60%',
+                      },
+                    ]
+                  : [
+                      {
+                        width: '91.67%',
+                      },
+                    ],
               ]}
-              className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
               numberOfLines={1}>
               {headerTextLeading}
             </Text>

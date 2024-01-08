@@ -38,11 +38,13 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import {ScrollView} from 'react-native-gesture-handler';
+import {LoadingScreen} from '../LoadingScreen';
+import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 
 const ReportListScreen = () => {
   const {uid, isAdmin} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<Report[]>();
 
   useEffect(() => {
     return fetchReport({
@@ -51,6 +53,10 @@ const ReportListScreen = () => {
       onComplete: setReports,
     });
   }, [isAdmin, uid]);
+
+  if (reports === undefined) {
+    return <LoadingScreen />;
+  }
 
   return (
     <PageWithBackButton
@@ -67,20 +73,23 @@ const ReportListScreen = () => {
           },
         ]}
         contentContainerStyle={[
+          flex.flex1,
           flex.flexCol,
           gap.default,
           padding.horizontal.default,
         ]}>
-        {reports
-          .sort(
-            (a, b) =>
-              reportStatusPrecendence[a.status] -
-              reportStatusPrecendence[b.status],
-          )
-          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-          .map(report => (
-            <ReportCard key={report.id} report={report} />
-          ))}
+        {reports.length > 0 ? (
+          reports
+            .sort(
+              (a, b) =>
+                reportStatusPrecendence[a.status] -
+                reportStatusPrecendence[b.status],
+            )
+            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+            .map(report => <ReportCard key={report.id} report={report} />)
+        ) : (
+          <EmptyPlaceholder />
+        )}
       </ScrollView>
     </PageWithBackButton>
   );

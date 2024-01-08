@@ -34,7 +34,6 @@ import {flex, items, justify, self} from '../../../styles/Flex';
 import {gap} from '../../../styles/Gap';
 import {ContentStepper, StepperState} from '../../../components/atoms/Stepper';
 import {font, text} from '../../../styles/Font';
-import {HorizontalPadding} from '../../../components/atoms/ViewPadding';
 import {padding} from '../../../styles/Padding';
 import {rounded} from '../../../styles/BorderRadius';
 import {background} from '../../../styles/BackgroundColor';
@@ -221,27 +220,12 @@ const CampaignTimelineScreen = ({route}: Props) => {
       return [StepperState.terminated];
     }
 
-    if (
-      transaction.status === TransactionStatus.completed ||
-      campaign.isCompleted()
-    ) {
+    if (transaction.isCompleted() || campaign.isCompleted()) {
       console.log('iscompleted');
       return Array(campaignIndexMap[CampaignStep.Completed]).fill(
         StepperState.success,
       );
     }
-
-    if (isCampaignOwner && currentActiveTimeline) {
-      return Array(campaignIndexMap[currentActiveTimeline?.step]).fill(
-        StepperState.success,
-      );
-    }
-
-    const currentTransactionStep =
-      transactionStatusCampaignStepMap[transaction.status];
-    const isContentCreatorNotDoneActiveTimeline =
-      currentActiveTimeline &&
-      currentTransactionStep !== currentActiveTimeline.step;
 
     const numberOfSteps =
       campaignIndexMap[
@@ -249,6 +233,16 @@ const CampaignTimelineScreen = ({route}: Props) => {
       ] +
       1 -
       getIndexOffset();
+
+    if (isCampaignOwner && currentActiveTimeline) {
+      return Array(numberOfSteps).fill(StepperState.success);
+    }
+
+    const currentTransactionStep =
+      transactionStatusCampaignStepMap[transaction.status];
+    const isContentCreatorNotDoneActiveTimeline =
+      currentActiveTimeline &&
+      currentTransactionStep !== currentActiveTimeline.step;
 
     const steps = Array(numberOfSteps).fill(StepperState.success);
 

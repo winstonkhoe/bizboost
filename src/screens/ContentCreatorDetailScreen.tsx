@@ -297,12 +297,16 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                 </View>
               )}
           </ScrollView>
-          <View style={[flex.flex1, padding.horizontal.default]}>
+          <ScrollView
+            style={[flex.flex1, padding.horizontal.default]}
+            contentContainerStyle={[flex.flex1, padding.vertical.default]}>
             <PortfolioList portfolios={portfolios} />
-          </View>
-          <View style={[flex.flex1, padding.horizontal.default]}>
+          </ScrollView>
+          <ScrollView
+            style={[flex.flex1, padding.horizontal.default]}
+            contentContainerStyle={[flex.flex1, padding.vertical.default]}>
             <ReviewList reviews={reviews} />
-          </View>
+          </ScrollView>
         </TabView>
         <View style={[padding.horizontal.default]}>
           <CustomButton text="Make Offer" onPress={openMakeOfferModal} />

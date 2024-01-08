@@ -1,4 +1,4 @@
-import {StyleSheet, View} from 'react-native';
+import {Pressable, StyleSheet, View} from 'react-native';
 import {SocialPlatform, User} from '../../model/User';
 import {Seperator} from '../atoms/Separator';
 import {Text} from 'react-native';
@@ -11,14 +11,17 @@ import {font} from '../../styles/Font';
 import FastImage from 'react-native-fast-image';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
-import {ChevronRight, PlatformIcon} from '../atoms/Icon';
+import {ChevronRight} from '../atoms/Icon';
 import {border} from '../../styles/Border';
 import {Label} from '../atoms/Label';
 import {formatDateToHourMinute} from '../../utils/date';
-import {PlatformData} from '../../screens/signup/RegisterSocialPlatform';
-import {background} from '../../styles/BackgroundColor';
-import {formatNumberWithThousandSeparator} from '../../utils/number';
 import {SocialCard} from '../atoms/SocialCard';
+import {overflow} from '../../styles/Overflow';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 
 interface ContentCreatorSectionProps {
   title?: string;
@@ -29,17 +32,34 @@ export const ContentCreatorSection = ({
   title = 'Content Creator Detail',
   ...props
 }: ContentCreatorSectionProps) => {
+  const navigation = useNavigation<NavigationStackProps>();
+  if (!props.contentCreator) {
+    return null;
+  }
   return (
     <>
       <Seperator />
       <View style={[flex.flexCol, padding.default, gap.default]}>
         <View style={[flex.flexRow, gap.xlarge, justify.between]}>
           <Text
-            className="font-bold"
-            style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+            style={[
+              font.size[30],
+              font.weight.bold,
+              textColor(COLOR.text.neutral.high),
+            ]}>
             {title}
           </Text>
-          <View
+          <Pressable
+            onPress={() => {
+              if (props.contentCreator?.id) {
+                navigation.navigate(
+                  AuthenticatedNavigation.ContentCreatorDetail,
+                  {
+                    contentCreatorId: props.contentCreator?.id,
+                  },
+                );
+              }
+            }}
             style={[
               flex.flex1,
               flex.flexRow,
@@ -48,8 +68,11 @@ export const ContentCreatorSection = ({
               gap.xsmall,
             ]}>
             <View
-              className="overflow-hidden"
-              style={[dimension.square.large, rounded.default]}>
+              style={[
+                dimension.square.large,
+                rounded.default,
+                overflow.hidden,
+              ]}>
               <FastImage
                 source={{
                   uri: props.contentCreator?.contentCreator?.profilePicture,
@@ -58,13 +81,16 @@ export const ContentCreatorSection = ({
               />
             </View>
             <Text
-              className="font-medium"
-              style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+              style={[
+                font.size[20],
+                font.weight.medium,
+                textColor(COLOR.text.neutral.high),
+              ]}
               numberOfLines={1}>
               {props.contentCreator?.contentCreator?.fullname}
             </Text>
             <ChevronRight size="large" color={COLOR.text.neutral.med} />
-          </View>
+          </Pressable>
         </View>
         <ContentCreatorCard contentCreator={props.contentCreator} />
       </View>
@@ -92,8 +118,11 @@ export const ContentCreatorCard = ({...props}: ContentCreatorCardProps) => {
       <View style={[flex.flexCol, gap.default]}>
         <View style={[flex.flexCol, gap.xsmall]}>
           <Text
-            className="font-medium"
-            style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+            style={[
+              font.size[20],
+              font.weight.medium,
+              textColor(COLOR.text.neutral.high),
+            ]}>
             Specialized categories
           </Text>
           <View style={[flex.flexRow, flex.wrap, gap.xsmall]}>
@@ -106,8 +135,11 @@ export const ContentCreatorCard = ({...props}: ContentCreatorCardProps) => {
         </View>
         <View style={[flex.flexCol, gap.xsmall]}>
           <Text
-            className="font-medium"
-            style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+            style={[
+              font.size[20],
+              font.weight.medium,
+              textColor(COLOR.text.neutral.high),
+            ]}>
             Usual posting schedules
           </Text>
           <View style={[flex.flexRow, flex.wrap, gap.xsmall]}>
