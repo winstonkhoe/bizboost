@@ -111,9 +111,12 @@ export class Review extends BaseModel {
       ...this.toFirestore(),
       createdAt: new Date().getTime(),
     };
-    await Review.getCollectionReference().add(data);
     const campaign = await Campaign.getById(campaignId);
     const revieweeUser = await User.getById(revieweeId);
+    if (!campaign || !revieweeUser) {
+      throw Error('Review.insert Missing data');
+    }
+    await Review.getCollectionReference().add(data);
     const revieweeRole =
       campaign.userId === revieweeId
         ? UserRole.BusinessPeople

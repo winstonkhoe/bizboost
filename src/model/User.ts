@@ -233,21 +233,6 @@ export class User extends BaseModel {
     };
   }
 
-  static async setUserData(documentId: string, data: User): Promise<void> {
-    await User.getDocumentReference(documentId).set({
-      ...User.mappingUserFields(data),
-      joinedAt: new Date().getTime(),
-    });
-  }
-
-  async updateUserData(): Promise<void> {
-    const {id} = this;
-    if (!id) {
-      throw Error('User id is not defined!');
-    }
-    await User.getDocumentReference(id).update(User.mappingUserFields(this));
-  }
-
   async update(fields: Partial<User> | UpdateFields) {
     const {id} = this;
     if (!id) {
@@ -298,30 +283,28 @@ export class User extends BaseModel {
       if (profilePicture) {
         await deleteFileByURL(profilePicture);
       }
-
-      this.businessPeople = {
-        ...businessPeople,
-        profilePicture: profilePictureUrl,
-      };
-    } else if (activeRole === UserRole.ContentCreator) {
+      await this.update({
+        'businessPeople.profilePicture': profilePictureUrl,
+      });
+      businessPeople.profilePicture = profilePictureUrl;
+      return;
+    }
+    if (activeRole === UserRole.ContentCreator) {
       const {contentCreator} = this;
       if (!contentCreator) {
         throw Error('Business people is not defined!');
       }
 
       const {profilePicture} = contentCreator;
-      if (!profilePicture) {
-        throw Error('Profile picture is not defined!');
+      if (profilePicture) {
+        await deleteFileByURL(profilePicture);
       }
-      await deleteFileByURL(profilePicture);
-
-      this.contentCreator = {
-        ...contentCreator,
-        profilePicture: profilePictureUrl,
-      };
+      await this.update({
+        'contentCreator.profilePicture': profilePictureUrl,
+      });
+      contentCreator.profilePicture = profilePictureUrl;
+      return;
     }
-
-    await this.updateUserData();
   }
 
   async updatePassword(
@@ -446,42 +429,6 @@ export class User extends BaseModel {
       return users.docs.map(doc => User.fromSnapshot(doc));
     } catch (error) {
       throw error; // Handle the error appropriately
-    }
-  }
-
-  static async signUp({
-    token,
-    provider,
-    providerId,
-    ...user
-  }: SignupContentCreatorProps) {
-    try {
-      const userCredential = await AuthMethod.getUserCredentialByProvider({
-        provider: provider,
-        token: token,
-        email: user.email,
-        password: user.password,
-      });
-
-      await User.setUserData(
-        userCredential.user.uid,
-        new User({
-          ...user,
-          password: undefined,
-        }),
-      );
-
-      await AuthMethod.setAuthMethod(
-        userCredential.user.uid,
-        new AuthMethod({
-          providerId: providerId,
-          email: user.email,
-          method: provider,
-        }),
-      );
-    } catch (error: any) {
-      console.log(error);
-      throw Error('User.signUp error ' + error);
     }
   }
 
@@ -790,16 +737,17 @@ export class User extends BaseModel {
         password: password,
       });
 
-      await User.setUserData(userCredential.user.uid, this);
+      await User.getDocumentReference(userCredential.user.uid).set({
+        ...User.mappingUserFields(this),
+        joinedAt: new Date().getTime(),
+      });
 
-      await AuthMethod.setAuthMethod(
-        userCredential.user.uid,
-        new AuthMethod({
-          providerId: providerId,
-          email: email,
-          method: provider,
-        }),
-      );
+      await new AuthMethod({
+        id: userCredential.user.uid,
+        providerId: providerId,
+        email: email,
+        method: provider,
+      }).insert();
     } catch (error: any) {
       console.log(error);
       throw Error('User.signUp error ' + error);

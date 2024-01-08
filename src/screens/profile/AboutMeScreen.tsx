@@ -26,13 +26,12 @@ import {openCategoryModal, openLocationModal} from '../../utils/modal';
 import {Location} from '../../model/Location';
 import {Category} from '../../model/Category';
 import {InstagramIcon, TiktokIcon} from '../../components/atoms/Icon';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 type FormData = {
   email: string;
   fullname: string;
   phone: string;
-
-  //
-  // preferredLocations: Location[]
 };
 const AboutMeScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -46,28 +45,51 @@ const AboutMeScreen = () => {
       phone: user?.phone,
     },
   });
+
+  const handleSuccessUpdate = () => {
+    showToast({
+      type: ToastType.success,
+      message: 'Successfully updated your information',
+    });
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate(AuthenticatedNavigation.Home);
+  };
+
+  const handleFailedUpdate = () => {
+    showToast({
+      type: ToastType.danger,
+      message: 'Failed to update your information',
+    });
+  };
+
   const onSubmit = (d: FormData) => {
     const temp = new User({...user});
 
     if (activeRole === UserRole.BusinessPeople) {
-      temp.businessPeople = {
-        ...temp.businessPeople!,
-        fullname: d.fullname,
-      };
-    } else if (activeRole === UserRole.ContentCreator) {
-      temp.contentCreator = {
-        ...temp.contentCreator!,
-        fullname: d.fullname,
-      };
+      temp
+        .update({
+          'businessPeople.fullname': d.fullname,
+          email: d.email,
+          phone: d.phone,
+        })
+        .then(handleSuccessUpdate)
+        .catch(handleFailedUpdate);
+      return;
     }
-
-    temp.email = d.email;
-    temp.phone = d.phone;
-
-    // TODO: show success message perlu gak?
-    temp.updateUserData().then(() => {
-      navigation.goBack();
-    });
+    if (activeRole === UserRole.ContentCreator) {
+      temp
+        .update({
+          'contentCreator.fullname': d.fullname,
+          email: d.email,
+          phone: d.phone,
+        })
+        .then(handleSuccessUpdate)
+        .catch(handleFailedUpdate);
+      return;
+    }
   };
 
   const updateFavoriteCategories = (favoriteCategories: Category[]) => {
@@ -75,7 +97,7 @@ const AboutMeScreen = () => {
     temp.update({
       'contentCreator.specializedCategoryIds': favoriteCategories
         .filter(c => c.id)
-        .map(c => c.id),
+        .map(c => Category.getDocumentReference(c.id!!)),
     });
   };
 
@@ -84,7 +106,7 @@ const AboutMeScreen = () => {
     temp.update({
       'contentCreator.preferredLocationIds': locations
         .filter(l => l.id)
-        .map(l => l.id),
+        .map(l => Location.getDocumentReference(l.id!!)),
     });
   };
 

@@ -54,12 +54,6 @@ export class AuthMethod extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  private static fromQuerySnapshot(
-    querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
-  ): AuthMethod[] {
-    return querySnapshots.docs.map(AuthMethod.fromSnapshot);
-  }
-
   static getCollectionReference = () => {
     return firestore().collection(AUTH_METHOD_COLLECTION);
   };
@@ -69,13 +63,12 @@ export class AuthMethod extends BaseModel {
     return AuthMethod.getCollectionReference().doc(documentId);
   }
 
-  static async setAuthMethod(
-    documentId: string,
-    data: AuthMethod,
-  ): Promise<void> {
-    await AuthMethod.getDocumentReference(documentId).set({
-      ...data,
-    });
+  async insert() {
+    const {id, ...rest} = this;
+    if (!id) {
+      throw Error(ErrorMessage.MISSING_FIELDS);
+    }
+    await AuthMethod.getDocumentReference(id).set(rest);
   }
 
   static async getById(documentId: string): Promise<AuthMethod | undefined> {
