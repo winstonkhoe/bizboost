@@ -69,6 +69,24 @@ const AboutMeScreen = () => {
     });
   };
 
+  const updateFavoriteCategories = (favoriteCategories: Category[]) => {
+    const temp = new User({...user});
+    temp.update({
+      'contentCreator.specializedCategoryIds': favoriteCategories
+        .filter(c => c.id)
+        .map(c => c.id),
+    });
+  };
+
+  const updateContentCreatorTerritory = (locations: Location[]) => {
+    const temp = new User({...user});
+    temp.update({
+      'contentCreator.preferredLocationIds': locations
+        .filter(l => l.id)
+        .map(l => l.id),
+    });
+  };
+
   return (
     <PageWithBackButton fullHeight enableSafeAreaContainer>
       <FormProvider {...methods}>
@@ -260,16 +278,7 @@ const AboutMeScreen = () => {
                         user?.contentCreator?.preferredLocationIds.map(
                           pl => new Location({id: pl}),
                         ) || [],
-                      setPreferredLocations: locations => {
-                        // TODO: extract method?
-                        const temp = new User({...user});
-                        temp.contentCreator = {
-                          ...temp.contentCreator!,
-                          preferredLocationIds: locations.map(l => l.id || ''),
-                        };
-
-                        temp.updateUserData();
-                      },
+                      setPreferredLocations: updateContentCreatorTerritory,
                       navigation: navigation,
                     });
                   }}>
@@ -318,17 +327,7 @@ const AboutMeScreen = () => {
                         user?.contentCreator?.specializedCategoryIds.map(
                           sc => new Category({id: sc}),
                         ) || [],
-                      setFavoriteCategories: categories => {
-                        const temp = new User({...user});
-                        temp.contentCreator = {
-                          ...temp.contentCreator!,
-                          specializedCategoryIds: categories.map(
-                            c => c.id || '',
-                          ),
-                        };
-
-                        temp.updateUserData();
-                      },
+                      setFavoriteCategories: updateFavoriteCategories,
                       navigation: navigation,
                     });
                   }}>

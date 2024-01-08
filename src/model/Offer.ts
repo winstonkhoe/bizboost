@@ -24,6 +24,7 @@ export interface Negotiation {
   notes?: string;
   negotiatedBy?: UserRole;
   createdAt?: number;
+  updatedAt?: number;
 }
 
 export class Offer extends BaseModel {
@@ -224,7 +225,10 @@ export class Offer extends BaseModel {
   }
 
   async accept(role: UserRole) {
-    await this.updateStatus(OfferStatus.approved);
+    await this.update({
+      status: OfferStatus.approved,
+    });
+    this.status = OfferStatus.approved;
     const {businessPeopleId, contentCreatorId, campaignId} = this;
     const latestNegotiation = this.getLatestNegotiation();
     if (
@@ -268,7 +272,10 @@ export class Offer extends BaseModel {
   }
 
   async reject(role: UserRole) {
-    await this.updateStatus(OfferStatus.rejected);
+    await this.update({
+      status: OfferStatus.rejected,
+    });
+    this.status = OfferStatus.rejected;
     const {businessPeopleId, contentCreatorId, campaignId} = this;
     if (!businessPeopleId || !contentCreatorId || !campaignId) {
       throw Error(ErrorMessage.GENERAL);
@@ -297,7 +304,7 @@ export class Offer extends BaseModel {
     }
   }
 
-  async updateStatus(status: OfferStatus) {
+  async update(fields: Partial<Offer>) {
     try {
       const {id} = this;
 
@@ -305,14 +312,13 @@ export class Offer extends BaseModel {
         throw Error('Missing id');
       }
 
-      this.status = status;
-
       await Offer.getDocumentReference(id).update({
-        status: status,
+        ...fields,
+        updatedAt: new Date().getTime(),
       });
     } catch (error) {
       console.log(error);
-      throw Error('Offer.updateStatus error ' + error);
+      throw Error('Offer.update error ' + error);
     }
   }
 

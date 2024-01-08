@@ -143,10 +143,16 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         }
         handleClickReject={() => {
           transaction
-            .updateStatus(TransactionStatus.registrationRejected)
+            .rejectRegistration()
             .then(() => {
               showToast({
                 message: 'Registration Rejected!',
+                type: ToastType.danger,
+              });
+            })
+            .catch(() => {
+              showToast({
+                message: 'Failed to reject registration!',
                 type: ToastType.danger,
               });
             });

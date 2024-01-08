@@ -15,7 +15,12 @@ import {useUser} from '../../../hooks/user';
 import {CustomButton} from '../../../components/atoms/Button';
 import {User} from '../../../model/User';
 import {useNavigation} from '@react-navigation/native';
-import {NavigationStackProps} from '../../../navigation/StackNavigation';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../../navigation/StackNavigation';
+import {showToast} from '../../../helpers/toast';
+import {ToastType} from '../../../providers/ToastProvider';
 
 type FormData = {
   contentRevisionLimit: number;
@@ -34,14 +39,27 @@ const EditMaxContentRevisionScreen = () => {
 
   const onSubmit = (d: FormData) => {
     const temp = new User({...user});
-    temp.contentCreator = {
-      ...temp.contentCreator!,
-      contentRevisionLimit: d.contentRevisionLimit,
-    };
-
-    temp.updateUserData().then(() => {
-      navigation.goBack();
-    });
+    temp
+      .update({
+        'contentCreator.contentRevisionLimit': d.contentRevisionLimit,
+      })
+      .then(() => {
+        showToast({
+          type: ToastType.success,
+          message: 'Successfully updated content revision limit',
+        });
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+        navigation.navigate(AuthenticatedNavigation.Home);
+      })
+      .catch(() => {
+        showToast({
+          type: ToastType.danger,
+          message: 'Failed to update content revision limit',
+        });
+      });
   };
   return (
     <SafeAreaContainer enable>

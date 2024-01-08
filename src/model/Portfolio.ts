@@ -109,19 +109,16 @@ export class Portfolio extends BaseModel {
     return [];
   }
 
-  async update() {
+  async updateThumbnail(thumbnailUrl: string) {
     try {
-      const {id, userId, ...rest} = this;
+      const {id} = this;
       if (!id) {
         throw Error('Invalid id');
       }
-      if (!userId) {
-        throw Error('Invalid user id');
-      }
       await Portfolio.getDocumentReference(id).update({
-        ...rest,
-        userId: User.getDocumentReference(userId),
+        thumbnail: thumbnailUrl,
       });
+      this.thumbnail = thumbnailUrl;
     } catch (error) {
       console.log(error);
       throw Error('Portfolio.update error ' + error);

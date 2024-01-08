@@ -238,27 +238,6 @@ export class Chat extends BaseModel {
     }
   }
 
-  static async insertMessage(
-    chatId: string,
-    type: MessageType,
-    role: UserRole,
-    message: string,
-  ) {
-    try {
-      await Chat.getDocumentReference(chatId).update({
-        messages: firestore.FieldValue.arrayUnion({
-          message: message,
-          role: role,
-          type: type,
-          createdAt: new Date().getTime(),
-        }),
-      });
-    } catch (error) {
-      console.error(error);
-      throw new Error('Chat.insertMessage error ' + error);
-    }
-  }
-
   async addMessage(type: MessageType, role: UserRole, message: MessageContent) {
     const {id} = this;
     try {
@@ -275,7 +254,7 @@ export class Chat extends BaseModel {
       });
     } catch (error) {
       console.error(error);
-      throw new Error('Chat.insertMessage error ' + error);
+      throw new Error('Chat.addMessage error ' + error);
     }
   }
 
@@ -297,7 +276,7 @@ export class Chat extends BaseModel {
       });
     } catch (error) {
       console.error(error);
-      throw new Error('Chat.insertMessage error ' + error);
+      throw new Error('Chat.addOfferMessage error ' + error);
     }
   }
 

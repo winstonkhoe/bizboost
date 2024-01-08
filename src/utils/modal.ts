@@ -68,48 +68,11 @@ export const openCategoryModal = ({
   });
 };
 
-interface NegotiateModalProps {
-  selectedOffer: Offer;
-  campaign: Campaign;
-  activeRole: UserRole;
-  navigation: NavigationStackProps;
-}
-export const openNegotiateModal = ({
-  selectedOffer,
-  campaign,
-  activeRole,
-  navigation,
-}: NegotiateModalProps) => {
-  const eventType = 'callback.negotiate';
-  navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
-    offer: selectedOffer,
-    eventType: eventType,
-    campaign: campaign,
-  });
-
-  const listener = DeviceEventEmitter.addListener(eventType, fee => {
-    const bpId = selectedOffer.businessPeopleId;
-    const ccId = selectedOffer.contentCreatorId;
-    if (!bpId || !ccId) {
-      return;
-    }
-    Chat.insertMessage(bpId + ccId, MessageType.Negotiation, activeRole, fee);
-  });
-
-  const closeListener = DeviceEventEmitter.addListener(
-    'close.negotiate',
-    () => {
-      listener.remove();
-      closeListener.remove();
-    },
-  );
-};
-
 interface CampaignModalProps {
   selectedCampaign?: Campaign;
   setSelectedCampaign: (campaign: Campaign) => void;
   navigation: NavigationStackProps;
-  contentCreatorToOfferId?: string;
+  contentCreatorToOfferId: string;
 }
 export const openCampaignModal = ({
   selectedCampaign,

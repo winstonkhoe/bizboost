@@ -29,8 +29,7 @@ export const usePortfolio = (userId?: string): usePortfolioHook => {
                 originalFilePath: response.path,
                 targetFolder: 'thumbnails',
                 onUploadComplete: url => {
-                  content.thumbnail = url;
-                  content.update();
+                  content.updateThumbnail(url);
                 },
               });
             })

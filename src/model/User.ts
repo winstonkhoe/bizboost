@@ -5,7 +5,7 @@ import firestore, {
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {ErrorMessage} from '../constants/errorMessage';
 import {handleError} from '../utils/error';
-import {BaseModel} from './BaseModel';
+import {BaseModel, UpdateFields} from './BaseModel';
 import {
   AccessToken,
   GraphRequest,
@@ -244,6 +244,16 @@ export class User extends BaseModel {
       throw Error('User id is not defined!');
     }
     await User.getDocumentReference(id).update(User.mappingUserFields(this));
+  }
+
+  async update(fields: Partial<User> | UpdateFields) {
+    const {id} = this;
+    if (!id) {
+      throw Error('User id is not defined!');
+    }
+    await User.getDocumentReference(id).update({
+      ...fields,
+    });
   }
 
   async createContentCreatorAccount() {
@@ -785,13 +795,17 @@ export class User extends BaseModel {
   }
 
   async suspend() {
+    await this.update({
+      status: UserStatus.Suspended,
+    });
     this.status = UserStatus.Suspended;
-    await this.updateUserData();
   }
 
   async activate() {
+    await this.update({
+      status: UserStatus.Active,
+    });
     this.status = UserStatus.Active;
-    await this.updateUserData();
   }
 
   async updateRating(newRating: number, role: UserRole) {
@@ -815,11 +829,12 @@ export class User extends BaseModel {
         currentRatedCount,
         newRatedCount,
       );
-      this.contentCreator = {
-        ...contentCreator,
-        rating: calculatedRating,
-        ratedCount: newRatedCount,
-      };
+      this.update({
+        'contentCreator.rating': calculatedRating,
+        'contentCreator.ratedCount': newRatedCount,
+      });
+      contentCreator.rating = calculatedRating;
+      contentCreator.ratedCount = newRatedCount;
     }
     if (role === UserRole.BusinessPeople && businessPeople) {
       const currentRating = businessPeople?.rating;
@@ -830,13 +845,13 @@ export class User extends BaseModel {
         currentRatedCount,
         newRatedCount,
       );
-      this.businessPeople = {
-        ...businessPeople,
-        rating: calculatedRating,
-        ratedCount: newRatedCount,
-      };
+      this.update({
+        'businessPeople.rating': calculatedRating,
+        'businessPeople.ratedCount': newRatedCount,
+      });
+      businessPeople.rating = calculatedRating;
+      businessPeople.ratedCount = newRatedCount;
     }
-    await this.updateUserData();
   }
 
   static async signOut() {
