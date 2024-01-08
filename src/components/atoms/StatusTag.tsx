@@ -5,6 +5,7 @@ import {background} from '../../styles/BackgroundColor';
 import {COLOR} from '../../styles/Color';
 import {border} from '../../styles/Border';
 import {textColor} from '../../styles/Text';
+import {padding} from '../../styles/Padding';
 
 export enum StatusType {
   success = 'success',
@@ -60,8 +61,9 @@ const StatusTag = ({
             color: COLOR.black[70],
           }),
         ],
-      ]}
-      className="px-2 py-1">
+        padding.horizontal.small,
+        padding.vertical.xsmall,
+      ]}>
       <Text
         style={[
           font.size[fontSize],

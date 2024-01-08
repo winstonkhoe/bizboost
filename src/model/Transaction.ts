@@ -45,8 +45,6 @@ export enum TransactionStatus {
   offerApproved = 'Offer Approved',
   offerRejected = 'Offer Rejected',
 
-  // TODO: add other status: brainstorming, draft, final content, engagement, payment, etc
-
   brainstormSubmitted = 'Brainstorm Submitted',
   brainstormRejected = 'Brainstorm Rejected',
   brainstormApproved = 'Brainstorm Approved',
@@ -1193,7 +1191,7 @@ export class Transaction extends BaseModel {
   }
 
   isApprovable() {
-    const {status} = this;
+    const {status, payment} = this;
     return (
       status &&
       [
@@ -1201,7 +1199,11 @@ export class Transaction extends BaseModel {
         TransactionStatus.brainstormSubmitted,
         TransactionStatus.contentSubmitted,
         TransactionStatus.engagementSubmitted,
-      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+      ].findIndex(
+        transactionStatus =>
+          transactionStatus === status &&
+          payment?.status !== PaymentStatus.proofWaitingForVerification,
+      ) >= 0
     );
   }
 
@@ -1234,9 +1236,6 @@ export class Transaction extends BaseModel {
 
   isWaitingAdminAction() {
     const {payment} = this;
-    if (this.isTerminated() || this.isCompleted()) {
-      return false;
-    }
     return (
       [
         PaymentStatus.proofWaitingForVerification,

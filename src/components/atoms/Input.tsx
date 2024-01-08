@@ -671,6 +671,12 @@ export const MediaUploader = ({
   children,
   onMediaSelected,
 }: MediaUploaderProps) => {
+  useEffect(() => {
+    if (options.mediaType !== 'video') {
+      options.mediaType = 'photo';
+    }
+  }, [options]);
+
   const [uploadProgress, setUploadProgress] = useState<number | undefined>(
     undefined,
   );

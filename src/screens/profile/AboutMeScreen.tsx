@@ -1,5 +1,5 @@
 import {Pressable, ScrollView, Text, View} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
 import {useUser} from '../../hooks/user';
@@ -25,6 +25,7 @@ import {formatDateToTime12Hrs} from '../../utils/date';
 import {openCategoryModal, openLocationModal} from '../../utils/modal';
 import {Location} from '../../model/Location';
 import {Category} from '../../model/Category';
+import {InstagramIcon, TiktokIcon} from '../../components/atoms/Icon';
 type FormData = {
   email: string;
   fullname: string;
@@ -160,6 +161,35 @@ const AboutMeScreen = () => {
                   </Text>
                 </View>
 
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(AuthenticatedNavigation.EditBiodata);
+                  }}>
+                  <Text
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Biodata
+                  </Text>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View className="w-3/5 flex flex-row items-center justify-end">
+                      <Text
+                        className="overflow-hidden text-right"
+                        numberOfLines={1}
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {user?.contentCreator?.biodata
+                          ? user?.contentCreator?.biodata
+                          : 'None'}
+                      </Text>
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
                 <Pressable
                   className="flex flex-row items-center justify-between"
                   onPress={() => {
@@ -367,6 +397,51 @@ const AboutMeScreen = () => {
                     <ChevronRight fill={COLOR.black[20]} />
                   </View>
                 </Pressable>
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(
+                      AuthenticatedNavigation.EditSocialPlatform,
+                    );
+                  }}>
+                  <Text
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Social Media
+                  </Text>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View
+                      className="w-3/5"
+                      style={[
+                        flex.flexRow,
+                        items.center,
+                        justify.end,
+                        gap.small,
+                      ]}>
+                      {user?.instagram?.username && (
+                        <InstagramIcon color={COLOR.text.neutral.low} />
+                      )}
+                      {user?.tiktok?.username && (
+                        <TiktokIcon color={COLOR.text.neutral.low} />
+                      )}
+                      {!user?.tiktok?.username &&
+                        !user?.instagram?.username && (
+                          <Text
+                            className="overflow-hidden text-right"
+                            numberOfLines={1}
+                            style={[
+                              textColor(COLOR.text.neutral.low),
+                              font.size[20],
+                            ]}>
+                            None
+                          </Text>
+                        )}
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
               </>
             )}
             <View className="border-t border-gray-400 pt-4">
@@ -380,7 +455,7 @@ const AboutMeScreen = () => {
               className="flex flex-row items-center justify-between"
               onPress={() => {
                 navigation.navigate(
-                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                  AuthenticatedNavigation.EditBankAccountInformation,
                 );
               }}>
               <Text

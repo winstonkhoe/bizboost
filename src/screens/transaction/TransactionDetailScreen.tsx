@@ -12,27 +12,17 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../../navigation/StackNavigation';
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-} from 'react-native';
+import {Pressable, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import {View} from 'react-native';
 import {Campaign, CampaignStep} from '../../model/Campaign';
 import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
-  formatDateToHourMinute,
 } from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
 import {useUser} from '../../hooks/user';
 import {
-  BasicStatus,
   Brainstorm,
-  BrainstormContent,
   Content,
   PaymentStatus,
   Engagement,
@@ -41,13 +31,14 @@ import {
   basicStatusTypeMap,
   transactionStatusCampaignStepMap,
   transactionStatusTypeMap,
+  paymentStatusTypeMap,
 } from '../../model/Transaction';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 
 import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
-import {SocialPlatform, User, UserRole} from '../../model/User';
+import {useNavigation} from '@react-navigation/native';
+import {User, UserRole} from '../../model/User';
 import {flex, items, justify, self} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
@@ -62,12 +53,9 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
 import StatusTag, {StatusType} from '../../components/atoms/StatusTag';
 import {ScrollView} from 'react-native-gesture-handler';
-import {Label} from '../../components/atoms/Label';
-import {PlatformData} from '../signup/RegisterSocialPlatform';
 import {
   ChevronRight,
   CopyIcon,
-  KebabMenuIcon,
   MeatballMenuIcon,
   OpenIcon,
   PlatformIcon,
@@ -77,16 +65,11 @@ import WarningIcon from '../../assets/vectors/warning-circle.svg';
 import CheckmarkIcon from '../../assets/vectors/checkmark-circle.svg';
 import CrossIcon from '../../assets/vectors/cross-circle.svg';
 
-import {formatNumberWithThousandSeparator} from '../../utils/number';
-import {CustomModal} from '../../components/atoms/CustomModal';
 import {SheetModal} from '../../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
 import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
-import {
-  CustomTextInput,
-  FormlessCustomTextInput,
-} from '../../components/atoms/Input';
+import {FormlessCustomTextInput} from '../../components/atoms/Input';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
 import {formatToRupiah} from '../../utils/currency';
@@ -126,7 +109,6 @@ const TransactionDetailScreen = ({route}: Props) => {
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
   const {uid, user, activeRole} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
-  const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
   const {transactionId} = route.params;
   const [isOthersSheetModalOpen, setIsOthersSheetModalOpen] =
@@ -138,7 +120,6 @@ const TransactionDetailScreen = ({route}: Props) => {
   const [reportDescription, setReportDescription] = useState<string>('');
   const [transactionReports, setTransactionReports] = useState<Report[]>([]);
   const [selectedReportType, setSelectedReportType] = useState<ReportType>();
-  const [rejectReason, setRejectReason] = useState<string>('');
   const [campaign, setCampaign] = useState<Campaign | null>();
   const [transaction, setTransaction] = useState<Transaction | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
@@ -413,103 +394,11 @@ const TransactionDetailScreen = ({route}: Props) => {
 
             {(transaction.payment !== undefined ||
               transaction.status ===
-                TransactionStatus.offerWaitingForPayment) &&
-              activeRole !== UserRole.ContentCreator && (
-                <>
-                  <View style={[styles.bottomBorder]} />
-
-                  <Pressable
-                    onPress={() => setIsPaymentModalOpened(true)}
-                    style={[flex.flexRow, justify.between, items.center]}>
-                    <View style={[flex.flexRow, items.center, gap.default]}>
-                      <Text
-                        style={[
-                          font.size[30],
-                          textColor(COLOR.text.neutral.med),
-                        ]}>
-                        Payment
-                      </Text>
-                      {transaction.payment?.status ===
-                      PaymentStatus.proofRejected ? (
-                        <CrossIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.red[50]}
-                        />
-                      ) : transaction.payment?.status ===
-                          PaymentStatus.proofWaitingForVerification ||
-                        transaction.payment?.status === undefined ||
-                        // Tujuannya supaya tanda warning kl withdrawal requested tu dari admin aja sih keliatannya
-                        (transaction.payment?.status ===
-                          PaymentStatus.withdrawalRequested &&
-                          activeRole === UserRole.Admin) ? (
-                        <WarningIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.yellow[20]}
-                        />
-                      ) : transaction.payment?.status ===
-                          PaymentStatus.proofApproved ||
-                        transaction.payment?.status ===
-                          PaymentStatus.withdrawn ||
-                        activeRole === UserRole.BusinessPeople ? (
-                        <CheckmarkIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.green[40]}
-                        />
-                      ) : (
-                        <></>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.green.default),
-                      ]}>
-                      {activeRole !== UserRole.Admin ? 'Proof' : 'Manage'}
-                    </Text>
-                  </Pressable>
-                </>
-              )}
-            {/* TODO: jadi satu deh ama yg atas abis ini */}
-            {transaction.payment && activeRole === UserRole.ContentCreator && (
+                TransactionStatus.offerWaitingForPayment) && (
               <>
                 <View style={[styles.bottomBorder]} />
 
-                <Pressable
-                  onPress={() => {
-                    // TODO: masukin no rek -> keknya dari profile aja? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
-                    Alert.alert(
-                      'Withdraw',
-                      user?.bankAccountInformation
-                        ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
-                        : 'You have not set your payment information yet, do you want to set it now?',
-                      [
-                        {
-                          text: 'Cancel',
-                          onPress: () =>
-                            console.log('Cancel Withdrawal Pressed'),
-                          style: 'cancel',
-                        },
-                        {
-                          text: 'OK',
-                          onPress: user?.bankAccountInformation
-                            ? onRequestWithdraw
-                            : () =>
-                                navigation.navigate(
-                                  AuthenticatedNavigation.EditBankAccountInformationScreen,
-                                ),
-                          style: 'default',
-                        },
-                      ],
-                    );
-                  }}
-                  disabled={
-                    transaction.status !== TransactionStatus.completed ||
-                    transaction.payment.status !== PaymentStatus.proofApproved
-                  }
-                  style={[flex.flexRow, justify.between, items.center]}>
+                <View style={[flex.flexRow, justify.between, items.center]}>
                   <View style={[flex.flexRow, items.center, gap.default]}>
                     <Text
                       style={[
@@ -518,42 +407,124 @@ const TransactionDetailScreen = ({route}: Props) => {
                       ]}>
                       Payment
                     </Text>
-                    {transaction.payment.status === PaymentStatus.withdrawn ? (
-                      <CheckmarkIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.green[40]}
-                      />
-                    ) : transaction.payment.status ===
-                      PaymentStatus.withdrawalRequested ? (
-                      <WarningIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.yellow[20]}
-                      />
-                    ) : (
-                      <></>
+                    {/* BP or admin */}
+                    {activeRole !== UserRole.ContentCreator && (
+                      <>
+                        {transaction.payment?.status ===
+                        PaymentStatus.proofRejected ? (
+                          <CrossIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.red[50]}
+                          />
+                        ) : transaction.payment?.status ===
+                            PaymentStatus.proofWaitingForVerification ||
+                          transaction.payment?.status === undefined ||
+                          (transaction.payment?.status ===
+                            PaymentStatus.withdrawalRequested &&
+                            activeRole === UserRole.Admin) ? (
+                          <WarningIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.yellow[20]}
+                          />
+                        ) : (
+                          <CheckmarkIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.green[40]}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {/* CC */}
+                    {activeRole === UserRole.ContentCreator && (
+                      <>
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawn && (
+                          <CheckmarkIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.green[40]}
+                          />
+                        )}
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawalRequested && (
+                          <WarningIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.yellow[20]}
+                          />
+                        )}
+                      </>
                     )}
                   </View>
-                  <Text
-                    style={[
-                      font.size[30],
-                      textColor(
-                        transaction.status !== TransactionStatus.completed ||
-                          transaction.payment.status !==
-                            PaymentStatus.proofApproved
-                          ? COLOR.text.neutral.disabled
-                          : COLOR.text.green.default,
-                      ),
-                    ]}>
-                    {/* TODO: gatau ini bagusnya nampilin chip juga apa message panjang */}
-                    {transaction.payment.status ===
-                      PaymentStatus.withdrawalRequested ||
-                    transaction.payment.status === PaymentStatus.withdrawn
-                      ? transaction.payment.status
-                      : 'Withdraw'}
-                  </Text>
-                </Pressable>
+                  {activeRole !== UserRole.ContentCreator && (
+                    <Pressable onPress={() => setIsPaymentModalOpened(true)}>
+                      <Text
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.green.default),
+                        ]}>
+                        {activeRole !== UserRole.Admin ? 'Proof' : 'Manage'}
+                      </Text>
+                    </Pressable>
+                  )}
+
+                  {activeRole === UserRole.ContentCreator &&
+                    transaction.isCompleted() && (
+                      <>
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawalRequested ||
+                        transaction.payment?.status ===
+                          PaymentStatus.withdrawn ? (
+                          <StatusTag
+                            fontSize={20}
+                            status={transaction.payment.status}
+                            statusType={
+                              paymentStatusTypeMap[transaction.payment.status]
+                            }
+                          />
+                        ) : (
+                          <CustomAlert
+                            text="Withdraw"
+                            type="tertiary"
+                            verticalPadding="zero"
+                            horizontalPadding="zero"
+                            rejectButtonText="Cancel"
+                            approveButtonText="OK"
+                            disabled={
+                              transaction.status !==
+                                TransactionStatus.completed ||
+                              transaction.payment?.status !==
+                                PaymentStatus.proofApproved
+                            }
+                            confirmationText={
+                              <Text
+                                className="text-center"
+                                style={[
+                                  font.size[30],
+                                  textColor(COLOR.text.neutral.med),
+                                ]}>
+                                {user?.bankAccountInformation
+                                  ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                                  : 'You have not set your payment information yet, do you want to set it now?'}
+                              </Text>
+                            }
+                            onApprove={
+                              user?.bankAccountInformation
+                                ? onRequestWithdraw
+                                : () =>
+                                    navigation.navigate(
+                                      AuthenticatedNavigation.EditBankAccountInformation,
+                                    )
+                            }
+                          />
+                        )}
+                      </>
+                    )}
+                </View>
               </>
             )}
             {transaction.createdAt && (

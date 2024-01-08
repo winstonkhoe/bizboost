@@ -28,6 +28,7 @@ export interface CustomButtonProps
   rounded?: RadiusSizeType;
   type?: Prominence;
   verticalPadding?: SizeType;
+  horizontalPadding?: SizeType;
   customBackgroundColor?: ColorProps;
   customTextColor?: ColorProps;
   customTextSize?: FontSizeType;
@@ -42,6 +43,7 @@ export const CustomButton = ({
   text,
   rounded: roundSize = 'default',
   verticalPadding: verticalPaddingSize = 'default',
+  horizontalPadding: horizontalPaddingSize = 'large',
   type = 'primary',
   customBackgroundColor,
   customTextColor,
@@ -91,7 +93,7 @@ export const CustomButton = ({
           justify.center,
           items.center,
           minimumWidth && self.center,
-          horizontalPadding.large,
+          horizontalPadding[horizontalPaddingSize],
           verticalPadding[verticalPaddingSize],
           rounded[roundSize],
           isPrimary && [

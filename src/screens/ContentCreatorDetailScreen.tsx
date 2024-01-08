@@ -12,7 +12,7 @@ import {font} from '../styles/Font';
 import {flex, items, justify} from '../styles/Flex';
 import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
-import {formatDateToDayMonthYear} from '../utils/date';
+import {formatDateToDayMonthYear, formatDateToTime12Hrs} from '../utils/date';
 import FastImage from 'react-native-fast-image';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {padding} from '../styles/Padding';
@@ -31,10 +31,12 @@ import {Review} from '../model/Review';
 import {LoadingScreen} from './LoadingScreen';
 import {ReviewList} from '../components/organisms/ReviewList';
 import {SocialCard} from '../components/atoms/SocialCard';
-import {RatingStarIcon} from '../components/atoms/Icon';
+import {DateIcon, RatingStarIcon} from '../components/atoms/Icon';
 import {overflow} from '../styles/Overflow';
 import {formatNumberWithSuffix} from '../utils/number';
-import {SocialSummary} from '../components/molecules/SocialCard';
+import {border} from '../styles/Border';
+import StatusTag, {StatusType} from '../components/atoms/StatusTag';
+import LocationTag from '../components/atoms/LocationTag';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -161,17 +163,7 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                 style={[textColor(COLOR.text.neutral.high), font.weight.bold]}>
                 About Me
               </Text>
-              <Text>
-                Hi there! I'm Emily, a content creator weaving stories and
-                visuals in the digital realm. From crafting eye-catching
-                Instagram feeds to whipping up engaging TikTok moments, I thrive
-                on transforming ideas into captivating digital experiences.
-                Beyond just creating content, it's about fostering connections
-                and sparking meaningful conversations. With a knack for staying
-                on top of trends and a commitment to authenticity, I love
-                navigating the dynamic world of content creation, where each
-                post is a brushstroke in my canvas of digital expression.
-              </Text>
+              <Text>{contentCreator?.contentCreator?.biodata || '-'}</Text>
             </View>
             {contentCreator?.contentCreator?.preferences &&
               contentCreator.contentCreator.preferences.length > 0 && (
@@ -202,11 +194,22 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     ]}>
                     Preferred Locations
                   </Text>
-                  {contentCreator.contentCreator.preferredLocationIds.map(
-                    (loc, idx) => (
-                      <Text key={idx}>• {loc}</Text>
-                    ),
-                  )}
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}>
+                    {contentCreator?.contentCreator?.preferredLocationIds?.map(
+                      (loc, idx) => (
+                        <View style={padding.top.xsmall} key={idx}>
+                          <LocationTag text={loc} />
+                        </View>
+                      ),
+                    )}
+                  </View>
                 </View>
               )}
             {contentCreator?.contentCreator?.postingSchedules &&
@@ -219,13 +222,45 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     ]}>
                     Posting Schedules
                   </Text>
-                  {contentCreator?.contentCreator?.postingSchedules?.map(
-                    (sched, idx) => (
-                      <Text key={idx}>
-                        • {formatDateToDayMonthYear(new Date(sched))}
-                      </Text>
-                    ),
-                  )}
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}
+                    className="w-full">
+                    {contentCreator?.contentCreator?.postingSchedules?.map(
+                      (sched, idx) => (
+                        <View
+                          key={idx}
+                          style={[
+                            flex.flexRow,
+                            gap.small,
+                            items.center,
+                            rounded.small,
+                            padding.vertical.xsmall,
+                            padding.horizontal.small,
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.green[50],
+                            }),
+                          ]}>
+                          <DateIcon
+                            width={20}
+                            height={20}
+                            color={COLOR.green[50]}
+                          />
+                          <Text
+                            className="font-semibold"
+                            style={[textColor(COLOR.green[60]), font.size[30]]}>
+                            {formatDateToTime12Hrs(new Date(sched))}
+                          </Text>
+                        </View>
+                      ),
+                    )}
+                  </View>
                 </View>
               )}
             {contentCreator?.contentCreator?.specializedCategoryIds &&
@@ -239,19 +274,26 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
                     ]}>
                     Specialized Categories
                   </Text>
-                  <ScrollView
-                    horizontal
-                    contentContainerStyle={(flex.flexRow, gap.small)}>
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}>
                     {contentCreator?.contentCreator?.specializedCategoryIds?.map(
                       (cat, idx) => (
                         <View style={padding.top.xsmall} key={idx}>
-                          <Text className="bg-primary py-1 px-2 rounded-md text-white">
-                            {cat}
-                          </Text>
+                          <StatusTag
+                            status={cat}
+                            fontSize={30}
+                            statusType={StatusType.success}
+                          />
                         </View>
                       ),
                     )}
-                  </ScrollView>
+                  </View>
                 </View>
               )}
           </ScrollView>
