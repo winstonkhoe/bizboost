@@ -3,7 +3,6 @@ import {Text} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
-  PaymentStatus,
   Transaction,
   TransactionStatus,
   transactionStatusTypeMap,
@@ -163,7 +162,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          // amount={campaign?.fee || -1}
           transaction={transaction}
         />
       )}

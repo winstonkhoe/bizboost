@@ -1,5 +1,5 @@
 import {Pressable, Text, View} from 'react-native';
-import {User, UserRole} from '../model/User';
+import {SocialPlatform, User, UserRole} from '../model/User';
 import {ScrollView} from 'react-native';
 import {flex, items, justify} from '../styles/Flex';
 import {useUser} from '../hooks/user';
@@ -42,6 +42,7 @@ import {overflow} from '../styles/Overflow';
 import {ReportIssueIcon} from '../components/atoms/Icon';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../styles/Size';
+import {SocialCard} from '../components/atoms/SocialCard';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -102,7 +103,8 @@ const ProfileScreen = () => {
     updatedUser.updateProfilePicture(activeRole, url);
   };
 
-  if (!reviews || !transactions) {
+  // TODO: kondisi buat admin
+  if ((!reviews || !transactions) && activeRole !== UserRole.Admin) {
     return <LoadingScreen />;
   }
 
@@ -185,96 +187,133 @@ const ProfileScreen = () => {
           />
         </Pressable>
       </View>
-      <TabView labels={['Home', 'Portfolio', 'Reviews']}>
-        <ScrollView
-          contentContainerStyle={[
-            flex.flexRow,
-            flex.wrap,
-            justify.between,
-            items.center,
-            padding.default,
-          ]}>
-          {!isAdmin && (
+      <View
+        style={[
+          flex.flexRow,
+          gap.default,
+          padding.horizontal.default,
+          padding.top.default,
+        ]}>
+        {user?.instagram?.username && (
+          <SocialCard
+            type="detail"
+            platform={SocialPlatform.Instagram}
+            data={user?.instagram}
+          />
+        )}
+        {user?.tiktok?.username && (
+          <SocialCard
+            type="detail"
+            platform={SocialPlatform.Tiktok}
+            data={user?.tiktok}
+          />
+        )}
+      </View>
+      {/* TODO: tab labels sesuai role */}
+      {activeRole !== UserRole.Admin && (
+        <TabView labels={['Home', 'Portfolio', 'Reviews']}>
+          <ScrollView
+            contentContainerStyle={[
+              flex.flexRow,
+              flex.wrap,
+              justify.between,
+              items.center,
+              padding.default,
+            ]}>
+            {!isAdmin && (
+              <ProfileMenuCard
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyTransactions, {
+                    userId: uid || '',
+                    role: activeRole,
+                  });
+                }}
+                icon={
+                  <TransactionIcon fill={'#72B3FF'} height={80} width={80} />
+                }
+                title="My Transactions"
+                subtitle={`${ongoingTransactionsCount} Ongoing\n${completedTransactionsCount} Finished`}
+              />
+            )}
             <ProfileMenuCard
               handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.MyTransactions, {
-                  userId: uid || '',
-                  role: activeRole,
-                });
+                navigation.navigate(AuthenticatedNavigation.AboutMe);
               }}
-              icon={<TransactionIcon fill={'#72B3FF'} height={80} width={80} />}
-              title="My Transactions"
-              subtitle={`${ongoingTransactionsCount} Ongoing\n${completedTransactionsCount} Finished`}
+              icon={<AboutIcon fill={'#FB8A2E'} height={80} width={80} />}
+              title="About Me"
+              subtitle={'Edit Information people see on your profile'}
             />
-          )}
-          <ProfileMenuCard
-            handleOnClick={() => {
-              navigation.navigate(AuthenticatedNavigation.AboutMe);
-            }}
-            icon={<AboutIcon fill={'#FB8A2E'} height={80} width={80} />}
-            title="About Me"
-            subtitle={'Edit Information people see on your profile'}
-          />
 
-          {isContentCreator && [
+            {isContentCreator && [
+              <ProfileMenuCard
+                key={'Withdraw Money'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.WithdrawMoney);
+                }}
+                icon={
+                  <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
+                }
+                title={'Withdraw Money'}
+                subtitle={'2 Transactions ready to be withdrawn'}
+              />,
+              <ProfileMenuCard
+                key={'Upload Video'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.UploadVideo);
+                }}
+                icon={<AddIcon fill={COLOR.red[40]} height={80} width={80} />}
+                title="Upload Video"
+                subtitle={'Add more videos to promote yourself.'}
+              />,
+            ]}
+            {isBusinessPeople && [
+              <ProfileMenuCard
+                key={'My Campaigns'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyCampaigns, {
+                    userId: uid || '',
+                  });
+                }}
+                icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
+                title="My Campaigns"
+                subtitle={`${publicCampaignsCount} Public\n${
+                  campaigns.length - publicCampaignsCount
+                } Private`}
+              />,
+              // TODO: ini kayaknya ga perlu lagi
+              <ProfileMenuCard
+                key={'Pay Content Creator'}
+                handleOnClick={() => {
+                  navigation.navigate(
+                    AuthenticatedNavigation.PayContentCreator,
+                  );
+                }}
+                icon={
+                  <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
+                }
+                title={'Pay Content Creator'}
+                subtitle={'0 Pending Payment'}
+              />,
+            ]}
             <ProfileMenuCard
-              key={'Withdraw Money'}
               handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.WithdrawMoney);
+                navigation.navigate(AuthenticatedNavigation.ReportList);
               }}
-              icon={<MoneyIcon fill={COLOR.green[50]} height={80} width={80} />}
-              title={'Withdraw Money'}
-              subtitle={'2 Transactions ready to be withdrawn'}
-            />,
-            <ProfileMenuCard
-              key={'Upload Video'}
-              handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.UploadVideo);
-              }}
-              icon={<AddIcon fill={COLOR.red[40]} height={80} width={80} />}
-              title="Upload Video"
-              subtitle={'Add more videos to promote yourself.'}
-            />,
-          ]}
-          {isBusinessPeople && [
-            <ProfileMenuCard
-              key={'My Campaigns'}
-              handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.MyCampaigns);
-              }}
-              icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
-              title="My Campaigns"
-              subtitle={`${publicCampaignsCount} Public\n${
-                campaigns.length - publicCampaignsCount
-              } Private`}
-            />,
-            // TODO: ini kayaknya ga perlu lagi
-            <ProfileMenuCard
-              key={'Pay Content Creator'}
-              handleOnClick={() => {
-                navigation.navigate(AuthenticatedNavigation.PayContentCreator);
-              }}
-              icon={<MoneyIcon fill={COLOR.green[50]} height={80} width={80} />}
-              title={'Pay Content Creator'}
-              subtitle={'0 Pending Payment'}
-            />,
-          ]}
-          <ProfileMenuCard
-            handleOnClick={() => {
-              navigation.navigate(AuthenticatedNavigation.ReportList);
-            }}
-            icon={<ReportIssueIcon size="xlarge5" />}
-            title="My Reports"
-            subtitle="See your reports and their status"
-          />
-        </ScrollView>
-        <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
-          <PortfolioList portfolios={portfolios} />
-        </ScrollView>
-        <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
-          <ReviewList reviews={reviews} />
-        </ScrollView>
-      </TabView>
+              icon={<ReportIssueIcon size="xlarge5" />}
+              title="My Reports"
+              subtitle="See your reports and their status"
+            />
+          </ScrollView>
+          {activeRole === UserRole.ContentCreator && (
+            <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
+              <PortfolioList portfolios={portfolios} />
+            </ScrollView>
+          )}
+          <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
+            <ReviewList reviews={reviews} />
+          </ScrollView>
+        </TabView>
+      )}
     </View>
   );
 };

@@ -15,7 +15,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {User, UserRole, UserStatus} from '../model/User';
+import {SocialPlatform, User, UserRole, UserStatus} from '../model/User';
 import {COLOR} from '../styles/Color';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {ProfileItem} from '../components/molecules/ProfileItem';
@@ -34,6 +34,7 @@ import {Campaign} from '../model/Campaign';
 import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import {useNavigation} from '@react-navigation/native';
+import {SocialCard} from '../components/atoms/SocialCard';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -84,8 +85,7 @@ const UserDetailScreen = ({route}: Props) => {
   const onSuspendButtonClick = async () => {
     if (user.status === UserStatus.Active) {
       await user.suspend();
-    }
-    if (user.status === UserStatus.Suspended) {
+    } else if (user.status === UserStatus.Suspended) {
       await user.activate();
     }
   };
@@ -172,7 +172,22 @@ const UserDetailScreen = ({route}: Props) => {
             </View>
           </View>
         </View>
-
+        <View style={[flex.flexRow, gap.default]}>
+          {user.instagram?.username && (
+            <SocialCard
+              type="detail"
+              platform={SocialPlatform.Instagram}
+              data={user?.instagram}
+            />
+          )}
+          {user?.tiktok?.username && (
+            <SocialCard
+              type="detail"
+              platform={SocialPlatform.Tiktok}
+              data={user?.tiktok}
+            />
+          )}
+        </View>
         {user.contentCreator?.fullname && (
           <>
             <View className="border-t border-gray-400 pt-4">
@@ -321,12 +336,11 @@ const UserDetailScreen = ({route}: Props) => {
               <HomeSectionHeader
                 header="Business People Campaigns"
                 link={'See All'}
-                onPressLink={
-                  () => {}
-                  // setOngoingCampaignsLimit(
-                  //   ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
-                  // )
-                }
+                onPressLink={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyCampaigns, {
+                    userId: userId || '',
+                  });
+                }}
               />
             </View>
             <View style={[flex.flexCol, gap.medium]}>

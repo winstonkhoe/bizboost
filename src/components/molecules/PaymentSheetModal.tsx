@@ -9,7 +9,7 @@ import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
 import {formatToRupiah} from '../../utils/currency';
 import {MediaUploader} from '../atoms/Input';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {dimension} from '../../styles/Dimension';
 import {rounded} from '../../styles/BorderRadius';
 import FastImage from 'react-native-fast-image';
@@ -21,11 +21,20 @@ import {User} from '../../model/User';
 import {
   PaymentStatus,
   Transaction,
+  TransactionStatus,
   paymentStatusTypeMap,
 } from '../../model/Transaction';
 import StatusTag, {StatusType} from '../atoms/StatusTag';
 import {border} from '../../styles/Border';
 import {background} from '../../styles/BackgroundColor';
+import {Campaign, CampaignStep} from '../../model/Campaign';
+import {formatDateToDayMonthYear, getDate} from '../../utils/date';
+import {CustomAlert} from './CustomAlert';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {overflow} from '../../styles/Overflow';
@@ -41,14 +50,26 @@ const PaymentSheetModal = ({
   onModalDismiss,
   transaction,
 }: Props) => {
-  const {isBusinessPeople, isAdmin} = useUser();
+  const {isBusinessPeople, isAdmin, user} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>(
     transaction.payment?.proofImage,
   );
-  const [contentCreator, setContentCreator] = useState<User | null>();
-  const contentCreatorBankAccount = contentCreator?.bankAccountInformation;
-  const amount = transaction.transactionAmount || 0; //TODO: cek kalo approve offer negotiate pricenya udh update ke transactionAmountnya blm
+  const [withdrawer, setWithdrawer] = useState<User | null>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
+  const withdrawerBankAccount = withdrawer?.bankAccountInformation;
+  const amount = transaction.transactionAmount || campaign?.fee || 0; //TODO: cek kalo approve offer negotiate pricenya udh update ke transactionAmountnya blm
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
+  const campaignRegistrationEndDate = useMemo(
+    () =>
+      formatDateToDayMonthYear(
+        getDate(
+          campaign?.timeline.find(t => t.step === CampaignStep.Registration)
+            ?.end || 0,
+        ),
+      ),
+    [campaign],
+  );
+  const navigation = useNavigation<NavigationStackProps>();
   const onUploadSuccess = (url: string) => {
     setUploadedImage(url);
     transaction
@@ -131,14 +152,41 @@ const PaymentSheetModal = ({
         });
       });
   };
-
+  const onRequestWithdraw = () => {
+    transaction
+      ?.update({
+        payment: {
+          ...transaction.payment,
+          status: PaymentStatus.withdrawalRequested,
+        },
+      })
+      .then(() => {
+        showToast({
+          message:
+            'Withdrawal Requested! You will receive your money in no later than 7 x 24 hours.',
+          type: ToastType.success,
+        });
+      });
+  };
   useEffect(() => {
-    if (transaction.contentCreatorId) {
-      User.getById(transaction.contentCreatorId)
-        .then(setContentCreator)
+    const withdrawerId = transaction.isTerminated()
+      ? transaction?.businessPeopleId
+      : transaction?.contentCreatorId;
+    if (withdrawerId) {
+      User.getById(withdrawerId)
+        .then(setWithdrawer)
         .catch(err => {
-          console.log('error getting content creator', err);
-          setContentCreator(null);
+          console.log('error getting withdrawer', err);
+          setWithdrawer(null);
+        });
+    }
+
+    if (transaction.campaignId) {
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(err => {
+          console.log('error getting campaign', err);
+          setCampaign(null);
         });
     }
   }, [transaction]);
@@ -175,12 +223,20 @@ const PaymentSheetModal = ({
               />
             </View>
             <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-              {/* TODO: fix copywriting */}
               {/* TODO: taro bank account admin */}
-              {isBusinessPeople &&
-                `You need to pay ${formatToRupiah(
-                  amount,
-                )} to Account Number xxxxxxxxxx [admin bank account] by [End Date regis]. Upload your payment proof here.`}
+              {isBusinessPeople && (
+                <>
+                  {transaction.status ===
+                    TransactionStatus.registrationPending &&
+                    `You need to pay ${formatToRupiah(
+                      amount,
+                    )} to Account Number xxxxxxxxxx [admin bank account] by ${campaignRegistrationEndDate}. Upload your payment proof here.`}
+                  {transaction.status === TransactionStatus.terminated &&
+                    transaction.payment?.status ===
+                      PaymentStatus.proofApproved &&
+                    `This transaction has been terminated. You can request a withdrawal, and your money will be processed within 7 x 24 hours.`}
+                </>
+              )}
 
               {isAdmin && (
                 <>
@@ -189,15 +245,18 @@ const PaymentSheetModal = ({
                     `Business People have paid ${formatToRupiah(
                       amount,
                     )}, please verify the payment.`}
-                  {/* TODO: taro bank account CC */}
                   {transaction.payment?.status ===
                     PaymentStatus.withdrawalRequested &&
-                    `Content creator have requested to withdraw their money, you need to pay ${formatToRupiah(
+                    `${
+                      transaction.isTerminated()
+                        ? 'Business People'
+                        : 'Content Creator'
+                    } have requested to withdraw their money, you need to pay ${formatToRupiah(
                       amount,
                     )} to the following bank account: ${
-                      contentCreatorBankAccount?.bankName
-                    } - ${contentCreatorBankAccount?.accountNumber} (${
-                      contentCreatorBankAccount?.accountHolderName
+                      withdrawerBankAccount?.bankName
+                    } - ${withdrawerBankAccount?.accountNumber} (${
+                      withdrawerBankAccount?.accountHolderName
                     })`}
                 </>
               )}
@@ -224,7 +283,8 @@ const PaymentSheetModal = ({
             (transaction.payment?.status ===
               PaymentStatus.proofWaitingForVerification ||
               transaction.payment?.status === PaymentStatus.proofRejected ||
-              transaction.payment?.status === undefined) ? (
+              transaction.payment?.status === undefined) &&
+            transaction.status === TransactionStatus.registrationPending ? (
               <View style={[dimension.square.xlarge12]}>
                 <MediaUploader
                   targetFolder="payment"
@@ -315,6 +375,40 @@ const PaymentSheetModal = ({
                   )}
               </View>
             )}
+
+            {isBusinessPeople &&
+              transaction.status === TransactionStatus.terminated &&
+              transaction.payment?.status === PaymentStatus.proofApproved && (
+                <View style={[flex.flexRow]}>
+                  <View style={[flex.flex1]}>
+                    <CustomAlert
+                      text="Withdraw"
+                      rejectButtonText="Cancel"
+                      approveButtonText="OK"
+                      confirmationText={
+                        <Text
+                          className="text-center"
+                          style={[
+                            font.size[30],
+                            textColor(COLOR.text.neutral.med),
+                          ]}>
+                          {user?.bankAccountInformation
+                            ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                            : 'You have not set your payment information yet, do you want to set it now?'}
+                        </Text>
+                      }
+                      onApprove={
+                        user?.bankAccountInformation
+                          ? onRequestWithdraw
+                          : () =>
+                              navigation.navigate(
+                                AuthenticatedNavigation.EditBankAccountInformation,
+                              )
+                      }
+                    />
+                  </View>
+                </View>
+              )}
           </View>
         </View>
       </SheetModal>
@@ -330,19 +424,6 @@ const PaymentSheetModal = ({
           onRequestClose={() => setIsImageViewOpened(false)}
           swipeToCloseEnabled
           backgroundColor="white"
-          // TODO: extract footer
-          //   FooterComponent={({imageIndex}) => (
-          //     <View style={[padding.horizontal.large, padding.bottom.xlarge2]}>
-          //       <View
-          //         style={[
-          //           padding.default,
-          //           rounded.default,
-          //           {backgroundColor: 'rgba(255,255,255,0.8)'},
-          //         ]}>
-          //         <Text>Payment Proof</Text>
-          //       </View>
-          //     </View>
-          //   )}
         />
       )}
     </>

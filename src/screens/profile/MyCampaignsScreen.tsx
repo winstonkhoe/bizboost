@@ -8,26 +8,35 @@ import {useEffect, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
 import {useUser} from '../../hooks/user';
 import {OngoingCampaignCard} from '../../components/molecules/OngoingCampaignCard';
-
-const MyCampaignsScreen = () => {
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {
+  AuthenticatedNavigation,
+  AuthenticatedStack,
+} from '../../navigation/StackNavigation';
+type Props = NativeStackScreenProps<
+  AuthenticatedStack,
+  AuthenticatedNavigation.MyCampaigns
+>;
+const MyCampaignsScreen = ({route}: Props) => {
+  const {userId} = route.params;
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const {uid} = useUser();
+  // const {uid} = useUser();
 
   useEffect(() => {
-    if (uid) {
-      const unsubscribe = Campaign.getUserCampaignsReactive(uid, c => {
+    if (userId) {
+      const unsubscribe = Campaign.getUserCampaignsReactive(userId, c => {
         setCampaigns(c);
       });
 
       return unsubscribe;
     }
-  }, [uid]);
+  }, [userId]);
   return (
     <SafeAreaContainer enable>
       <CloseModal />
       <ScrollView>
         <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-          <Text className="text-lg font-bold">My Campaigns</Text>
+          <Text className="text-lg font-bold">Campaigns</Text>
           {campaigns.length <= 0 ? (
             <Text>No campaigns yet!</Text>
           ) : (
