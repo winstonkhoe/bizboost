@@ -66,11 +66,6 @@ export class Review extends BaseModel {
     return firestore().collection(REVIEW_COLLECTION);
   };
 
-  static getDocumentReference = (documentId: string) => {
-    Review.setFirestoreSettings();
-    return Review.getCollectionReference().doc(documentId);
-  };
-
   toFirestore() {
     const {id, reviewerId, revieweeId, transactionId, campaignId, ...rest} =
       this;

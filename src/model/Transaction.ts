@@ -1229,11 +1229,6 @@ export class Transaction extends BaseModel {
     return status === TransactionStatus.completed;
   }
 
-  isOffering() {
-    const {status} = this;
-    return status === TransactionStatus.offering;
-  }
-
   isWaitingAdminAction() {
     const {payment} = this;
     return (

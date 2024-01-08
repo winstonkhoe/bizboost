@@ -252,33 +252,6 @@ export class Report extends BaseModel {
     }
   }
 
-  static getAllByTransactionId(
-    transactionId: string,
-    onComplete: (reports: Report[]) => void,
-  ) {
-    try {
-      const unsubscribe = Report.getCollectionReference()
-        .where(
-          'transactionId',
-          '==',
-          Transaction.getDocumentReference(transactionId),
-        )
-        .onSnapshot(
-          querySnapshot => {
-            onComplete(querySnapshot.docs.map(Report.fromSnapshot));
-          },
-          error => {
-            console.log(error);
-          },
-        );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
   static getAllByReporterId(
     reporterId: string,
     onComplete: (reports: Report[]) => void,

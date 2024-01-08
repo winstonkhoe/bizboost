@@ -3,7 +3,7 @@ import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {ErrorCode, ErrorMessage} from '../constants/errorMessage';
+import {ErrorMessage} from '../constants/errorMessage';
 import {handleError} from '../utils/error';
 import {BaseModel, UpdateFields} from './BaseModel';
 import {
@@ -13,7 +13,7 @@ import {
   LoginManager,
   LoginResult,
 } from 'react-native-fbsdk-next';
-import {AuthMethod, Provider, Providers} from './AuthMethod';
+import {AuthMethod, Provider} from './AuthMethod';
 import {Category} from './Category';
 import {Location} from './Location';
 import {deleteFileByURL} from '../helpers/storage';
@@ -86,12 +86,6 @@ export interface UserAuthProviderData {
   name?: string;
   photo?: string;
   instagram?: SocialData;
-}
-
-export interface SignupContentCreatorProps extends Partial<User> {
-  token: string | null;
-  providerId?: string;
-  provider: Providers;
 }
 
 export class User extends BaseModel {

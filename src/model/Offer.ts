@@ -351,10 +351,6 @@ export class Offer extends BaseModel {
     }
   }
 
-  static filterByCampaignId(offers: Offer[], campaignId: string): Offer[] {
-    return offers.filter(offer => offer.campaignId === campaignId);
-  }
-
   static async hasOfferForContentCreatorAndCampaign(
     contentCreatorId: string,
     campaignId: string,
@@ -443,7 +439,4 @@ export class Offer extends BaseModel {
     return this.status === OfferStatus.negotiate;
   }
 
-  isNegotiationRejected() {
-    return this.status === OfferStatus.negotiateRejected;
-  }
 }
