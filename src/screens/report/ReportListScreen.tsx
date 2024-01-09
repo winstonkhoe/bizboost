@@ -17,7 +17,6 @@ import {COLOR} from '../../styles/Color';
 import {padding} from '../../styles/Padding';
 import {gap} from '../../styles/Gap';
 import {ReportIcon} from '../../components/atoms/Icon';
-import {fetchReport} from '../../helpers/report';
 import {rounded} from '../../styles/BorderRadius';
 import StatusTag from '../../components/atoms/StatusTag';
 import {Transaction} from '../../model/Transaction';
@@ -42,17 +41,15 @@ import {LoadingScreen} from '../LoadingScreen';
 import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 
 const ReportListScreen = () => {
-  const {uid, isAdmin} = useUser();
+  const {uid} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const [reports, setReports] = useState<Report[]>();
 
   useEffect(() => {
-    return fetchReport({
-      isAdmin: isAdmin,
-      uid: uid,
-      onComplete: setReports,
-    });
-  }, [isAdmin, uid]);
+    if (uid) {
+      return Report.getAllByReporterId(uid, setReports);
+    }
+  }, [uid]);
 
   if (reports === undefined) {
     return <LoadingScreen />;

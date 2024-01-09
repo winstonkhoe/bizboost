@@ -40,7 +40,6 @@ import {font, text} from '../styles/Font';
 import {textColor} from '../styles/Text';
 import {size} from '../styles/Size';
 import {Report, reportStatusPrecendence} from '../model/Report';
-import {fetchReport} from '../helpers/report';
 import {ReportCard} from './report/ReportListScreen';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SearchBar} from '../components/organisms/SearchBar';
@@ -243,11 +242,12 @@ const HomeScreen = () => {
   }, [uid, activeRole]);
 
   useEffect(() => {
-    return fetchReport({
-      isAdmin: isAdmin,
-      uid: uid,
-      onComplete: setReports,
-    });
+    if (isAdmin) {
+      return Report.getAll(setReports);
+    }
+    if (!isAdmin && uid) {
+      return Report.getAllByReporterId(uid, setReports);
+    }
   }, [isAdmin, uid]);
 
   useEffect(() => {
