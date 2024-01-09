@@ -27,7 +27,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {dimension} from '../../styles/Dimension';
 import {background} from '../../styles/BackgroundColor';
 import {size} from '../../styles/Size';
-import {OngoingCampaignCard} from '../../components/molecules/OngoingCampaignCard';
+import {CampaignCard} from '../../components/molecules/CampaignCard';
 import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
 import {Campaign, CampaignStep} from '../../model/Campaign';
 import {InternalLink} from '../../components/atoms/Link';
@@ -260,7 +260,7 @@ const CampaignCard = ({...props}: CampaignCardProps) => {
       isLoading={!campaign}
       width={windowDimension.width - 2 * size.default}
       height={150}>
-      {campaign && <OngoingCampaignCard campaign={campaign} />}
+      {campaign && <CampaignCard campaign={campaign} />}
     </SkeletonPlaceholder>
   );
 };

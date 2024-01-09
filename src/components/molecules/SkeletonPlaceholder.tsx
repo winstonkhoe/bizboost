@@ -70,7 +70,7 @@ export const SkeletonPlaceholder: React.FC<SkeletonPlaceholderProps> = ({
         ],
         props.style,
       ]}>
-      <View ref={ref} style={{opacity: isLoading ? 0 : 1}}>
+      <View ref={ref} style={[{opacity: isLoading ? 0 : 1}, flex.flex1]}>
         {children}
       </View>
       {isLoading && (

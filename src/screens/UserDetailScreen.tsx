@@ -31,7 +31,7 @@ import {ChevronRight} from '../components/atoms/Icon';
 import {formatDateToTime12Hrs} from '../utils/date';
 import {padding} from '../styles/Padding';
 import {Campaign} from '../model/Campaign';
-import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
+import {CampaignCard} from '../components/molecules/CampaignCard';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import {useNavigation} from '@react-navigation/native';
 import {SocialCard} from '../components/atoms/SocialCard';
@@ -345,7 +345,7 @@ const UserDetailScreen = ({route}: Props) => {
             </View>
             <View style={[flex.flexCol, gap.medium]}>
               {campaigns.slice(0, 3).map((c, index) => (
-                <OngoingCampaignCard campaign={c} key={index} />
+                <CampaignCard campaign={c} key={index} />
               ))}
             </View>
           </>

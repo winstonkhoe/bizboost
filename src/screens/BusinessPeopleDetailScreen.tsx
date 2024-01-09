@@ -11,7 +11,7 @@ import {rounded} from '../styles/BorderRadius';
 import {flex, items} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {Campaign} from '../model/Campaign';
-import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
+import {CampaignCard} from '../components/molecules/CampaignCard';
 import FastImage from 'react-native-fast-image';
 import {dimension} from '../styles/Dimension';
 import {font} from '../styles/Font';
@@ -132,7 +132,7 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
               padding.vertical.default,
             ]}>
             {campaigns.map((c, index) => (
-              <OngoingCampaignCard campaign={c} key={index} />
+              <CampaignCard campaign={c} key={index} />
             ))}
           </ScrollView>
           <ScrollView

@@ -28,7 +28,7 @@ type Props = {
   campaign: Campaign;
 };
 
-const OngoingCampaignCard = ({campaign}: Props) => {
+const CampaignCard = ({campaign}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [user, setUser] = useState<User | null>();
   const {categories} = useCategory();
@@ -120,4 +120,4 @@ const OngoingCampaignCard = ({campaign}: Props) => {
   );
 };
 
-export {OngoingCampaignCard};
+export {CampaignCard};

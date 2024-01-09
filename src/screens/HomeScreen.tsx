@@ -1,10 +1,7 @@
 import {Pressable, PressableProps, StyleSheet, Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {RecentNegotiationCard} from '../components/molecules/RecentNegotiationCard';
 import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
-import {HorizontalScrollView} from '../components/molecules/HorizontalScrollView';
-import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {SearchAutocompletePlaceholder} from '../components/templates/PageWithSearchBar';
@@ -75,6 +72,7 @@ enum FilterCardType {
   Completed = 'Completed',
   Terminated = 'Terminated',
   Users = 'Users',
+  Reports = 'Reports',
 }
 
 const HomeScreen = () => {
@@ -149,6 +147,11 @@ const HomeScreen = () => {
     () => transactions.filter(transaction => transaction.isCompleted()),
     [transactions],
   );
+
+  const showFilterPanel = [
+    FilterCardType.ActionNeeded,
+    FilterCardType.Ongoing,
+  ].find(filter => filter === activeFilterType);
 
   const getFilteredStep = useCallback(
     (targetFilterTransactions: Transaction[]) => {
@@ -366,24 +369,21 @@ const HomeScreen = () => {
                 padding.horizontal.default,
               ]}>
               <SkeletonPlaceholder
-                isLoading={
-                  actionNeededTransactions?.length === undefined ||
-                  (isAdmin && pendingReports?.length === undefined)
-                }>
+                isLoading={actionNeededTransactions?.length === undefined}>
                 <FilterCard
                   isActive={activeFilterType === FilterCardType.ActionNeeded}
                   label={FilterCardType.ActionNeeded}
-                  count={
-                    (actionNeededTransactions?.length || 0) +
-                    (isAdmin ? pendingReports.length : 0)
-                  }
+                  secondaryLabel={isAdmin ? 'Transactions' : undefined}
+                  count={actionNeededTransactions?.length || 0}
                   onPress={() =>
                     setActiveFilterType(FilterCardType.ActionNeeded)
                   }
                 />
               </SkeletonPlaceholder>
-              {!isAdmin && (
+
+              {!isAdmin && [
                 <SkeletonPlaceholder
+                  key="filter-ongoing"
                   isLoading={ongoingTransactions?.length === undefined}>
                   <FilterCard
                     isActive={activeFilterType === FilterCardType.Ongoing}
@@ -391,10 +391,9 @@ const HomeScreen = () => {
                     count={ongoingTransactions.length}
                     onPress={() => setActiveFilterType(FilterCardType.Ongoing)}
                   />
-                </SkeletonPlaceholder>
-              )}
-              {!isAdmin && (
+                </SkeletonPlaceholder>,
                 <SkeletonPlaceholder
+                  key="filter-completed"
                   isLoading={completedTransaction?.length === undefined}>
                   <FilterCard
                     isActive={activeFilterType === FilterCardType.Completed}
@@ -404,10 +403,9 @@ const HomeScreen = () => {
                       setActiveFilterType(FilterCardType.Completed)
                     }
                   />
-                </SkeletonPlaceholder>
-              )}
-              {!isAdmin && (
+                </SkeletonPlaceholder>,
                 <SkeletonPlaceholder
+                  key="filter-terminated"
                   isLoading={terminatedTransactions?.length === undefined}>
                   <FilterCard
                     isActive={activeFilterType === FilterCardType.Terminated}
@@ -417,22 +415,34 @@ const HomeScreen = () => {
                       setActiveFilterType(FilterCardType.Terminated)
                     }
                   />
-                </SkeletonPlaceholder>
-              )}
-              {isAdmin && (
-                <SkeletonPlaceholder isLoading={users?.length === undefined}>
+                </SkeletonPlaceholder>,
+              ]}
+
+              {isAdmin && [
+                <SkeletonPlaceholder
+                  key="filter-reports"
+                  isLoading={reports?.length === undefined}>
+                  <FilterCard
+                    isActive={activeFilterType === FilterCardType.Reports}
+                    label={FilterCardType.ActionNeeded}
+                    secondaryLabel={FilterCardType.Reports}
+                    count={reports?.filter(r => r.isPending())?.length || 0}
+                    onPress={() => setActiveFilterType(FilterCardType.Reports)}
+                  />
+                </SkeletonPlaceholder>,
+                <SkeletonPlaceholder
+                  key="filter-users"
+                  isLoading={users?.length === undefined}>
                   <FilterCard
                     isActive={activeFilterType === FilterCardType.Users}
                     label={FilterCardType.Users}
                     count={users.length}
                     onPress={() => setActiveFilterType(FilterCardType.Users)}
                   />
-                </SkeletonPlaceholder>
-              )}
+                </SkeletonPlaceholder>,
+              ]}
             </ScrollView>
-            {[FilterCardType.ActionNeeded, FilterCardType.Ongoing].find(
-              filter => filter === activeFilterType,
-            ) && (
+            {showFilterPanel && (
               <View style={[flex.flexRow, items.start, padding.vertical.small]}>
                 <FilterPanel
                   initialFilter={filterStep}
@@ -442,8 +452,8 @@ const HomeScreen = () => {
             )}
           </View>
           {(activeFilterType !== FilterCardType.Users &&
-            ((filteredTransactions && filteredTransactions.length > 0) ||
-              (isAdmin && pendingReports.length > 0))) ||
+            filteredTransactions &&
+            filteredTransactions.length > 0) ||
           (activeFilterType === FilterCardType.Users &&
             users &&
             users.length > 0) ? (
@@ -455,6 +465,7 @@ const HomeScreen = () => {
                 padding.horizontal.default,
               ]}>
               {activeFilterType !== FilterCardType.Users &&
+                activeFilterType !== FilterCardType.Reports &&
                 filteredTransactions?.map(transaction => (
                   <TransactionCard
                     key={transaction.id}
@@ -462,10 +473,17 @@ const HomeScreen = () => {
                     role={activeRole}
                   />
                 ))}
-              {isAdmin &&
-                pendingReports.map((report, index) => (
-                  <ReportCard key={index} report={report} />
-                ))}
+              {activeFilterType === FilterCardType.Reports &&
+                reports
+                  .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+                  .sort(
+                    (a, b) =>
+                      reportStatusPrecendence[a.status] -
+                      reportStatusPrecendence[b.status],
+                  )
+                  .map((report, index) => (
+                    <ReportCard key={index} report={report} />
+                  ))}
               {activeFilterType === FilterCardType.Users &&
                 users?.map((user, index) => (
                   <UserListCard key={index} user={user} />
@@ -474,139 +492,6 @@ const HomeScreen = () => {
           ) : (
             <EmptyPlaceholder />
           )}
-          {/* <View style={[flex.flexCol, gap.large]}>
-            <DashboardPanel transactions={transactions} />
-            {isContentCreator && (
-              <View style={[flex.flexCol, gap.default]}>
-                <HorizontalPadding>
-                  <HomeSectionHeader header="New This Week" link="See All" />
-                </HorizontalPadding>
-                <ScrollView
-                  horizontal
-                  style={[flex.flex1]}
-                  contentContainerStyle={[
-                    flex.flexRow,
-                    gap.default,
-                    padding.horizontal.default,
-                    padding.bottom.xsmall,
-                  ]}>
-                  {thisWeekCampaign
-                    .slice(0, 5)
-                    .map((campaign: Campaign, index: number) => (
-                      <NewThisWeekCard campaign={campaign} key={index} />
-                    ))}
-                </ScrollView>
-              </View>
-            )}
-
-            {isBusinessPeople && (
-              <View style={[flex.flexCol, gap.default]}>
-                <HorizontalPadding>
-                  <HomeSectionHeader
-                    header="Ongoing Campaigns"
-                    link={ongoingCampaignsLimit === 3 ? 'See All' : 'Collapse'}
-                    onPressLink={() =>
-                      setOngoingCampaignsLimit(
-                        ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
-                      )
-                    }
-                  />
-                </HorizontalPadding>
-                <View
-                  style={[
-                    flex.flexCol,
-                    gap.medium,
-                    padding.horizontal.default,
-                  ]}>
-                  {userCampaigns
-                    .slice(0, ongoingCampaignsLimit)
-                    .map((c: Campaign, index: number) => (
-                      <OngoingCampaignCard campaign={c} key={index} />
-                    ))}
-                </View>
-              </View>
-            )}
-            <View style={[flex.flexCol, gap.default]}>
-              <HorizontalPadding>
-                <HomeSectionHeader
-                  header={isAdmin ? 'Payments' : 'Ongoing Transactions'}
-                  link={'See All'}
-                  // onPressLink={() =>
-                  // setOngoingCampaignsLimit(
-                  //   ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
-                  // )
-                  // }
-                />
-              </HorizontalPadding>
-              <View
-                style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-                {transactions
-                  .filter(transaction =>
-                    isAdmin ? true : transaction.isOngoing(),
-                  )
-                  .map((t, index) => (
-                    <RegisteredUserListCard
-                      key={index}
-                      transaction={t}
-                      role={activeRole}
-                    />
-                  ))}
-              </View>
-            </View>
-          </View>
-          {isAdmin && (
-            <HorizontalPadding>
-              <View className="my-4" style={[flex.flexCol]}>
-                <HomeSectionHeader
-                  header="Users"
-                  link={userLimit === 3 ? 'See All' : 'Collapse'}
-                  onPressLink={() =>
-                    setUserLimit(userLimit === 3 ? users.length : 3)
-                  }
-                />
-                <View style={[flex.flexCol, gap.medium]} className="mt-4">
-                  {users.slice(0, userLimit).map((u, index) => (
-                    // <Pressable
-                    //   key={index}
-                    //   onPress={() => {
-                    //     navigation.navigate(AuthenticatedNavigation.UserDetail, {
-                    //       userId: u.id || '',
-                    //     });
-                    //   }}>
-                    <UserListCard user={u} key={index} />
-                    // </Pressable>
-                  ))}
-                </View>
-              </View>
-            </HorizontalPadding>
-          )}
-          {isAdmin && (
-            <HorizontalPadding>
-              <View className="my-4" style={[flex.flexCol]}>
-                <HomeSectionHeader
-                  header="Reports"
-                  link={'See All'}
-                  onPressLink={() =>
-                    navigation.navigate(AuthenticatedNavigation.ReportList)
-                  }
-                />
-                <View style={[flex.flexCol, gap.medium]} className="mt-4">
-                  {reports
-                    .filter(report => report.isPending())
-                    .sort(
-                      (a, b) =>
-                        reportStatusPrecendence[a.status] -
-                        reportStatusPrecendence[b.status],
-                    )
-                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-                    .slice(0, 3)
-                    .map((report, index) => (
-                      <ReportCard key={index} report={report} />
-                    ))}
-                </View>
-              </View>
-            </HorizontalPadding>
-          )} */}
         </ScrollView>
         {isBusinessPeople && (
           <View
@@ -699,18 +584,27 @@ const FilterPanel = ({initialFilter, onFilterChange}: FilterPanelProps) => {
 interface FilterCardProps extends PressableProps {
   isActive: boolean;
   label: string;
+  secondaryLabel?: string;
   count: number;
 }
 
-const FilterCard = ({isActive, label, count, ...props}: FilterCardProps) => {
+const FilterCard = ({
+  isActive,
+  label,
+  count,
+  secondaryLabel,
+  ...props
+}: FilterCardProps) => {
   return (
     <Pressable
       style={[
+        flex.flex1,
         rounded.default,
         dimension.width.xlarge8,
         // shadow.small,
         padding.default,
         flex.flexCol,
+        justify.between,
         gap.default,
         background(COLOR.black[1]),
         border({
@@ -728,9 +622,21 @@ const FilterCard = ({isActive, label, count, ...props}: FilterCardProps) => {
         ],
       ]}
       {...props}>
-      <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
-        {label}
-      </Text>
+      <View style={[flex.flexCol]}>
+        <Text style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+          {label}
+        </Text>
+        {secondaryLabel && (
+          <Text
+            style={[
+              font.size[10],
+              font.weight.semibold,
+              textColor(COLOR.text.neutral.med),
+            ]}>
+            {secondaryLabel}
+          </Text>
+        )}
+      </View>
       <Text
         style={[
           font.size[40],

@@ -80,12 +80,12 @@ const ReportListScreen = () => {
         ]}>
         {reports.length > 0 ? (
           reports
+            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
             .sort(
               (a, b) =>
                 reportStatusPrecendence[a.status] -
                 reportStatusPrecendence[b.status],
             )
-            .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
             .map(report => <ReportCard key={report.id} report={report} />)
         ) : (
           <EmptyPlaceholder />

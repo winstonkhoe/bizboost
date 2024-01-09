@@ -5,7 +5,7 @@ import {
 } from '../components/atoms/ViewPadding';
 import {View} from 'react-native';
 import {flex} from '../styles/Flex';
-import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
+import {CampaignCard} from '../components/molecules/CampaignCard';
 import {Campaign} from '../model/Campaign';
 import {gap} from '../styles/Gap';
 import {
@@ -75,7 +75,7 @@ const CampaignsScreen = () => {
           <View style={[flex.flexCol, gap.medium]}>
             {filteredCampaigns?.length > 0 ? (
               filteredCampaigns.map((c: Campaign, index: number) => (
-                <OngoingCampaignCard campaign={c} key={index} />
+                <CampaignCard campaign={c} key={index} />
               ))
             ) : (
               <View style={[padding.top.xlarge5]}>

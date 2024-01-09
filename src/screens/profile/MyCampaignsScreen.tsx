@@ -7,7 +7,7 @@ import {padding} from '../../styles/Padding';
 import {useEffect, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
 import {useUser} from '../../hooks/user';
-import {OngoingCampaignCard} from '../../components/molecules/OngoingCampaignCard';
+import {CampaignCard} from '../../components/molecules/CampaignCard';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
@@ -41,7 +41,7 @@ const MyCampaignsScreen = ({route}: Props) => {
             <Text>No campaigns yet!</Text>
           ) : (
             campaigns.map((c: Campaign, index: number) => (
-              <OngoingCampaignCard campaign={c} key={index} />
+              <CampaignCard campaign={c} key={index} />
             ))
           )}
         </View>
