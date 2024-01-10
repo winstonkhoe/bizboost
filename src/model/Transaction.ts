@@ -816,7 +816,8 @@ export class Transaction extends BaseModel {
   async rejectRegistration() {
     try {
       await this.update({
-        status: TransactionStatus.registrationRejected,
+        status: TransactionStatus.terminated,
+        lastCheckedAt: new Date().getTime(),
       });
     } catch (error) {
       console.log('rejectRegistration err', error);
