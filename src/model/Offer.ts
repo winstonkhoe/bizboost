@@ -329,8 +329,8 @@ export class Offer extends BaseModel {
     negotiatedBy: UserRole,
   ) {
     try {
-      const {id} = this;
-      if (!id) {
+      const {id, contentCreatorId, businessPeopleId} = this;
+      if (!id || !contentCreatorId || !businessPeopleId) {
         throw Error('Missing id');
       }
       const negotiation = {
@@ -345,6 +345,16 @@ export class Offer extends BaseModel {
         negotiations: firestore.FieldValue.arrayUnion(negotiation),
         status: OfferStatus.negotiate,
       });
+      const existingChat =
+        await Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId(
+          contentCreatorId,
+          businessPeopleId,
+        );
+      await existingChat.addOfferMessage(
+        negotiation.negotiatedBy,
+        id,
+        negotiation.createdAt,
+      );
     } catch (error) {
       console.log(error);
       throw Error('Offer.negotitate error ' + error);
@@ -438,5 +448,4 @@ export class Offer extends BaseModel {
   isNegotiating() {
     return this.status === OfferStatus.negotiate;
   }
-
 }

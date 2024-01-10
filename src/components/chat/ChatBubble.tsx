@@ -210,8 +210,10 @@ const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
   const {activeRole, isContentCreator} = useUser();
   const [offer, setOffer] = useState<Offer | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
-  const [negotiate, setNegotiate] = useState<Negotiation | null>();
   const [opponent, setOpponent] = useState<User | null>();
+  const negotiate = offer?.negotiations.find(n => n.createdAt === offerAt) || null;
+  const isFirstNegotiate =
+    offer?.negotiations.findIndex(n => n.createdAt === offerAt) === 0;
 
   useEffect(() => {
     if (offerId) {
@@ -243,19 +245,6 @@ const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
       }
     }
   }, [offer, activeRole]);
-
-  useEffect(() => {
-    if (offer) {
-      const foundNegotiation = offer.negotiations.find(
-        n => n.createdAt === offerAt,
-      );
-      if (!foundNegotiation) {
-        setNegotiate(null);
-        return;
-      }
-      setNegotiate(foundNegotiation);
-    }
-  }, [offer, offerAt]);
 
   if (
     negotiate === undefined ||
@@ -291,7 +280,7 @@ const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
         ]}
         numberOfLines={1}>
         {negotiate.negotiatedBy === activeRole ? 'You' : opponentData?.fullname}{' '}
-        Made an offer
+        {isFirstNegotiate ? 'made an offer' : 'made a negotiation'}
       </Text>
       {campaign && (
         <View
