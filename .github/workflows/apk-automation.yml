@@ -38,28 +38,40 @@ jobs:
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
       - name: Change wrapper permissions
-        run: chmod +x ./android/gradlew
+        run: |
+          cd android
+          chmod +x ./gradlew
 
       # Run Tests Build
       - name: Run gradle tests
-        run: ./android/gradlew test
+        run: |
+          cd android
+          ./gradlew test
 
       # Run Build Project
       - name: Build gradle project
-        run: ./android/gradlew build
+        run: |
+          cd android
+          ./gradlew build
 
       # Create APK Debug
       - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
-        run: ./android/gradlew assembleDebug
+        run: |
+          cd android
+          ./gradlew assembleDebug
 
       # Create APK Release
       - name: Build apk release project (APK) - ${{ env.main_project_module }} module
-        run: ./android/gradlew assemble
+        run: |
+          cd android
+          ./gradlew assemble
 
       # Create Bundle AAB Release
       # Noted for main module build [main_project_module]:bundleRelease
       - name: Build app bundle release (AAB) - ${{ env.main_project_module }} module
-        run: ./android/gradlew ${{ env.main_project_module }}:bundleRelease
+        run: |
+          cd android
+          ./gradlew ${{ env.main_project_module }}:bundleRelease
 
       # Upload Artifact Build
       # Noted For Output [main_project_module]/build/outputs/apk/debug/
@@ -82,13 +94,3 @@ jobs:
         with:
           name: ${{ env.date_today }} - ${{ env.repository_name }} - App bundle(s) AAB release generated
           path: ${{ env.main_project_module }}/build/outputs/bundle/release/
-      # - name: Build Android APK
-      #   run: |
-      #     ./android/gradlew assembleRelease
-      #     ./android/gradlew bundleRelease
-
-      # - name: Generate Signed APK
-      #   run: |
-      #     cd app/build/outputs/apk/release/
-      #     jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore bizboost-key.keystore app-release-unsigned.apk bizboost-alias
-      #     zipalign -v 4 app-release-unsigned.apk bizboost.apk
