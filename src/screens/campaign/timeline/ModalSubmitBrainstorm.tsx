@@ -1,7 +1,7 @@
 import {View} from 'react-native';
 import {BackButtonLabel} from '../../../components/atoms/Header';
 import {PageWithBackButton} from '../../../components/templates/PageWithBackButton';
-import {CampaignStep} from '../../../model/Campaign';
+import {Campaign, CampaignStep} from '../../../model/Campaign';
 import {flex, items, justify} from '../../../styles/Flex';
 import {FormProvider, useForm} from 'react-hook-form';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -33,6 +33,9 @@ import {CustomTextInput} from '../../../components/atoms/Input';
 import {showToast} from '../../../helpers/toast';
 import {ToastType} from '../../../providers/ToastProvider';
 import {useNavigation} from '@react-navigation/native';
+import {border} from '../../../styles/Border';
+import {background} from '../../../styles/BackgroundColor';
+import {rounded} from '../../../styles/BorderRadius';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -59,7 +62,8 @@ const ModalSubmitBrainstorm = ({route}: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const navigation = useNavigation<NavigationStackProps>();
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [transaction, setTransaction] = useState<Transaction | null>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const methods = useForm<SubmissionFormData>({
     defaultValues: {
       submission: [],
@@ -83,6 +87,14 @@ const ModalSubmitBrainstorm = ({route}: Props) => {
       resetOriginalField();
     }
   }, [transaction, resetOriginalField]);
+
+  useEffect(() => {
+    if (transaction?.campaignId) {
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
+    }
+  }, [transaction]);
 
   useEffect(() => {
     return Transaction.getById(transactionId, setTransaction);
@@ -120,7 +132,7 @@ const ModalSubmitBrainstorm = ({route}: Props) => {
       });
   };
 
-  if (!transaction) {
+  if (transaction === undefined) {
     return <LoadingScreen />;
   }
 
@@ -148,73 +160,101 @@ const ModalSubmitBrainstorm = ({route}: Props) => {
                 paddingBottom: Math.max(safeAreaInsets.bottom, size.large),
               },
             ]}>
-            <ScrollView bounces={false}>
-              <View style={[flex.flexCol, gap.xlarge2]}>
-                {transaction?.platformTasks?.map((platform, platformIndex) => (
-                  <View key={platform.name} style={[flex.flexCol, gap.default]}>
-                    {platformIndex > 0 && <Seperator />}
-                    <View
+            <ScrollView
+              bounces={false}
+              contentContainerStyle={[flex.flexCol, gap.default]}>
+              <View style={[padding.horizontal.default]}>
+                <View
+                  style={[
+                    flex.flexCol,
+                    gap.small,
+                    padding.default,
+                    border({
+                      borderWidth: 1,
+                      color: COLOR.green[50],
+                    }),
+                    rounded.default,
+                    background(COLOR.green[1]),
+                  ]}>
+                  <Text
+                    style={[
+                      font.size[30],
+                      font.weight.semibold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}>
+                    💡 Things to highlight
+                  </Text>
+                  <Text
+                    style={[
+                      font.size[30],
+                      textColor(COLOR.text.neutral.default),
+                    ]}>
+                    {campaign?.description}
+                  </Text>
+                </View>
+              </View>
+              {transaction?.platformTasks?.map((platform, platformIndex) => (
+                <View key={platform.name} style={[flex.flexCol, gap.default]}>
+                  {platformIndex > 0 && <Seperator />}
+                  <View
+                    style={[
+                      flex.flexRow,
+                      gap.small,
+                      items.center,
+                      padding.horizontal.default,
+                    ]}>
+                    <PlatformIcon platform={platform.name} size="medium" />
+                    <Text
+                      className="font-bold"
                       style={[
-                        flex.flexRow,
-                        gap.small,
-                        items.center,
-                        padding.horizontal.default,
+                        font.size[40],
+                        textColor(COLOR.text.neutral.high),
                       ]}>
-                      <PlatformIcon platform={platform.name} size="medium" />
-                      <Text
-                        className="font-bold"
-                        style={[
-                          font.size[40],
-                          textColor(COLOR.text.neutral.high),
-                        ]}>
-                        {platform.name}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        flex.flexCol,
-                        gap.default,
-                        padding.horizontal.default,
-                      ]}>
-                      {platform.tasks.map((task, taskIndex) => (
-                        <View
-                          style={[flex.flexCol, gap.xsmall]}
-                          key={taskIndex}>
+                      {platform.name}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.default,
+                      padding.horizontal.default,
+                    ]}>
+                    {platform.tasks.map((task, taskIndex) => (
+                      <View style={[flex.flexCol, gap.xsmall]} key={taskIndex}>
+                        <Text
+                          className="font-semibold"
+                          style={[
+                            font.size[20],
+                            textColor(COLOR.text.neutral.high),
+                          ]}>
+                          {campaignTaskToString(task)}
+                        </Text>
+                        {task.description && (
                           <Text
-                            className="font-semibold"
                             style={[
                               font.size[20],
-                              textColor(COLOR.text.neutral.high),
+                              textColor(COLOR.text.neutral.med),
                             ]}>
-                            {campaignTaskToString(task)}
+                            {task.description}
                           </Text>
-                          {task.description && (
-                            <Text
-                              style={[
-                                font.size[20],
-                                textColor(COLOR.text.neutral.med),
-                              ]}>
-                              {task.description}
-                            </Text>
-                          )}
-                          <CustomTextInput
-                            rules={{
-                              required: 'Brainstorm must not be empty',
-                              minLength: rules.brainstorm.min,
-                            }}
-                            counter
-                            description={`Min. ${rules.brainstorm.min} characters, Max. ${rules.brainstorm.max} characters`}
-                            placeholder="Type your brainstorm here"
-                            max={rules.brainstorm.max}
-                            name={`submission.${platformIndex}.tasks.${taskIndex}.value`}
-                            type="textarea"
-                          />
-                        </View>
-                      ))}
-                    </View>
+                        )}
+                        <CustomTextInput
+                          rules={{
+                            required: 'Brainstorm must not be empty',
+                            minLength: rules.brainstorm.min,
+                          }}
+                          counter
+                          description={`Min. ${rules.brainstorm.min} characters, Max. ${rules.brainstorm.max} characters`}
+                          placeholder="Type your brainstorm here"
+                          max={rules.brainstorm.max}
+                          name={`submission.${platformIndex}.tasks.${taskIndex}.value`}
+                          type="textarea"
+                        />
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
+                </View>
+              ))}
             </ScrollView>
             <View style={[padding.horizontal.default]}>
               <CustomButton
