@@ -161,6 +161,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
   );
 
   const currentActiveIndex = useMemo(() => {
+    if (transaction?.isTerminated()) {
+      return 0;
+    }
     const filteredCampaignStep = Object.values(CampaignStep).filter(step =>
       campaign?.timeline?.some(timeline => timeline.step === step),
     );
@@ -168,7 +171,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
       return filteredCampaignStep.indexOf(currentActiveTimeline?.step);
     }
     return filteredCampaignStep.length + 1;
-  }, [currentActiveTimeline, campaign]);
+  }, [currentActiveTimeline, campaign, transaction]);
 
   const campaignTimelineMap = useMemo(
     () =>
@@ -216,8 +219,15 @@ const CampaignTimelineScreen = ({route}: Props) => {
       return [];
     }
 
+    const numberOfSteps =
+      campaignIndexMap[
+        currentActiveTimeline?.step || CampaignStep.Registration
+      ] +
+      1 -
+      getIndexOffset();
+
     if (transaction.isTerminated()) {
-      return [StepperState.terminated];
+      return Array(numberOfSteps).fill(StepperState.terminated);
     }
 
     if (transaction.isCompleted() || campaign.isCompleted()) {
@@ -226,13 +236,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
         StepperState.success,
       );
     }
-
-    const numberOfSteps =
-      campaignIndexMap[
-        currentActiveTimeline?.step || CampaignStep.Registration
-      ] +
-      1 -
-      getIndexOffset();
 
     if (isCampaignOwner && currentActiveTimeline) {
       return Array(numberOfSteps).fill(StepperState.success);
