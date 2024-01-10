@@ -38,30 +38,28 @@ jobs:
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
       - name: Change wrapper permissions
-        run: |
-          cd android
-          chmod +x ./gradlew
+        run: chmod +x ./android/gradlew
 
       # Run Tests Build
       - name: Run gradle tests
-        run: ./gradlew test
+        run: ./android/gradlew test
 
       # Run Build Project
       - name: Build gradle project
-        run: ./gradlew build
+        run: ./android/gradlew build
 
       # Create APK Debug
       - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
-        run: ./gradlew assembleDebug
+        run: ./android/gradlew assembleDebug
 
       # Create APK Release
       - name: Build apk release project (APK) - ${{ env.main_project_module }} module
-        run: ./gradlew assemble
+        run: ./android/gradlew assemble
 
       # Create Bundle AAB Release
       # Noted for main module build [main_project_module]:bundleRelease
       - name: Build app bundle release (AAB) - ${{ env.main_project_module }} module
-        run: ./gradlew ${{ env.main_project_module }}:bundleRelease
+        run: ./android/gradlew ${{ env.main_project_module }}:bundleRelease
 
       # Upload Artifact Build
       # Noted For Output [main_project_module]/build/outputs/apk/debug/
@@ -86,9 +84,8 @@ jobs:
           path: ${{ env.main_project_module }}/build/outputs/bundle/release/
       # - name: Build Android APK
       #   run: |
-      #     cd android
-      #     ./gradlew assembleRelease
-      #     ./gradlew bundleRelease
+      #     ./android/gradlew assembleRelease
+      #     ./android/gradlew bundleRelease
 
       # - name: Generate Signed APK
       #   run: |
