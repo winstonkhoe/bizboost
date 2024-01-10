@@ -22,6 +22,7 @@ jobs:
       - name: Install React Native CLI
         run: |
           npm install react-native-cli
+          npm install @react-native-community/cli
           npm install @react-native-community/cli-platform-android
 
       - name: Build Android APK
