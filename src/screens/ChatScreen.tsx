@@ -62,7 +62,7 @@ interface RoleGroupedMessages {
 
 const ChatScreen = ({route}: Props) => {
   const {chatId} = route.params;
-  const {user, activeRole, isBusinessPeople} = useUser();
+  const {activeRole, isBusinessPeople} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
 
   const [chat, setChat] = useState<Chat>();
@@ -72,10 +72,8 @@ const ChatScreen = ({route}: Props) => {
   const [isWidgetVisible, setIsWidgetVisible] = useState<boolean>(false);
   const navigation = useNavigation<NavigationStackProps>();
   const [isModalOpened, setIsModalOpened] = useState<boolean>(true);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<Offer>();
 
-  // TODO: bikin Chat.getById
   useEffect(() => {
     return Chat.getById(chatId, setChat);
   }, [chatId]);

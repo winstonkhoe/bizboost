@@ -83,8 +83,15 @@ export const OfferDetailScreen = ({route}: Props) => {
     <PageWithBackButton
       enableSafeAreaContainer
       fullHeight
+      threshold={0}
       backButtonPlaceholder={<BackButtonLabel text="Offer Detail" />}>
-      <View style={[flex.flex1, flex.flexCol, padding.top.xlarge2]}>
+      <View
+        style={[
+          flex.flex1,
+          flex.flexCol,
+          padding.top.xlarge2,
+          padding.bottom.default,
+        ]}>
         {campaign && businessPeople && (
           <CampaignDetailSection
             businessPeople={businessPeople}

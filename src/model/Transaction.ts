@@ -1244,7 +1244,12 @@ export class Transaction extends BaseModel {
     if (this.isTerminated() || this.isCompleted()) {
       return false;
     }
-    if (status === TransactionStatus.registrationPending) {
+    if (
+      [
+        TransactionStatus.registrationPending,
+        TransactionStatus.offerWaitingForPayment,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    ) {
       if (!payment?.status) {
         return true;
       }
@@ -1256,7 +1261,6 @@ export class Transaction extends BaseModel {
     }
     return (
       [
-        TransactionStatus.offerWaitingForPayment,
         TransactionStatus.brainstormSubmitted,
         TransactionStatus.contentSubmitted,
         TransactionStatus.engagementSubmitted,

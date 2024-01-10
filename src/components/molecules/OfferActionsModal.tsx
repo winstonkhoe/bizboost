@@ -23,6 +23,8 @@ import {ToastType} from '../../providers/ToastProvider';
 import {ErrorMessage} from '../../constants/errorMessage';
 import {currencyFormat} from '../../utils/currency';
 import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../../styles/Size';
 
 type Props = {
   offer: Offer;
@@ -31,9 +33,17 @@ type Props = {
 };
 
 const OfferActionModal = ({isModalOpened, onModalDismiss, offer}: Props) => {
+  const safeAreaInsets = useSafeAreaInsets();
   return (
     <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
-      <OfferAction offer={offer} onSuccess={onModalDismiss} />
+      <View
+        style={[
+          {
+            paddingBottom: safeAreaInsets.bottom + size.small,
+          },
+        ]}>
+        <OfferAction offer={offer} onSuccess={onModalDismiss} />
+      </View>
     </SheetModal>
   );
 };

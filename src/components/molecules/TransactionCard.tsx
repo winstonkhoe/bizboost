@@ -39,6 +39,7 @@ import {SkeletonPlaceholder} from './SkeletonPlaceholder';
 import ReviewSheetModal from './ReviewSheetModal';
 import {Review} from '../../model/Review';
 import {overflow} from '../../styles/Overflow';
+import {ChevronRight} from '../atoms/Icon';
 
 type Props = {
   transaction: Transaction;
@@ -50,6 +51,17 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const [review, setReview] = useState<Review | null>();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const doesNeedApproval =
+    transaction.status === TransactionStatus.registrationPending &&
+    transaction.payment === undefined;
+
+  const isWaitingAction =
+    transaction.isWaitingBusinessPeopleAction() && !doesNeedApproval;
+  const actionText =
+    TransactionStatus.offerWaitingForPayment === transaction.status
+      ? 'Make Payment'
+      : 'Review Submission';
+
   useEffect(() => {
     if (transaction.contentCreatorId) {
       User.getById(transaction.contentCreatorId)
@@ -74,6 +86,14 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       );
     }
   }, [transaction]);
+
+  const navigateToTransactionDetail = () => {
+    if (transaction.id) {
+      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+        transactionId: transaction.id,
+      });
+    }
+  };
 
   return (
     <>
@@ -136,10 +156,9 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
             transaction.status || TransactionStatus.terminated
           ]
         }
-        doesNeedApproval={
-          transaction.status === TransactionStatus.registrationPending &&
-          transaction.payment === undefined
-        }
+        doesNeedApproval={doesNeedApproval}
+        handleAction={isWaitingAction ? navigateToTransactionDetail : undefined}
+        actionText={actionText}
         handleClickReject={() => {
           transaction
             .rejectRegistration()
@@ -181,6 +200,8 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const [review, setReview] = useState<Review | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
+  const isReviewable = review === null && transaction.isCompleted();
+  const [isWaitingAction, setIsWaitingAction] = useState<boolean>();
 
   useEffect(() => {
     if (transaction.campaignId) {
@@ -189,6 +210,15 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         .catch(() => {
           setCampaign(null);
         });
+    }
+  }, [transaction]);
+
+  useEffect(() => {
+    if (transaction) {
+      transaction
+        .isWaitingContentCreatorAction()
+        .then(setIsWaitingAction)
+        .catch(() => setIsWaitingAction(false));
     }
   }, [transaction]);
 
@@ -212,6 +242,14 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
+  const navigateToCampaignTimeline = () => {
+    if (campaign?.id) {
+      navigation.navigate(AuthenticatedNavigation.CampaignTimeline, {
+        campaignId: campaign.id,
+      });
+    }
+  };
+
   return (
     <BaseCard
       handleClickHeader={() => {
@@ -234,24 +272,35 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       })}
       // bodyText={campaign?.title}
       bodyText={campaign?.title}
+      handleAction={isWaitingAction ? navigateToCampaignTimeline : undefined}
+      actionText="Make Submission"
       bodyContent={
-        review === null &&
-        transaction.isCompleted() && (
+        (isReviewable || isWaitingAction) && (
           <>
-            <View style={[flex.flex1, flex.flexRow, justify.end]}>
-              <CustomButton
-                text="Review"
-                verticalPadding="xsmall"
-                onPress={() => {
-                  setIsReviewModalOpen(true);
-                }}
-              />
+            <View
+              style={[
+                flex.flex1,
+                flex.flexRow,
+                justify.end,
+                padding.top.small,
+              ]}>
+              {isReviewable && (
+                <CustomButton
+                  text="Review"
+                  verticalPadding="xsmall"
+                  onPress={() => {
+                    setIsReviewModalOpen(true);
+                  }}
+                />
+              )}
             </View>
-            <ReviewSheetModal
-              isModalOpened={isReviewModalOpen}
-              onModalDismiss={() => setIsReviewModalOpen(false)}
-              transaction={transaction}
-            />
+            {isReviewable && (
+              <ReviewSheetModal
+                isModalOpened={isReviewModalOpen}
+                onModalDismiss={() => setIsReviewModalOpen(false)}
+                transaction={transaction}
+              />
+            )}
           </>
         )
       }
@@ -284,6 +333,8 @@ type BaseCardProps = {
   doesNeedApproval?: boolean;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
+  actionText?: string;
+  handleAction?: () => void;
 };
 export const BaseCard = ({
   handleClickHeader,
@@ -300,6 +351,8 @@ export const BaseCard = ({
   handleClickReject,
   handleClickAccept,
   bodyContent,
+  actionText = 'Action Needed',
+  handleAction,
 }: BaseCardProps) => {
   const isLoading = !headerTextLeading || !bodyText;
   return (
@@ -435,6 +488,36 @@ export const BaseCard = ({
             />
           </View>
         </View>
+      )}
+      {handleAction && (
+        <Pressable
+          style={[
+            flex.flex1,
+            padding.default,
+            flex.flexRow,
+            gap.small,
+            justify.center,
+            items.center,
+            {
+              borderTopColor: COLOR.black[20],
+              borderTopWidth: 1,
+            },
+          ]}
+          onPress={handleAction}>
+          <Text
+            style={[
+              font.size[30],
+              font.weight.bold,
+              textColor(COLOR.green[50]),
+            ]}>
+            {actionText}
+          </Text>
+          <ChevronRight
+            color={COLOR.green[50]}
+            size="medium"
+            strokeWidth={1.5}
+          />
+        </Pressable>
       )}
     </View>
   );
