@@ -17,6 +17,7 @@ jobs:
       - name: Install JDK 11 and Android SDK
         run: |
           sudo apt-get install -y openjdk-11-jdk
+          sudo apt install -y sdkmanager
           sdkmanager "platform-tools" "platforms;android-33"
       - name: Install React Native CLI
         run: npm install -g react-native-cli
