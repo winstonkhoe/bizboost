@@ -1,0 +1,33 @@
+name: APK Automation React Native
+on:
+  push:
+    branches:
+      - test
+jobs:
+  build:
+    rruns-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+
+      - name: Install JDK 11 and Android SDK
+        run: |
+          sudo apt-get install -y openjdk-11-jdk
+          sdkmanager "platform-tools" "platforms;android-33"
+      - name: Install React Native CLI
+        run: npm install -g react-native-cli
+
+      - name: Build Android APK
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Generate Signed APK
+        run: |
+          cd app/build/outputs/apk/release/
+          jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore bizboost-key.keystore app-release-unsigned.apk bizboost-alias
+          zipalign -v 4 app-release-unsigned.apk bizboost.apk
