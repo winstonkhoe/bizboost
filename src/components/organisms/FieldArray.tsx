@@ -29,6 +29,7 @@ import {rounded} from '../../styles/BorderRadius';
 import {FontSizeType, font} from '../../styles/Font';
 import {shadow} from '../../styles/Shadow';
 import {ModalWebView} from '../../screens/modals/ModalWebView';
+import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 
 interface Props extends Partial<ControllerProps> {
   control: Control<any>;
@@ -160,70 +161,75 @@ const FieldArray = ({
         bottomInsetType="default"
         fullHeight
         enableDynamicSizing={false}
+        disablePanDownToClose
         open={isModalOpened}
         onDismiss={() => {
           setIsModalOpened(false);
         }}>
-        <BottomSheetModalWithTitle fullHeight title={title || ''}>
-          <Controller
-            control={control}
-            {...props}
-            name={`${parentName}.${updateIndex}.${childName}`}
-            render={({
-              field: {value, onChange},
-              formState: {isValid, errors},
-            }) => (
-              <View
-                style={[
-                  flex.flex1,
-                  flex.flexCol,
-                  padding.top.large,
-                  padding.horizontal.large,
-                  gap.xlarge,
-                ]}>
-                <View style={[flex.flexCol, gap.small]}>
-                  {new RegExp('^(http|https)://[^ "]+$', 'i').test(
-                    temporaryText,
-                  ) && (
-                    <View style={[flex.flexRow, justify.end]}>
-                      <AnimatedPressable>
-                        <InternalLink
-                          text="Preview url"
-                          onPress={() => {
-                            setIsWebviewModalOpen(true);
-                          }}
-                        />
-                      </AnimatedPressable>
-                    </View>
-                  )}
-                  <FormlessCustomTextInput
-                    counter={maxFieldLength > 0}
-                    type={fieldType}
-                    max={maxFieldLength > 0 ? maxFieldLength : undefined}
-                    defaultValue={`${value || ''}`}
-                    {...props}
-                    forceLowercase={forceLowerCase}
-                    placeholder={placeholder ?? `Add ${parentName}`}
-                    description={helperText}
-                    onChange={updateText}
-                    onValidChange={setIsValidField}
+        <BottomSheetScrollView
+          style={[flex.grow]}
+          contentContainerStyle={[flex.flex1]}>
+          <BottomSheetModalWithTitle fullHeight title={title || ''}>
+            <Controller
+              control={control}
+              {...props}
+              name={`${parentName}.${updateIndex}.${childName}`}
+              render={({
+                field: {value, onChange},
+                formState: {isValid, errors},
+              }) => (
+                <View
+                  style={[
+                    flex.flex1,
+                    flex.flexCol,
+                    padding.top.large,
+                    padding.horizontal.large,
+                    gap.xlarge,
+                  ]}>
+                  <View style={[flex.flexCol, gap.small]}>
+                    {new RegExp('^(http|https)://[^ "]+$', 'i').test(
+                      temporaryText,
+                    ) && (
+                      <View style={[flex.flexRow, justify.end]}>
+                        <AnimatedPressable>
+                          <InternalLink
+                            text="Preview url"
+                            onPress={() => {
+                              setIsWebviewModalOpen(true);
+                            }}
+                          />
+                        </AnimatedPressable>
+                      </View>
+                    )}
+                    <FormlessCustomTextInput
+                      counter={maxFieldLength > 0}
+                      type={fieldType}
+                      max={maxFieldLength > 0 ? maxFieldLength : undefined}
+                      defaultValue={`${value || ''}`}
+                      {...props}
+                      forceLowercase={forceLowerCase}
+                      placeholder={placeholder ?? `Add ${parentName}`}
+                      description={helperText}
+                      onChange={updateText}
+                      onValidChange={setIsValidField}
+                    />
+                  </View>
+                  <CustomButton
+                    disabled={temporaryText.length === 0 || !isValidField}
+                    text={updateIndex !== null ? 'Update' : 'Save'}
+                    onPress={() => {
+                      if (updateIndex !== null) {
+                        updateEntry(onChange);
+                      } else {
+                        addNewEntry();
+                      }
+                    }}
                   />
                 </View>
-                <CustomButton
-                  disabled={temporaryText.length === 0 || !isValidField}
-                  text={updateIndex !== null ? 'Update' : 'Save'}
-                  onPress={() => {
-                    if (updateIndex !== null) {
-                      updateEntry(onChange);
-                    } else {
-                      addNewEntry();
-                    }
-                  }}
-                />
-              </View>
-            )}
-          />
-        </BottomSheetModalWithTitle>
+              )}
+            />
+          </BottomSheetModalWithTitle>
+        </BottomSheetScrollView>
       </SheetModal>
     </>
   );
