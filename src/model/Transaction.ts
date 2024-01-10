@@ -36,7 +36,6 @@ export enum TransactionStatus {
   // public
   notRegistered = 'Not Registered',
   registrationPending = 'Registration Pending',
-  registrationRejected = 'Registration Rejected',
   registrationApproved = 'Registration Approved',
 
   // private
@@ -123,8 +122,6 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
     campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.registrationPending]:
     campaignIndexMap[CampaignStep.Registration],
-  [TransactionStatus.registrationRejected]:
-    campaignIndexMap[CampaignStep.Registration],
   [TransactionStatus.registrationApproved]:
     campaignIndexMap[CampaignStep.Brainstorming],
 
@@ -165,7 +162,6 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
 export const transactionStatusTypeMap: TransactionStatusMap = {
   [TransactionStatus.notRegistered]: StatusType.warning,
   [TransactionStatus.registrationPending]: StatusType.warning,
-  [TransactionStatus.registrationRejected]: StatusType.danger,
   [TransactionStatus.registrationApproved]: StatusType.success,
 
   [TransactionStatus.offering]: StatusType.warning,
@@ -194,7 +190,6 @@ export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap 
   {
     [TransactionStatus.notRegistered]: StepperState.warning,
     [TransactionStatus.registrationPending]: StepperState.warning,
-    [TransactionStatus.registrationRejected]: StepperState.danger,
     [TransactionStatus.registrationApproved]: StepperState.success,
 
     [TransactionStatus.offering]: StepperState.warning,
@@ -222,7 +217,6 @@ export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap 
 export const transactionStatusCampaignStepMap: TransactionStatusCampaignStepMap =
   {
     [TransactionStatus.registrationPending]: CampaignStep.Registration,
-    [TransactionStatus.registrationRejected]: CampaignStep.Registration,
     [TransactionStatus.registrationApproved]: CampaignStep.Registration,
 
     [TransactionStatus.offering]: CampaignStep.Registration,
