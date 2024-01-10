@@ -165,7 +165,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
             .then(() => {
               showToast({
                 message: 'Registration Rejected!',
-                type: ToastType.danger,
+                type: ToastType.success,
               });
             })
             .catch(() => {
