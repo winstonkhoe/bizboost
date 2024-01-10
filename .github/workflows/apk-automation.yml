@@ -21,7 +21,7 @@ jobs:
           sdkmanager "platform-tools" "platforms;android-33"
       - name: Install React Native CLI
         run: |
-          npm install -g react-native-cli
+          npm install react-native-cli
           npm install @react-native-community/cli-platform-android
 
       - name: Build Android APK
