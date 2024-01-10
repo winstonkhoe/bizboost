@@ -154,17 +154,18 @@ const PaymentSheetModal = ({
   };
   const onRequestWithdraw = () => {
     transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.withdrawalRequested,
-        },
-      })
+      ?.requestWithdrawal()
       .then(() => {
         showToast({
           message:
             'Withdrawal Requested! You will receive your money in no later than 7 x 24 hours.',
           type: ToastType.success,
+        });
+      })
+      .catch(() => {
+        showToast({
+          message: 'Failed to request withdrawal',
+          type: ToastType.danger,
         });
       });
   };
@@ -279,12 +280,7 @@ const PaymentSheetModal = ({
                 </View>
               </TouchableOpacity>
             )}
-            {isBusinessPeople &&
-            (transaction.payment?.status ===
-              PaymentStatus.proofWaitingForVerification ||
-              transaction.payment?.status === PaymentStatus.proofRejected ||
-              transaction.payment?.status === undefined) &&
-            transaction.status === TransactionStatus.registrationPending ? (
+            {isBusinessPeople && transaction.isPaymentProofSubmitable() && (
               <View style={[dimension.square.xlarge12]}>
                 <MediaUploader
                   targetFolder="payment"
@@ -333,7 +329,8 @@ const PaymentSheetModal = ({
                   )}
                 </MediaUploader>
               </View>
-            ) : (
+            )}
+            {isAdmin && (
               <View style={[flex.flexRow, gap.default, padding.top.default]}>
                 {transaction.payment?.status ===
                   PaymentStatus.proofWaitingForVerification && (
