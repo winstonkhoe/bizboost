@@ -1239,6 +1239,26 @@ export class Transaction extends BaseModel {
     );
   }
 
+  isPaymentProofSubmitable() {
+    const {status, payment} = this;
+    if (
+      [
+        TransactionStatus.registrationPending,
+        TransactionStatus.offerWaitingForPayment,
+      ].findIndex(transactionStatus => transactionStatus === status) >= 0
+    ) {
+      if (!payment?.status) {
+        return true;
+      }
+      return (
+        [PaymentStatus.proofRejected].findIndex(
+          paymentStatus => paymentStatus === payment?.status,
+        ) >= 0
+      );
+    }
+    return false;
+  }
+
   isWaitingBusinessPeopleAction() {
     const {status, payment} = this;
     if (this.isTerminated() || this.isCompleted()) {
