@@ -72,7 +72,7 @@ const ModalNegotiateScreen = ({route}: Props) => {
   const methods = useForm<NegotiateFormData>({
     mode: 'onSubmit',
     defaultValues: {
-      fee: 150000,
+      fee: latestNegotiation?.fee,
       notes: latestNegotiation?.notes,
       platforms: latestNegotiation?.tasks,
     },
