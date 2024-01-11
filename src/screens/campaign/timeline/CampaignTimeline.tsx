@@ -104,7 +104,7 @@ interface TransactionView {
 }
 
 const CampaignTimelineScreen = ({route}: Props) => {
-  const {uid} = useUser();
+  const {uid, isAdmin} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
@@ -161,6 +161,9 @@ const CampaignTimelineScreen = ({route}: Props) => {
   );
 
   const currentActiveIndex = useMemo(() => {
+    if (transaction?.isTerminated()) {
+      return 0;
+    }
     const filteredCampaignStep = Object.values(CampaignStep).filter(step =>
       campaign?.timeline?.some(timeline => timeline.step === step),
     );
@@ -168,7 +171,7 @@ const CampaignTimelineScreen = ({route}: Props) => {
       return filteredCampaignStep.indexOf(currentActiveTimeline?.step);
     }
     return filteredCampaignStep.length + 1;
-  }, [currentActiveTimeline, campaign]);
+  }, [currentActiveTimeline, campaign, transaction]);
 
   const campaignTimelineMap = useMemo(
     () =>
@@ -216,8 +219,15 @@ const CampaignTimelineScreen = ({route}: Props) => {
       return [];
     }
 
+    const numberOfSteps =
+      campaignIndexMap[
+        currentActiveTimeline?.step || CampaignStep.Registration
+      ] +
+      1 -
+      getIndexOffset();
+
     if (transaction.isTerminated()) {
-      return [StepperState.terminated];
+      return Array(numberOfSteps).fill(StepperState.terminated);
     }
 
     if (transaction.isCompleted() || campaign.isCompleted()) {
@@ -226,13 +236,6 @@ const CampaignTimelineScreen = ({route}: Props) => {
         StepperState.success,
       );
     }
-
-    const numberOfSteps =
-      campaignIndexMap[
-        currentActiveTimeline?.step || CampaignStep.Registration
-      ] +
-      1 -
-      getIndexOffset();
 
     if (isCampaignOwner && currentActiveTimeline) {
       return Array(numberOfSteps).fill(StepperState.success);
@@ -403,40 +406,27 @@ const CampaignTimelineScreen = ({route}: Props) => {
                   ]}>
                   <StepperLabel
                     timeline={campaignTimelineMap[CampaignStep.Registration]}>
-                    {transaction?.status &&
-                    transactionStatusCampaignStepMap[transaction?.status] ===
-                      CampaignStep.Registration ? (
-                      isCampaignOwner ? (
+                    {!isCampaignOwner &&
+                      transaction?.status &&
+                      transactionStatusCampaignStepMap[transaction?.status] ===
+                        CampaignStep.Registration &&
+                      currentActiveTimeline?.step ===
+                        CampaignStep.Registration && (
                         <StatusTag
-                          status={`${formatNumberWithThousandSeparator(
-                            transactions.filter(
-                              t =>
-                                t.transaction.status ===
-                                TransactionStatus.registrationApproved,
-                            ).length,
-                          )} Registrant Approved`}
-                          statusType={StatusType.success}
+                          status={
+                            transaction?.status ===
+                            TransactionStatus.registrationApproved
+                              ? BasicStatus.approved
+                              : transaction?.status ===
+                                TransactionStatus.registrationPending
+                              ? BasicStatus.pending
+                              : transaction.status
+                          }
+                          statusType={
+                            transactionStatusTypeMap[transaction?.status]
+                          }
                         />
-                      ) : (
-                        transaction.status !==
-                          TransactionStatus.notRegistered && (
-                          <StatusTag
-                            status={
-                              transaction?.status ===
-                              TransactionStatus.registrationApproved
-                                ? BasicStatus.approved
-                                : transaction?.status ===
-                                  TransactionStatus.registrationRejected
-                                ? BasicStatus.rejected
-                                : BasicStatus.pending
-                            }
-                            statusType={
-                              transactionStatusTypeMap[transaction?.status]
-                            }
-                          />
-                        )
-                      )
-                    ) : null}
+                      )}
                   </StepperLabel>
                 </View>
                 {isCampaignOwner ? (
@@ -545,7 +535,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     </View>
                   </AnimatedPressable>
                 ) : (
-                  transaction?.status === TransactionStatus.notRegistered && (
+                  transaction?.status === TransactionStatus.notRegistered &&
+                  !isAdmin && (
                     <View style={[padding.default]}>
                       <CustomButton
                         text="Register now"
@@ -670,7 +661,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     </>
                   )}
                   {!isCampaignOwner &&
-                    transaction?.isWaitingBrainstormSubmission() && (
+                    transaction?.isWaitingBrainstormSubmission() &&
+                    !isAdmin && (
                       <CustomButton
                         text="Submit idea"
                         onPress={navigateToSubmissionModal}
@@ -800,7 +792,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                       </View>
                     </View>
                     {!isCampaignOwner &&
-                      transaction?.isWaitingContentSubmission() && (
+                      transaction?.isWaitingContentSubmission() &&
+                      !isAdmin && (
                         <View style={[padding.horizontal.default]}>
                           <CustomButton
                             text="Upload"
@@ -941,7 +934,8 @@ const CampaignTimelineScreen = ({route}: Props) => {
                     </Text>
                   </View>
                   {!isCampaignOwner &&
-                    transaction?.isWaitingEngagementSubmission() && (
+                    transaction?.isWaitingEngagementSubmission() &&
+                    !isAdmin && (
                       <CustomButton
                         text="Upload"
                         onPress={navigateToSubmissionModal}
