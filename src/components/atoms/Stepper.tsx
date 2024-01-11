@@ -32,7 +32,7 @@ export const Stepper = ({type = 'simple', ...props}: StepperProps) => {
 
 const SimpleStepper = ({...props}: BaseStepperProps) => {
   return (
-    <View style={[flex.flexCol, gap.small]}>
+    <View style={[flex.flexCol, gap.small, padding.vertical.xlarge]}>
       <View className="justify-end" style={[flex.flexRow]}>
         <Text>
           <Text
