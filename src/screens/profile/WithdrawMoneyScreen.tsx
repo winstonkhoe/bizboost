@@ -3,7 +3,11 @@ import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
 import {useEffect, useState} from 'react';
-import {Transaction, TransactionStatus} from '../../model/Transaction';
+import {
+  PaymentStatus,
+  Transaction,
+  TransactionStatus,
+} from '../../model/Transaction';
 import {useUser} from '../../hooks/user';
 import TransactionCard from '../../components/molecules/TransactionCard';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
@@ -22,7 +26,15 @@ const WithdrawMoneyScreen = () => {
       activeRole!!,
       trans => {
         setTransactions(
-          trans.filter(t => t.status === TransactionStatus.completed),
+          trans.filter(
+            t =>
+              t.isCompleted() &&
+              t.payment?.status &&
+              [
+                PaymentStatus.proofApproved,
+                PaymentStatus.withdrawalRequested,
+              ].includes(t.payment?.status),
+          ),
         );
       },
     );
@@ -43,11 +55,7 @@ const WithdrawMoneyScreen = () => {
         ]}>
         <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
           {transactions.map((t, index) => (
-            <TransactionCard
-              key={index}
-              transaction={t}
-              role={activeRole}
-            />
+            <TransactionCard key={index} transaction={t} role={activeRole} />
           ))}
         </View>
       </ScrollView>

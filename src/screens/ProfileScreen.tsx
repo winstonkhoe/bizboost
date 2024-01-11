@@ -24,7 +24,7 @@ import {
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {useEffect, useState} from 'react';
-import {Transaction} from '../model/Transaction';
+import {PaymentStatus, Transaction} from '../model/Transaction';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
 import {Campaign} from '../model/Campaign';
@@ -65,7 +65,16 @@ const ProfileScreen = () => {
     transactions?.filter(t => t.isOngoing()).length || 0;
   const completedTransactionsCount =
     transactions?.filter(t => t.isCompleted() || t.isTerminated()).length || 0;
-
+  const withdrawableTransactionsCount =
+    transactions?.filter(
+      t =>
+        t.isCompleted() &&
+        t.payment?.status &&
+        [
+          PaymentStatus.proofApproved,
+          PaymentStatus.withdrawalRequested,
+        ].includes(t.payment?.status),
+    ).length || 0;
   const {portfolios} = usePortfolio(uid || '');
 
   useEffect(() => {
@@ -254,7 +263,7 @@ const ProfileScreen = () => {
                   <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
                 }
                 title={'Withdraw Money'}
-                subtitle={'2 Transactions ready to be withdrawn'}
+                subtitle={`${withdrawableTransactionsCount} Transactions ready to be withdrawn`}
               />,
               <ProfileMenuCard
                 key={'Upload Video'}
@@ -281,19 +290,19 @@ const ProfileScreen = () => {
                 } Private`}
               />,
               // TODO: ini kayaknya ga perlu lagi
-              <ProfileMenuCard
-                key={'Pay Content Creator'}
-                handleOnClick={() => {
-                  navigation.navigate(
-                    AuthenticatedNavigation.PayContentCreator,
-                  );
-                }}
-                icon={
-                  <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
-                }
-                title={'Pay Content Creator'}
-                subtitle={'0 Pending Payment'}
-              />,
+              // <ProfileMenuCard
+              //   key={'Pay Content Creator'}
+              //   handleOnClick={() => {
+              //     navigation.navigate(
+              //       AuthenticatedNavigation.PayContentCreator,
+              //     );
+              //   }}
+              //   icon={
+              //     <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
+              //   }
+              //   title={'Pay Content Creator'}
+              //   subtitle={'0 Pending Payment'}
+              // />,
             ]}
             <ProfileMenuCard
               handleOnClick={() => {
