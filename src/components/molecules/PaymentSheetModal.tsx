@@ -231,7 +231,7 @@ const PaymentSheetModal = ({
                     TransactionStatus.registrationPending &&
                     `You need to pay ${formatToRupiah(
                       amount,
-                    )} to Account Number xxxxxxxxxx [admin bank account] by ${campaignRegistrationEndDate}. Upload your payment proof here.`}
+                    )} to the following bank account: 6040001111 - BCA (BizBoost Indonesia) by ${campaignRegistrationEndDate}. Upload your payment proof here.`}
                   {transaction.status === TransactionStatus.terminated &&
                     transaction.payment?.status ===
                       PaymentStatus.proofApproved &&
