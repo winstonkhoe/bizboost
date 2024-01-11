@@ -2,7 +2,7 @@ name: APK Automation React Native
 on:
   push:
     branches:
-      - test
+      - main
 
 env:
   # The name of the main module repository

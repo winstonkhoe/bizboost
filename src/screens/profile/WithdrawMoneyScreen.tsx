@@ -33,6 +33,7 @@ const WithdrawMoneyScreen = () => {
               [
                 PaymentStatus.proofApproved,
                 PaymentStatus.withdrawalRequested,
+                PaymentStatus.withdrawn,
               ].includes(t.payment?.status),
           ),
         );
