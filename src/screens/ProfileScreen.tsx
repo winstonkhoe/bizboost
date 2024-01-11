@@ -310,7 +310,7 @@ const ProfileScreen = () => {
               }}
               icon={<ReportIssueIcon size="xlarge5" />}
               title="My Reports"
-              subtitle="See your reports and their status"
+              subtitle="See the status of your submitted reports"
             />
           </ScrollView>
           {activeRole === UserRole.ContentCreator && (
