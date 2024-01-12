@@ -5,6 +5,7 @@ import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
 import {Transaction} from './Transaction';
 import {Campaign} from './Campaign';
+import {filterAsync} from '../utils/array';
 
 export const REVIEW_COLLECTION = 'reviews';
 
@@ -65,11 +66,6 @@ export class Review extends BaseModel {
     return firestore().collection(REVIEW_COLLECTION);
   };
 
-  static getDocumentReference = (documentId: string) => {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
-  };
-
   toFirestore() {
     const {id, reviewerId, revieweeId, transactionId, campaignId, ...rest} =
       this;
@@ -110,9 +106,12 @@ export class Review extends BaseModel {
       ...this.toFirestore(),
       createdAt: new Date().getTime(),
     };
-    await Review.getCollectionReference().add(data);
     const campaign = await Campaign.getById(campaignId);
     const revieweeUser = await User.getById(revieweeId);
+    if (!campaign || !revieweeUser) {
+      throw Error('Review.insert Missing data');
+    }
+    await Review.getCollectionReference().add(data);
     const revieweeRole =
       campaign.userId === revieweeId
         ? UserRole.BusinessPeople
@@ -120,12 +119,24 @@ export class Review extends BaseModel {
     await revieweeUser?.updateRating(rating, revieweeRole);
   }
 
-  static async getReviewsByRevieweeId(revieweeId: string): Promise<Review[]> {
+  static async getReviewsByRevieweeId(
+    revieweeId: string,
+    revieweeRole: UserRole,
+  ): Promise<Review[]> {
     try {
-      const reviews = await this.getCollectionReference()
+      const reviews = await Review.getCollectionReference()
         .where('revieweeId', '==', User.getDocumentReference(revieweeId))
         .get();
-      return reviews.docs.map(this.fromSnapshot);
+      return await filterAsync(
+        reviews.docs.map(Review.fromSnapshot),
+        async review => {
+          const isContentCreator = await review.isRevieweeContentCreator();
+          return (
+            (revieweeRole === UserRole.ContentCreator && isContentCreator) ||
+            (revieweeRole === UserRole.BusinessPeople && !isContentCreator)
+          );
+        },
+      );
     } catch (error) {
       throw Error('Review.getReviewsByRevieweeId err: ' + error);
     }
@@ -136,7 +147,7 @@ export class Review extends BaseModel {
     reviewerId: string,
     onComplete: (review: Review | null) => void,
   ) {
-    return this.getCollectionReference()
+    return Review.getCollectionReference()
       .where(
         'transactionId',
         '==',
@@ -148,7 +159,7 @@ export class Review extends BaseModel {
           if (querySnapshot.empty) {
             onComplete(null);
           } else {
-            onComplete(this.fromSnapshot(querySnapshot.docs[0]));
+            onComplete(Review.fromSnapshot(querySnapshot.docs[0]));
           }
         },
         error => {
@@ -156,5 +167,24 @@ export class Review extends BaseModel {
           console.log(error.message);
         },
       );
+  }
+
+  async isRevieweeContentCreator(): Promise<boolean> {
+    const {transactionId} = this;
+    if (!transactionId) {
+      return false;
+    }
+    return new Promise(resolve => {
+      let unsubscribe = () => {};
+      try {
+        unsubscribe = Transaction.getById(transactionId, transaction => {
+          unsubscribe();
+          resolve(transaction?.contentCreatorId === this.revieweeId);
+        });
+      } catch (error) {
+        unsubscribe();
+        resolve(false);
+      }
+    });
   }
 }

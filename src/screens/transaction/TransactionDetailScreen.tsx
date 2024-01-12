@@ -12,27 +12,17 @@ import {
   NavigationStackProps,
   AuthenticatedStack,
 } from '../../navigation/StackNavigation';
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-} from 'react-native';
+import {Pressable, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import {View} from 'react-native';
 import {Campaign, CampaignStep} from '../../model/Campaign';
 import {
   formatDateToDayMonthYear,
   formatDateToDayMonthYearHourMinute,
-  formatDateToHourMinute,
 } from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
 import {useUser} from '../../hooks/user';
 import {
-  BasicStatus,
   Brainstorm,
-  BrainstormContent,
   Content,
   PaymentStatus,
   Engagement,
@@ -41,13 +31,15 @@ import {
   basicStatusTypeMap,
   transactionStatusCampaignStepMap,
   transactionStatusTypeMap,
+  paymentStatusTypeMap,
 } from '../../model/Transaction';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import InfoIcon from '../../assets/vectors/info.svg';
 
 import {COLOR} from '../../styles/Color';
 import {gap} from '../../styles/Gap';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
-import {SocialPlatform, User, UserRole} from '../../model/User';
+import {useNavigation} from '@react-navigation/native';
+import {User, UserRole} from '../../model/User';
 import {flex, items, justify, self} from '../../styles/Flex';
 import {padding} from '../../styles/Padding';
 import {rounded} from '../../styles/BorderRadius';
@@ -55,19 +47,16 @@ import {border} from '../../styles/Border';
 import {textColor} from '../../styles/Text';
 import {LoadingScreen} from '../LoadingScreen';
 import FastImage from 'react-native-fast-image';
-import {font} from '../../styles/Font';
+import {font, text} from '../../styles/Font';
 import {background} from '../../styles/BackgroundColor';
 import {dimension} from '../../styles/Dimension';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
 import StatusTag, {StatusType} from '../../components/atoms/StatusTag';
 import {ScrollView} from 'react-native-gesture-handler';
-import {Label} from '../../components/atoms/Label';
-import {PlatformData} from '../signup/RegisterSocialPlatform';
 import {
   ChevronRight,
   CopyIcon,
-  KebabMenuIcon,
   MeatballMenuIcon,
   OpenIcon,
   PlatformIcon,
@@ -77,16 +66,11 @@ import WarningIcon from '../../assets/vectors/warning-circle.svg';
 import CheckmarkIcon from '../../assets/vectors/checkmark-circle.svg';
 import CrossIcon from '../../assets/vectors/cross-circle.svg';
 
-import {formatNumberWithThousandSeparator} from '../../utils/number';
-import {CustomModal} from '../../components/atoms/CustomModal';
 import {SheetModal} from '../../containers/SheetModal';
 import {BottomSheetModalWithTitle} from '../../components/templates/BottomSheetModalWithTitle';
 import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
-import {
-  CustomTextInput,
-  FormlessCustomTextInput,
-} from '../../components/atoms/Input';
+import {FormlessCustomTextInput} from '../../components/atoms/Input';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {AnimatedPressable} from '../../components/atoms/AnimatedPressable';
 import {formatToRupiah} from '../../utils/currency';
@@ -111,25 +95,21 @@ import {Report, ReportType, reportTypeLabelMap} from '../../model/Report';
 import PagerView from 'react-native-pager-view';
 import {InternalLink} from '../../components/atoms/Link';
 import {ContentCreatorSection} from '../../components/molecules/ContentCreatorSection';
+import {overflow} from '../../styles/Overflow';
+import {position} from '../../styles/Position';
+import {Offer} from '../../model/Offer';
+import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.TransactionDetail
 >;
 
-const rules = {
-  rejectReason: {
-    min: 20,
-    max: 500,
-  },
-};
-
 const TransactionDetailScreen = ({route}: Props) => {
   // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
   const {uid, user, activeRole} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
-  const windowDimension = useWindowDimensions();
   const navigation = useNavigation<NavigationStackProps>();
   const {transactionId} = route.params;
   const [isOthersSheetModalOpen, setIsOthersSheetModalOpen] =
@@ -141,8 +121,7 @@ const TransactionDetailScreen = ({route}: Props) => {
   const [reportDescription, setReportDescription] = useState<string>('');
   const [transactionReports, setTransactionReports] = useState<Report[]>([]);
   const [selectedReportType, setSelectedReportType] = useState<ReportType>();
-  const [rejectReason, setRejectReason] = useState<string>('');
-  const [campaign, setCampaign] = useState<Campaign>();
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const [transaction, setTransaction] = useState<Transaction | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   const [contentCreator, setContentCreator] = useState<User | null>();
@@ -157,7 +136,9 @@ const TransactionDetailScreen = ({route}: Props) => {
 
   useEffect(() => {
     if (transaction?.campaignId) {
-      Campaign.getById(transaction.campaignId).then(setCampaign);
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
     }
   }, [transaction]);
 
@@ -185,27 +166,46 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [transactionId, uid]);
 
   const handleApprove = () => {
-    if (transaction) {
-      setIsLoading(true);
-      transaction
-        .approve()
-        .then(() => {
-          showToast({
-            message: 'Transaction Approved!',
-            type: ToastType.success,
-          });
-        })
-        .catch(err => {
-          showToast({
-            message: 'Failed to approve transaction',
-            type: ToastType.danger,
-          });
-          console.log(err);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+    if (!transaction) {
+      return;
     }
+    if (transaction.status === TransactionStatus.registrationPending) {
+      setIsPaymentModalOpened(true);
+      return;
+    }
+    setIsLoading(true);
+    transaction
+      .approve()
+      .then(() => {
+        showToast({
+          message: 'Transaction Approved!',
+          type: ToastType.success,
+        });
+      })
+      .catch(err => {
+        showToast({
+          message: 'Failed to approve transaction',
+          type: ToastType.danger,
+        });
+        console.log(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const handleReject = () => {
+    if (transaction && transaction.id) {
+      setIsOthersSheetModalOpen(false);
+      navigation.navigate(AuthenticatedNavigation.RejectTransaction, {
+        transactionId: transaction.id,
+      });
+    }
+  };
+
+  const navigateToReportList = () => {
+    setIsReportSheetModalOpen(false);
+    navigation.navigate(AuthenticatedNavigation.ReportList);
   };
 
   const closeOthersSheetModal = () => {
@@ -213,64 +213,17 @@ const TransactionDetailScreen = ({route}: Props) => {
   };
   const onRequestWithdraw = () => {
     transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.withdrawalRequested,
-        },
-      })
+      ?.requestWithdrawal()
       .then(() => {
         showToast({
           message:
             'Withdrawal Requested! You will receive your money in no later than 7 x 24 hours.',
           type: ToastType.success,
         });
-      });
-  };
-  const onProofAccepted = () => {
-    transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.proofApproved,
-        },
       })
-      .then(() => {
-        transaction?.approveRegistration();
+      .catch(() => {
         showToast({
-          message: 'Payment Approved! Registration Status has changed.',
-          type: ToastType.success,
-        });
-      });
-  };
-
-  const onWithdrawalAccepted = () => {
-    transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.withdrawn,
-        },
-      })
-      .then(() => {
-        showToast({
-          message: 'Payment status has been changed to "Withdrawn".',
-          type: ToastType.success,
-        });
-      });
-  };
-
-  const onProofRejected = () => {
-    transaction
-      ?.update({
-        payment: {
-          ...transaction.payment,
-          status: PaymentStatus.proofRejected,
-        },
-      })
-      .then(() => {
-        showToast({
-          message: 'Payment Rejected!',
+          message: 'Failed to request withdrawal',
           type: ToastType.danger,
         });
       });
@@ -284,27 +237,6 @@ const TransactionDetailScreen = ({route}: Props) => {
   }, [campaign]);
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
-
-  // TODO: duplicate with RegisteredUserListCard
-  const onProofUploaded = (url: string) => {
-    if (!transaction) return;
-    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
-    transaction
-      .update({
-        payment: {
-          proofImage: url,
-          status: PaymentStatus.proofWaitingForVerification,
-        },
-      })
-      .then(() => {
-        console.log('updated proof!');
-        showToast({
-          message:
-            'Registration Approved! Your payment is being reviewed by our Admin',
-          type: ToastType.success,
-        });
-      });
-  };
 
   const submitReport = () => {
     const reportedId = isCampaignOwner
@@ -463,103 +395,11 @@ const TransactionDetailScreen = ({route}: Props) => {
 
             {(transaction.payment !== undefined ||
               transaction.status ===
-                TransactionStatus.offerWaitingForPayment) &&
-              activeRole !== UserRole.ContentCreator && (
-                <>
-                  <View style={[styles.bottomBorder]} />
-
-                  <Pressable
-                    onPress={() => setIsPaymentModalOpened(true)}
-                    style={[flex.flexRow, justify.between, items.center]}>
-                    <View style={[flex.flexRow, items.center, gap.default]}>
-                      <Text
-                        style={[
-                          font.size[30],
-                          textColor(COLOR.text.neutral.med),
-                        ]}>
-                        Payment
-                      </Text>
-                      {transaction.payment?.status ===
-                      PaymentStatus.proofRejected ? (
-                        <CrossIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.red[50]}
-                        />
-                      ) : transaction.payment?.status ===
-                          PaymentStatus.proofWaitingForVerification ||
-                        transaction.payment?.status === undefined ||
-                        // Tujuannya supaya tanda warning kl withdrawal requested tu dari admin aja sih keliatannya
-                        (transaction.payment?.status ===
-                          PaymentStatus.withdrawalRequested &&
-                          activeRole === UserRole.Admin) ? (
-                        <WarningIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.yellow[20]}
-                        />
-                      ) : transaction.payment?.status ===
-                          PaymentStatus.proofApproved ||
-                        transaction.payment?.status ===
-                          PaymentStatus.withdrawn ||
-                        activeRole === UserRole.BusinessPeople ? (
-                        <CheckmarkIcon
-                          width={14}
-                          height={14}
-                          fill={COLOR.green[40]}
-                        />
-                      ) : (
-                        <></>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.green.default),
-                      ]}>
-                      {activeRole !== UserRole.Admin ? 'Proof' : 'Manage'}
-                    </Text>
-                  </Pressable>
-                </>
-              )}
-            {/* TODO: jadi satu deh ama yg atas abis ini */}
-            {transaction.payment && activeRole === UserRole.ContentCreator && (
+                TransactionStatus.offerWaitingForPayment) && (
               <>
                 <View style={[styles.bottomBorder]} />
 
-                <Pressable
-                  onPress={() => {
-                    // TODO: masukin no rek -> keknya dari profile aja? status paymentnya ganti jangan basic: jadi ada pending admin approval, approved / reject admin, waiting for admin to pay cc (abis cc klik withdraw), withdrawn
-                    Alert.alert(
-                      'Withdraw',
-                      user?.bankAccountInformation
-                        ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
-                        : 'You have not set your payment information yet, do you want to set it now?',
-                      [
-                        {
-                          text: 'Cancel',
-                          onPress: () =>
-                            console.log('Cancel Withdrawal Pressed'),
-                          style: 'cancel',
-                        },
-                        {
-                          text: 'OK',
-                          onPress: user?.bankAccountInformation
-                            ? onRequestWithdraw
-                            : () =>
-                                navigation.navigate(
-                                  AuthenticatedNavigation.EditBankAccountInformationScreen,
-                                ),
-                          style: 'default',
-                        },
-                      ],
-                    );
-                  }}
-                  disabled={
-                    transaction.status !== TransactionStatus.completed ||
-                    transaction.payment.status !== PaymentStatus.proofApproved
-                  }
-                  style={[flex.flexRow, justify.between, items.center]}>
+                <View style={[flex.flexRow, justify.between, items.center]}>
                   <View style={[flex.flexRow, items.center, gap.default]}>
                     <Text
                       style={[
@@ -568,42 +408,141 @@ const TransactionDetailScreen = ({route}: Props) => {
                       ]}>
                       Payment
                     </Text>
-                    {transaction.payment.status === PaymentStatus.withdrawn ? (
-                      <CheckmarkIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.green[40]}
-                      />
-                    ) : transaction.payment.status ===
-                      PaymentStatus.withdrawalRequested ? (
-                      <WarningIcon
-                        width={14}
-                        height={14}
-                        fill={COLOR.yellow[20]}
-                      />
-                    ) : (
-                      <></>
+                    {/* BP or admin */}
+                    {activeRole !== UserRole.ContentCreator && (
+                      <>
+                        {transaction.payment?.status ===
+                        PaymentStatus.proofRejected ? (
+                          <CrossIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.red[50]}
+                          />
+                        ) : transaction.payment?.status ===
+                            PaymentStatus.proofWaitingForVerification ||
+                          transaction.payment?.status === undefined ||
+                          (transaction.payment?.status ===
+                            PaymentStatus.withdrawalRequested &&
+                            activeRole === UserRole.Admin) ? (
+                          <WarningIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.yellow[20]}
+                          />
+                        ) : (
+                          <CheckmarkIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.green[40]}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {/* CC */}
+                    {activeRole === UserRole.ContentCreator && (
+                      <>
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawn && (
+                          <CheckmarkIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.green[40]}
+                          />
+                        )}
+                        {transaction.payment?.status ===
+                          PaymentStatus.withdrawalRequested && (
+                          <WarningIcon
+                            width={14}
+                            height={14}
+                            fill={COLOR.yellow[20]}
+                          />
+                        )}
+                      </>
                     )}
                   </View>
-                  <Text
-                    style={[
-                      font.size[30],
-                      textColor(
-                        transaction.status !== TransactionStatus.completed ||
-                          transaction.payment.status !==
-                            PaymentStatus.proofApproved
-                          ? COLOR.text.neutral.disabled
-                          : COLOR.text.green.default,
-                      ),
-                    ]}>
-                    {/* TODO: gatau ini bagusnya nampilin chip juga apa message panjang */}
-                    {transaction.payment.status ===
-                      PaymentStatus.withdrawalRequested ||
-                    transaction.payment.status === PaymentStatus.withdrawn
-                      ? transaction.payment.status
-                      : 'Withdraw'}
-                  </Text>
-                </Pressable>
+                  {activeRole !== UserRole.ContentCreator && (
+                    <Pressable onPress={() => setIsPaymentModalOpened(true)}>
+                      <Text
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.green.default),
+                        ]}>
+                        {activeRole !== UserRole.Admin ? 'Proof' : 'Manage'}
+                      </Text>
+                    </Pressable>
+                  )}
+
+                  {activeRole === UserRole.ContentCreator && (
+                    <>
+                      {transaction.isCompleted() ? (
+                        <>
+                          {transaction.payment?.status ===
+                            PaymentStatus.withdrawalRequested ||
+                          transaction.payment?.status ===
+                            PaymentStatus.withdrawn ? (
+                            <StatusTag
+                              fontSize={20}
+                              status={transaction.payment.status}
+                              statusType={
+                                paymentStatusTypeMap[transaction.payment.status]
+                              }
+                            />
+                          ) : (
+                            <CustomAlert
+                              text="Withdraw"
+                              type="tertiary"
+                              verticalPadding="zero"
+                              horizontalPadding="zero"
+                              rejectButtonText="Cancel"
+                              approveButtonText="OK"
+                              disabled={
+                                transaction.status !==
+                                  TransactionStatus.completed ||
+                                transaction.payment?.status !==
+                                  PaymentStatus.proofApproved
+                              }
+                              confirmationText={
+                                <Text
+                                  className="text-center"
+                                  style={[
+                                    font.size[30],
+                                    textColor(COLOR.text.neutral.med),
+                                  ]}>
+                                  {user?.bankAccountInformation
+                                    ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                                    : 'You have not set your payment information yet, do you want to set it now?'}
+                                </Text>
+                              }
+                              onApprove={
+                                user?.bankAccountInformation
+                                  ? onRequestWithdraw
+                                  : () =>
+                                      navigation.navigate(
+                                        AuthenticatedNavigation.EditBankAccountInformation,
+                                      )
+                              }
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <Pressable
+                          onPress={() =>
+                            showToast({
+                              message:
+                                'You will be able to collect your payment after the transaction is complete.',
+                            })
+                          }>
+                          <InfoIcon
+                            width={18}
+                            height={18}
+                            fill={COLOR.text.neutral.med}
+                          />
+                        </Pressable>
+                      )}
+                    </>
+                  )}
+                </View>
               </>
             )}
             {transaction.createdAt && (
@@ -626,12 +565,11 @@ const TransactionDetailScreen = ({route}: Props) => {
 
             {/* <View style={[styles.bottomBorder]} /> */}
           </View>
-          {!isCampaignOwner && (
-            <CampaignDetailSection
-              businessPeople={businessPeople}
-              campaign={campaign}
-            />
-          )}
+          <CampaignDetailSection
+            transaction={transaction}
+            businessPeople={businessPeople}
+            campaign={campaign}
+          />
           {isCampaignOwner && (
             <ContentCreatorSection contentCreator={contentCreator} />
           )}
@@ -729,8 +667,11 @@ const TransactionDetailScreen = ({route}: Props) => {
                 setIsReportSheetModalOpen(true);
               }}>
               <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[40],
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                ]}>
                 Report
               </Text>
             </AnimatedPressable>
@@ -738,20 +679,13 @@ const TransactionDetailScreen = ({route}: Props) => {
             <AnimatedPressable
               scale={1}
               style={[padding.vertical.default, padding.horizontal.large]}
-              onPress={() => {
-                if (transaction.id) {
-                  setIsOthersSheetModalOpen(false);
-                  navigation.navigate(
-                    AuthenticatedNavigation.RejectTransaction,
-                    {
-                      transactionId: transaction.id,
-                    },
-                  );
-                }
-              }}>
+              onPress={handleReject}>
               <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+                style={[
+                  font.size[40],
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.bold,
+                ]}>
                 Reject
               </Text>
             </AnimatedPressable>
@@ -805,14 +739,18 @@ const TransactionDetailScreen = ({route}: Props) => {
                       padding.horizontal.default,
                     ]}>
                     <Text
-                      className="font-semibold"
                       style={[
                         font.size[30],
+                        font.weight.semibold,
                         textColor(COLOR.text.neutral.high),
                       ]}>
                       Your reports
                     </Text>
-                    <InternalLink text="See all" size={30} />
+                    <InternalLink
+                      text="See all"
+                      size={30}
+                      onPress={navigateToReportList}
+                    />
                   </View>
                   <ScrollView
                     style={[
@@ -988,15 +926,7 @@ const TransactionDetailScreen = ({route}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          // amount={campaign?.fee || -1}
-          amount={transaction.transactionAmount || -1}
-          onProofUploaded={onProofUploaded}
-          defaultImage={transaction.payment?.proofImage}
-          onProofAccepted={onProofAccepted}
-          onProofRejected={onProofRejected}
-          paymentStatus={transaction.payment?.status}
-          onWithdrawalAccepted={onWithdrawalAccepted}
-          contentCreatorBankAccount={contentCreator?.bankAccountInformation}
+          transaction={transaction}
         />
       )}
     </>
@@ -1015,6 +945,27 @@ export const CampaignDetailSection = ({
   ...props
 }: CampaignDetailSectionProps) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const [offer, setOffer] = useState<Offer | null>();
+  useEffect(() => {
+    if (
+      props.transaction?.campaignId &&
+      props.transaction?.businessPeopleId &&
+      props.transaction?.contentCreatorId
+    ) {
+      Offer.getLatestOfferByCampaignIdBusinessPeopleIdContentCreatorId(
+        props.transaction.campaignId,
+        props.transaction?.businessPeopleId,
+        props.transaction?.contentCreatorId,
+      )
+        .then(setOffer)
+        .catch(() => setOffer(null));
+    } else {
+      setOffer(null);
+    }
+  }, [props.transaction]);
+  const latestNegotiation = offer?.getLatestNegotiation();
+  const fee =
+    props.transaction?.transactionAmount || latestNegotiation?.fee || 0;
   // TODO: fee should use transaction fee rather than campaign fee/price
   // TODO: show transaction important notes for private campaign
   return (
@@ -1024,8 +975,11 @@ export const CampaignDetailSection = ({
         <View style={[flex.flexRow, gap.xlarge, justify.between]}>
           <View style={[flex.flexCol]}>
             <Text
-              className="font-bold"
-              style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[40],
+                font.weight.bold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               Campaign Detail
             </Text>
 
@@ -1055,8 +1009,11 @@ export const CampaignDetailSection = ({
               }
             }}>
             <View
-              className="overflow-hidden"
-              style={[dimension.square.large, rounded.default]}>
+              style={[
+                dimension.square.large,
+                overflow.hidden,
+                rounded.default,
+              ]}>
               <FastImage
                 source={getSourceOrDefaultAvatar({
                   uri: props.businessPeople?.businessPeople?.profilePicture,
@@ -1065,8 +1022,11 @@ export const CampaignDetailSection = ({
               />
             </View>
             <Text
-              className="font-medium"
-              style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+              style={[
+                font.size[20],
+                font.weight.medium,
+                textColor(COLOR.text.neutral.high),
+              ]}
               numberOfLines={1}>
               {props.businessPeople?.businessPeople?.fullname}
             </Text>
@@ -1092,8 +1052,11 @@ export const CampaignDetailSection = ({
           }}>
           <View style={[flex.flexRow, gap.small]}>
             <View
-              className="overflow-hidden"
-              style={[dimension.square.xlarge3, rounded.default]}>
+              style={[
+                dimension.square.xlarge3,
+                overflow.hidden,
+                rounded.default,
+              ]}>
               <FastImage
                 source={{uri: props.campaign.image}}
                 style={[dimension.full]}
@@ -1101,17 +1064,51 @@ export const CampaignDetailSection = ({
             </View>
             <View style={[flex.flexCol]}>
               <Text
-                className="font-medium"
-                style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+                style={[
+                  font.size[30],
+                  font.weight.medium,
+                  textColor(COLOR.text.neutral.high),
+                ]}
                 numberOfLines={2}>
                 {props.campaign.title}
               </Text>
-              <Text
-                className="font-semibold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}
-                numberOfLines={1}>
-                {formatToRupiah(props.campaign.fee)}
-              </Text>
+              <SkeletonPlaceholder isLoading={offer === undefined}>
+                <Text
+                  style={[
+                    font.size[40],
+                    font.weight.semibold,
+                    textColor(COLOR.text.neutral.high),
+                  ]}
+                  numberOfLines={1}>
+                  {formatToRupiah(fee)}
+                </Text>
+              </SkeletonPlaceholder>
+              <SkeletonPlaceholder isLoading={offer === undefined}>
+                {latestNegotiation?.notes && (
+                  <View
+                    style={[
+                      padding.small,
+                      background(COLOR.black[5]),
+                      rounded.small,
+                    ]}>
+                    <Text
+                      style={[
+                        font.size[20],
+                        font.weight.medium,
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      Notes:
+                    </Text>
+                    <Text
+                      style={[
+                        font.size[20],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {latestNegotiation.notes}
+                    </Text>
+                  </View>
+                )}
+              </SkeletonPlaceholder>
             </View>
           </View>
         </AnimatedPressable>
@@ -1188,16 +1185,8 @@ interface BrainstormSubmissionCardProps {
 export const BrainstormSubmissionCard = ({
   ...props
 }: BrainstormSubmissionCardProps) => {
-  const [activeUri, setActiveUri] = useState<string>('');
   return (
     <>
-      <ModalWebView
-        url={activeUri}
-        visible={activeUri !== ''}
-        onClose={() => {
-          setActiveUri('');
-        }}
-      />
       <View
         style={[
           flex.flexCol,
@@ -1232,9 +1221,9 @@ export const BrainstormSubmissionCard = ({
                   <View style={[flex.flexRow, gap.xsmall, items.center]}>
                     <PlatformIcon platform={transactionContent.platform} />
                     <Text
-                      className="font-bold"
                       style={[
                         font.size[20],
+                        font.weight.bold,
                         textColor(COLOR.text.neutral.high),
                       ]}>
                       {transactionContent.platform}
@@ -1252,9 +1241,9 @@ export const BrainstormSubmissionCard = ({
                             style={[flex.flexCol, gap.small]}>
                             {transactionTask && (
                               <Text
-                                className="font-medium"
                                 style={[
                                   font.size[20],
+                                  font.weight.medium,
                                   textColor(COLOR.text.neutral.med),
                                 ]}>
                                 {campaignTaskToString(transactionTask)}
@@ -1264,10 +1253,15 @@ export const BrainstormSubmissionCard = ({
                               style={[
                                 flex.flexCol,
                                 gap.default,
-                                border({
+                                {
                                   borderWidth: 1,
-                                  color: COLOR.black[20],
-                                }),
+                                  borderTopColor: COLOR.black[20],
+                                  borderRightColor: COLOR.black[20],
+                                  borderBottomColor: COLOR.black[20],
+                                  borderLeftColor: COLOR.black[30],
+                                  borderLeftWidth: size.small,
+                                },
+                                background(COLOR.black[1]),
                                 padding.default,
                                 rounded.default,
                               ]}>
@@ -1297,8 +1291,11 @@ export const BrainstormSubmissionCard = ({
                 rounded.default,
               ]}>
               <Text
-                className="font-bold"
-                style={[font.size[20], textColor(COLOR.red[60])]}>
+                style={[
+                  font.size[20],
+                  font.weight.bold,
+                  textColor(COLOR.red[60]),
+                ]}>
                 {props.content.rejection.type}
               </Text>
               <Text style={[font.size[20], textColor(COLOR.red[60])]}>
@@ -1334,8 +1331,11 @@ const ContentSubmissionDetailSection = ({
           style={[flex.flexRow, gap.default, items.center, justify.between]}>
           <View style={[flex.flexCol]}>
             <Text
-              className="font-semibold"
-              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[30],
+                font.weight.semibold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               {CampaignStep.ContentCreation}
             </Text>
             <Text
@@ -1433,8 +1433,11 @@ export const ContentSubmissionCard = ({
                 <View style={[flex.flexRow, gap.xsmall, items.center]}>
                   <PlatformIcon platform={transactionContent.platform} />
                   <Text
-                    className="font-bold"
-                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    style={[
+                      font.size[20],
+                      font.weight.bold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}>
                     {transactionContent.platform}
                   </Text>
                 </View>
@@ -1448,9 +1451,9 @@ export const ContentSubmissionCard = ({
                       <View key={taskIndex} style={[flex.flexCol, gap.small]}>
                         {transactionTask && (
                           <Text
-                            className="font-medium"
                             style={[
                               font.size[20],
+                              font.weight.medium,
                               textColor(COLOR.text.neutral.med),
                             ]}>
                             {campaignTaskToString(transactionTask)}
@@ -1474,9 +1477,9 @@ export const ContentSubmissionCard = ({
                                   setActiveUri(taskUri);
                                 }}>
                                 <Text
-                                  className="font-bold"
                                   style={[
                                     flex.flex1,
+                                    font.weight.bold,
                                     font.size[20],
                                     textColor(COLOR.black[60]),
                                   ]}
@@ -1522,8 +1525,11 @@ export const ContentSubmissionCard = ({
                 rounded.default,
               ]}>
               <Text
-                className="font-bold"
-                style={[font.size[20], textColor(COLOR.red[60])]}>
+                style={[
+                  font.size[20],
+                  font.weight.bold,
+                  textColor(COLOR.red[60]),
+                ]}>
                 {props.content.rejection.type}
               </Text>
               <Text style={[font.size[20], textColor(COLOR.red[60])]}>
@@ -1560,8 +1566,11 @@ const EngagementResultSubmissionDetailSection = ({
           style={[flex.flexRow, gap.default, items.center, justify.between]}>
           <View style={[flex.flexCol]}>
             <Text
-              className="font-semibold"
-              style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+              style={[
+                font.size[30],
+                font.weight.semibold,
+                textColor(COLOR.text.neutral.high),
+              ]}>
               {CampaignStep.ResultSubmission}
             </Text>
           </View>
@@ -1675,8 +1684,11 @@ export const EngagementSubmissionCard = ({
                 <View style={[flex.flexRow, gap.xsmall, items.center]}>
                   <PlatformIcon platform={transactionEngagement.platform} />
                   <Text
-                    className="font-bold"
-                    style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
+                    style={[
+                      font.size[20],
+                      font.weight.bold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}>
                     {transactionEngagement.platform}
                   </Text>
                 </View>
@@ -1690,9 +1702,9 @@ export const EngagementSubmissionCard = ({
                       <View key={taskIndex} style={[flex.flexCol, gap.small]}>
                         {transactionTask && (
                           <Text
-                            className="font-medium"
                             style={[
                               font.size[20],
+                              font.weight.medium,
                               textColor(COLOR.text.neutral.med),
                             ]}>
                             {campaignTaskToString(transactionTask)}
@@ -1716,9 +1728,9 @@ export const EngagementSubmissionCard = ({
                                   setActiveUri(taskUri);
                                 }}>
                                 <Text
-                                  className="font-bold"
                                   style={[
                                     flex.flex1,
+                                    font.weight.bold,
                                     font.size[20],
                                     textColor(COLOR.black[60]),
                                   ]}
@@ -1753,10 +1765,12 @@ export const EngagementSubmissionCard = ({
                           contentContainerStyle={[flex.flexRow, gap.small]}>
                           {task.attachments.map(
                             (attachment, attachmentIndex) => (
-                              <View key={attachmentIndex} className="relative">
+                              <View
+                                key={attachmentIndex}
+                                style={[position.relative]}>
                                 <Pressable
-                                  className="overflow-hidden"
                                   style={[
+                                    overflow.hidden,
                                     dimension.width.xlarge4,
                                     {
                                       aspectRatio: 1 / 1.3,
@@ -1798,8 +1812,11 @@ export const EngagementSubmissionCard = ({
                 rounded.default,
               ]}>
               <Text
-                className="font-bold"
-                style={[font.size[20], textColor(COLOR.red[60])]}>
+                style={[
+                  font.size[20],
+                  font.weight.bold,
+                  textColor(COLOR.red[60]),
+                ]}>
                 {props.engagement.rejection.type}
               </Text>
               <Text style={[font.size[20], textColor(COLOR.red[60])]}>
@@ -1845,8 +1862,8 @@ export const CollapsiblePanel = ({
   return (
     <View style={[flex.flexCol, gap.large]}>
       <View
-        className="overflow-hidden"
         style={[
+          overflow.hidden,
           !isSeeMore && {
             maxHeight: 0,
           },
@@ -1861,8 +1878,11 @@ export const CollapsiblePanel = ({
           setIsSeeMore(!isSeeMore);
         }}>
         <Text
-          className="font-semibold"
-          style={[font.size[30], textColor(COLOR.text.green.default)]}>
+          style={[
+            font.size[30],
+            font.weight.semibold,
+            textColor(COLOR.text.green.default),
+          ]}>
           {!isSeeMore ? hiddenText : visibleText}
         </Text>
         <Animated.View
@@ -1878,8 +1898,12 @@ const EmptyContent = () => {
   return (
     <View style={[flex.flexCol, justify.center, padding.medium]}>
       <Text
-        className="text-center"
-        style={[self.center, font.size[30], textColor(COLOR.text.neutral.med)]}>
+        style={[
+          self.center,
+          text.center,
+          font.size[30],
+          textColor(COLOR.text.neutral.med),
+        ]}>
         No submission yet
       </Text>
     </View>

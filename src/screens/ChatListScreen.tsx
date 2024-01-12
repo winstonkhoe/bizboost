@@ -11,9 +11,14 @@ import {textColor} from '../styles/Text';
 import {COLOR} from '../styles/Color';
 import {padding} from '../styles/Padding';
 import ChatItem from '../components/molecules/ChatItem';
+import {LoadingScreen} from './LoadingScreen';
 
 const ChatListScreen = () => {
   const chats = useUserChats();
+
+  if (chats.chats === undefined) {
+    return <LoadingScreen />;
+  }
 
   return (
     <SafeAreaContainer enable>
@@ -45,7 +50,14 @@ const ChatListScreen = () => {
                   },
                 ]}
               />
-              <Text className="text-black">No chat available</Text>
+              <Text
+                style={[
+                  font.size[40],
+                  font.weight.medium,
+                  textColor(COLOR.text.neutral.high),
+                ]}>
+                No chat available
+              </Text>
             </View>
           )}
         </ScrollView>

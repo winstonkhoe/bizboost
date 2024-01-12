@@ -15,7 +15,7 @@ import {
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {User, UserRole, UserStatus} from '../model/User';
+import {SocialPlatform, User, UserRole, UserStatus} from '../model/User';
 import {COLOR} from '../styles/Color';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {ProfileItem} from '../components/molecules/ProfileItem';
@@ -31,9 +31,10 @@ import {ChevronRight} from '../components/atoms/Icon';
 import {formatDateToTime12Hrs} from '../utils/date';
 import {padding} from '../styles/Padding';
 import {Campaign} from '../model/Campaign';
-import {OngoingCampaignCard} from '../components/molecules/OngoingCampaignCard';
+import {CampaignCard} from '../components/molecules/CampaignCard';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import {useNavigation} from '@react-navigation/native';
+import {SocialCard} from '../components/atoms/SocialCard';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -53,13 +54,15 @@ const UserDetailScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
 
   useEffect(() => {
-    Campaign.getUserCampaigns(userId).then(value => setCampaigns(value));
+    Campaign.getUserCampaigns(userId)
+      .then(value => setCampaigns(value))
+      .catch(() => setCampaigns([]));
   }, [userId]);
   useEffect(() => {
-    User.getUserDataReactive(userId, u => setUser(u));
+    return User.getUserDataReactive(userId, u => setUser(u));
   }, [userId]);
   useEffect(() => {
-    Transaction.getAllTransactionsByRole(
+    return Transaction.getAllTransactionsByRole(
       userId,
       UserRole.ContentCreator,
       setContentCreatorTransactions,
@@ -67,7 +70,7 @@ const UserDetailScreen = ({route}: Props) => {
   }, [userId]);
 
   useEffect(() => {
-    Transaction.getAllTransactionsByRole(
+    return Transaction.getAllTransactionsByRole(
       userId,
       UserRole.BusinessPeople,
       setBusinessPeopleTransactions,
@@ -78,11 +81,11 @@ const UserDetailScreen = ({route}: Props) => {
     return <Text>Error</Text>;
   }
 
+  // TODO: show success message
   const onSuspendButtonClick = async () => {
     if (user.status === UserStatus.Active) {
       await user.suspend();
-    }
-    if (user.status === UserStatus.Suspended) {
+    } else if (user.status === UserStatus.Suspended) {
       await user.activate();
     }
   };
@@ -169,7 +172,22 @@ const UserDetailScreen = ({route}: Props) => {
             </View>
           </View>
         </View>
-
+        <View style={[flex.flexRow, gap.default]}>
+          {user.instagram?.username && (
+            <SocialCard
+              type="detail"
+              platform={SocialPlatform.Instagram}
+              data={user?.instagram}
+            />
+          )}
+          {user?.tiktok?.username && (
+            <SocialCard
+              type="detail"
+              platform={SocialPlatform.Tiktok}
+              data={user?.tiktok}
+            />
+          )}
+        </View>
         {user.contentCreator?.fullname && (
           <>
             <View className="border-t border-gray-400 pt-4">
@@ -318,17 +336,16 @@ const UserDetailScreen = ({route}: Props) => {
               <HomeSectionHeader
                 header="Business People Campaigns"
                 link={'See All'}
-                onPressLink={
-                  () => {}
-                  // setOngoingCampaignsLimit(
-                  //   ongoingCampaignsLimit === 3 ? userCampaigns.length : 3,
-                  // )
-                }
+                onPressLink={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyCampaigns, {
+                    userId: userId || '',
+                  });
+                }}
               />
             </View>
             <View style={[flex.flexCol, gap.medium]}>
               {campaigns.slice(0, 3).map((c, index) => (
-                <OngoingCampaignCard campaign={c} key={index} />
+                <CampaignCard campaign={c} key={index} />
               ))}
             </View>
           </>

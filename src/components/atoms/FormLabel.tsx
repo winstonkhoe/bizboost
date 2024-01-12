@@ -25,6 +25,7 @@ interface FormFieldHelperProps extends FormLabelProps {
   description?: string;
   titleSize?: FontSizeType;
   descriptionSize?: FontSizeType;
+  disableFlex?: boolean;
 }
 
 export const FormFieldHelper = ({
@@ -32,22 +33,28 @@ export const FormFieldHelper = ({
   description,
   titleSize = 50,
   descriptionSize = 30,
+  disableFlex = false,
   ...props
 }: FormFieldHelperProps) => {
   return title || description ? (
     <View style={[flex.flexCol, gap.small]}>
       {title && (
         <Text
-          className="font-bold"
-          style={[textColor(COLOR.text.neutral.high), font.size[titleSize]]}>
+          style={[
+            !disableFlex && flex.flex1,
+            textColor(COLOR.text.neutral.high),
+            font.weight.bold,
+            font.size[titleSize],
+          ]}>
           {title} <FormLabel type={props.type} />
         </Text>
       )}
       {description && (
         <Text
-          className="font-medium"
           style={[
+            !disableFlex && flex.flex1,
             textColor(COLOR.text.neutral.med),
+            font.weight.medium,
             font.size[descriptionSize],
           ]}>
           {description}

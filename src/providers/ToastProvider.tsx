@@ -21,6 +21,7 @@ import {font} from '../styles/Font';
 import {useEffect, useState} from 'react';
 import {ShowToastProps} from '../helpers/toast';
 import {zIndex} from '../styles/zIndex';
+import {flex, justify, self} from '../styles/Flex';
 
 export enum ToastType {
   danger = 'danger',
@@ -44,7 +45,7 @@ const colorToastTypeMap: ColorToastTypeMap = {
     textColor: COLOR.absoluteBlack[0],
   },
   [ToastType.success]: {
-    background: COLOR.green[50],
+    background: COLOR.green[30],
     textColor: COLOR.absoluteBlack[0],
   },
   [ToastType.warning]: {
@@ -77,10 +78,10 @@ const ToastProvider = () => {
 
   const showToastStyle = useAnimatedStyle(() => {
     return {
-      bottom: interpolate(
+      top: interpolate(
         showToast.value,
         [0, 1],
-        [0, Math.max(safeAreaInsets.bottom, size.large)],
+        [0, Math.max(safeAreaInsets.top, size.medium)],
       ),
       opacity: interpolate(showToast.value, [0, 1], [0, 1]),
     };
@@ -113,8 +114,10 @@ const ToastProvider = () => {
     <Animated.View
       style={[
         showToastStyle,
-        dimension.width.full,
         padding.horizontal.default,
+        flex.flexRow,
+        self.center,
+        justify.center,
         {
           zIndex: zIndex.toast,
           position: 'absolute',
@@ -127,7 +130,7 @@ const ToastProvider = () => {
               colorToastTypeMap[currentToast.type || ToastType.info].background,
             ),
             padding.default,
-            rounded.default,
+            rounded.max,
           ]}>
           <Text
             style={[

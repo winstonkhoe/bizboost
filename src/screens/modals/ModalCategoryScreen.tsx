@@ -1,18 +1,9 @@
-import {
-  Pressable,
-  PressableProps,
-  Text,
-  DeviceEventEmitter,
-} from 'react-native';
+import {Pressable, PressableProps, DeviceEventEmitter} from 'react-native';
 import {CloseModal} from '../../components/atoms/Close';
 import SafeAreaContainer from '../../containers/SafeAreaContainer';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../../components/atoms/ViewPadding';
 import {useEffect, useState} from 'react';
 import {Category} from '../../model/Category';
-import {flex} from '../../styles/Flex';
+import {flex, items} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {View} from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -32,6 +23,10 @@ import {closeModal} from '../../utils/modal';
 import {SimpleImageCard} from '../../components/molecules/ImageCard';
 import {ImageCounterChip} from '../../components/atoms/Chip';
 import FastImage from 'react-native-fast-image';
+import MasonryLayout from '../../components/layouts/MasonryLayout';
+import {BackButtonLabel} from '../../components/atoms/Header';
+import {overflow} from '../../styles/Overflow';
+import {size} from '../../styles/Size';
 
 type Props = StackScreenProps<GeneralStack, GeneralNavigation.CategoryModal>;
 
@@ -43,7 +38,9 @@ const ModalCategoryScreen = ({route}: Props) => {
   );
   const [categories, setCategories] = useState<Category[]>([]);
   useEffect(() => {
-    Category.getAll().then(setCategories);
+    Category.getAll()
+      .then(setCategories)
+      .catch(() => setCategories([]));
   }, []);
 
   const toggleCategorySelection = (category: Category) => {
@@ -67,73 +64,56 @@ const ModalCategoryScreen = ({route}: Props) => {
     });
   };
 
-  const getFilteredCategoriesByParity = (parityType: 'odd' | 'even') => {
-    return categories
-      .filter((_, index) => index % 2 === (parityType === 'even' ? 0 : 1))
-      .map((category: Category, index) => {
-        const selectedIndex = selectedCategories.findIndex(
-          c => c.id === category.id,
-        );
-        return (
-          <CategoryItem
-            key={index}
-            category={category}
-            isReachLimit={
-              maxSelection !== undefined &&
-              selectedCategories.length >= maxSelection
-            }
-            isSelected={selectedIndex !== -1}
-            selectedIndex={selectedIndex}
-            onPress={() => {
-              toggleCategorySelection(category);
-            }}
-          />
-        );
-      });
-  };
-
   return (
     <SafeAreaContainer enable>
-      <View className="flex-1" style={[flex.flexCol, gap.small]}>
-        <View className="items-center" style={[flex.flexRow, gap.default]}>
+      <View style={[flex.flex1, flex.flexCol, gap.small]}>
+        <View style={[flex.flexRow, gap.small, items.center]}>
           <CloseModal closeEventType="category" />
-          <Text className="text-lg font-bold">Categories</Text>
+          <BackButtonLabel text="Categories" />
         </View>
-        <ScrollView contentContainerStyle={{flexGrow: 1}}>
-          <VerticalPadding paddingSize="xlarge">
-            <HorizontalPadding paddingSize="medium">
-              <View style={[flex.flexRow, gap.default]}>
-                <View
-                  className="flex-1 justify-start"
-                  style={[flex.flexCol, gap.default]}>
-                  {getFilteredCategoriesByParity('odd')}
-                </View>
-                <View
-                  className="flex-1 justify-start"
-                  style={[flex.flexCol, gap.default]}>
-                  {getFilteredCategoriesByParity('even')}
-                </View>
-              </View>
-            </HorizontalPadding>
-          </VerticalPadding>
+        <ScrollView contentContainerStyle={[padding.horizontal.default]}>
+          <MasonryLayout
+            data={categories}
+            renderItem={(item, itemIndex) => {
+              const selectedIndex = selectedCategories.findIndex(
+                c => c.id === item.id,
+              );
+              return (
+                <CategoryItem
+                  key={itemIndex}
+                  category={item}
+                  isReachLimit={
+                    maxSelection !== undefined &&
+                    selectedCategories.length >= maxSelection
+                  }
+                  isSelected={selectedIndex !== -1}
+                  selectedIndex={selectedIndex}
+                  onPress={() => {
+                    toggleCategorySelection(item);
+                  }}
+                />
+              );
+            }}
+          />
         </ScrollView>
         <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <HorizontalPadding>
-              <View style={[flex.flexRow, gap.default]}>
-                {selectedCategories.map((category, index) => (
-                  <CategorySelectedPreview key={index} category={category} />
-                ))}
-              </View>
-            </HorizontalPadding>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[padding.horizontal.default]}>
+            <View style={[flex.flexRow, gap.default]}>
+              {selectedCategories.map((category, index) => (
+                <CategorySelectedPreview key={index} category={category} />
+              ))}
+            </View>
           </ScrollView>
-          <HorizontalPadding>
+          <View style={[padding.horizontal.default]}>
             <CustomButton
               text="Choose"
               disabled={selectedCategories.length === 0}
               onPress={emitChangesAndClose}
             />
-          </HorizontalPadding>
+          </View>
         </View>
       </View>
     </SafeAreaContainer>
@@ -157,17 +137,28 @@ const CategoryItem = ({
   return (
     <Pressable {...props}>
       <Animated.View
-        className="relative overflow-hidden"
         style={[
+          {
+            position: 'relative',
+          },
           flex.flexCol,
           gap.small,
           rounded.default,
+          overflow.hidden,
           !isSelected &&
             isReachLimit && {
               opacity: 0.5,
             },
         ]}>
-        <View className="absolute z-20 top-2 right-2">
+        <View
+          style={[
+            {
+              position: 'absolute',
+              zIndex: 20,
+              top: size.small,
+              right: size.small,
+            },
+          ]}>
           <ImageCounterChip
             selected={isSelected}
             text={selectedIndex + 1}
@@ -192,9 +183,7 @@ interface CategorySelectedPreviewProps {
 
 const CategorySelectedPreview = ({category}: CategorySelectedPreviewProps) => {
   return (
-    <View
-      className="overflow-hidden"
-      style={[dimension.square.xlarge3, rounded.small]}>
+    <View style={[dimension.square.xlarge3, rounded.small, overflow.hidden]}>
       <FastImage
         style={[dimension.full]}
         source={{

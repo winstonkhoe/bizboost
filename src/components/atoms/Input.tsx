@@ -210,8 +210,8 @@ export const CustomTextInput = ({
                 {(prefix || inputType === 'price') && (
                   <View style={[flex.flexRow, justify.start, items.end]}>
                     <Text
-                      className="font-semibold"
                       style={[
+                        font.weight.semibold,
                         textColor(COLOR.text.neutral.low),
                         font.size[30],
                       ]}>
@@ -222,7 +222,7 @@ export const CustomTextInput = ({
                 <TextInput
                   autoCorrect={false}
                   autoCapitalize="none"
-                  scrollEnabled={false}
+                  scrollEnabled={type === 'textarea'}
                   placeholderTextColor={COLOR.text.neutral.med}
                   keyboardType={
                     keyboardType
@@ -236,15 +236,15 @@ export const CustomTextInput = ({
                   textAlignVertical={type === 'textarea' ? 'top' : 'bottom'}
                   multiline={type === 'textarea'}
                   style={[
-                    flex.flexRow,
                     self.start,
-                    font.size[30],
-                    font.lineHeight[30],
+                    font.size[20],
+                    font.lineHeight[20],
                     padding.vertical.zero,
                     padding.horizontal.zero,
                     type === 'textarea' && {
-                      minHeight: lineHeight[30] * 3,
+                      minHeight: lineHeight[20] * 3,
                     },
+                    font.weight.medium,
                     textColor(
                       controllerProps.disabled
                         ? COLOR.text.neutral.low
@@ -266,7 +266,7 @@ export const CustomTextInput = ({
                   editable={!controllerProps.disabled}
                   onChangeText={text => handleChangeText(text, onChange)}
                   placeholder={placeholder}
-                  className="w-full font-medium"
+                  className="w-full"
                 />
               </Animated.View>
 
@@ -671,6 +671,12 @@ export const MediaUploader = ({
   children,
   onMediaSelected,
 }: MediaUploaderProps) => {
+  useEffect(() => {
+    if (options.mediaType !== 'video') {
+      options.mediaType = 'photo';
+    }
+  }, [options]);
+
   const [uploadProgress, setUploadProgress] = useState<number | undefined>(
     undefined,
   );
@@ -713,8 +719,8 @@ export const MediaUploader = ({
 
   return (
     <TouchableOpacity
-      // style={[flex.flex1]}
-      // containerStyle={[flex.flex1, flex.flexCol]}
+      style={[flex.flex1]}
+      containerStyle={[flex.grow, flex.flexCol, gap.xsmall2]}
       onPress={handleImageUpload}>
       {/* TODO: ini custom buttonnya ga bisa @win, keknya si AnimatedPressable punya CustomButton tu nimpa touchable opacity nya ini^  */}
       {children || <CustomButton text="Upload image" rounded={'small'} />}

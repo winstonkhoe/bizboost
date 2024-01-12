@@ -6,7 +6,7 @@ import campaignReducer from './slices/campaignSlice';
 import categoryReducer from './slices/categorySlice';
 import chatReducer from './slices/chatSlice';
 import authReducer from './slices/authSlice';
-import contentReducer from './slices/contentSlice';
+import portfolioReducer from './slices/portfolioSlice';
 import createAdditionalAccountReducer from './slices/forms/createAdditionalAccountSlice';
 import signupReducer from './slices/forms/signup';
 
@@ -20,7 +20,7 @@ export const store = configureStore({
     signup: signupReducer,
     chat: chatReducer,
     category: categoryReducer,
-    content: contentReducer,
+    portfolio: portfolioReducer,
     auth: authReducer,
   },
 });

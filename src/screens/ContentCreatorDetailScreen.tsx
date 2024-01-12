@@ -1,31 +1,18 @@
-import React, {useState, useEffect, useRef} from 'react';
-
+import React, {useState, useEffect} from 'react';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {User} from '../model/User';
-import {
-  Dimensions,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {SocialPlatform, User, UserRole} from '../model/User';
+import {ScrollView, Text, View} from 'react-native';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
 import {font} from '../styles/Font';
-import {flex} from '../styles/Flex';
-import StarIcon from '../assets/vectors/star.svg';
-import InstagramLogo from '../assets/vectors/instagram.svg';
-import TiktokLogo from '../assets/vectors/tiktok.svg';
+import {flex, items, justify} from '../styles/Flex';
 import {CustomButton} from '../components/atoms/Button';
 import {gap} from '../styles/Gap';
-import PagerView from 'react-native-pager-view';
-import {Content} from '../model/Content';
-import {formatDateToDayMonthYear} from '../utils/date';
+import {formatDateToDayMonthYear, formatDateToTime12Hrs} from '../utils/date';
 import FastImage from 'react-native-fast-image';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {padding} from '../styles/Padding';
@@ -33,6 +20,23 @@ import {size} from '../styles/Size';
 import {useNavigation} from '@react-navigation/native';
 import {useUser} from '../hooks/user';
 import {dimension} from '../styles/Dimension';
+import {rounded} from '../styles/BorderRadius';
+import {textColor} from '../styles/Text';
+import {COLOR} from '../styles/Color';
+import {usePortfolio} from '../hooks/portfolio';
+import {TabView} from '../components/organisms/TabView';
+import {PortfolioList} from '../components/organisms/PortfolioList';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
+import {Review} from '../model/Review';
+import {LoadingScreen} from './LoadingScreen';
+import {ReviewList} from '../components/organisms/ReviewList';
+import {SocialCard} from '../components/atoms/SocialCard';
+import {DateIcon, RatingStarIcon} from '../components/atoms/Icon';
+import {overflow} from '../styles/Overflow';
+import {formatNumberWithSuffix} from '../utils/number';
+import {border} from '../styles/Border';
+import StatusTag, {StatusType} from '../components/atoms/StatusTag';
+import LocationTag from '../components/atoms/LocationTag';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -40,300 +44,272 @@ type Props = NativeStackScreenProps<
 >;
 
 const ContentCreatorDetailScreen = ({route}: Props) => {
-  const param = route.params;
+  const {contentCreatorId} = route.params;
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
-  const [contents, setContents] = useState<Content[]>();
-  const [index, setIndex] = useState(0);
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>();
+  const {portfolios} = usePortfolio(contentCreatorId);
   const {uid} = useUser();
 
   useEffect(() => {
-    User.getById(param.contentCreatorId).then(user => setContentCreator(user));
-    Content.getByUserId(param.contentCreatorId).then(content => {
-      setContents(content);
+    User.getById(contentCreatorId)
+      .then(setContentCreator)
+      .catch(() => setContentCreator(null));
+    Review.getReviewsByRevieweeId(contentCreatorId, UserRole.ContentCreator)
+      .then(setReviews)
+      .catch(() => {
+        setReviews([]);
+      });
+  }, [contentCreatorId]);
+
+  const openMakeOfferModal = () => {
+    navigation.navigate(AuthenticatedNavigation.MakeOffer, {
+      businessPeopleId: uid ?? '',
+      contentCreatorId: contentCreator?.id ?? '',
     });
-  }, [param]);
-
-  const profilePictureSource = require('../assets/images/sample-influencer.jpeg');
-
-  const pagerViewRef = useRef<PagerView>(null);
-
-  const goToInfoTab = () => {
-    pagerViewRef.current?.setPage(0);
-    setIndex(0);
-    setSelectedTab(0);
   };
 
-  const goToPortfolioTab = () => {
-    pagerViewRef.current?.setPage(1);
-    setIndex(1);
-    setSelectedTab(1);
-  };
+  if (!reviews || contentCreator === undefined) {
+    return <LoadingScreen />;
+  }
 
   return (
     <PageWithBackButton fullHeight={true}>
       <View
         style={[
-          flex.flex1,
           flex.grow,
           flex.flexCol,
           {
             paddingTop: Math.max(safeAreaInsets.top, size.default),
             paddingBottom: Math.max(safeAreaInsets.bottom, size.large),
           },
-          padding.horizontal.large,
         ]}>
-        <View
-          style={[flex.grow, flex.flexCol]}
-          className="justify-center items-center">
-          <View
-            style={{
-              width: Dimensions.get('window').width * 0.3,
-              height: Dimensions.get('window').width * 0.3,
-            }}
-            className="rounded-full overflow-hidden object-cover">
-            <FastImage
-              style={[dimension.full]}
-              source={
-                contentCreator?.contentCreator?.profilePicture
-                  ? {
-                      uri: contentCreator?.contentCreator?.profilePicture,
-                    }
-                  : profilePictureSource
-              }
-            />
-          </View>
-          <Text style={font.size[60]} className="pt-1 font-bold text-black">
-            {contentCreator?.contentCreator?.fullname}
-          </Text>
-          <Text style={font.size[30]}>Content Creator</Text>
-          <View
-            style={flex.flexRow}
-            className="w-full items-center justify-center gap-x-2">
-            {contentCreator?.instagram && (
+        <View style={[flex.flexCol, gap.default, padding.horizontal.medium]}>
+          <View style={[flex.flexRow, gap.default]}>
+            <View style={[padding.left.xlarge2]}>
               <View
-                style={flex.flexRow}
-                className="justify-center items-center">
-                <InstagramLogo width={10} height={10} />
-                <Text>
-                  {contentCreator.instagram.followersCount?.toString()}
-                </Text>
+                style={[
+                  dimension.square.xlarge3,
+                  overflow.hidden,
+                  rounded.medium,
+                ]}>
+                <FastImage
+                  style={[dimension.full]}
+                  source={getSourceOrDefaultAvatar({
+                    uri: contentCreator?.contentCreator?.profilePicture,
+                  })}
+                />
               </View>
-            )}
-            {contentCreator?.tiktok && (
-              <View
-                style={flex.flexRow}
-                className="justify-center items-center">
-                <TiktokLogo width={10} height={10} />
-                <Text>{contentCreator.tiktok.followersCount?.toString()}</Text>
-              </View>
-            )}
-            <View style={flex.flexRow} className="justify-center items-center">
-              <StarIcon width={10} height={10} />
-              <Text>
-                {contentCreator?.contentCreator?.rating ?? 'Not rated'}
-              </Text>
             </View>
-          </View>
-          <View style={flex.flexRow} className="py-3">
-            <Pressable
-              style={(flex.flexRow, styles.button)}
-              className={`${
-                selectedTab === 0 ? 'bg-primary' : 'border border-zinc-200'
-              } rounded-l-md p-2 justify-center items-center text-center`}
-              onPress={goToInfoTab}>
-              <Text
-                className={`${
-                  selectedTab === 0 ? 'text-white' : 'text-black'
-                }`}>
-                Info
-              </Text>
-            </Pressable>
-            <Pressable
-              style={(flex.flexRow, styles.button)}
-              className={`${
-                selectedTab === 1 ? 'bg-primary' : 'border border-zinc-200'
-              } rounded-r-md p-2 justify-center items-center text-center`}
-              onPress={goToPortfolioTab}>
-              <Text
-                className={`${
-                  selectedTab === 1 ? 'text-white' : 'text-black'
-                }`}>
-                Portfolio
-              </Text>
-            </Pressable>
-          </View>
-          <PagerView
-            ref={pagerViewRef}
-            style={(flex.flexCol, styles.pagerView)}
-            initialPage={index}
-            onPageSelected={e => {
-              setIndex(e.nativeEvent.position);
-              setSelectedTab(e.nativeEvent.position);
-            }}>
-            <View key="1">
-              <ScrollView
-                bounces={false}
-                contentContainerStyle={[flex.flexCol, gap.medium]}>
-                <View style={[flex.flexCol]}>
-                  <Text className="text-black font-bold">About Me</Text>
-                  <Text>
-                    Hi there! I'm Emily, a content creator weaving stories and
-                    visuals in the digital realm. From crafting eye-catching
-                    Instagram feeds to whipping up engaging TikTok moments, I
-                    thrive on transforming ideas into captivating digital
-                    experiences. Beyond just creating content, it's about
-                    fostering connections and sparking meaningful conversations.
-                    With a knack for staying on top of trends and a commitment
-                    to authenticity, I love navigating the dynamic world of
-                    content creation, where each post is a brushstroke in my
-                    canvas of digital expression.
+            <View style={[flex.flex1, flex.flexCol, gap.small]}>
+              <View style={[flex.flexCol]}>
+                <Text
+                  style={[
+                    font.size[30],
+                    textColor(COLOR.text.neutral.high),
+                    font.weight.semibold,
+                  ]}
+                  numberOfLines={1}>
+                  {contentCreator?.contentCreator?.fullname}
+                </Text>
+                <View
+                  style={[
+                    flex.flexRow,
+                    justify.start,
+                    items.center,
+                    gap.xsmall,
+                  ]}>
+                  <RatingStarIcon size="medium" />
+                  <Text
+                    style={[
+                      font.size[20],
+                      font.weight.semibold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}>
+                    {`${
+                      contentCreator?.contentCreator?.rating
+                    } (${formatNumberWithSuffix(
+                      contentCreator?.contentCreator?.ratedCount || 0,
+                    )})` ?? 'Not rated'}
                   </Text>
                 </View>
-                {contentCreator?.contentCreator?.preferences &&
-                  contentCreator.contentCreator.preferences.length > 0 && (
-                    <View>
-                      <Text className="text-black font-bold">Preferences</Text>
-                      {contentCreator.contentCreator.preferences.map(
-                        (preference, idx) => (
-                          <Text key={idx}>• {preference}</Text>
-                        ),
-                      )}
-                    </View>
-                  )}
-
-                {contentCreator?.contentCreator?.preferredLocationIds &&
-                  contentCreator?.contentCreator?.preferredLocationIds.length >
-                    0 && (
-                    <View>
-                      <Text className="text-black font-bold">
-                        Preferred Locations
-                      </Text>
-                      {contentCreator.contentCreator.preferredLocationIds.map(
-                        (loc, idx) => (
-                          <Text key={idx}>• {loc}</Text>
-                        ),
-                      )}
-                    </View>
-                  )}
-                {contentCreator?.contentCreator?.postingSchedules &&
-                  contentCreator?.contentCreator?.postingSchedules.length >
-                    0 && (
-                    <View>
-                      <Text className="text-black font-bold">
-                        Posting Schedules
-                      </Text>
-                      {contentCreator?.contentCreator?.postingSchedules?.map(
-                        (sched, idx) => (
-                          <Text key={idx}>
-                            • {formatDateToDayMonthYear(new Date(sched))}
-                          </Text>
-                        ),
-                      )}
-                    </View>
-                  )}
-                {contentCreator?.contentCreator?.specializedCategoryIds &&
-                  contentCreator?.contentCreator?.specializedCategoryIds
-                    .length > 0 && (
-                    <View>
-                      <Text className="text-black font-bold">
-                        Specialized Categories
-                      </Text>
-                      <ScrollView
-                        horizontal
-                        contentContainerStyle={(flex.flexRow, gap.small)}>
-                        {contentCreator?.contentCreator?.specializedCategoryIds?.map(
-                          (cat, idx) => (
-                            <View style={padding.top.xsmall} key={idx}>
-                              <Text className="bg-primary py-1 px-2 rounded-md text-white">
-                                {cat}
-                              </Text>
-                            </View>
-                          ),
-                        )}
-                      </ScrollView>
-                    </View>
-                  )}
-              </ScrollView>
+              </View>
             </View>
-            <View key="2">
-              <ScrollView className="flex-1" bounces={false}>
-                <View style={[flex.flexRow, gap.default]}>
+          </View>
+          <View style={[flex.flexRow, gap.default]}>
+            {contentCreator?.instagram?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Instagram}
+                data={contentCreator?.instagram}
+              />
+            )}
+            {contentCreator?.tiktok?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Tiktok}
+                data={contentCreator?.tiktok}
+              />
+            )}
+          </View>
+        </View>
+        <TabView labels={['Detail', 'Portfolio', 'Reviews']}>
+          <ScrollView
+            bounces={false}
+            contentContainerStyle={[flex.flexCol, gap.medium, padding.large]}>
+            <View style={[flex.flexCol]}>
+              <Text
+                style={[textColor(COLOR.text.neutral.high), font.weight.bold]}>
+                About Me
+              </Text>
+              <Text>{contentCreator?.contentCreator?.biodata || '-'}</Text>
+            </View>
+            {contentCreator?.contentCreator?.preferences &&
+              contentCreator.contentCreator.preferences.length > 0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Preferences
+                  </Text>
+                  {contentCreator.contentCreator.preferences.map(
+                    (preference, idx) => (
+                      <Text key={idx}>• {preference}</Text>
+                    ),
+                  )}
+                </View>
+              )}
+
+            {contentCreator?.contentCreator?.preferredLocationIds &&
+              contentCreator?.contentCreator?.preferredLocationIds.length >
+                0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Preferred Locations
+                  </Text>
                   <View
                     style={[
-                      flex.flex1,
-                      flex.growShrink,
-                      flex.flexCol,
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
                       gap.default,
+                      padding.top.small,
                     ]}>
-                    {contents?.map(
-                      (content, idx) =>
-                        idx % 2 === 0 && (
-                          <Pressable
-                            key={content.id}
-                            onPress={() => {
-                              navigation.navigate(
-                                AuthenticatedNavigation.SpecificExploreModal,
-                                {
-                                  contentCreatorId: contentCreator?.id!!,
-                                  targetContentId: content.id,
-                                },
-                              );
-                            }}>
-                            <FastImage
-                              source={{uri: content.thumbnail}}
-                              style={styles.video}
-                            />
-                          </Pressable>
-                        ),
-                    )}
-                  </View>
-                  <View
-                    style={[
-                      flex.flex1,
-                      flex.growShrink,
-                      flex.flexCol,
-                      gap.default,
-                    ]}>
-                    {contents?.map(
-                      (content, idx) =>
-                        idx % 2 !== 0 && (
-                          <Pressable
-                            key={content.id}
-                            onPress={() => {
-                              navigation.navigate(
-                                AuthenticatedNavigation.SpecificExploreModal,
-                                {
-                                  contentCreatorId: contentCreator?.id!!,
-                                  targetContentId: content.id,
-                                },
-                              );
-                            }}>
-                            <FastImage
-                              source={{uri: content.thumbnail}}
-                              style={styles.video}
-                            />
-                          </Pressable>
-                        ),
+                    {contentCreator?.contentCreator?.preferredLocationIds?.map(
+                      (loc, idx) => (
+                        <View style={padding.top.xsmall} key={idx}>
+                          <LocationTag text={loc} />
+                        </View>
+                      ),
                     )}
                   </View>
                 </View>
-              </ScrollView>
-            </View>
-          </PagerView>
-        </View>
-        <View>
-          <CustomButton
-            text="Make Offer"
-            onPress={() => {
-              navigation.navigate(AuthenticatedNavigation.MakeOffer, {
-                businessPeopleId: uid ?? '',
-                contentCreatorId: contentCreator?.id ?? '',
-              });
-            }}
-          />
+              )}
+            {contentCreator?.contentCreator?.postingSchedules &&
+              contentCreator?.contentCreator?.postingSchedules.length > 0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Posting Schedules
+                  </Text>
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}
+                    className="w-full">
+                    {contentCreator?.contentCreator?.postingSchedules?.map(
+                      (sched, idx) => (
+                        <View
+                          key={idx}
+                          style={[
+                            flex.flexRow,
+                            gap.small,
+                            items.center,
+                            rounded.small,
+                            padding.vertical.xsmall,
+                            padding.horizontal.small,
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.green[50],
+                            }),
+                          ]}>
+                          <DateIcon
+                            width={20}
+                            height={20}
+                            color={COLOR.green[50]}
+                          />
+                          <Text
+                            className="font-semibold"
+                            style={[textColor(COLOR.green[60]), font.size[30]]}>
+                            {formatDateToTime12Hrs(new Date(sched))}
+                          </Text>
+                        </View>
+                      ),
+                    )}
+                  </View>
+                </View>
+              )}
+            {contentCreator?.contentCreator?.specializedCategoryIds &&
+              contentCreator?.contentCreator?.specializedCategoryIds.length >
+                0 && (
+                <View>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                    ]}>
+                    Specialized Categories
+                  </Text>
+                  <View
+                    style={[
+                      flex.flexRow,
+                      flex.wrap,
+                      items.center,
+                      gap.default,
+                      padding.top.small,
+                    ]}>
+                    {contentCreator?.contentCreator?.specializedCategoryIds?.map(
+                      (cat, idx) => (
+                        <View style={padding.top.xsmall} key={idx}>
+                          <StatusTag
+                            status={cat}
+                            fontSize={30}
+                            statusType={StatusType.success}
+                          />
+                        </View>
+                      ),
+                    )}
+                  </View>
+                </View>
+              )}
+          </ScrollView>
+          <ScrollView
+            style={[flex.flex1, padding.horizontal.default]}
+            contentContainerStyle={[flex.flex1, padding.vertical.default]}>
+            <PortfolioList portfolios={portfolios} />
+          </ScrollView>
+          <ScrollView
+            style={[flex.flex1, padding.horizontal.default]}
+            contentContainerStyle={[flex.flex1, padding.vertical.default]}>
+            <ReviewList reviews={reviews} />
+          </ScrollView>
+        </TabView>
+        <View style={[padding.horizontal.default]}>
+          <CustomButton text="Make Offer" onPress={openMakeOfferModal} />
         </View>
       </View>
     </PageWithBackButton>
@@ -341,17 +317,3 @@ const ContentCreatorDetailScreen = ({route}: Props) => {
 };
 
 export default ContentCreatorDetailScreen;
-
-const styles = StyleSheet.create({
-  pagerView: {
-    width: '100%',
-    height: '60%',
-  },
-  button: {
-    width: Dimensions.get('window').width * 0.45,
-  },
-  video: {
-    height: 200,
-    borderRadius: 10,
-  },
-});

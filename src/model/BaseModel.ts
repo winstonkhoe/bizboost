@@ -1,6 +1,8 @@
 import firestore from '@react-native-firebase/firestore';
 
-export class BaseModel {
+export type UpdateFields = {[key: string]: any};
+
+export abstract class BaseModel {
   toJSON(): this {
     return Object.assign({}, this);
   }

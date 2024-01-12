@@ -15,11 +15,16 @@ const HomeSectionHeader = ({header, link, onPressLink}: Props) => {
   return (
     <View style={[flex.flexRow, items.center, justify.between]}>
       <Text
-        className="font-bold"
-        style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+        style={[
+          font.size[40],
+          font.weight.bold,
+          textColor(COLOR.text.neutral.high),
+        ]}>
         {header}
       </Text>
-      {link ? <InternalLink text={link} onPress={onPressLink} /> : null}
+      {link ? (
+        <InternalLink size={30} text={link} onPress={onPressLink} />
+      ) : null}
     </View>
   );
 };

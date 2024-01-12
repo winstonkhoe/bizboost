@@ -9,10 +9,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {font} from '../../styles/Font';
-import {
-  CustomNumberInput,
-  FormlessCustomTextInput,
-} from '../../components/atoms/Input';
+import {CustomNumberInput} from '../../components/atoms/Input';
 import DatePicker from 'react-native-date-picker';
 import {
   Controller,
@@ -26,15 +23,22 @@ import DateIcon from '../../assets/vectors/date.svg';
 import {rounded} from '../../styles/BorderRadius';
 import {padding} from '../../styles/Padding';
 import {border} from '../../styles/Border';
-import {formatDateToTime12Hrs} from '../../utils/date';
+import {
+  formatDateToHourMinute,
+  getTimeNearest15Minutes,
+} from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
 import {AddIcon} from '../../components/atoms/Icon';
 import {background} from '../../styles/BackgroundColor';
 import {useKeyboard} from '../../hooks/keyboard';
 import {StringObject} from '../../utils/stringObject';
-import {FormLabel} from '../../components/atoms/FormLabel';
+import {FormFieldHelper} from '../../components/atoms/FormLabel';
 import {ContentCreatorPreference} from '../../model/User';
 import {Platform} from 'react-native';
+import FieldArray from '../../components/organisms/FieldArray';
+import {FieldArrayLabel} from '../../components/molecules/FieldArrayLabel';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 
 interface RegisterContentCreatorPreferencesProps {
   onPreferenceChange: (preference: ContentCreatorPreference) => void;
@@ -51,17 +55,11 @@ export const RegisterContentCreatorPreferences = ({
 }: RegisterContentCreatorPreferencesProps) => {
   const keyboardHeight = useKeyboard();
   const [isDatePickerModalOpened, setIsDatePickerModalOpened] = useState(false);
-  const [isPreferencesModalOpened, setIsPreferencesModalOpened] =
-    useState(false);
   const [updatePostingSchedulesIndex, setUpdatePostingSchedulesIndex] =
     useState<number | undefined>(undefined);
-  const [updatePreferenceIndex, setUpdatePreferenceIndex] = useState<
-    number | undefined
-  >(undefined);
   const [temporaryDate, setTemporaryDate] = useState<number>(
-    new Date().getTime(),
+    getTimeNearest15Minutes(new Date()).getTime(),
   );
-  const [temporaryPreference, setTemporaryPreference] = useState<string>('');
 
   const methods = useForm<ContentCreatorPreferencesFormData>({
     mode: 'all',
@@ -82,49 +80,24 @@ export const RegisterContentCreatorPreferences = ({
     name: 'postingSchedules',
     control,
   });
-
-  const {
-    fields: fieldsPreferences,
-    append: appendPreferences,
-    remove: removePreferences,
-  } = useFieldArray({
-    name: 'preferences',
-    control,
-  });
+  const postingSchedules = watch('postingSchedules');
 
   const closeDatePickerSheetModal = () => {
     setIsDatePickerModalOpened(false);
   };
 
   const resetDatePickerSheetModal = useCallback(() => {
-    setTemporaryDate(new Date().getTime());
+    setTemporaryDate(getTimeNearest15Minutes(new Date()).getTime());
     if (updatePostingSchedulesIndex !== undefined) {
       setUpdatePostingSchedulesIndex(undefined);
     }
   }, [updatePostingSchedulesIndex]);
-
-  const closePreferenceSheetModal = () => {
-    setIsPreferencesModalOpened(false);
-  };
-
-  const resetPreferenceSheetModal = useCallback(() => {
-    setTemporaryPreference('');
-    if (updatePreferenceIndex !== undefined) {
-      setUpdatePreferenceIndex(undefined);
-    }
-  }, [updatePreferenceIndex]);
 
   useEffect(() => {
     if (!isDatePickerModalOpened) {
       resetDatePickerSheetModal();
     }
   }, [isDatePickerModalOpened, resetDatePickerSheetModal]);
-
-  useEffect(() => {
-    if (!isPreferencesModalOpened) {
-      resetPreferenceSheetModal();
-    }
-  }, [isPreferencesModalOpened, resetPreferenceSheetModal]);
 
   useEffect(() => {
     const subscription = watch(value => {
@@ -138,7 +111,9 @@ export const RegisterContentCreatorPreferences = ({
       onPreferenceChange({
         contentRevisionLimit: contentRevisionLimit,
         postingSchedules: (
-          value?.postingSchedules?.map(item => item?.value) || []
+          value?.postingSchedules
+            ?.sort((a, b) => (a?.value || 0) - (b?.value || 0))
+            .map(item => item?.value) || []
         ).filter((item): item is number => item !== undefined),
         preferences: (
           value?.preferences?.map(item => item?.value) || []
@@ -149,50 +124,50 @@ export const RegisterContentCreatorPreferences = ({
     return () => subscription.unsubscribe();
   }, [watch, onPreferenceChange]);
 
+  const postingScheduleExists = (date: number) => {
+    return (
+      postingSchedules.findIndex(schedule => schedule.value === date) !== -1
+    );
+  };
+
   const savePostingSchedule = () => {
-    appendPostingSchedule({
-      value: temporaryDate,
-    });
+    const newDate = getTimeNearest15Minutes(new Date(temporaryDate)).getTime();
+    if (!postingScheduleExists(newDate)) {
+      appendPostingSchedule({
+        value: getTimeNearest15Minutes(new Date(temporaryDate)).getTime(),
+      });
+    } else {
+      showToast({
+        type: ToastType.danger,
+        message: 'Posting schedule already exists',
+      });
+    }
     closeDatePickerSheetModal();
   };
 
   const updatePostingSchedule = (onChange: (...event: any[]) => void) => {
-    onChange(temporaryDate);
+    const newDate = getTimeNearest15Minutes(new Date(temporaryDate)).getTime();
+    if (!postingScheduleExists(newDate)) {
+      onChange(newDate);
+    } else {
+      showToast({
+        type: ToastType.danger,
+        message: 'Posting schedule already exists',
+      });
+    }
     closeDatePickerSheetModal();
-  };
-
-  const savePreference = () => {
-    appendPreferences({
-      value: temporaryPreference,
-    });
-    closePreferenceSheetModal();
-  };
-
-  const updatePreference = (onChange: (...event: any[]) => void) => {
-    onChange(temporaryPreference);
-    closePreferenceSheetModal();
   };
 
   return (
     <FormProvider {...methods}>
       <VerticalPadding paddingSize="large">
         <HorizontalPadding paddingSize="large">
-          <View style={[flex.flexCol, gap.xlarge]}>
+          <View style={[flex.flexCol, gap.default]}>
             <View style={[flex.flexCol, gap.medium]}>
-              <View style={[flex.flexRow, items.center]}>
-                <View style={[flex.flexCol, flex.growShrink, gap.small]}>
-                  <Text
-                    className="font-bold"
-                    style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-                    Content Revision <FormLabel type="required" />
-                  </Text>
-                  <Text
-                    className="font-medium"
-                    style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
-                    Max revision to limit business people revision request
-                  </Text>
-                </View>
-              </View>
+              <FormFieldHelper
+                title="Content Revision"
+                description="Max revision to limit business people revision request"
+              />
               <CustomNumberInput
                 name="contentRevisionLimit"
                 type="field"
@@ -203,214 +178,94 @@ export const RegisterContentCreatorPreferences = ({
                 }}
               />
             </View>
-            <View style={[flex.flexCol, gap.medium]}>
-              <View style={[flex.flexRow, items.center]}>
-                <View style={[flex.flexCol, flex.growShrink, gap.small]}>
-                  <Text
-                    className="font-bold"
-                    style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-                    Posting Schedule <FormLabel type="optional" />
-                  </Text>
-                  <Text
-                    className="font-medium"
-                    style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
-                    Let business people know your frequent posting schedule
-                  </Text>
-                </View>
-              </View>
+            <View style={[flex.flexCol, gap.medium, padding.bottom.large]}>
+              <FormFieldHelper
+                title="Posting Schedule"
+                description="Let business people know your frequent posting schedule"
+                type="optional"
+              />
               <View style={[flex.flexRow, flex.wrap, gap.default]}>
-                {fieldsPostingSchedule.map((item, index) => {
-                  return (
-                    <AnimatedPressable
-                      key={item.id}
-                      onPress={() => {
-                        setUpdatePostingSchedulesIndex(index);
-                        setIsDatePickerModalOpened(true);
-                      }}>
-                      <View
-                        style={[
-                          flex.flexRow,
-                          gap.default,
-                          items.center,
-                          rounded.default,
-                          padding.vertical.small,
-                          padding.horizontal.default,
-                          border({
-                            borderWidth: 1,
-                            color: COLOR.green[50],
-                          }),
-                        ]}>
-                        <View style={[flex.flexRow, items.center, gap.small]}>
-                          <DateIcon
-                            width={20}
-                            height={20}
-                            color={COLOR.green[50]}
-                          />
-                          <Text
-                            className="font-semibold"
-                            style={[textColor(COLOR.green[60]), font.size[30]]}>
-                            {formatDateToTime12Hrs(
-                              new Date(
-                                watch(`postingSchedules.${index}.value`),
-                              ),
-                            )}
-                          </Text>
-                        </View>
-                        <Pressable
-                          className="rotate-45"
+                {postingSchedules
+                  .sort((a, b) => a.value - b.value)
+                  .map((item, index) => {
+                    return (
+                      <AnimatedPressable
+                        key={index}
+                        onPress={() => {
+                          setUpdatePostingSchedulesIndex(index);
+                          setIsDatePickerModalOpened(true);
+                        }}>
+                        <View
                           style={[
-                            rounded.max,
-                            background(COLOR.background.danger.high),
-                            padding.xsmall,
-                          ]}
-                          onPress={() => removePostingSchedule(index)}>
-                          <AddIcon size="default" color={COLOR.black[0]} />
-                        </Pressable>
-                      </View>
-                    </AnimatedPressable>
-                  );
-                })}
-                <AnimatedPressable
+                            flex.flexRow,
+                            gap.default,
+                            items.center,
+                            rounded.default,
+                            padding.vertical.small,
+                            padding.horizontal.default,
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.green[50],
+                            }),
+                          ]}>
+                          <View style={[flex.flexRow, items.center, gap.small]}>
+                            <DateIcon
+                              width={20}
+                              height={20}
+                              color={COLOR.green[50]}
+                            />
+                            <Text
+                              style={[
+                                textColor(COLOR.green[60]),
+                                font.weight.semibold,
+                                font.size[30],
+                              ]}>
+                              {formatDateToHourMinute(
+                                new Date(
+                                  watch(`postingSchedules.${index}.value`),
+                                ),
+                              )}
+                            </Text>
+                          </View>
+                          <Pressable
+                            className="rotate-45"
+                            style={[
+                              rounded.max,
+                              background(COLOR.background.danger.high),
+                              padding.xsmall,
+                            ]}
+                            onPress={() => removePostingSchedule(index)}>
+                            <AddIcon
+                              size="default"
+                              color={COLOR.absoluteBlack[0]}
+                            />
+                          </Pressable>
+                        </View>
+                      </AnimatedPressable>
+                    );
+                  })}
+                <FieldArrayLabel
+                  text="Schedule"
+                  type="add"
                   onPress={() => {
                     setIsDatePickerModalOpened(true);
-                  }}>
-                  <View
-                    style={[
-                      flex.flexRow,
-                      items.center,
-                      gap.small,
-                      rounded.default,
-                      padding.vertical.small,
-                      padding.horizontal.default,
-                      border({
-                        borderWidth: 1,
-                        color: COLOR.background.neutral.med,
-                      }),
-                    ]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        textColor(COLOR.text.neutral.med),
-                        font.size[30],
-                      ]}>
-                      Schedule
-                    </Text>
-                    <View
-                      style={[
-                        rounded.max,
-                        background(COLOR.background.neutral.high),
-                        padding.xsmall,
-                      ]}>
-                      <AddIcon size="default" color={COLOR.black[0]} />
-                    </View>
-                  </View>
-                </AnimatedPressable>
+                  }}
+                />
               </View>
             </View>
             <View style={[flex.flexCol, gap.medium]}>
-              <View style={[flex.flexRow, items.center]}>
-                <View style={[flex.flexCol, flex.growShrink, gap.small]}>
-                  <Text
-                    className="font-bold"
-                    style={[textColor(COLOR.text.neutral.high), font.size[50]]}>
-                    Preferences <FormLabel type="optional" />
-                  </Text>
-                  <Text
-                    className="font-medium"
-                    style={[textColor(COLOR.text.neutral.med), font.size[30]]}>
-                    Let business people know what you like or things you don't
-                    like
-                  </Text>
-                </View>
-              </View>
-              <View style={[flex.flexCol, gap.medium, items.start]}>
-                {fieldsPreferences.length > 0 && (
-                  <View style={[flex.flexCol, gap.small, items.start]}>
-                    {fieldsPreferences.map((item, index) => {
-                      return (
-                        <AnimatedPressable
-                          key={item.id}
-                          onPress={() => {
-                            setUpdatePreferenceIndex(index);
-                            setIsPreferencesModalOpened(true);
-                          }}>
-                          <View
-                            style={[
-                              flex.flexRow,
-                              gap.default,
-                              items.center,
-                              rounded.default,
-                              padding.vertical.small,
-                              padding.horizontal.default,
-                              border({
-                                borderWidth: 1,
-                                color: COLOR.green[50],
-                              }),
-                            ]}>
-                            <View
-                              style={[flex.flexRow, items.center, gap.small]}>
-                              <Text
-                                className="font-semibold"
-                                style={[
-                                  textColor(COLOR.green[60]),
-                                  font.size[30],
-                                ]}>
-                                {watch(`preferences.${index}.value`)}
-                              </Text>
-                            </View>
-                            <Pressable
-                              className="rotate-45"
-                              style={[
-                                rounded.max,
-                                background(COLOR.background.danger.high),
-                                padding.xsmall,
-                              ]}
-                              onPress={() => removePreferences(index)}>
-                              <AddIcon size="default" color={COLOR.black[0]} />
-                            </Pressable>
-                          </View>
-                        </AnimatedPressable>
-                      );
-                    })}
-                  </View>
-                )}
-
-                <AnimatedPressable
-                  onPress={() => {
-                    setIsPreferencesModalOpened(true);
-                  }}>
-                  <View
-                    style={[
-                      flex.flexRow,
-                      items.center,
-                      gap.small,
-                      rounded.default,
-                      padding.vertical.small,
-                      padding.horizontal.default,
-                      border({
-                        borderWidth: 1,
-                        color: COLOR.background.neutral.med,
-                      }),
-                    ]}>
-                    <Text
-                      className="font-semibold"
-                      style={[
-                        textColor(COLOR.text.neutral.med),
-                        font.size[30],
-                      ]}>
-                      Preference
-                    </Text>
-                    <View
-                      style={[
-                        rounded.max,
-                        background(COLOR.background.neutral.high),
-                        padding.xsmall,
-                      ]}>
-                      <AddIcon size="default" color={COLOR.black[0]} />
-                    </View>
-                  </View>
-                </AnimatedPressable>
-              </View>
+              <FieldArray
+                title="Preferences"
+                description="Let business people know what you like or things you don't like"
+                parentName="preferences"
+                control={control}
+                childName="value"
+                fieldType="textarea"
+                labelAdd="Preference"
+                placeholder="I don't accept cigarette campaigns"
+                helperText="Write things that you want to let business people know about you"
+                type="optional"
+              />
             </View>
           </View>
           <SheetModal
@@ -459,77 +314,6 @@ export const RegisterContentCreatorPreferences = ({
                         <CustomButton
                           text="Save"
                           onPress={savePostingSchedule}
-                        />
-                      </View>
-                    )}
-                  </View>
-                  <View
-                    style={[
-                      Platform.OS !== 'android' && {
-                        paddingBottom: keyboardHeight,
-                      },
-                    ]}
-                  />
-                </View>
-              </VerticalPadding>
-            </HorizontalPadding>
-          </SheetModal>
-          <SheetModal
-            open={isPreferencesModalOpened}
-            onDismiss={() => {
-              setIsPreferencesModalOpened(false);
-            }}>
-            <HorizontalPadding paddingSize="large">
-              <VerticalPadding paddingSize="default">
-                <View
-                  style={[flex.flexCol, gap.default, padding.bottom.xlarge]}>
-                  <View style={[flex.flexRow, justify.center]}>
-                    <Text
-                      className="font-bold"
-                      style={[
-                        font.size[40],
-                        textColor(COLOR.text.neutral.high),
-                      ]}>
-                      Add Preference
-                    </Text>
-                  </View>
-                  <View style={[flex.flexRow, justify.center]}>
-                    {updatePreferenceIndex !== undefined ? (
-                      <Controller
-                        control={control}
-                        name={`preferences.${updatePreferenceIndex}.value`}
-                        render={({field: {value, onChange}}) => (
-                          <View style={[flex.flexCol, gap.medium]}>
-                            <FormlessCustomTextInput
-                              counter
-                              max={30}
-                              defaultValue={value}
-                              placeholder="Don't accept cigarette campaigns"
-                              focus={isPreferencesModalOpened}
-                              description="Write things that you want to let business people know about you"
-                              onChange={setTemporaryPreference}
-                            />
-                            <CustomButton
-                              text="Update"
-                              onPress={() => updatePreference(onChange)}
-                            />
-                          </View>
-                        )}
-                      />
-                    ) : (
-                      <View style={[flex.flexCol, gap.medium]}>
-                        <FormlessCustomTextInput
-                          counter
-                          max={30}
-                          placeholder="Don't accept cigarette campaigns"
-                          focus={isPreferencesModalOpened}
-                          description="Write things that you want to let business people know about you"
-                          onChange={setTemporaryPreference}
-                        />
-                        <CustomButton
-                          text="Save"
-                          disabled={temporaryPreference.length === 0}
-                          onPress={savePreference}
                         />
                       </View>
                     )}

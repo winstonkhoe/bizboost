@@ -1,5 +1,5 @@
 import {Pressable, ScrollView, Text, View} from 'react-native';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
 import {useUser} from '../../hooks/user';
@@ -25,13 +25,13 @@ import {formatDateToTime12Hrs} from '../../utils/date';
 import {openCategoryModal, openLocationModal} from '../../utils/modal';
 import {Location} from '../../model/Location';
 import {Category} from '../../model/Category';
+import {InstagramIcon, TiktokIcon} from '../../components/atoms/Icon';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
 type FormData = {
   email: string;
   fullname: string;
   phone: string;
-
-  //
-  // preferredLocations: Location[]
 };
 const AboutMeScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -45,26 +45,68 @@ const AboutMeScreen = () => {
       phone: user?.phone,
     },
   });
+
+  const handleSuccessUpdate = () => {
+    showToast({
+      type: ToastType.success,
+      message: 'Successfully updated your information',
+    });
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate(AuthenticatedNavigation.Home);
+  };
+
+  const handleFailedUpdate = () => {
+    showToast({
+      type: ToastType.danger,
+      message: 'Failed to update your information',
+    });
+  };
+
   const onSubmit = (d: FormData) => {
     const temp = new User({...user});
 
     if (activeRole === UserRole.BusinessPeople) {
-      temp.businessPeople = {
-        ...temp.businessPeople!,
-        fullname: d.fullname,
-      };
-    } else if (activeRole === UserRole.ContentCreator) {
-      temp.contentCreator = {
-        ...temp.contentCreator!,
-        fullname: d.fullname,
-      };
+      temp
+        .update({
+          'businessPeople.fullname': d.fullname,
+          email: d.email,
+          phone: d.phone,
+        })
+        .then(handleSuccessUpdate)
+        .catch(handleFailedUpdate);
+      return;
     }
+    if (activeRole === UserRole.ContentCreator) {
+      temp
+        .update({
+          'contentCreator.fullname': d.fullname,
+          email: d.email,
+          phone: d.phone,
+        })
+        .then(handleSuccessUpdate)
+        .catch(handleFailedUpdate);
+      return;
+    }
+  };
 
-    temp.email = d.email;
-    temp.phone = d.phone;
+  const updateFavoriteCategories = (favoriteCategories: Category[]) => {
+    const temp = new User({...user});
+    temp.update({
+      'contentCreator.specializedCategoryIds': favoriteCategories
+        .filter(c => c.id)
+        .map(c => Category.getDocumentReference(c.id!!)),
+    });
+  };
 
-    temp.updateUserData().then(() => {
-      navigation.goBack();
+  const updateContentCreatorTerritory = (locations: Location[]) => {
+    const temp = new User({...user});
+    temp.update({
+      'contentCreator.preferredLocationIds': locations
+        .filter(l => l.id)
+        .map(l => Location.getDocumentReference(l.id!!)),
     });
   };
 
@@ -141,6 +183,35 @@ const AboutMeScreen = () => {
                   </Text>
                 </View>
 
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(AuthenticatedNavigation.EditBiodata);
+                  }}>
+                  <Text
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Biodata
+                  </Text>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View className="w-3/5 flex flex-row items-center justify-end">
+                      <Text
+                        className="overflow-hidden text-right"
+                        numberOfLines={1}
+                        style={[
+                          textColor(COLOR.text.neutral.low),
+                          font.size[20],
+                        ]}>
+                        {user?.contentCreator?.biodata
+                          ? user?.contentCreator?.biodata
+                          : 'None'}
+                      </Text>
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
                 <Pressable
                   className="flex flex-row items-center justify-between"
                   onPress={() => {
@@ -259,16 +330,7 @@ const AboutMeScreen = () => {
                         user?.contentCreator?.preferredLocationIds.map(
                           pl => new Location({id: pl}),
                         ) || [],
-                      setPreferredLocations: locations => {
-                        // TODO: extract method?
-                        const temp = new User({...user});
-                        temp.contentCreator = {
-                          ...temp.contentCreator!,
-                          preferredLocationIds: locations.map(l => l.id || ''),
-                        };
-
-                        temp.updateUserData();
-                      },
+                      setPreferredLocations: updateContentCreatorTerritory,
                       navigation: navigation,
                     });
                   }}>
@@ -317,17 +379,7 @@ const AboutMeScreen = () => {
                         user?.contentCreator?.specializedCategoryIds.map(
                           sc => new Category({id: sc}),
                         ) || [],
-                      setFavoriteCategories: categories => {
-                        const temp = new User({...user});
-                        temp.contentCreator = {
-                          ...temp.contentCreator!,
-                          specializedCategoryIds: categories.map(
-                            c => c.id || '',
-                          ),
-                        };
-
-                        temp.updateUserData();
-                      },
+                      setFavoriteCategories: updateFavoriteCategories,
                       navigation: navigation,
                     });
                   }}>
@@ -367,6 +419,51 @@ const AboutMeScreen = () => {
                     <ChevronRight fill={COLOR.black[20]} />
                   </View>
                 </Pressable>
+                <Pressable
+                  className="flex flex-row items-center justify-between"
+                  onPress={() => {
+                    navigation.navigate(
+                      AuthenticatedNavigation.EditSocialPlatform,
+                    );
+                  }}>
+                  <Text
+                    className="font-medium"
+                    style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+                    Social Media
+                  </Text>
+                  <View
+                    className="flex flex-row items-center justify-end"
+                    style={[gap.default]}>
+                    <View
+                      className="w-3/5"
+                      style={[
+                        flex.flexRow,
+                        items.center,
+                        justify.end,
+                        gap.small,
+                      ]}>
+                      {user?.instagram?.username && (
+                        <InstagramIcon color={COLOR.text.neutral.low} />
+                      )}
+                      {user?.tiktok?.username && (
+                        <TiktokIcon color={COLOR.text.neutral.low} />
+                      )}
+                      {!user?.tiktok?.username &&
+                        !user?.instagram?.username && (
+                          <Text
+                            className="overflow-hidden text-right"
+                            numberOfLines={1}
+                            style={[
+                              textColor(COLOR.text.neutral.low),
+                              font.size[20],
+                            ]}>
+                            None
+                          </Text>
+                        )}
+                    </View>
+                    <ChevronRight fill={COLOR.black[20]} />
+                  </View>
+                </Pressable>
               </>
             )}
             <View className="border-t border-gray-400 pt-4">
@@ -380,7 +477,7 @@ const AboutMeScreen = () => {
               className="flex flex-row items-center justify-between"
               onPress={() => {
                 navigation.navigate(
-                  AuthenticatedNavigation.EditBankAccountInformationScreen,
+                  AuthenticatedNavigation.EditBankAccountInformation,
                 );
               }}>
               <Text

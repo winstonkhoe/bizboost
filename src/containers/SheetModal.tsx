@@ -55,6 +55,7 @@ export const SheetModal = ({
   );
 
   useEffect(() => {
+    console.log('sheetmodal open or close value:', open);
     if (open) {
       bottomSheetModalRef.current?.present();
       return;

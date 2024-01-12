@@ -15,7 +15,6 @@ export class Category extends BaseModel {
     this.id = id;
     this.alias = alias;
     this.image = image;
-    // Add your non-static methods here
   }
 
   private static fromSnapshot(
@@ -45,26 +44,12 @@ export class Category extends BaseModel {
   };
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
-  }
-
-  static async setCategory(documentId: string, data: Category): Promise<void> {
-    await this.getDocumentReference(documentId).set({
-      ...data,
-    });
-  }
-
-  static async getById(documentId: string): Promise<Category | null> {
-    const snapshot = await this.getDocumentReference(documentId).get();
-    if (!snapshot.exists) {
-      return null;
-    }
-    return this.fromSnapshot(snapshot);
+    Category.setFirestoreSettings();
+    return Category.getCollectionReference().doc(documentId);
   }
 
   static async getAll(): Promise<Category[]> {
-    const querySnapshot = await this.getCollectionReference().get();
-    return this.fromQuerySnapshot(querySnapshot);
+    const querySnapshot = await Category.getCollectionReference().get();
+    return Category.fromQuerySnapshot(querySnapshot);
   }
 }

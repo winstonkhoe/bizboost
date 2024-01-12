@@ -2,322 +2,213 @@ import {View, Text} from 'react-native';
 import {useUser} from '../../hooks/user';
 import {Offer} from '../../model/Offer';
 import {CustomButton} from '../atoms/Button';
-import {HorizontalPadding, VerticalPadding} from '../atoms/ViewPadding';
+import {HorizontalPadding} from '../atoms/ViewPadding';
 import {flex, items, justify} from '../../styles/Flex';
 import {COLOR} from '../../styles/Color';
-import {NavigationStackProps} from '../../navigation/StackNavigation';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
 import {SheetModal} from '../../containers/SheetModal';
 import {gap} from '../../styles/Gap';
-import {openNegotiateModal} from '../../utils/modal';
-import {useEffect, useState} from 'react';
+import {ReactNode, useEffect, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
-import {User, UserRole} from '../../model/User';
-import {CustomAlert} from './CustomAlert';
+import {UserRole} from '../../model/User';
+import {CustomAlert, CustomAlertProps} from './CustomAlert';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
 import {padding} from '../../styles/Padding';
-import {Chat} from '../../model/Chat';
-import {Transaction, TransactionStatus} from '../../model/Transaction';
+import {showToast} from '../../helpers/toast';
+import {ToastType} from '../../providers/ToastProvider';
+import {ErrorMessage} from '../../constants/errorMessage';
+import {currencyFormat} from '../../utils/currency';
+import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../../styles/Size';
 
 type Props = {
   offer: Offer;
   isModalOpened: boolean;
   onModalDismiss: () => void;
-  navigation: NavigationStackProps;
 };
 
-const OfferActionModal = ({
-  isModalOpened,
-  onModalDismiss,
-  offer,
-  navigation,
-}: Props) => {
-  const {user, activeRole} = useUser();
-
-  const [campaign, setCampaign] = useState<Campaign>();
-
-  useEffect(() => {
-    if (offer) {
-      Campaign.getById(offer.campaignId || '').then(c => setCampaign(c));
-    }
-  }, [offer]);
-
-  const bpId = offer.businessPeopleId;
-  const ccId = offer.contentCreatorId;
-
-  const onAcceptOfferClicked = () => {
-    if (offer) {
-      // TODO: prompt buat bayar dulu, baru approve (OfferActionsModal + OfferDetailScreen)
-      offer.accept().then(acc => {
-        const transaction = new Transaction({
-          transactionAmount: acc.offeredPrice,
-          platformTasks: acc.platformTasks,
-          contentCreatorId: offer.contentCreatorId ?? '',
-          businessPeopleId: offer.businessPeopleId ?? '',
-          campaignId: campaign?.id ?? '',
-        });
-        transaction
-          .insert(TransactionStatus.offerWaitingForPayment)
-          .then(() => {
-            const name =
-              activeRole === UserRole.BusinessPeople
-                ? user?.businessPeople?.fullname
-                : user?.contentCreator?.fullname;
-            const text = `${name} ${
-              offer.negotiatedBy
-                ? 'accepted negotiation for'
-                : 'accepted offer for'
-            } ${
-              campaign?.title
-            }. Transaction will begin after Business People have finished payment.`;
-            Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
-              onModalDismiss();
-            });
-          });
-      });
-    }
-  };
-
-  const onRejectOfferClicked = () => {
-    if (offer) {
-      offer.reject().then(() => {
-        const transaction = new Transaction({
-          contentCreatorId: offer.contentCreatorId ?? '',
-          businessPeopleId: offer.businessPeopleId ?? '',
-          campaignId: campaign.id ?? '',
-        });
-
-        transaction.updateStatus(TransactionStatus.offerRejected).then(() => {
-          const name =
-            activeRole === UserRole.BusinessPeople
-              ? user?.businessPeople?.fullname
-              : user?.contentCreator?.fullname;
-          const text =
-            name +
-            ' ' +
-            (offer.negotiatedBy
-              ? 'rejected negotiation for'
-              : 'rejected offer for') +
-            ' ' +
-            campaign?.title;
-          Chat.insertSystemMessage(bpId + ccId, text, activeRole).then(() => {
-            onModalDismiss();
-          });
-        });
-      });
-    }
-  };
-
-  const openModalNegotiate = () => {
-    onModalDismiss();
-    if (offer && campaign) {
-      openNegotiateModal({
-        selectedOffer: offer,
-        campaign: campaign,
-        navigation: navigation,
-        activeRole: activeRole,
-      });
-    }
-  };
-
+const OfferActionModal = ({isModalOpened, onModalDismiss, offer}: Props) => {
+  const safeAreaInsets = useSafeAreaInsets();
   return (
     <SheetModal open={isModalOpened} onDismiss={onModalDismiss}>
-      <HorizontalPadding>
-        {offer?.negotiatedBy ? (
-          offer?.negotiatedBy === activeRole ? (
-            <CustomButton text="Negotiated" disabled />
-          ) : (
-            <View style={(flex.flexCol, gap.small)}>
-              <CustomAlert
-                confirmationText={
-                  <View>
-                    <Text>Are you sure you want to accept this offer?</Text>
-                    <View
-                      style={[
-                        flex.flexRow,
-                        justify.between,
-                        items.center,
-                        padding.top.xsmall,
-                      ]}>
-                      <Text
-                        className="font-bold pb-2"
-                        style={[
-                          textColor(COLOR.text.neutral.high),
-                          font.size[30],
-                        ]}>
-                        {offer?.negotiatedBy
-                          ? 'Negotitated Fee'
-                          : 'Offered Fee'}
-                      </Text>
-                      <Text
-                        className="font-bold pb-2"
-                        style={[
-                          textColor(COLOR.text.neutral.high),
-                          font.size[30],
-                        ]}>
-                        Rp.{' '}
-                        {offer?.negotiatedPrice
-                          ? offer.negotiatedPrice
-                          : offer?.offeredPrice}
-                      </Text>
-                    </View>
-                  </View>
-                }
-                text="Accept"
-                approveButtonText="Accept"
-                onApprove={() => onAcceptOfferClicked()}
-              />
-              <CustomButton
-                type="secondary"
-                text="Negotiate"
-                onPress={() => openModalNegotiate()}
-              />
-              <CustomAlert
-                confirmationText={
-                  <View>
-                    <Text
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.size[30],
-                      ]}>
-                      Are you sure you want to reject this offer?
-                    </Text>
-                    <Text style={[textColor(COLOR.red[50]), font.size[20]]}>
-                      You can't exchange offer again for this campaign
-                    </Text>
-                    <View
-                      style={[
-                        flex.flexRow,
-                        justify.between,
-                        items.center,
-                        padding.top.xsmall,
-                      ]}>
-                      <Text
-                        className="font-bold pb-2"
-                        style={[
-                          textColor(COLOR.text.neutral.high),
-                          font.size[30],
-                        ]}>
-                        {offer?.negotiatedBy
-                          ? 'Negotitated Fee'
-                          : 'Offered Fee'}
-                      </Text>
-                      <Text
-                        className="font-bold pb-2"
-                        style={[
-                          textColor(COLOR.text.neutral.high),
-                          font.size[30],
-                        ]}>
-                        Rp.{' '}
-                        {offer?.negotiatedPrice
-                          ? offer.negotiatedPrice
-                          : offer?.offeredPrice}
-                      </Text>
-                    </View>
-                  </View>
-                }
-                customBackgroundColor={{
-                  default: COLOR.red[60],
-                  disabled: COLOR.yellow[50],
-                }}
-                text="Reject"
-                approveButtonText="Reject"
-                onApprove={() => onRejectOfferClicked()}
-              />
-            </View>
-          )
-        ) : activeRole === UserRole.ContentCreator ? (
-          <View style={(flex.flexCol, gap.small)}>
-            <CustomAlert
-              confirmationText={
-                <View>
-                  <Text>Are you sure you want to accept this offer?</Text>
-                  <View
-                    style={[
-                      flex.flexRow,
-                      justify.between,
-                      items.center,
-                      padding.top.xsmall,
-                    ]}>
-                    <Text
-                      className="font-bold pb-2"
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.size[30],
-                      ]}>
-                      {offer?.negotiatedBy ? 'Negotitated Fee' : 'Offered Fee'}
-                    </Text>
-                    <Text
-                      className="font-bold pb-2"
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.size[30],
-                      ]}>
-                      Rp.{' '}
-                      {offer?.negotiatedPrice
-                        ? offer.negotiatedPrice
-                        : offer?.offeredPrice}
-                    </Text>
-                  </View>
-                </View>
-              }
-              text="Accept"
-              approveButtonText="Accept"
-              onApprove={() => onAcceptOfferClicked()}
-            />
-            <CustomButton
-              type="secondary"
-              text="Negotiate"
-              onPress={() => openModalNegotiate()}
-            />
-            <CustomAlert
-              confirmationText={
-                <View>
-                  <Text>Are you sure you want to reject this offer?</Text>
-                  <View
-                    style={[
-                      flex.flexRow,
-                      justify.between,
-                      items.center,
-                      padding.top.xsmall,
-                    ]}>
-                    <Text
-                      className="font-bold pb-2"
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.size[30],
-                      ]}>
-                      {offer?.negotiatedBy ? 'Negotitated Fee' : 'Offered Fee'}
-                    </Text>
-                    <Text
-                      className="font-bold pb-2"
-                      style={[
-                        textColor(COLOR.text.neutral.high),
-                        font.size[30],
-                      ]}>
-                      Rp.{' '}
-                      {offer?.negotiatedPrice
-                        ? offer.negotiatedPrice
-                        : offer?.offeredPrice}
-                    </Text>
-                  </View>
-                </View>
-              }
-              customBackgroundColor={{
-                default: COLOR.red[60],
-                disabled: COLOR.yellow[50],
-              }}
-              text="Reject"
-              approveButtonText="Reject"
-              onApprove={() => onRejectOfferClicked()}
-            />
-          </View>
-        ) : (
-          <CustomButton text="Waiting for Content Creator" disabled />
-        )}
-      </HorizontalPadding>
+      <View
+        style={[
+          {
+            paddingBottom: safeAreaInsets.bottom + size.small,
+          },
+        ]}>
+        <OfferAction offer={offer} onSuccess={onModalDismiss} />
+      </View>
     </SheetModal>
   );
 };
 
 export default OfferActionModal;
+
+interface OfferActionProps {
+  offer: Offer;
+  onSuccess: () => void;
+}
+
+export const OfferAction = ({offer, onSuccess}: OfferActionProps) => {
+  const {activeRole} = useUser();
+  const navigation = useNavigation<NavigationStackProps>();
+  const latestNegotiation = offer.getLatestNegotiation();
+  const onAcceptOfferClicked = () => {
+    if (!activeRole) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
+      });
+      return;
+    }
+    // TODO: prompt buat bayar dulu, baru approve (OfferActionsModal + OfferDetailScreen)
+    offer
+      .accept(activeRole)
+      .then(() => {
+        showToast({
+          type: ToastType.success,
+          message: 'Offer accepted',
+        });
+        onSuccess();
+      })
+      .catch(() => {
+        showToast({
+          type: ToastType.danger,
+          message: ErrorMessage.GENERAL,
+        });
+      });
+  };
+
+  const onRejectOfferClicked = () => {
+    if (!activeRole) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
+      });
+      return;
+    }
+    offer
+      .reject(activeRole)
+      .then(() => {
+        showToast({
+          type: ToastType.info,
+          message: 'Offer rejected',
+        });
+        onSuccess();
+      })
+      .catch(() => {
+        showToast({
+          type: ToastType.danger,
+          message: ErrorMessage.GENERAL,
+        });
+      });
+  };
+
+  const openModalNegotiate = () => {
+    onSuccess();
+    if (!offer) {
+      return;
+    }
+    navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
+      offer: offer,
+    });
+  };
+
+  if (latestNegotiation?.negotiatedBy === activeRole) {
+    return null;
+  }
+
+  return (
+    <View style={[flex.flexCol, gap.default, padding.horizontal.default]}>
+      <OfferAlert
+        offer={offer}
+        title={
+          <Text style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+            Are you sure you want to accept this offer?
+          </Text>
+        }
+        triggerAlertButtonText="Accept"
+        approveButtonText="Accept"
+        onApprove={onAcceptOfferClicked}
+      />
+      <CustomButton
+        type="secondary"
+        text="Negotiate"
+        onPress={openModalNegotiate}
+      />
+      <OfferAlert
+        offer={offer}
+        title={
+          <Text style={[textColor(COLOR.text.neutral.high), font.size[30]]}>
+            Are you sure you want to reject this offer?
+          </Text>
+        }
+        customBackgroundColor={{
+          default: COLOR.red[60],
+          disabled: COLOR.yellow[50],
+        }}
+        triggerAlertButtonText="Reject"
+        approveButtonText="Reject"
+        onApprove={onRejectOfferClicked}
+      />
+    </View>
+  );
+};
+
+interface OfferAlertProps extends Partial<CustomAlertProps> {
+  offer: Offer;
+  title: ReactNode;
+  triggerAlertButtonText: string;
+  onApprove: () => void;
+}
+
+const OfferAlert = ({
+  offer,
+  title,
+  triggerAlertButtonText,
+  ...props
+}: OfferAlertProps) => {
+  const latestNegotiation = offer.getLatestNegotiation();
+  return (
+    <CustomAlert
+      {...props}
+      confirmationText={
+        <View>
+          {title}
+          <View
+            style={[
+              flex.flexRow,
+              justify.between,
+              items.center,
+              padding.top.xsmall,
+            ]}>
+            <Text
+              style={[
+                textColor(COLOR.text.neutral.high),
+                font.weight.bold,
+                font.size[30],
+              ]}>
+              Offered Fee
+            </Text>
+            <Text
+              style={[
+                textColor(COLOR.text.neutral.high),
+                font.weight.bold,
+                font.size[30],
+              ]}>
+              {currencyFormat(latestNegotiation?.fee || 0)}
+            </Text>
+          </View>
+        </View>
+      }
+      text={triggerAlertButtonText}
+      approveButtonText="Accept"
+    />
+  );
+};

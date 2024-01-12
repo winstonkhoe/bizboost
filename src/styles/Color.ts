@@ -105,9 +105,9 @@ export const COLOR = {
     neutral: {
       default: `${black[isDarkMode ? 90 : 0]}`,
       low: `${black[isDarkMode ? 80 : 1]}`,
-      med: `${black[isDarkMode ? 70 : 5]}`,
+      med: `${black[isDarkMode ? 80 : 5]}`,
       high: `${black[isDarkMode ? 60 : 20]}`,
-      disabled: `${black[isDarkMode ? 90 : 10]}`,
+      disabled: `${black[isDarkMode ? 90 : 5]}`,
     },
     green: {
       default: `${green[1]}`,
@@ -172,6 +172,7 @@ export const COLOR = {
     // 5: isDarkMode ? green[90] : green[5],
     // 1: isDarkMode ? green[95] : green[1],
     ...green,
+    5: isDarkMode ? `${green[90]}11` : green[5],
   },
   red: {
     error: '#FF0034',

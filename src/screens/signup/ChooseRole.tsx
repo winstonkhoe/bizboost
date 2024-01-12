@@ -1,7 +1,7 @@
 import {Pressable, Text, View} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import Carousel, {ICarouselInstance} from 'react-native-reanimated-carousel';
 import {Dimensions} from 'react-native';
@@ -21,7 +21,8 @@ import {shadow} from '../../styles/Shadow';
 import {rounded} from '../../styles/BorderRadius';
 import {HorizontalPadding} from '../../components/atoms/ViewPadding';
 import {useEffect, useRef, useState} from 'react';
-import {font} from '../../styles/Font';
+import {font, text} from '../../styles/Font';
+import {padding} from '../../styles/Padding';
 
 interface RoleCard {
   role: UserRole;
@@ -64,10 +65,13 @@ export const ChooseRole = ({onChangeRole}: ChooseRoleProps) => {
   };
 
   return (
-    <View className="items-center" style={[flex.flexCol, gap.medium]}>
+    <View style={[flex.flexCol, gap.medium, items.center]}>
       <Text
-        className="font-bold"
-        style={[textColor(COLOR.text.neutral.high), font.size[70]]}>
+        style={[
+          textColor(COLOR.text.neutral.high),
+          font.size[70],
+          font.weight.bold,
+        ]}>
         Choose your Role
       </Text>
       <Carousel
@@ -162,10 +166,11 @@ const RoleCard = ({roleCard, index, activeIndex}: RoleCardProps) => {
 
   return (
     <Animated.View
-      className="flex-1 relative"
       style={[
+        flex.flex1,
+        justify.center,
         {
-          justifyContent: 'center',
+          position: 'relative',
           borderWidth: 5,
         },
         animatedStyle,
@@ -174,8 +179,8 @@ const RoleCard = ({roleCard, index, activeIndex}: RoleCardProps) => {
         rounded.xlarge,
       ]}>
       <View
-        className="flex-1"
         style={[
+          flex.flex1,
           flex.flexCol,
           activeIndex !== index && {
             opacity: 0.5,
@@ -187,20 +192,32 @@ const RoleCard = ({roleCard, index, activeIndex}: RoleCardProps) => {
           style={[flex.flexRow, animatedScale]}>
           <roleCard.asset width={300} height={300} />
         </Animated.View>
-        <HorizontalPadding>
-          <View className="items-center mt-6" style={[flex.flexCol, gap.small]}>
-            <Text
-              className="text-2xl font-bold"
-              style={[textColor(COLOR.text.neutral.high)]}>
-              {roleCard.role}
-            </Text>
-            <Text
-              className="text-lg font-semibold text-center"
-              style={[textColor(COLOR.text.neutral.med)]}>
-              {roleCard.description}
-            </Text>
-          </View>
-        </HorizontalPadding>
+        <View
+          style={[
+            flex.flexCol,
+            gap.small,
+            items.center,
+            padding.horizontal.default,
+            padding.top.xlarge,
+          ]}>
+          <Text
+            style={[
+              textColor(COLOR.text.neutral.high),
+              font.weight.bold,
+              font.size[60],
+            ]}>
+            {roleCard.role}
+          </Text>
+          <Text
+            style={[
+              textColor(COLOR.text.neutral.med),
+              font.weight.semibold,
+              text.center,
+              font.size[50],
+            ]}>
+            {roleCard.description}
+          </Text>
+        </View>
       </View>
     </Animated.View>
   );

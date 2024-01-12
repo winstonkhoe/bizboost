@@ -34,7 +34,12 @@ import {PostingScheduleDatePicker} from '../../signup/RegisterContentCreatorPref
 import {useKeyboard} from '../../../hooks/keyboard';
 import {User} from '../../../model/User';
 import {useNavigation} from '@react-navigation/native';
-import {NavigationStackProps} from '../../../navigation/StackNavigation';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../../navigation/StackNavigation';
+import {showToast} from '../../../helpers/toast';
+import {ToastType} from '../../../providers/ToastProvider';
 
 const EditPostingScheduleScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -96,14 +101,29 @@ const EditPostingScheduleScreen = () => {
 
   const onSubmit = (d: FormData) => {
     const temp = new User({...user});
-    temp.contentCreator = {
-      ...temp.contentCreator!,
-      postingSchedules: d.postingSchedules.map(ps => ps.value),
-    };
-
-    temp.updateUserData().then(() => {
-      navigation.goBack();
-    });
+    temp
+      .update({
+        'contentCreator.postingSchedules': d.postingSchedules.map(
+          ps => ps.value,
+        ),
+      })
+      .then(() => {
+        showToast({
+          type: ToastType.success,
+          message: 'Successfully updated posting schedule',
+        });
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+        navigation.navigate(AuthenticatedNavigation.Home);
+      })
+      .catch(() => {
+        showToast({
+          type: ToastType.danger,
+          message: 'Failed to update posting schedule',
+        });
+      });
   };
   return (
     <SafeAreaContainer enable>

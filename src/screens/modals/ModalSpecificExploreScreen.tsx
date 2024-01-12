@@ -5,7 +5,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 import {useWindowDimensions} from 'react-native';
 import {User} from '../../model/User';
-import {Content, ContentView} from '../../model/Content';
+import {Portfolio, PortfolioView} from '../../model/Portfolio';
 import {StackScreenProps} from '@react-navigation/stack';
 import {
   AuthenticatedNavigation,
@@ -21,12 +21,12 @@ type Props = StackScreenProps<
 
 export const ModalSpecificExploreScreen = ({route}: Props) => {
   const {contentCreatorId, targetContentId} = route.params;
-  const flashlistRef = useRef<FlashList<ContentView>>(null);
-  const [contentViews, setContentViews] = useState<ContentView[]>([]);
+  const flashlistRef = useRef<FlashList<PortfolioView>>(null);
+  const [contentViews, setContentViews] = useState<PortfolioView[]>([]);
   const targetContentIndex = useMemo(
     () =>
       contentViews.findIndex(
-        contentView => contentView.content.id === targetContentId,
+        contentView => contentView.portfolio?.id === targetContentId,
       ),
     [contentViews, targetContentId],
   );
@@ -38,11 +38,11 @@ export const ModalSpecificExploreScreen = ({route}: Props) => {
   useEffect(() => {
     User.getById(contentCreatorId).then(user => {
       if (user) {
-        Content.getByUserId(contentCreatorId).then(contents => {
+        Portfolio.getByUserId(contentCreatorId).then(contents => {
           setContentViews(
             contents?.map(content => {
               return {
-                content: content,
+                portfolio: content,
                 user: user,
               };
             }) || [],
@@ -53,7 +53,7 @@ export const ModalSpecificExploreScreen = ({route}: Props) => {
   }, [contentCreatorId]);
 
   const keyExtractor = useCallback(
-    (item: ContentView) => item.content.id!!,
+    (item: PortfolioView) => item.portfolio.id!!,
     [],
   );
 

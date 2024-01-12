@@ -1,0 +1,57 @@
+name: APK Automation React Native
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # The name of the main module repository
+  main_project_module: android/app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18.x'
+
+      - name: Install JDK 11 and Android SDK
+        run: |
+          sudo apt-get install -y openjdk-11-jdk
+          sudo apt install -y sdkmanager
+          sdkmanager "platform-tools" "platforms;android-33"
+      - name: Install React Native CLI
+        run: |
+          npm install react-native-cli
+          npm install @react-native-community/cli
+          npm install @react-native-community/cli-platform-android
+      # Set Current Date As Env Variable
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      # Set Repository Name As Env Variable
+      - name: Set repository name as env variable
+        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
+      - name: Change wrapper permissions
+        run: |
+          cd android
+          chmod +x ./gradlew
+
+      # Create APK Release
+      - name: Build apk release project (APK) - ${{ env.main_project_module }} module
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      # Upload Artifact Build
+      # Noted For Output [main_project_module]/build/outputs/apk/release/
+      - name: Upload APK Release - ${{ env.repository_name }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.date_today }} - ${{ env.repository_name }} - APK(s) release generated
+          path: ${{ env.main_project_module }}/build/outputs/apk/release/

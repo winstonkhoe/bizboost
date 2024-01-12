@@ -18,12 +18,14 @@ import {font} from '../../styles/Font';
 interface FieldArrayLabelProps extends Partial<AnimatedPressableProps> {
   type: 'add' | 'field';
   text: string;
+  isDisabled?: boolean;
   onRemovePress?: () => void; //only for type field
 }
 
 export const FieldArrayLabel = ({
   type,
   text,
+  isDisabled = false,
   onRemovePress,
   ...props
 }: FieldArrayLabelProps) => {
@@ -40,43 +42,50 @@ export const FieldArrayLabel = ({
           type === 'add' &&
             border({
               borderWidth: 1,
-              color: COLOR.background.neutral.high,
+              color: COLOR.black[25],
             }),
           type === 'field' &&
             border({
               borderWidth: 1,
               color: COLOR.green[50],
             }),
+          isDisabled && [
+            background(COLOR.background.neutral.disabled),
+            border({
+              borderWidth: 1,
+              color: COLOR.black[20],
+            }),
+          ],
         ]}>
         <Text
           className="font-semibold"
           style={[
             type === 'add' && textColor(COLOR.text.neutral.med),
             type === 'field' && textColor(COLOR.green[60]),
+            isDisabled && textColor(COLOR.text.neutral.disabled),
             font.size[30],
           ]}>
           {text}
         </Text>
         {type === 'add' && (
           <View
-            style={[
-              rounded.max,
-              background(COLOR.background.neutral.high),
-              padding.xsmall,
-            ]}>
+            style={[rounded.max, background(COLOR.black[30]), padding.xsmall]}>
             <AddIcon size="default" color={COLOR.black[0]} />
           </View>
         )}
         {type === 'field' && (
           <Pressable
-            className="rotate-45"
             style={[
+              {
+                transform: [{rotate: '45deg'}],
+              },
               rounded.max,
               background(COLOR.background.danger.high),
+              isDisabled && [background(COLOR.background.danger.disabled)],
               padding.xsmall,
             ]}
             onPress={onRemovePress}>
-            <AddIcon size="default" color={COLOR.black[0]} />
+            <AddIcon size="default" color={COLOR.absoluteBlack[0]} />
           </Pressable>
         )}
       </View>

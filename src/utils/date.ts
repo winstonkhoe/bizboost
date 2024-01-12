@@ -110,14 +110,32 @@ export const formatDateToDayMonthYearHourMinute = (date: Date): string => {
   return `${date.toLocaleDateString('en-US', options)} WIB`;
 };
 
-export const formatDateToHourMinute = (date: Date): string => {
+export const formatDateToDayMonthYearHourMinuteShort = (date: Date): string => {
+  const options = {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Jakarta',
+  } as const;
+  return `${date.toLocaleDateString('en-US', options)}`;
+};
+
+export const formatDateToHourMinute = (
+  date: Date,
+  withZone: boolean = true,
+): string => {
   const options = {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
     timeZone: 'Asia/Jakarta',
   } as const;
-  return `${date.toLocaleTimeString('en-US', options)} WIB`;
+  return `${date.toLocaleTimeString('en-US', options)}${
+    withZone ? ' WIB' : ''
+  }`;
 };
 
 export const formatDateToTime12Hrs = (date: Date): string => {
@@ -134,4 +152,11 @@ export const getTimeAgo = (date: Date | number) => {
   const timeAgo = new TimeAgo('en-US');
   date = date instanceof Date ? date : new Date(date);
   return timeAgo.format(date);
+};
+
+export const getTimeNearest15Minutes = (date: Date) => {
+  const minutes = date.getMinutes();
+  const remainder = minutes % 15;
+  const roundedMinutes = minutes - remainder;
+  return new Date(2023, 0, 1, date.getHours(), roundedMinutes);
 };

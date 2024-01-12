@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {Pressable, View, Text} from 'react-native';
+import {Pressable, View, Text, StyleSheet} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import {useNavigation} from '@react-navigation/native';
-import {Chat, Recipient} from '../../model/Chat';
+import {Chat, MessageType, Recipient} from '../../model/Chat';
 import {
   AuthenticatedNavigation,
   NavigationStackProps,
@@ -10,6 +10,17 @@ import {
 import {User} from '../../model/User';
 import {useUser} from '../../hooks/user';
 import {gap} from '../../styles/Gap';
+import {getSourceOrDefaultAvatar} from '../../utils/asset';
+import {dimension} from '../../styles/Dimension';
+import {rounded} from '../../styles/BorderRadius';
+import {formatDateToHourMinute} from '../../utils/date';
+import {COLOR} from '../../styles/Color';
+import {padding} from '../../styles/Padding';
+import {flex, items} from '../../styles/Flex';
+import {textColor} from '../../styles/Text';
+import {font} from '../../styles/Font';
+import {overflow} from '../../styles/Overflow';
+import {SkeletonPlaceholder} from './SkeletonPlaceholder';
 
 interface ChatItemProps {
   chat: Chat;
@@ -17,75 +28,103 @@ interface ChatItemProps {
 
 const ChatItem = ({chat}: ChatItemProps) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const {isBusinessPeople} = useUser();
-
-  const profilePictureSource = require('../../assets/images/sample-influencer.jpeg');
-  const [recipient, setRecipient] = useState<Recipient>();
+  const {isBusinessPeople, isContentCreator} = useUser();
+  const [recipient, setRecipient] = useState<Recipient | null>();
+  const latestMessage = new Chat(chat).getLatestMessage();
 
   useEffect(() => {
     if (isBusinessPeople) {
-      User.getById(chat.contentCreatorId || '').then(u =>
-        setRecipient({
-          fullname: u?.contentCreator?.fullname || '',
-          profilePicture: u?.contentCreator?.profilePicture || '',
-        }),
-      );
-    } else {
-      User.getById(chat.businessPeopleId || '').then(u =>
-        setRecipient({
-          fullname: u?.businessPeople?.fullname || '',
-          profilePicture: u?.businessPeople?.profilePicture || '',
-        }),
-      );
+      if (chat.contentCreatorId) {
+        User.getById(chat.contentCreatorId || '')
+          .then(u =>
+            setRecipient({
+              fullname: u?.contentCreator?.fullname || '',
+              profilePicture: u?.contentCreator?.profilePicture || '',
+            }),
+          )
+          .catch(() => setRecipient(null));
+      }
     }
-  }, [isBusinessPeople]);
+    if (isContentCreator) {
+      if (chat.businessPeopleId) {
+        User.getById(chat.businessPeopleId || '')
+          .then(u =>
+            setRecipient({
+              fullname: u?.businessPeople?.fullname || '',
+              profilePicture: u?.businessPeople?.profilePicture || '',
+            }),
+          )
+          .catch(() => setRecipient(null));
+      }
+    }
+  }, [isBusinessPeople, isContentCreator, chat]);
 
-  console.log('role:' + isBusinessPeople + ' rec:' + JSON.stringify(recipient));
+  const getLatestMessage = () => {
+    if (!latestMessage) {
+      return '';
+    }
+    if (latestMessage.type === MessageType.Offer) {
+      return 'New Offer';
+    }
+    if (latestMessage.type === MessageType.Photo) {
+      return 'New Photo';
+    }
+    return latestMessage.message.content;
+  };
 
   return (
     <Pressable
       onPress={() => {
-        navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-          chat: chat,
-          recipient: recipient,
-        });
+        if (recipient) {
+          navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+            chatId: chat.id,
+          });
+        }
       }}>
-      <View className="flex flex-row items-center p-4 border-y border-gray-300 justify-between">
-        <View style={gap.default} className="flex flex-row h-full">
-          <View className="w-12 h-12 rounded-full overflow-hidden">
+      <View style={[flex.flexRow, items.start, padding.default, gap.default]}>
+        <SkeletonPlaceholder isLoading={recipient === undefined}>
+          <View
+            style={[dimension.square.xlarge3, rounded.max, overflow.hidden]}>
             <FastImage
-              source={
-                recipient?.profilePicture
-                  ? {
-                      uri: recipient?.profilePicture,
-                    }
-                  : profilePictureSource
-              }
-              className="w-full h-full object-cover"
+              style={[dimension.full]}
+              source={getSourceOrDefaultAvatar({
+                uri: recipient?.profilePicture,
+              })}
             />
           </View>
-          <View className="h-full">
-            <Text className="text-lg font-bold">
-              {recipient ? recipient.fullname : 'User'}
+        </SkeletonPlaceholder>
+        <View style={[flex.flex1]}>
+          <SkeletonPlaceholder isLoading={recipient === undefined}>
+            <Text
+              style={[
+                font.size[30],
+                font.weight.medium,
+                textColor(COLOR.text.neutral.high),
+              ]}>
+              {recipient?.fullname || 'Unknown User'}
             </Text>
-            <Text numberOfLines={1} className="w-[70vw]">
-              {chat.messages && chat.messages.length > 0
-                ? chat.messages[chat.messages.length - 1].message
-                : ''}
-            </Text>
-          </View>
+          </SkeletonPlaceholder>
+          <SkeletonPlaceholder isLoading={recipient === undefined}>
+            {latestMessage && (
+              <Text
+                numberOfLines={2}
+                style={[font.size[20], textColor(COLOR.text.neutral.med)]}>
+                {getLatestMessage()}
+              </Text>
+            )}
+          </SkeletonPlaceholder>
         </View>
-        {chat.messages && chat.messages.length > 0 && (
-          <View className="flex h-full">
-            <Text>
-              {chat.messages.length > 0 &&
-              chat.messages[chat.messages.length - 1].createdAt
-                ? getTimeAgo(
-                    chat.messages[chat.messages.length - 1].createdAt || 0,
-                  )
-                : ''}
+        {latestMessage && (
+          <SkeletonPlaceholder isLoading={recipient === undefined}>
+            <Text
+              style={[
+                font.size[20],
+                textColor(COLOR.text.neutral.med),
+                font.weight.normal,
+              ]}>
+              {formatDateToHourMinute(new Date(latestMessage.createdAt))}
             </Text>
-          </View>
+          </SkeletonPlaceholder>
         )}
       </View>
     </Pressable>

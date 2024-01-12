@@ -109,7 +109,7 @@ const SearchBar = () => {
               onChangeText={(text: string) => dispatch(updateSearchTerm(text))}
               className="font-medium"
               style={[textColor(COLOR.black[100], 1)]}
-              placeholder="David William"
+              placeholder="Search here"
               onSubmitEditing={search}
               returnKeyType="search"
             />

@@ -176,8 +176,8 @@ export class Report extends BaseModel {
   };
 
   static getDocumentReference = (documentId: string) => {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    Report.setFirestoreSettings();
+    return Report.getCollectionReference().doc(documentId);
   };
 
   static getById(id: string, onComplete: (report: Report | null) => void) {
@@ -238,39 +238,12 @@ export class Report extends BaseModel {
     try {
       const unsubscribe = Report.getCollectionReference().onSnapshot(
         querySnapshot => {
-          onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          onComplete(querySnapshot.docs.map(Report.fromSnapshot));
         },
         error => {
           console.log(error);
         },
       );
-
-      return unsubscribe;
-    } catch (error) {
-      console.error(error);
-      throw Error('Error!');
-    }
-  }
-
-  static getAllByTransactionId(
-    transactionId: string,
-    onComplete: (reports: Report[]) => void,
-  ) {
-    try {
-      const unsubscribe = Report.getCollectionReference()
-        .where(
-          'transactionId',
-          '==',
-          Transaction.getDocumentReference(transactionId),
-        )
-        .onSnapshot(
-          querySnapshot => {
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
-          },
-          error => {
-            console.log(error);
-          },
-        );
 
       return unsubscribe;
     } catch (error) {
@@ -288,7 +261,7 @@ export class Report extends BaseModel {
         .where('reporterId', '==', User.getDocumentReference(reporterId))
         .onSnapshot(
           querySnapshot => {
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
+            onComplete(querySnapshot.docs.map(Report.fromSnapshot));
           },
           error => {
             console.log(error);
@@ -328,7 +301,7 @@ export class Report extends BaseModel {
       if (querySnapshot.empty) {
         return [];
       }
-      return querySnapshot.docs.map(this.fromSnapshot);
+      return querySnapshot.docs.map(Report.fromSnapshot);
     } catch (error) {
       console.log(error);
       throw Error('Report.getAllWarnings err!');
@@ -379,23 +352,6 @@ export class Report extends BaseModel {
     }
   }
 
-  async resolveReport(
-    actionTaken: ActionTaken,
-    reason?: string,
-    extraFields?: Partial<Report>,
-  ): Promise<void> {
-    const {id} = this;
-    if (!id) {
-      throw Error('Missing id');
-    }
-    await this.update({
-      status: ReportStatus.resolved,
-      actionTaken,
-      actionTakenReason: reason,
-      ...extraFields,
-    });
-  }
-
   async resolve(
     action: ActionTaken,
     reason?: string,
@@ -428,7 +384,10 @@ export class Report extends BaseModel {
           transactionId,
           async transaction => {
             if (transaction) {
-              await this.resolveReport(ActionTaken.warningIssued, reason, {
+              await this.update({
+                status: ReportStatus.resolved,
+                actionTaken: ActionTaken.warningIssued,
+                actionTakenReason: reason,
                 warningNotes: warningNotes,
               });
               unsubscribe();
@@ -455,10 +414,11 @@ export class Report extends BaseModel {
           async transaction => {
             if (transaction) {
               await transaction.terminate();
-              await this.resolveReport(
-                ActionTaken.terminateTransaction,
-                reason,
-              );
+              await this.update({
+                status: ReportStatus.resolved,
+                actionTaken: ActionTaken.terminateTransaction,
+                actionTakenReason: reason,
+              });
               unsubscribe();
               resolve();
             }
@@ -476,7 +436,11 @@ export class Report extends BaseModel {
     if (!id) {
       throw Error('Missing id');
     }
-    await this.resolveReport(ActionTaken.reject, reason);
+    await this.update({
+      status: ReportStatus.resolved,
+      actionTaken: ActionTaken.reject,
+      actionTakenReason: reason,
+    });
   }
 
   async approveTransaction(reason?: string): Promise<void> {
@@ -491,7 +455,11 @@ export class Report extends BaseModel {
           async transaction => {
             if (transaction) {
               await transaction.approve();
-              await this.resolveReport(ActionTaken.approveTransaction, reason);
+              await this.update({
+                status: ReportStatus.resolved,
+                actionTaken: ActionTaken.approveTransaction,
+                actionTakenReason: reason,
+              });
               unsubscribe();
               resolve();
             }
@@ -526,7 +494,11 @@ export class Report extends BaseModel {
                 const user = await User.getById(targetSuspendUserId);
                 if (user) {
                   await user.suspend();
-                  await this.resolveReport(ActionTaken.suspendUser, reason);
+                  await this.update({
+                    status: ReportStatus.resolved,
+                    actionTaken: ActionTaken.suspendUser,
+                    actionTakenReason: reason,
+                  });
                   resolve();
                   return;
                 }

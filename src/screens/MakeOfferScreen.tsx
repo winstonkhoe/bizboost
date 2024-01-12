@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {ScrollView, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useForm, FormProvider} from 'react-hook-form';
 import {flex} from '../styles/Flex';
@@ -7,19 +7,16 @@ import {FormFieldHelper} from '../components/atoms/FormLabel';
 import {gap} from '../styles/Gap';
 import {CustomTextInput} from '../components/atoms/Input';
 import {SelectCampaignOffer} from './offers/SelectCampaignOffer';
-import {Campaign} from '../model/Campaign';
+import {Campaign, CampaignPlatform} from '../model/Campaign';
 import {KeyboardAvoidingContainer} from '../containers/KeyboardAvoidingContainer';
-import {Transaction} from '../model/Transaction';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {Chat} from '../model/Chat';
 import {UserRole} from '../model/User';
 import {useUser} from '../hooks/user';
-import {useUserChats} from '../hooks/chats';
 import {CustomButton} from '../components/atoms/Button';
 import {Offer} from '../model/Offer';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
@@ -29,11 +26,14 @@ import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 import {LoadingScreen} from './LoadingScreen';
 import {isValidField} from '../utils/form';
+import {TaskFieldArray} from '../components/molecules/TaskFieldArray';
+import {Seperator} from '../components/atoms/Separator';
 
 export type MakeOfferFormData = {
   campaign: string;
   fee: number;
-  importantNotes: string;
+  tasks: CampaignPlatform[];
+  notes: string;
 };
 
 type Props = NativeStackScreenProps<
@@ -47,15 +47,12 @@ const MakeOfferScreen = ({route}: Props) => {
   const methods = useForm<MakeOfferFormData>({
     mode: 'all',
   });
-
+  const {setValue, watch} = methods;
   const {activeRole} = useUser();
-  const chats = useUserChats();
-
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign>();
+  const tasks = watch('tasks');
 
   const onSubmit = (data: MakeOfferFormData) => {
-    console.log('onsubmit:', data);
-
     if (!selectedCampaign?.id) {
       showToast({
         type: ToastType.info,
@@ -80,179 +77,143 @@ const MakeOfferScreen = ({route}: Props) => {
       return;
     }
 
-    const transaction = new Transaction({
+    setIsLoading(true);
+    const offer = new Offer({
       contentCreatorId: contentCreatorId,
       businessPeopleId: businessPeopleId,
       campaignId: selectedCampaign.id,
+      negotiations: [
+        {
+          tasks: data.tasks,
+          createdAt: new Date().getTime(),
+          negotiatedBy: UserRole.BusinessPeople,
+          notes: data.notes,
+          fee: data.fee,
+        },
+      ],
     });
 
-    console.log(transaction);
-    setIsLoading(true);
-    transaction
-      .offer()
-      .then(() => {
-        const offer = new Offer({
-          contentCreatorId: contentCreatorId,
-          businessPeopleId: businessPeopleId,
-          campaignId: selectedCampaign.id,
-          importantNotes: data.importantNotes,
-          platformTasks: selectedCampaign.platformTasks,
-          offeredPrice: data.fee,
+    offer
+      .insert()
+      .then(({chat}) => {
+        navigation.navigate(AuthenticatedNavigation.ChatDetail, {
+          chatId: chat.id,
         });
-
-        offer
-          .insert()
-          .then(() => {
-            const matchingChat = chats.chats.find(
-              chat =>
-                chat.contentCreatorId === contentCreatorId &&
-                chat.businessPeopleId === businessPeopleId,
-            );
-            console.log('matchingChat: ', matchingChat);
-
-            if (matchingChat !== undefined && matchingChat.id) {
-              console.log('ada chat');
-              Chat.insertOfferMessage(
-                matchingChat.id,
-                data.fee.toString(),
-                activeRole,
-              )
-                .then(() => {
-                  console.log('send!');
-                  navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                    chat: matchingChat,
-                  });
-                })
-                .catch(() => {
-                  showToast({
-                    type: ToastType.danger,
-                    message: 'Something went wrong',
-                  });
-                  setIsLoading(false);
-                });
-            } else {
-              const chat = new Chat({
-                businessPeopleId: businessPeopleId,
-                contentCreatorId: contentCreatorId,
-              });
-              chat
-                .insert()
-                .then(() => {
-                  Chat.insertOfferMessage(
-                    businessPeopleId + contentCreatorId,
-                    data.fee.toString(),
-                    activeRole,
-                  )
-                    .then(() => {
-                      navigation.navigate(AuthenticatedNavigation.ChatDetail, {
-                        chat: chat,
-                      });
-                    })
-                    .catch(() => {
-                      showToast({
-                        type: ToastType.danger,
-                        message: 'Something went wrong',
-                      });
-                      setIsLoading(false);
-                    });
-                })
-                .catch(() => {
-                  showToast({
-                    type: ToastType.danger,
-                    message: 'Something went wrong',
-                  });
-                  setIsLoading(false);
-                });
-            }
-          })
-          .catch(() => {
-            showToast({
-              type: ToastType.danger,
-              message: 'Something went wrong',
-            });
-            setIsLoading(false);
-          });
       })
-      .catch(() => {
+      .catch(error => {
         showToast({
           type: ToastType.danger,
-          message: 'Something went wrong',
+          message: error,
         });
-        setIsLoading(false);
-      });
+      })
+      .finally(() => setIsLoading(false));
   };
+
+  useEffect(() => {
+    if (selectedCampaign) {
+      setValue('tasks', selectedCampaign.platformTasks);
+    }
+  }, [selectedCampaign, setValue]);
+
+  const onChangeTasks = useCallback(
+    (platformTasks: CampaignPlatform[]) => {
+      setValue('tasks', platformTasks);
+    },
+    [setValue],
+  );
 
   return (
     <>
       {isLoading && <LoadingScreen />}
-      <PageWithBackButton
-        fullHeight
-        threshold={0}
-        enableSafeAreaContainer
-        backButtonPlaceholder={<BackButtonLabel text="Make Offer" />}>
-        <View style={[flex.flex1, flex.flexCol, padding.top.xlarge]}>
-          <KeyboardAvoidingContainer>
-            <FormProvider {...methods}>
-              <View
-                style={[
-                  flex.flex1,
-                  flex.flexCol,
-                  gap.xlarge,
-                  padding.horizontal.medium,
-                  padding.top.large,
-                ]}>
-                <SelectCampaignOffer
-                  onCampaignChange={setSelectedCampaign}
-                  contentCreatorToOfferId={contentCreatorId}
-                />
+      <FormProvider {...methods}>
+        <PageWithBackButton
+          fullHeight
+          threshold={0}
+          enableSafeAreaContainer
+          withoutScrollView
+          backButtonPlaceholder={<BackButtonLabel text="Make Offer" />}>
+          <View style={[flex.flex1, flex.flexCol, padding.top.xlarge]}>
+            <ScrollView contentContainerStyle={[padding.bottom.xlarge]}>
+              <KeyboardAvoidingContainer>
+                <View style={[flex.flexCol, gap.xlarge, padding.top.large]}>
+                  <View style={[padding.horizontal.default]}>
+                    <SelectCampaignOffer
+                      onCampaignChange={setSelectedCampaign}
+                      contentCreatorToOfferId={contentCreatorId}
+                    />
+                  </View>
+                  {tasks && (
+                    <View style={[flex.flexCol, gap.medium]}>
+                      <Seperator />
+                      <View style={[padding.horizontal.default]}>
+                        <TaskFieldArray
+                          onChange={onChangeTasks}
+                          defaultValue={tasks}
+                          isInitiallyEditable={false}
+                        />
+                      </View>
+                      <Seperator />
+                    </View>
+                  )}
 
-                <View style={[flex.flexCol, gap.default]}>
-                  <FormFieldHelper title="Offered Fee" titleSize={40} />
-                  <CustomTextInput
-                    name="fee"
-                    inputType="price"
-                    rules={{
-                      required: 'Fee is required',
-                      validate: value => {
-                        return (
-                          parseInt(value, 10) >= 50000 ||
-                          'Minimum fee is Rp50.000'
-                        );
-                      },
-                    }}
-                  />
-                </View>
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.default,
+                      padding.horizontal.default,
+                    ]}>
+                    <FormFieldHelper title="Offered Fee" titleSize={40} />
+                    <CustomTextInput
+                      name="fee"
+                      inputType="price"
+                      rules={{
+                        required: 'Fee is required',
+                        validate: value => {
+                          return (
+                            parseInt(value, 10) >= 50000 ||
+                            'Minimum fee is Rp50.000'
+                          );
+                        },
+                      }}
+                    />
+                  </View>
 
-                <View style={[flex.flexCol, gap.default]}>
-                  <FormFieldHelper
-                    title="Important Notes"
-                    type="optional"
-                    titleSize={40}
-                  />
-                  <CustomTextInput
-                    placeholder="Things to note for your offer"
-                    name="importantNotes"
-                    type="textarea"
-                    max={1000}
-                    counter
-                    description="Maximum 1000 characters"
-                  />
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.default,
+                      padding.horizontal.default,
+                    ]}>
+                    <FormFieldHelper
+                      title="Important Notes"
+                      type="optional"
+                      titleSize={40}
+                    />
+                    <CustomTextInput
+                      placeholder="Things to note for your offer"
+                      name="notes"
+                      type="textarea"
+                      max={1000}
+                      counter
+                      description="Maximum 1000 characters"
+                    />
+                  </View>
                 </View>
-              </View>
-            </FormProvider>
-          </KeyboardAvoidingContainer>
-          <View style={[padding.horizontal.medium]}>
-            <CustomButton
-              onPress={methods.handleSubmit(onSubmit)}
-              text={'Make Offer'}
-              disabled={
-                !selectedCampaign ||
-                !isValidField(methods.getFieldState('fee', methods.formState))
-              }
-            />
+              </KeyboardAvoidingContainer>
+            </ScrollView>
+            <View style={[padding.horizontal.medium]}>
+              <CustomButton
+                onPress={methods.handleSubmit(onSubmit)}
+                text={'Make Offer'}
+                disabled={
+                  !selectedCampaign ||
+                  !isValidField(methods.getFieldState('fee', methods.formState))
+                }
+              />
+            </View>
           </View>
-        </View>
-      </PageWithBackButton>
+        </PageWithBackButton>
+      </FormProvider>
     </>
   );
 };

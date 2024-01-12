@@ -7,7 +7,7 @@ import {
 } from '../../navigation/StackNavigation';
 import {useNavigation} from '@react-navigation/native';
 import {CloseModal} from '../../components/atoms/Close';
-import {flex} from '../../styles/Flex';
+import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {DeviceEventEmitter, Pressable, Text, View} from 'react-native';
 import {
@@ -35,16 +35,28 @@ import {COLOR} from '../../styles/Color';
 import {ChevronRight} from '../../components/atoms/Icon';
 import {useUser} from '../../hooks/user';
 import CampaignPlatformAccordion from '../../components/molecules/CampaignPlatformAccordion';
-import {useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {SocialPlatform} from '../../model/User';
 import SelectableTag from '../../components/atoms/SelectableTag';
-import {CampaignPlatform} from '../../model/Campaign';
+import {Campaign, CampaignPlatform} from '../../model/Campaign';
 import {padding} from '../../styles/Padding';
-import {SocialFieldArray} from '../campaign/CreateCampaignScreen';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import {BackButtonLabel} from '../../components/atoms/Header';
+import {dimension} from '../../styles/Dimension';
+import {overflow} from '../../styles/Overflow';
+import {showToast} from '../../helpers/toast';
+import {ErrorMessage} from '../../constants/errorMessage';
+import {ToastType} from '../../providers/ToastProvider';
+import {
+  SocialFieldArray,
+  TaskFieldArray,
+} from '../../components/molecules/TaskFieldArray';
+import {LoadingScreen} from '../LoadingScreen';
+import {Seperator} from '../../components/atoms/Separator';
 
 export type NegotiateFormData = {
   fee: number;
-  importantNotes: string;
+  notes: string;
   platforms: CampaignPlatform[];
 };
 
@@ -55,258 +67,170 @@ type Props = StackScreenProps<
 
 const ModalNegotiateScreen = ({route}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
-  const {offer, eventType, campaign} = route.params;
+  const {offer} = route.params;
+  const latestNegotiation = offer.getLatestNegotiation();
   const methods = useForm<NegotiateFormData>({
-    mode: 'all',
+    mode: 'onSubmit',
     defaultValues: {
-      fee: offer.negotiatedPrice ? offer.negotiatedPrice : offer.offeredPrice,
-      importantNotes: offer.negotiatedNotes
-        ? offer.negotiatedNotes
-        : offer.importantNotes,
-      platforms: offer.negotiatedTasks
-        ? offer.negotiatedTasks
-        : campaign.platformTasks,
+      fee: latestNegotiation?.fee,
+      notes: latestNegotiation?.notes,
+      platforms: latestNegotiation?.tasks,
     },
   });
+  const {setValue, getValues} = methods;
 
-  const [modify, setModify] = useState(false);
-
+  const [campaign, setCampaign] = useState<Campaign | null>();
   const {activeRole} = useUser();
+
+  useEffect(() => {
+    if (offer.campaignId) {
+      Campaign.getById(offer.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
+    }
+  }, [offer]);
 
   const onSubmit = (data: NegotiateFormData) => {
     console.log('onsubmit:', data);
 
+    if (!activeRole) {
+      showToast({
+        type: ToastType.info,
+        message: ErrorMessage.GENERAL,
+      });
+      return;
+    }
     offer
-      .negotiate(data.fee, data.importantNotes, data.platforms, activeRole)
+      .negotiate(data.fee, data.notes, data.platforms, activeRole)
       .then(() => {
-        DeviceEventEmitter.emit(eventType, data.fee.toString());
-        closeModal({
-          navigation: navigation,
-          triggerEventOnClose: 'close.negotiate',
-        });
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+        navigation.navigate(AuthenticatedNavigation.Home);
       });
   };
 
-  const {control, getValues} = methods;
+  const onChangeTasks = useCallback(
+    (platformTasks: CampaignPlatform[]) => {
+      setValue('platforms', platformTasks);
+    },
+    [setValue],
+  );
 
-  const {
-    fields: fieldsPlatform,
-    append: appendPlatform,
-    remove: removePlatform,
-  } = useFieldArray({
-    name: 'platforms',
-    control,
-  });
+  if (campaign === undefined) {
+    return <LoadingScreen />;
+  }
 
   return (
-    <SafeAreaContainer enable>
-      <FormProvider {...methods}>
-        <View className="items-center" style={[flex.flexRow, gap.default]}>
-          <CloseModal closeEventType="negotiate" />
-          <Text className="text-lg font-bold">Negotiate Offer</Text>
-        </View>
-        <ScrollView className="flex-1" style={flex.flexCol}>
-          <KeyboardAvoidingContainer>
-            <VerticalPadding>
-              <View style={flex.flexCol} className="flex-1 justify-between">
-                <View style={flex.flexCol}>
-                  <HorizontalPadding paddingSize="large">
-                    <View className="pb-5">
-                      <Text
-                        className="font-bold pb-2"
-                        style={[
-                          textColor(COLOR.text.neutral.high),
-                          font.size[50],
-                        ]}>
-                        {'Campaign'}
-                      </Text>
-                      <Pressable
-                        style={flex.flexRow}
-                        className="justify-between items-center py-1"
-                        onPress={() => {
-                          navigation.navigate(
-                            AuthenticatedNavigation.CampaignDetail,
-                            {
-                              campaignId: offer?.campaignId || '',
-                            },
-                          );
-                        }}>
-                        <View
-                          style={flex.flexRow}
-                          className="w-full items-center">
-                          <View
-                            className="mr-2 w-14 h-14 items-center justify-center overflow-hidden"
-                            style={[flex.flexRow, rounded.default]}>
-                            <FastImage
-                              className="w-full h-full object-cover"
-                              source={getSourceOrDefaultAvatar({
-                                uri: campaign?.image,
-                              })}
-                            />
-                          </View>
-                          <View className="flex-1" style={flex.flexCol}>
-                            <Text
-                              className="font-bold"
-                              style={[
-                                textColor(COLOR.text.neutral.high),
-                                font.size[40],
-                              ]}>
-                              {campaign?.title}
-                            </Text>
-                          </View>
-                          <HorizontalPadding paddingSize="small">
-                            <ChevronRight fill={COLOR.black[20]} />
-                          </HorizontalPadding>
-                        </View>
-                      </Pressable>
-                    </View>
-
-                    <View style={[flex.flexCol, gap.default]}>
-                      <FormFieldHelper title="Your Negotiation" />
-                      <CustomNumberInput
-                        name="fee"
-                        type="field"
-                        rules={{
-                          required: 'Fee is required',
-                          min: 500000,
-                        }}
+    <PageWithBackButton
+      fullHeight
+      icon="close"
+      threshold={0}
+      backButtonPlaceholder={<BackButtonLabel text="Negotiate Offer" />}>
+      <SafeAreaContainer enable>
+        <FormProvider {...methods}>
+          <ScrollView style={[flex.flex1, flex.flexCol, padding.top.xlarge3]}>
+            <KeyboardAvoidingContainer>
+              <View style={[flex.flexCol, gap.medium]}>
+                <View
+                  style={[flex.flexCol, gap.small, padding.horizontal.default]}>
+                  <Text
+                    style={[
+                      textColor(COLOR.text.neutral.high),
+                      font.weight.bold,
+                      font.size[50],
+                    ]}>
+                    {'Campaign'}
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      navigation.navigate(
+                        AuthenticatedNavigation.CampaignDetail,
+                        {
+                          campaignId: offer?.campaignId || '',
+                        },
+                      );
+                    }}
+                    style={[flex.flexRow, items.center, gap.default]}>
+                    <View
+                      style={[
+                        rounded.default,
+                        dimension.square.xlarge3,
+                        overflow.hidden,
+                      ]}>
+                      <FastImage
+                        style={[dimension.full]}
+                        source={getSourceOrDefaultAvatar({
+                          uri: campaign?.image,
+                        })}
                       />
                     </View>
+                    <Text
+                      style={[
+                        flex.flex1,
+                        font.weight.semibold,
+                        textColor(COLOR.text.neutral.high),
+                        font.size[40],
+                      ]}>
+                      {campaign?.title}
+                    </Text>
+                    <ChevronRight fill={COLOR.black[20]} size="large" />
+                  </Pressable>
+                </View>
 
-                    <View>
-                      <View
-                        style={flex.flexRow}
-                        className="items-center justify-between">
-                        <Text
-                          className="font-bold pb-2"
-                          style={[
-                            textColor(COLOR.text.neutral.high),
-                            font.size[50],
-                          ]}>
-                          {'Campaign Task'}
-                        </Text>
-                        <Pressable onPress={() => setModify(!modify)}>
-                          <Text style={textColor(COLOR.green[50])}>
-                            {modify ? 'Done' : 'Modify'}
-                          </Text>
-                        </Pressable>
-                      </View>
-                      {!modify && campaign?.platformTasks && (
-                        <View style={flex.flexCol}>
-                          {fieldsPlatform.map((fp, index) => (
-                            <CampaignPlatformAccordion
-                              platform={{
-                                name: fp.name,
-                                tasks:
-                                  getValues(`platforms.${index}.tasks`) || [],
-                              }}
-                              key={index}
-                            />
-                          ))}
-                        </View>
-                      )}
-                      {modify && (
-                        <View style={[flex.flexCol, gap.medium]}>
-                          <Controller
-                            control={control}
-                            name="platforms"
-                            rules={{required: 'Platform is required!'}}
-                            render={({
-                              field: {value: platforms},
-                              fieldState: {error},
-                            }) => (
-                              <View style={[flex.flexCol, gap.default]}>
-                                <FormFieldHelper
-                                  title="Campaign platforms"
-                                  description="Choose platforms for the campaign tasks."
-                                />
-                                <View className="flex flex-row gap-2">
-                                  {Object.values(SocialPlatform).map(
-                                    (value: SocialPlatform, index) => (
-                                      <View key={index}>
-                                        <SelectableTag
-                                          text={value}
-                                          isSelected={
-                                            platforms.find(
-                                              p => p.name === value,
-                                            ) !== undefined
-                                          }
-                                          onPress={() => {
-                                            const searchIndex =
-                                              platforms.findIndex(
-                                                p => p.name === value,
-                                              );
-                                            if (searchIndex !== -1) {
-                                              removePlatform(searchIndex);
-                                            } else {
-                                              appendPlatform({
-                                                name: value,
-                                                tasks: [],
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      </View>
-                                    ),
-                                  )}
-                                </View>
-                                {error && (
-                                  <Text className="text-xs mt-2 font-medium text-red-500">
-                                    {/* {`${error}`} */}
-                                    Platform is required!
-                                  </Text>
-                                )}
-                              </View>
-                            )}
-                          />
-                          {fieldsPlatform.map((fp, index) => (
-                            <View key={fp.id}>
-                              <SocialFieldArray
-                                platform={fp.name}
-                                control={control}
-                                title={`${fp.name}'s Task`}
-                                fieldType="textarea"
-                                maxFieldLength={150}
-                                parentName={`platforms.${index}.tasks`}
-                                helperText='Ex. "minimum 30s / story"'
-                                placeholder="Add task"
-                              />
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-
-                    <VerticalPadding paddingSize="xlarge">
-                      <View style={[flex.flexCol, gap.default]}>
-                        <FormFieldHelper
-                          title="Important Notes"
-                          type="optional"
-                        />
-                        <CustomTextInput
-                          placeholder="Things to note for your offer"
-                          name="importantNotes"
-                          type="textarea"
-                          defaultValue={offer.importantNotes}
-                        />
-                      </View>
-                    </VerticalPadding>
-                  </HorizontalPadding>
+                <View
+                  style={[flex.flexCol, gap.small, padding.horizontal.default]}>
+                  <FormFieldHelper title="Your Negotiation" />
+                  <CustomTextInput
+                    name="fee"
+                    inputType="price"
+                    rules={{
+                      required: 'Fee is required',
+                      validate: value => {
+                        return (
+                          parseInt(value, 10) >= 50000 ||
+                          'Minimum fee is Rp50.000'
+                        );
+                      },
+                    }}
+                  />
+                </View>
+                <Seperator />
+                <View style={[padding.horizontal.default]}>
+                  <TaskFieldArray
+                    isInitiallyEditable={false}
+                    onChange={onChangeTasks}
+                    defaultValue={getValues('platforms')}
+                  />
+                </View>
+                <Seperator />
+                <View
+                  style={[
+                    flex.flexCol,
+                    gap.default,
+                    padding.horizontal.default,
+                  ]}>
+                  <FormFieldHelper title="Important Notes" type="optional" />
+                  <CustomTextInput
+                    placeholder="Things to note for your offer"
+                    name="notes"
+                    type="textarea"
+                    defaultValue={getValues('notes')}
+                  />
                 </View>
               </View>
-            </VerticalPadding>
-          </KeyboardAvoidingContainer>
-        </ScrollView>
-        <HorizontalPadding>
-          <VerticalPadding>
+            </KeyboardAvoidingContainer>
+          </ScrollView>
+          <View style={[padding.default]}>
             <CustomButton
               text="Negotiate"
               onPress={methods.handleSubmit(onSubmit)}
             />
-          </VerticalPadding>
-        </HorizontalPadding>
-      </FormProvider>
-    </SafeAreaContainer>
+          </View>
+        </FormProvider>
+      </SafeAreaContainer>
+    </PageWithBackButton>
   );
 };
 

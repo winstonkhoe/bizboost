@@ -3,9 +3,11 @@ export enum ErrorCode {
   AUTH_EMAIL_ALREADY_IN_USE = 'auth/email-already-in-use',
   AUTH_WRONG_PASSWORD = 'auth/wrong-password',
   AUTH_INVALID_EMAIL = 'auth/invalid-email',
+  AUTH_USER_SUSPENDED = 'custom/user-suspended', // Custom Error Code
 }
 
 export enum ErrorMessage {
+  GENERAL = 'Oops! Something went wrong. Please try again.',
   CREDENTIALS_INVALID = 'Invalid Credentials!',
   MISSING_FIELDS = 'Missing fields!',
   PASSWORD_EMPTY = 'Password is required!',
@@ -18,4 +20,5 @@ export enum ErrorMessage {
   USER_EXISTS = 'User already exists',
   PROVIDER_ERROR = 'Provider error!',
   DEFAULT = 'Error!',
+  USER_SUSPENDED = 'Login failed! Your account has been suspended.',
 }

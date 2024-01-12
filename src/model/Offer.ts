@@ -4,6 +4,9 @@ import firestore, {
 import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
 import {Campaign, CampaignPlatform, CampaignTask} from './Campaign';
+import {Chat, MessageType} from './Chat';
+import {ErrorMessage} from '../constants/errorMessage';
+import {Transaction, TransactionStatus} from './Transaction';
 
 export const OFFER_COLLECTION = 'offers';
 
@@ -15,18 +18,21 @@ export enum OfferStatus {
   negotiateRejected = 'Negotiate Rejected',
 }
 
+export interface Negotiation {
+  fee?: number;
+  tasks: CampaignPlatform[];
+  notes?: string;
+  negotiatedBy?: UserRole;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
 export class Offer extends BaseModel {
   id?: string;
   contentCreatorId?: string;
   campaignId?: string;
   businessPeopleId?: string;
-  offeredPrice?: number;
-  negotiatedPrice?: number;
-  platformTasks: CampaignPlatform[];
-  negotiatedTasks: CampaignPlatform[];
-  importantNotes?: string;
-  negotiatedNotes?: string;
-  negotiatedBy?: UserRole;
+  negotiations: Negotiation[];
   status?: OfferStatus;
   createdAt?: number;
 
@@ -34,13 +40,7 @@ export class Offer extends BaseModel {
     contentCreatorId,
     campaignId,
     businessPeopleId,
-    offeredPrice,
-    negotiatedPrice,
-    platformTasks,
-    negotiatedTasks,
-    importantNotes,
-    negotiatedNotes,
-    negotiatedBy,
+    negotiations,
     status = OfferStatus.pending,
     createdAt,
   }: Partial<Offer>) {
@@ -51,34 +51,9 @@ export class Offer extends BaseModel {
     this.contentCreatorId = contentCreatorId;
     this.businessPeopleId = businessPeopleId;
     this.campaignId = campaignId;
-    this.offeredPrice = offeredPrice;
-    this.negotiatedPrice = negotiatedPrice;
-    this.platformTasks = platformTasks || [];
-    this.negotiatedTasks = negotiatedTasks || [];
-    this.importantNotes = importantNotes;
-    this.negotiatedNotes = negotiatedNotes;
-    this.negotiatedBy = negotiatedBy;
+    this.negotiations = negotiations || [];
     this.status = status;
     this.createdAt = createdAt;
-  }
-
-  toString(): string {
-    return `
-      Offer ID: ${this.id}
-      Content Creator ID: ${this.contentCreatorId}
-      Campaign ID: ${this.campaignId}
-      Business People ID: ${this.businessPeopleId}
-      Offered Price: ${this.offeredPrice}
-      Important Notes: ${this.importantNotes || ''}
-
-      Negotiated Price: ${this.negotiatedPrice}
-      Negotiated Notes: ${this.negotiatedNotes || ''}
-      Negotiated By: ${this.negotiatedBy || ''}
-      Status: ${this.status}
-      Updated At: ${
-        this.createdAt ? new Date(this.createdAt).toLocaleString() : 'N/A'
-      }
-    `;
   }
 
   private static fromSnapshot(
@@ -93,13 +68,7 @@ export class Offer extends BaseModel {
         contentCreatorId: data.contentCreatorId?.id,
         businessPeopleId: data.businessPeopleId?.id,
         campaignId: data.campaignId.id,
-        offeredPrice: data.offeredPrice,
-        negotiatedPrice: data.negotiatedPrice,
-        platformTasks: data.platformTasks,
-        negotiatedTasks: data.negotiatedTasks,
-        importantNotes: data.importantNotes,
-        negotiatedNotes: data.negotiatedNotes,
-        negotiatedBy: data.negotiatedBy,
+        negotiations: data.negotiations,
         status: data.status,
         createdAt: data.createdAt,
       });
@@ -119,18 +88,17 @@ export class Offer extends BaseModel {
     firestore().settings({
       ignoreUndefinedProperties: true,
     });
-    return this.getCollectionReference().doc(documentId);
+    return Offer.getCollectionReference().doc(documentId);
   }
 
   static async getById(id: string): Promise<Offer> {
     try {
-      const snapshot = await this.getDocumentReference(id).get();
+      const snapshot = await Offer.getDocumentReference(id).get();
       if (!snapshot.exists) {
         throw Error('Transaction not found!');
       }
 
-      const offer = this.fromSnapshot(snapshot);
-      return offer;
+      return Offer.fromSnapshot(snapshot);
     } catch (error) {
       console.error('Error in getById:', error);
     }
@@ -139,23 +107,45 @@ export class Offer extends BaseModel {
 
   async insert() {
     try {
-      const {id, ...rest} = this;
-      if (!id) {
-        throw Error('Missing id');
+      const {id, campaignId, contentCreatorId, businessPeopleId, ...rest} =
+        this;
+      const earliestNegotiation = this.getEarliestNegotiation();
+      if (
+        !id ||
+        !contentCreatorId ||
+        !businessPeopleId ||
+        !campaignId ||
+        !earliestNegotiation?.createdAt
+      ) {
+        throw Error(ErrorMessage.GENERAL);
       }
       const data = {
         ...rest,
-        contentCreatorId: User.getDocumentReference(
-          this.contentCreatorId ?? '',
-        ),
-        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
-        businessPeopleId: User.getDocumentReference(
-          this.businessPeopleId ?? '',
-        ),
+        contentCreatorId: User.getDocumentReference(contentCreatorId),
+        campaignId: Campaign.getDocumentReference(campaignId),
+        businessPeopleId: User.getDocumentReference(businessPeopleId),
         createdAt: new Date().getTime(),
       };
-
       await Offer.getDocumentReference(id).set(data);
+
+      const transaction = new Transaction({
+        contentCreatorId: contentCreatorId,
+        businessPeopleId: businessPeopleId,
+        campaignId: campaignId,
+      });
+      await transaction.offer();
+
+      const existingChat =
+        await Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId(
+          contentCreatorId,
+          businessPeopleId,
+        );
+      await existingChat.addOfferMessage(
+        UserRole.BusinessPeople,
+        id,
+        earliestNegotiation.createdAt,
+      );
+      return {chat: existingChat};
     } catch (error) {
       console.log(error);
       throw Error('Error!');
@@ -186,16 +176,9 @@ export class Offer extends BaseModel {
           OfferStatus.negotiateRejected,
         ])
         .onSnapshot(
-          querySnapshot => {
-            if (querySnapshot.empty) {
-              onComplete([]);
-            }
-
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
-          },
-          error => {
-            console.log(error);
-          },
+          querySnapshot =>
+            onComplete(querySnapshot.docs.map(Offer.fromSnapshot)),
+          error => console.log(error),
         );
 
       return unsubscribe;
@@ -213,13 +196,13 @@ export class Offer extends BaseModel {
     try {
       let query;
       if (activeRole === UserRole.BusinessPeople) {
-        query = this.getCollectionReference().where(
+        query = Offer.getCollectionReference().where(
           'businessPeopleId',
           '==',
           User.getDocumentReference(userId),
         );
       } else if (activeRole === UserRole.ContentCreator) {
-        query = this.getCollectionReference().where(
+        query = Offer.getCollectionReference().where(
           'contentCreatorId',
           '==',
           User.getDocumentReference(userId),
@@ -231,12 +214,9 @@ export class Offer extends BaseModel {
       return query
         .where('status', 'in', [OfferStatus.pending, OfferStatus.negotiate])
         .onSnapshot(
-          querySnapshot => {
-            onComplete(querySnapshot.docs.map(this.fromSnapshot));
-          },
-          error => {
-            console.log(error);
-          },
+          querySnapshot =>
+            onComplete(querySnapshot.docs.map(Offer.fromSnapshot)),
+          error => console.log(error),
         );
     } catch (error) {
       console.error(error);
@@ -244,102 +224,141 @@ export class Offer extends BaseModel {
     }
   }
 
-  async accept(): Promise<Offer> {
-    this.offeredPrice = this.negotiatedPrice;
-    this.importantNotes = this.negotiatedNotes;
-    this.platformTasks = this.negotiatedTasks;
-    await this.updateStatus(OfferStatus.approved);
-
-    return this;
-  }
-
-  async reject() {
-    this.offeredPrice = this.negotiatedPrice;
-    this.importantNotes = this.negotiatedNotes;
-    this.platformTasks = this.negotiatedTasks;
-    await this.updateStatus(OfferStatus.rejected);
-  }
-
-  async updateStatus(status: OfferStatus) {
+  async accept(role: UserRole) {
+    await this.update({
+      status: OfferStatus.approved,
+    });
+    this.status = OfferStatus.approved;
+    const {businessPeopleId, contentCreatorId, campaignId} = this;
+    const latestNegotiation = this.getLatestNegotiation();
+    if (
+      !businessPeopleId ||
+      !contentCreatorId ||
+      !campaignId ||
+      !latestNegotiation
+    ) {
+      throw Error(ErrorMessage.GENERAL);
+    }
     try {
-      const {id, ...rest} = this;
+      const transaction = new Transaction({
+        transactionAmount: latestNegotiation.fee,
+        platformTasks: latestNegotiation.tasks,
+        contentCreatorId: contentCreatorId,
+        businessPeopleId: businessPeopleId,
+        campaignId: campaignId,
+      });
+      await transaction.insert(TransactionStatus.offerWaitingForPayment);
+      const campaign = await Campaign.getById(campaignId);
+      const user = await User.getById(
+        role === UserRole.BusinessPeople ? businessPeopleId : contentCreatorId,
+      );
+      const name =
+        role === UserRole.BusinessPeople
+          ? user?.businessPeople?.fullname
+          : user?.contentCreator?.fullname;
+      const text = `${name} accepted offer for ${campaign?.title}. Transaction will begin after Business People have finished payment.`;
+      const existingChat =
+        await Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId(
+          contentCreatorId,
+          businessPeopleId,
+        );
+      await existingChat.addMessage(MessageType.System, role, {
+        content: text,
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Offer.accept error ' + error);
+    }
+  }
+
+  async reject(role: UserRole) {
+    await this.update({
+      status: OfferStatus.rejected,
+    });
+    this.status = OfferStatus.rejected;
+    const {businessPeopleId, contentCreatorId, campaignId} = this;
+    if (!businessPeopleId || !contentCreatorId || !campaignId) {
+      throw Error(ErrorMessage.GENERAL);
+    }
+    try {
+      const campaign = await Campaign.getById(campaignId);
+      const user = await User.getById(
+        role === UserRole.BusinessPeople ? businessPeopleId : contentCreatorId,
+      );
+      const name =
+        role === UserRole.BusinessPeople
+          ? user?.businessPeople?.fullname
+          : user?.contentCreator?.fullname;
+      const text = `${name} rejected offer for ${campaign?.title}.`;
+      const existingChat =
+        await Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId(
+          contentCreatorId,
+          businessPeopleId,
+        );
+      await existingChat.addMessage(MessageType.System, role, {
+        content: text,
+      });
+    } catch (error) {
+      console.log(error);
+      throw Error('Offer.reject error ' + error);
+    }
+  }
+
+  async update(fields: Partial<Offer>) {
+    try {
+      const {id} = this;
 
       if (!id) {
         throw Error('Missing id');
       }
 
-      this.status = status;
-      const data = {
-        ...rest,
-        contentCreatorId: User.getDocumentReference(
-          this.contentCreatorId ?? '',
-        ),
-        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
-        businessPeopleId: User.getDocumentReference(
-          this.businessPeopleId ?? '',
-        ),
-        status: status,
-      };
-
-      await Offer.getDocumentReference(id).set(data);
+      await Offer.getDocumentReference(id).update({
+        ...fields,
+        updatedAt: new Date().getTime(),
+      });
     } catch (error) {
       console.log(error);
-      throw Error('Offer.updateStatus error ' + error);
+      throw Error('Offer.update error ' + error);
     }
   }
 
   async negotiate(
     fee: number,
-    importantNotes: string,
-    platformTasks: CampaignPlatform[],
+    note: string,
+    tasks: CampaignPlatform[],
     negotiatedBy: UserRole,
   ) {
     try {
-      if (this.negotiatedBy) {
-        this.offeredPrice = this.negotiatedPrice;
-        this.importantNotes = this.negotiatedNotes;
-        this.platformTasks = this.negotiatedTasks;
+      const {id, contentCreatorId, businessPeopleId} = this;
+      if (!id || !contentCreatorId || !businessPeopleId) {
+        throw Error('Missing id');
       }
-
-      this.negotiatedPrice = fee;
-      this.negotiatedNotes = importantNotes;
-      this.negotiatedTasks = platformTasks;
-      this.negotiatedBy = negotiatedBy;
-
-      const {id, ...rest} = this;
-      const data = {
-        ...rest,
-        contentCreatorId: User.getDocumentReference(
-          this.contentCreatorId ?? '',
-        ),
-        campaignId: Campaign.getDocumentReference(this.campaignId ?? ''),
-        businessPeopleId: User.getDocumentReference(
-          this.businessPeopleId ?? '',
-        ),
-        status: OfferStatus.negotiate,
+      const negotiation = {
+        fee: fee,
+        notes: note,
+        tasks: tasks,
+        negotiatedBy: negotiatedBy,
+        createdAt: new Date().getTime(),
       };
 
-      await firestore().collection(OFFER_COLLECTION).doc(id).set(data);
-      return true;
+      await Offer.getDocumentReference(id).update({
+        negotiations: firestore.FieldValue.arrayUnion(negotiation),
+        status: OfferStatus.negotiate,
+      });
+      const existingChat =
+        await Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId(
+          contentCreatorId,
+          businessPeopleId,
+        );
+      await existingChat.addOfferMessage(
+        negotiation.negotiatedBy,
+        id,
+        negotiation.createdAt,
+      );
     } catch (error) {
       console.log(error);
+      throw Error('Offer.negotitate error ' + error);
     }
-    throw Error('Error!');
-  }
-
-  async acceptNegotiation() {
-    this.offeredPrice = this.negotiatedPrice;
-    this.importantNotes = this.negotiatedNotes;
-
-    await this.updateStatus(OfferStatus.approved);
-  }
-
-  async rejectNegotiation() {
-    await this.updateStatus(OfferStatus.negotiateRejected);
-  }
-
-  static filterByCampaignId(offers: Offer[], campaignId: string): Offer[] {
-    return offers.filter(offer => offer.campaignId === campaignId);
   }
 
   static async hasOfferForContentCreatorAndCampaign(
@@ -366,5 +385,67 @@ export class Offer extends BaseModel {
         'Offer.hasOfferForContentCreatorAndCampaign error ' + error,
       );
     }
+  }
+
+  static async getLatestOfferByCampaignIdBusinessPeopleIdContentCreatorId(
+    campaignId: string,
+    businessPeopleId: string,
+    contentCreatorId: string,
+  ) {
+    try {
+      const querySnapshot = await firestore()
+        .collection(OFFER_COLLECTION)
+        .where(
+          'businessPeopleId',
+          '==',
+          User.getDocumentReference(businessPeopleId),
+        )
+        .where(
+          'contentCreatorId',
+          '==',
+          User.getDocumentReference(contentCreatorId),
+        )
+        .where('campaignId', '==', Campaign.getDocumentReference(campaignId))
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      if (querySnapshot.size === 0) {
+        return null;
+      }
+
+      return Offer.fromSnapshot(querySnapshot.docs[0]);
+    } catch (error) {
+      console.error(error);
+      throw new Error(
+        'Offer.getLatestOfferByCampaignIdBusinessPeopleIdContentCreatorId error ' +
+          error,
+      );
+    }
+  }
+
+  getEarliestNegotiation() {
+    if (this.negotiations.length === 0) {
+      return null;
+    }
+    return this.negotiations.sort(
+      (a, b) => (a.createdAt || 0) - (b.createdAt || 0),
+    )[0];
+  }
+
+  getLatestNegotiation() {
+    if (this.negotiations.length === 0) {
+      return null;
+    }
+    return this.negotiations.sort(
+      (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+    )[0];
+  }
+
+  isPending() {
+    return this.status === OfferStatus.pending;
+  }
+
+  isNegotiating() {
+    return this.status === OfferStatus.negotiate;
   }
 }

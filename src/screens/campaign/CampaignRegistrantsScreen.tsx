@@ -6,7 +6,7 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useEffect, useMemo, useState} from 'react';
 import {Transaction, TransactionStatus} from '../../model/Transaction';
-import RegisteredUserListCard from '../../components/molecules/RegisteredUserListCard';
+import TransactionCard from '../../components/molecules/TransactionCard';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {UserRole} from '../../model/User';
@@ -162,7 +162,7 @@ const CampaignRegistrantsScreen = ({route}: Props) => {
           <EmptyPlaceholder />
         ) : (
           filteredTransactions.map((t, index) => (
-            <RegisteredUserListCard
+            <TransactionCard
               transaction={t}
               role={UserRole.BusinessPeople}
               key={index}

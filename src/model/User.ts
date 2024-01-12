@@ -5,7 +5,7 @@ import firestore, {
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {ErrorMessage} from '../constants/errorMessage';
 import {handleError} from '../utils/error';
-import {BaseModel} from './BaseModel';
+import {BaseModel, UpdateFields} from './BaseModel';
 import {
   AccessToken,
   GraphRequest,
@@ -13,7 +13,7 @@ import {
   LoginManager,
   LoginResult,
 } from 'react-native-fbsdk-next';
-import {AuthMethod, Provider, Providers} from './AuthMethod';
+import {AuthMethod, Provider} from './AuthMethod';
 import {Category} from './Category';
 import {Location} from './Location';
 import {deleteFileByURL} from '../helpers/storage';
@@ -67,6 +67,7 @@ export type ContentCreator = BaseUserData &
   ContentCreatorPreference & {
     specializedCategoryIds: string[];
     preferredLocationIds: string[];
+    biodata: string;
   };
 
 export type BusinessPeople = BaseUserData;
@@ -74,6 +75,8 @@ export type BusinessPeople = BaseUserData;
 export type SocialData = {
   username?: string;
   followersCount?: number;
+  isSynchronized?: boolean;
+  lastSyncAt?: number;
 };
 
 export interface UserAuthProviderData {
@@ -83,12 +86,6 @@ export interface UserAuthProviderData {
   name?: string;
   photo?: string;
   instagram?: SocialData;
-}
-
-export interface SignupContentCreatorProps extends Partial<User> {
-  token: string | null;
-  providerId?: string;
-  provider: Providers;
 }
 
 export class User extends BaseModel {
@@ -102,7 +99,7 @@ export class User extends BaseModel {
   tiktok?: SocialData;
   joinedAt?: number;
   isAdmin?: boolean;
-  status?: UserStatus;
+  status: UserStatus;
   bankAccountInformation?: BankAccountInformation;
 
   constructor({
@@ -133,6 +130,7 @@ export class User extends BaseModel {
       fullname: contentCreator?.fullname || '',
       rating: contentCreator?.rating || 0,
       ratedCount: contentCreator?.ratedCount || 0,
+      biodata: contentCreator?.biodata || '',
     };
     this.businessPeople = {
       ...businessPeople,
@@ -142,9 +140,15 @@ export class User extends BaseModel {
     };
     this.joinedAt = joinedAt;
     this.isAdmin = isAdmin;
-    this.status = status;
-    this.instagram = instagram;
-    this.tiktok = tiktok;
+    this.status = status || UserStatus.Active;
+    this.instagram = {
+      ...instagram,
+      isSynchronized: instagram?.isSynchronized || false,
+    };
+    this.tiktok = {
+      ...tiktok,
+      isSynchronized: tiktok?.isSynchronized || false,
+    };
     this.bankAccountInformation = bankAccountInformation;
     // Add your non-static methods here
   }
@@ -156,7 +160,7 @@ export class User extends BaseModel {
   ): User {
     const data = doc.data();
     if (data && doc.exists) {
-      return new User({
+      const user = new User({
         id: doc.id,
         email: data?.email,
         phone: data?.phone,
@@ -178,9 +182,11 @@ export class User extends BaseModel {
         businessPeople: data?.businessPeople,
         joinedAt: data?.joinedAt,
         isAdmin: data?.isAdmin,
-        status: data?.status || UserStatus.Active,
+        status: data?.status,
         bankAccountInformation: data.bankAccountInformation,
       });
+      user.syncSocialData();
+      return user;
     }
 
     throw Error("Error, document doesn't exist!");
@@ -191,8 +197,8 @@ export class User extends BaseModel {
   }
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    User.setFirestoreSettings();
+    return User.getCollectionReference().doc(documentId);
   }
 
   static async createUserWithEmailAndPassword(
@@ -206,32 +212,55 @@ export class User extends BaseModel {
     return {
       ...data,
       id: undefined,
+      password: undefined,
+      confirmPassword: undefined,
       email: data.email?.toLocaleLowerCase(),
       contentCreator: data.contentCreator && {
         ...data.contentCreator,
         specializedCategoryIds: data.contentCreator?.specializedCategoryIds.map(
-          categoryId => Category.getDocumentReference(categoryId),
+          Category.getDocumentReference,
         ),
         preferredLocationIds: data.contentCreator?.preferredLocationIds.map(
-          locationId => Location.getDocumentReference(locationId),
+          Location.getDocumentReference,
         ),
       },
     };
   }
 
-  static async setUserData(documentId: string, data: User): Promise<void> {
-    await this.getDocumentReference(documentId).set({
-      ...this.mappingUserFields(data),
-      joinedAt: new Date().getTime(),
-    });
-  }
-
-  async updateUserData(): Promise<void> {
+  async update(fields: Partial<User> | UpdateFields) {
     const {id} = this;
     if (!id) {
       throw Error('User id is not defined!');
     }
-    await User.getDocumentReference(id).update(User.mappingUserFields(this));
+    await User.getDocumentReference(id).update({
+      ...fields,
+    });
+  }
+
+  async createContentCreatorAccount() {
+    const {id} = this;
+    if (!id) {
+      throw Error('User id is not defined!');
+    }
+    await User.getDocumentReference(id).update({
+      tiktok: this.tiktok,
+      instagram: this.instagram,
+      contentCreator: {
+        ...this.contentCreator,
+      },
+    });
+  }
+
+  async createBusinessPeopleAccount() {
+    const {id} = this;
+    if (!id) {
+      throw Error('User id is not defined!');
+    }
+    await User.getDocumentReference(id).update({
+      businessPeople: {
+        ...this.businessPeople,
+      },
+    });
   }
 
   async updateProfilePicture(
@@ -245,34 +274,31 @@ export class User extends BaseModel {
       }
 
       const {profilePicture} = businessPeople;
-      if (!profilePicture) {
-        throw Error('Profile picture is not defined!');
+      if (profilePicture) {
+        await deleteFileByURL(profilePicture);
       }
-      await deleteFileByURL(profilePicture);
-
-      this.businessPeople = {
-        ...businessPeople,
-        profilePicture: profilePictureUrl,
-      };
-    } else if (activeRole === UserRole.ContentCreator) {
+      await this.update({
+        'businessPeople.profilePicture': profilePictureUrl,
+      });
+      businessPeople.profilePicture = profilePictureUrl;
+      return;
+    }
+    if (activeRole === UserRole.ContentCreator) {
       const {contentCreator} = this;
       if (!contentCreator) {
         throw Error('Business people is not defined!');
       }
 
       const {profilePicture} = contentCreator;
-      if (!profilePicture) {
-        throw Error('Profile picture is not defined!');
+      if (profilePicture) {
+        await deleteFileByURL(profilePicture);
       }
-      await deleteFileByURL(profilePicture);
-
-      this.contentCreator = {
-        ...contentCreator,
-        profilePicture: profilePictureUrl,
-      };
+      await this.update({
+        'contentCreator.profilePicture': profilePictureUrl,
+      });
+      contentCreator.profilePicture = profilePictureUrl;
+      return;
     }
-
-    await this.updateUserData();
   }
 
   async updatePassword(
@@ -310,7 +336,7 @@ export class User extends BaseModel {
   //     if (users.empty) {
   //       throw Error('No Users!');
   //     }
-  //     return users.docs.map(doc => this.fromSnapshot(doc));
+  //     return users.docs.map(doc => User.fromSnapshot(doc));
   //   } catch (error) {
   //     console.log(error);
   //     throw Error('Error!');
@@ -324,7 +350,7 @@ export class User extends BaseModel {
       // .where('isAdmin', '!=', true)
       .onSnapshot(
         querySnapshot => {
-          onComplete(querySnapshot.docs.map(this.fromSnapshot));
+          onComplete(querySnapshot.docs.map(User.fromSnapshot));
         },
         error => {
           console.log(error);
@@ -339,7 +365,7 @@ export class User extends BaseModel {
       const users = await this.getCollectionReference()
         .where(firestore.FieldPath.documentId(), 'in', documentIds)
         .get();
-      return users.docs.map(this.fromSnapshot);
+      return users.docs.map(User.fromSnapshot);
     } catch (error) {
       console.log(error);
       return [];
@@ -347,25 +373,26 @@ export class User extends BaseModel {
   }
 
   static async getById(documentId: string): Promise<User | null> {
-    const snapshot = await this.getDocumentReference(documentId).get();
+    const snapshot = await User.getDocumentReference(documentId).get();
     if (!snapshot.exists) {
       return null;
     }
-    return this.fromSnapshot(snapshot);
+    return User.fromSnapshot(snapshot);
   }
 
+  // TODO: jadiin satu sama getbyid
   static getUserDataReactive(
     documentId: string,
     callback: (user: User | null) => void,
     onError?: (error?: any) => void,
   ) {
     try {
-      const unsubscribe = this.getDocumentReference(documentId).onSnapshot(
+      const unsubscribe = User.getDocumentReference(documentId).onSnapshot(
         (
           documentSnapshot: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
         ) => {
           try {
-            const user = this.fromSnapshot(documentSnapshot);
+            const user = User.fromSnapshot(documentSnapshot);
             callback(user);
           } catch (error) {
             onError && onError(error);
@@ -386,64 +413,34 @@ export class User extends BaseModel {
     try {
       const users = await firestore()
         .collection(USER_COLLECTION)
-        .where('contentCreator', '!=', null)
+        .where('contentCreator.fullname', '!=', '')
         .get();
 
       if (users.empty) {
         throw Error('No content creators!');
       }
 
-      return users.docs.map(doc => this.fromSnapshot(doc));
+      return users.docs.map(doc => User.fromSnapshot(doc));
     } catch (error) {
       throw error; // Handle the error appropriately
     }
   }
 
-  static async signUp({
-    token,
-    provider,
-    providerId,
-    ...user
-  }: SignupContentCreatorProps) {
-    try {
-      const userCredential = await AuthMethod.getUserCredentialByProvider({
-        provider: provider,
-        token: token,
-        email: user.email,
-        password: user.password,
-      });
-
-      await this.setUserData(
-        userCredential.user.uid,
-        new User({
-          ...user,
-          password: undefined,
-        }),
-      );
-
-      await AuthMethod.setAuthMethod(
-        userCredential.user.uid,
-        new AuthMethod({
-          providerId: providerId,
-          email: user.email,
-          method: provider,
-        }),
-      );
-
-      return true;
-    } catch (error: any) {
-      console.log(error);
-      handleError(error.code);
-
-      return false;
-    }
-  }
-
   static async login(email: string, password: string) {
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      const credential = await auth().signInWithEmailAndPassword(
+        email,
+        password,
+      );
 
+      // const user = await User.getById(credential.user.uid);
+
+      // if (user?.status === UserStatus.Suspended) {
+      //   auth().signOut();
+      //   handleError(ErrorCode.AUTH_USER_SUSPENDED, ErrorMessage.USER_SUSPENDED);
+      // } else {
       return true;
+      // }
     } catch (error: any) {
       console.log('err: ' + error);
       handleError(error.code, ErrorMessage.LOGIN_FAILED);
@@ -498,7 +495,10 @@ export class User extends BaseModel {
       await AccessToken.getCurrentAccessToken();
 
     if (!fbAccessToken) {
-      throw Error(ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR);
+      throw Error(
+        'User.continueWithFacebook error ' +
+          ErrorMessage.FACEBOOK_ACCESS_TOKEN_ERROR,
+      );
     } else {
       const data = {
         id: '',
@@ -521,7 +521,7 @@ export class User extends BaseModel {
               provider: Provider.FACEBOOK,
               token: data.token,
             });
-            console.log('facebook account detected');
+            console.log('User.continueWithFacebook facebook account detected');
           } else {
             finishCallback({
               ...data,
@@ -531,6 +531,8 @@ export class User extends BaseModel {
               instagram: {
                 username: instagramUsername,
                 followersCount: followersCount,
+                isSynchronized: true,
+                lastSyncAt: new Date().getTime(),
               },
             });
             console.log('instagramDataCallback', result);
@@ -611,14 +613,153 @@ export class User extends BaseModel {
     }
   }
 
+  async syncSocialData() {
+    const {id, instagram} = this;
+    if (!id || !instagram?.isSynchronized) {
+      return;
+    }
+    const TWO_HOURS = 2 * 60 * 60 * 1000;
+    const currentTime = new Date().getTime();
+    const lastSyncTime = instagram.lastSyncAt || 0;
+    const timeDifference = currentTime - lastSyncTime;
+
+    if (timeDifference < TWO_HOURS) {
+      return;
+    }
+    if (instagram?.isSynchronized === true) {
+      try {
+        const fbAccessToken = await AccessToken.getCurrentAccessToken();
+        if (!fbAccessToken) {
+          return;
+        }
+
+        const instagramDataCallback = async (error?: Object, result?: any) => {
+          if (error) {
+            return;
+          }
+          const followersCount = result?.followers_count;
+          const instagramUsername = result?.username;
+          await User.getDocumentReference(id).update({
+            instagram: {
+              username: instagramUsername,
+              followersCount: followersCount,
+              isSynchronized: true,
+              lastSyncAt: new Date().getTime(),
+            },
+          });
+        };
+
+        const userInstagramBusinessAccountCallback = async (
+          error?: Object,
+          result?: any,
+        ) => {
+          if (error) {
+            return;
+          }
+          const instagramBusinessAccount = result?.instagram_business_account;
+          const instagramId = instagramBusinessAccount?.id;
+          const getInstagramDataRequest = new GraphRequest(
+            `/${instagramId}`,
+            {
+              parameters: {
+                fields: {
+                  string:
+                    'id,followers_count,media_count,username,website,biography,name,media,profile_picture_url',
+                },
+              },
+            },
+            instagramDataCallback,
+          );
+          await new GraphRequestManager()
+            .addRequest(getInstagramDataRequest)
+            .start();
+          console.log('userInstagramBusinessAccountCallback', result);
+        };
+
+        const userFacebookPagesListCallback = async (
+          error?: Object,
+          result?: any,
+        ) => {
+          if (error) {
+            return;
+          }
+          const data = result?.data;
+          if (data && data?.length > 0) {
+            const page = data?.[0];
+            if (page) {
+              const page_id = page?.id;
+              const getInstagramBusinessAccountRequest = new GraphRequest(
+                `/${page_id}`,
+                {
+                  parameters: {
+                    fields: {
+                      string: 'instagram_business_account',
+                    },
+                  },
+                },
+                userInstagramBusinessAccountCallback,
+              );
+              await new GraphRequestManager()
+                .addRequest(getInstagramBusinessAccountRequest)
+                .start();
+            }
+          }
+          console.log('userFacebookPagesListCallback', result);
+        };
+        const getUserFacebookPagesListRequest = new GraphRequest(
+          '/me/accounts',
+          {},
+          userFacebookPagesListCallback,
+        );
+
+        await new GraphRequestManager()
+          .addRequest(getUserFacebookPagesListRequest)
+          .start();
+      } catch (error) {
+        console.error('Error getting Facebook access token:', error);
+      }
+    }
+  }
+
+  async signup(token: string, provider: Provider, providerId: string) {
+    try {
+      const {email, password} = this;
+      const userCredential = await AuthMethod.getUserCredentialByProvider({
+        provider: provider,
+        token: token,
+        email: email,
+        password: password,
+      });
+
+      await User.getDocumentReference(userCredential.user.uid).set({
+        ...User.mappingUserFields(this),
+        joinedAt: new Date().getTime(),
+      });
+
+      await new AuthMethod({
+        id: userCredential.user.uid,
+        providerId: providerId,
+        email: email,
+        method: provider,
+      }).insert();
+    } catch (error: any) {
+      console.log(error);
+      throw Error('User.signUp error ' + error);
+    }
+  }
+
   async suspend() {
+    await this.update({
+      status: UserStatus.Suspended,
+    });
     this.status = UserStatus.Suspended;
-    await this.updateUserData();
   }
 
   async activate() {
+    await this.update({
+      status: UserStatus.Active,
+    });
     this.status = UserStatus.Active;
-    await this.updateUserData();
   }
 
   async updateRating(newRating: number, role: UserRole) {
@@ -642,11 +783,12 @@ export class User extends BaseModel {
         currentRatedCount,
         newRatedCount,
       );
-      this.contentCreator = {
-        ...contentCreator,
-        rating: calculatedRating,
-        ratedCount: newRatedCount,
-      };
+      this.update({
+        'contentCreator.rating': calculatedRating,
+        'contentCreator.ratedCount': newRatedCount,
+      });
+      contentCreator.rating = calculatedRating;
+      contentCreator.ratedCount = newRatedCount;
     }
     if (role === UserRole.BusinessPeople && businessPeople) {
       const currentRating = businessPeople?.rating;
@@ -657,13 +799,13 @@ export class User extends BaseModel {
         currentRatedCount,
         newRatedCount,
       );
-      this.businessPeople = {
-        ...businessPeople,
-        rating: calculatedRating,
-        ratedCount: newRatedCount,
-      };
+      this.update({
+        'businessPeople.rating': calculatedRating,
+        'businessPeople.ratedCount': newRatedCount,
+      });
+      businessPeople.rating = calculatedRating;
+      businessPeople.ratedCount = newRatedCount;
     }
-    await this.updateUserData();
   }
 
   static async signOut() {

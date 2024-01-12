@@ -7,8 +7,8 @@ import {
 } from '../../navigation/StackNavigation';
 import {Pressable, StyleSheet, Text} from 'react-native';
 import {View} from 'react-native';
-import TagCard from '../../components/atoms/TagCard';
-import {Campaign} from '../../model/Campaign';
+import LocationTag from '../../components/atoms/LocationTag';
+import {Campaign, CampaignType} from '../../model/Campaign';
 import {formatDateToDayMonthYear} from '../../utils/date';
 import {CustomButton} from '../../components/atoms/Button';
 import {useUser} from '../../hooks/user';
@@ -43,11 +43,11 @@ import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {ChevronRight, DateIcon} from '../../components/atoms/Icon';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
-import {CollapsiblePanel} from '../transaction/TransactionDetailScreen';
 import {font} from '../../styles/Font';
 import {background} from '../../styles/BackgroundColor';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
+import StatusTag, {StatusType} from '../../components/atoms/StatusTag';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.CampaignDetail
@@ -62,7 +62,6 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [transaction, setTransaction] = useState<Transaction>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
-  const [isMoreInfoVisible, setIsMoreInfoVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [approvedTransactionsCount, setApprovedTransactionsCount] = useState(0);
 
@@ -94,7 +93,9 @@ const CampaignDetailScreen = ({route}: Props) => {
 
   useEffect(() => {
     if (campaign?.userId) {
-      User.getById(campaign?.userId).then(setBusinessPeople);
+      User.getById(campaign.userId)
+        .then(setBusinessPeople)
+        .catch(() => setBusinessPeople(null));
     }
   }, [campaign]);
 
@@ -172,42 +173,14 @@ const CampaignDetailScreen = ({route}: Props) => {
               />
             </View>
             <View style={[flex.flexCol, padding.medium, gap.default]}>
-              <Text
-                className="font-bold"
-                style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                {campaign.title}
-              </Text>
-              <View className="flex flex-row justify-between">
-                <Pressable
-                  style={[
-                    flex.flexRow,
-                    gap.small,
-                    items.center,
-                    padding.horizontal.default,
-                    padding.vertical.small,
-                    rounded.default,
-                    border({
-                      borderWidth: 1,
-                      color: COLOR.green[60],
-                    }),
-                    background(COLOR.green[5]),
-                  ]}
-                  onPress={navigateToCampaignTimeline}>
-                  <DateIcon size="medium" color={COLOR.green[60]} />
+              <View className="flex flex-row justify-between items-start">
+                <View className="w-2/3">
                   <Text
                     className="font-bold"
-                    style={[font.size[20], textColor(COLOR.green[60])]}>
-                    {`${formatDateToDayMonthYear(
-                      new Date(
-                        new Campaign(campaign).getTimelineStart()?.start,
-                      ),
-                    )} - ${formatDateToDayMonthYear(
-                      // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
-                      new Date(new Campaign(campaign).getTimelineEnd()?.end),
-                    )}`}
+                    style={[font.size[50], textColor(COLOR.text.neutral.high)]}>
+                    {campaign.title}
                   </Text>
-                  <ChevronRight size="medium" color={COLOR.green[60]} />
-                </Pressable>
+                </View>
                 <View style={[flex.flexRow, items.center, gap.small]}>
                   <People
                     width={20}
@@ -218,11 +191,11 @@ const CampaignDetailScreen = ({route}: Props) => {
                     style={[
                       background(COLOR.black[20]),
                       rounded.default,
-                      padding.horizontal.default,
-                      padding.vertical.small,
+                      padding.horizontal.small,
+                      padding.vertical.xsmall,
                     ]}>
                     <Text
-                      className="font-bold"
+                      className="font-semibold"
                       style={[
                         font.size[20],
                         textColor(COLOR.text.neutral.high),
@@ -232,41 +205,52 @@ const CampaignDetailScreen = ({route}: Props) => {
                   </View>
                 </View>
               </View>
-
-              {/* <Text className="font-semibold text-base pb-2">Criteria</Text> */}
-              <View style={[flex.flexRow, flex.wrap, gap.small]}>
-                {campaign.criterias &&
-                  campaign.criterias.map((criteria: string, index: number) => (
-                    <View key={index}>
-                      <TagCard text={criteria} />
-                    </View>
-                  ))}
-              </View>
+              <Pressable
+                style={[flex.flexRow, gap.small, items.center]}
+                onPress={navigateToCampaignTimeline}>
+                <DateIcon size="medium" color={COLOR.green[60]} />
+                <Text
+                  className="font-bold"
+                  style={[font.size[20], textColor(COLOR.green[60])]}>
+                  {`${formatDateToDayMonthYear(
+                    new Date(new Campaign(campaign).getTimelineStart()?.start),
+                  )} - ${formatDateToDayMonthYear(
+                    // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
+                    new Date(new Campaign(campaign).getTimelineEnd()?.end),
+                  )}`}
+                </Text>
+                <ChevronRight size="medium" color={COLOR.green[60]} />
+              </Pressable>
 
               <Text style={[font.size[20], textColor(COLOR.text.neutral.high)]}>
                 {campaign.description}
               </Text>
 
-              <View
-                style={[
-                  flex.flexRow,
-                  flex.wrap,
-                  justify.between,
-                  items.center,
-                ]}>
-                <Text
-                  className="font-semibold"
-                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                  Fee
-                </Text>
-                {campaign.fee && (
+              {campaign.type === CampaignType.Public && (
+                <View
+                  style={[
+                    flex.flexRow,
+                    flex.wrap,
+                    justify.between,
+                    items.center,
+                  ]}>
                   <Text
-                    className="font-medium"
+                    className="font-semibold"
                     style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                    {formatToRupiah(campaign.fee)}
+                    Fee
                   </Text>
-                )}
-              </View>
+                  {campaign.fee && (
+                    <Text
+                      className="font-medium"
+                      style={[
+                        font.size[30],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {formatToRupiah(campaign.fee)}
+                    </Text>
+                  )}
+                </View>
+              )}
 
               {/* TODO: extract component */}
               {businessPeople && (
@@ -316,7 +300,27 @@ const CampaignDetailScreen = ({route}: Props) => {
                   <ChevronRight color={COLOR.black[20]} />
                 </Pressable>
               )}
-
+              <View className="flex flex-col">
+                <Text
+                  className="font-semibold pb-2"
+                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                  Criteria
+                </Text>
+                <View style={[flex.flexRow, flex.wrap, gap.small]}>
+                  {campaign.criterias &&
+                    campaign.criterias.map(
+                      (criteria: string, index: number) => (
+                        <View key={index}>
+                          <StatusTag
+                            status={criteria}
+                            fontSize={20}
+                            statusType={StatusType.terminated}
+                          />
+                        </View>
+                      ),
+                    )}
+                </View>
+              </View>
               <View className="flex flex-col" style={[gap.medium]}>
                 <View style={[flex.flexCol, gap.xsmall]}>
                   <Text
@@ -384,7 +388,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                     {campaign.locations &&
                       campaign.locations.map(
                         (location: string, index: number) => (
-                          <TagCard key={index} text={location} />
+                          <LocationTag key={index} text={location} />
                         ),
                       )}
                   </View>
@@ -449,10 +453,8 @@ const CampaignDetailScreen = ({route}: Props) => {
             )}
           {isCampaignOwner && (
             <CustomButton
-              customBackgroundColor={{
-                default: COLOR.background.neutral.high,
-                disabled: COLOR.background.neutral.disabled,
-              }}
+              // customBackgroundColor={COLOR.background.danger}
+              type="secondary"
               text="View Registrants"
               rounded="default"
               onPress={() =>

@@ -9,7 +9,7 @@ import {
 import {DeviceEventEmitter} from 'react-native';
 import {Campaign} from '../model/Campaign';
 import {Offer} from '../model/Offer';
-import {Chat} from '../model/Chat';
+import {Chat, MessageType} from '../model/Chat';
 import {useUser} from '../hooks/user';
 import {User, UserRole} from '../model/User';
 
@@ -68,71 +68,11 @@ export const openCategoryModal = ({
   });
 };
 
-interface NegotiateModalProps {
-  selectedOffer: Offer;
-  campaign: Campaign;
-  activeRole: UserRole;
-  navigation: NavigationStackProps;
-}
-export const openNegotiateModal = ({
-  selectedOffer,
-  campaign,
-  activeRole,
-  navigation,
-}: NegotiateModalProps) => {
-  const eventType = 'callback.negotiate';
-  navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
-    offer: selectedOffer,
-    eventType: eventType,
-    campaign: campaign,
-  });
-
-  const listener = DeviceEventEmitter.addListener(eventType, fee => {
-    const bpId = selectedOffer.businessPeopleId;
-    const ccId = selectedOffer.contentCreatorId;
-    Chat.insertNegotiateMessage(bpId + ccId, fee, activeRole);
-  });
-
-  const closeListener = DeviceEventEmitter.addListener(
-    'close.negotiate',
-    () => {
-      listener.remove();
-      closeListener.remove();
-    },
-  );
-};
-
-interface OfferActionProps {
-  offer: Offer;
-  navigation: NavigationStackProps;
-  onNegotiationComplete: (fee: string) => void;
-}
-export const openOfferActionModal = ({
-  offer,
-  navigation,
-  onNegotiationComplete,
-}: OfferActionProps) => {
-  const eventType = 'callback.action';
-  navigation.navigate(AuthenticatedNavigation.NegotiateModal, {
-    offer: selectedOffer,
-    eventType: eventType,
-  });
-
-  const listener = DeviceEventEmitter.addListener(eventType, fee => {
-    onNegotiationComplete(fee);
-  });
-
-  const closeListener = DeviceEventEmitter.addListener('close.action', () => {
-    listener.remove();
-    closeListener.remove();
-  });
-};
-
 interface CampaignModalProps {
   selectedCampaign?: Campaign;
   setSelectedCampaign: (campaign: Campaign) => void;
   navigation: NavigationStackProps;
-  contentCreatorToOfferId?: string;
+  contentCreatorToOfferId: string;
 }
 export const openCampaignModal = ({
   selectedCampaign,

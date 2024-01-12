@@ -18,7 +18,9 @@ import {useUser} from '../../../hooks/user';
 import {CustomButton} from '../../../components/atoms/Button';
 import {BankAccountInformation, User} from '../../../model/User';
 import {useNavigation} from '@react-navigation/native';
-import {NavigationStackProps} from '../../../navigation/StackNavigation';
+import {AuthenticatedNavigation, NavigationStackProps} from '../../../navigation/StackNavigation';
+import {showToast} from '../../../helpers/toast';
+import {ToastType} from '../../../providers/ToastProvider';
 
 const EditBankAccountInformationScreen = () => {
   const navigation = useNavigation<NavigationStackProps>();
@@ -35,11 +37,27 @@ const EditBankAccountInformationScreen = () => {
 
   const onSubmit = (b: BankAccountInformation) => {
     const temp = new User({...user});
-    temp.bankAccountInformation = b;
-
-    temp.updateUserData().then(() => {
-      navigation.goBack();
-    });
+    temp
+      .update({
+        bankAccountInformation: b,
+      })
+      .then(() => {
+        showToast({
+          type: ToastType.success,
+          message: 'Successfully updated bank account information',
+        });
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+        navigation.navigate(AuthenticatedNavigation.Home);
+      })
+      .catch(() => {
+        showToast({
+          type: ToastType.danger,
+          message: 'Failed to update bank account information',
+        });
+      });
   };
   return (
     <SafeAreaContainer enable>

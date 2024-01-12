@@ -276,13 +276,6 @@ export const TabNavigator = () => {
             }}
           />
           <Tab.Screen
-            name={TabNavigation.Dashboard}
-            component={DashboardScreen}
-            options={{
-              tabBarIcon: ({focused}) => dashboardIcon(focused),
-            }}
-          />
-          <Tab.Screen
             name={TabNavigation.Campaigns}
             component={CampaignsScreen}
             listeners={{

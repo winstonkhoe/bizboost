@@ -11,7 +11,10 @@ import {FormLabel} from '../../../components/atoms/FormLabel';
 import {font} from '../../../styles/Font';
 import {StringObject} from '../../../utils/stringObject';
 import {useNavigation} from '@react-navigation/native';
-import {NavigationStackProps} from '../../../navigation/StackNavigation';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../../navigation/StackNavigation';
 import {Controller, useFieldArray, useForm} from 'react-hook-form';
 import {useUser} from '../../../hooks/user';
 import {AnimatedPressable} from '../../../components/atoms/AnimatedPressable';
@@ -25,6 +28,8 @@ import {User} from '../../../model/User';
 import {SheetModal} from '../../../containers/SheetModal';
 import {FormlessCustomTextInput} from '../../../components/atoms/Input';
 import {useKeyboard} from '../../../hooks/keyboard';
+import {showToast} from '../../../helpers/toast';
+import {ToastType} from '../../../providers/ToastProvider';
 
 type FormData = {
   preferences: StringObject[];
@@ -74,14 +79,27 @@ const EditPreferencesScreen = () => {
   };
   const onSubmit = (d: FormData) => {
     const temp = new User({...user});
-    temp.contentCreator = {
-      ...temp.contentCreator!,
-      preferences: d.preferences.map(p => p.value),
-    };
-
-    temp.updateUserData().then(() => {
-      navigation.goBack();
-    });
+    temp
+      .update({
+        'contentCreator.preferences': d.preferences.map(p => p.value),
+      })
+      .then(() => {
+        showToast({
+          type: ToastType.success,
+          message: 'Preferences updated',
+        });
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+        navigation.navigate(AuthenticatedNavigation.Home);
+      })
+      .catch(() => {
+        showToast({
+          type: ToastType.danger,
+          message: 'Failed to update preferences',
+        });
+      });
   };
   return (
     <SafeAreaContainer enable>

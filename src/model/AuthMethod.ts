@@ -54,58 +54,44 @@ export class AuthMethod extends BaseModel {
     throw Error("Error, document doesn't exist!");
   }
 
-  private static fromQuerySnapshot(
-    querySnapshots: FirebaseFirestoreTypes.QuerySnapshot<FirebaseFirestoreTypes.DocumentData>,
-  ): AuthMethod[] {
-    return querySnapshots.docs.map(this.fromSnapshot);
-  }
-
   static getCollectionReference = () => {
     return firestore().collection(AUTH_METHOD_COLLECTION);
   };
 
   static getDocumentReference(documentId: string) {
-    this.setFirestoreSettings();
-    return this.getCollectionReference().doc(documentId);
+    AuthMethod.setFirestoreSettings();
+    return AuthMethod.getCollectionReference().doc(documentId);
   }
 
-  static async setAuthMethod(
-    documentId: string,
-    data: AuthMethod,
-  ): Promise<void> {
-    await this.getDocumentReference(documentId).set({
-      ...data,
-    });
-  }
-
-  static async getById(documentId: string): Promise<AuthMethod | undefined> {
-    const snapshot = await this.getDocumentReference(documentId).get();
-    if (snapshot.exists) {
-      return this.fromSnapshot(snapshot);
+  async insert() {
+    const {id, ...rest} = this;
+    if (!id) {
+      throw Error(ErrorMessage.MISSING_FIELDS);
     }
+    await AuthMethod.getDocumentReference(id).set(rest);
   }
 
   static async getByProviderId(
     providerId: string,
   ): Promise<AuthMethod | undefined> {
-    const querySnapshot = await this.getCollectionReference()
+    const querySnapshot = await AuthMethod.getCollectionReference()
       .where('providerId', '==', providerId)
       .get();
 
     if (!querySnapshot.empty) {
       const documentSnapshot = querySnapshot.docs[0];
-      return this.fromSnapshot(documentSnapshot);
+      return AuthMethod.fromSnapshot(documentSnapshot);
     }
   }
 
   static async getByEmail(email: string): Promise<AuthMethod | undefined> {
-    const querySnapshot = await this.getCollectionReference()
+    const querySnapshot = await AuthMethod.getCollectionReference()
       .where('email', '==', email.toLowerCase())
       .get();
 
     if (!querySnapshot.empty) {
       const documentSnapshot = querySnapshot.docs[0];
-      return this.fromSnapshot(documentSnapshot);
+      return AuthMethod.fromSnapshot(documentSnapshot);
     }
   }
 

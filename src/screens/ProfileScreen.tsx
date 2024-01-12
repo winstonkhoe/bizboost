@@ -1,10 +1,8 @@
 import {Pressable, Text, View} from 'react-native';
-import {User, UserRole} from '../model/User';
-import SafeAreaContainer from '../containers/SafeAreaContainer';
+import {SocialPlatform, User, UserRole} from '../model/User';
 import {ScrollView} from 'react-native';
 import {flex, items, justify} from '../styles/Flex';
 import {useUser} from '../hooks/user';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {rounded} from '../styles/BorderRadius';
 import LogoutIcon from '../assets/vectors/logout.svg';
 import TransactionIcon from '../assets/vectors/transaction.svg';
@@ -25,86 +23,85 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../navigation/StackNavigation';
-import {useEffect, useRef, useState} from 'react';
-import {Transaction, TransactionStatus} from '../model/Transaction';
-import PagerView from 'react-native-pager-view';
-import {Content} from '../model/Content';
+import {useEffect, useState} from 'react';
+import {PaymentStatus, Transaction} from '../model/Transaction';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
-import {Campaign, CampaignType} from '../model/Campaign';
+import {Campaign} from '../model/Campaign';
 import {textColor} from '../styles/Text';
 import {font} from '../styles/Font';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {dimension} from '../styles/Dimension';
+import {usePortfolio} from '../hooks/portfolio';
+import {TabView} from '../components/organisms/TabView';
+import {Review} from '../model/Review';
+import {LoadingScreen} from './LoadingScreen';
+import {ReviewList} from '../components/organisms/ReviewList';
+import {PortfolioList} from '../components/organisms/PortfolioList';
+import {overflow} from '../styles/Overflow';
+import {ReportIssueIcon} from '../components/atoms/Icon';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../styles/Size';
+import {SocialCard} from '../components/atoms/SocialCard';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
-  const {user, activeData, activeRole, uid} = useUser();
+  const {
+    user,
+    activeData,
+    activeRole,
+    uid,
+    isContentCreator,
+    isBusinessPeople,
+    isAdmin,
+  } = useUser();
   const navigation = useNavigation<NavigationStackProps>();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [ongoingTransactionsCount, setOngoingTransactionsCount] = useState(0);
-  const [publicCampaignsCount, setPublicCampaignsCount] = useState(0);
-  const pagerViewRef = useRef<PagerView>(null);
-  const [selectedTab, setSelectedTab] = useState(0);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [contents, setContents] = useState<Content[]>();
+  const [transactions, setTransactions] = useState<Transaction[]>();
+  const [reviews, setReviews] = useState<Review[]>();
+  const [campaigns, setCampaigns] = useState<Campaign[]>();
+  const safeAreaInsets = useSafeAreaInsets();
+  const publicCampaignsCount = campaigns?.filter(c => c.isPublic()).length || 0;
+  const ongoingTransactionsCount =
+    transactions?.filter(t => t.isOngoing()).length || 0;
+  const completedTransactionsCount =
+    transactions?.filter(t => t.isCompleted() || t.isTerminated()).length || 0;
+  const withdrawableTransactionsCount =
+    transactions?.filter(
+      t =>
+        t.isCompleted() &&
+        t.payment?.status &&
+        [
+          PaymentStatus.proofApproved,
+          PaymentStatus.withdrawalRequested,
+        ].includes(t.payment?.status),
+    ).length || 0;
+  const {portfolios} = usePortfolio(uid || '');
 
   useEffect(() => {
-    // TODO: gatau ini mestinya gabung sama yang di dalem modal transactionsnya apa ngga biar fetch skali? tp kalo kek gitu gabisa dua"nya ngelisten, jadinya cuma salah satu, krn behaviour si modal kan navigate yaa
-    var unsubscribeTransaction: () => void;
-    if (activeRole !== UserRole.Admin) {
-      unsubscribeTransaction = Transaction.getAllTransactionsByRole(
-        uid || '',
+    if (uid && activeRole !== UserRole.Admin) {
+      return Transaction.getAllTransactionsByRole(
+        uid,
         activeRole,
-        t => setTransactions(t),
+        setTransactions,
       );
     }
-
-    const unsubscribeCampaign = Campaign.getUserCampaignsReactive(
-      uid || '',
-      c => {
-        setCampaigns(c);
-      },
-    );
-
-    // TODO: ini juga bakal butuh dibuat .onSnapshot kyknya nantinya
-    Content.getByUserId(uid || '').then(content => {
-      setContents(content);
-    });
-
-    return () => {
-      // TODO: kyknya yang bener kayak campaign aja, di transaction tiap catch eror masih ngethrow lagi, kyknya nanti hapus aja thrownya tktnya bikin ribet
-      unsubscribeTransaction && unsubscribeTransaction();
-      if (unsubscribeCampaign) unsubscribeCampaign();
-    };
   }, [uid, activeRole]);
 
   useEffect(() => {
-    // TODO: ongoing berarti ga rejected dan ga done, kalo finished berarti total transaction minus ini.
-    setOngoingTransactionsCount(
-      transactions.filter(
-        t =>
-          t.status !== TransactionStatus.registrationRejected &&
-          t.status !== TransactionStatus.done,
-      ).length,
-    );
-  }, [transactions]);
+    if (uid) {
+      return Campaign.getUserCampaignsReactive(uid, setCampaigns);
+    }
+  }, [uid, activeRole]);
 
   useEffect(() => {
-    setPublicCampaignsCount(
-      campaigns.filter(c => c.type === CampaignType.Public).length,
-    );
-  }, [campaigns]);
-
-  const goToInfoTab = () => {
-    pagerViewRef.current?.setPage(0);
-    setSelectedTab(0);
-  };
-
-  const goToPortfolioTab = () => {
-    pagerViewRef.current?.setPage(1);
-    setSelectedTab(1);
-  };
+    if (uid && activeRole) {
+      Review.getReviewsByRevieweeId(uid, activeRole)
+        .then(setReviews)
+        .catch(() => {
+          setReviews([]);
+        });
+    }
+  }, [uid, activeRole]);
 
   const onProfilePictureChanged = (url: string) => {
     if (!user) {
@@ -115,320 +112,222 @@ const ProfileScreen = () => {
     updatedUser.updateProfilePicture(activeRole, url);
   };
 
+  // TODO: kondisi buat admin
+  if ((!reviews || !transactions) && activeRole !== UserRole.Admin) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <View className="flex-1">
-      <ScrollView
-        bounces={false}
-        contentContainerStyle={{flexGrow: 1}}
-        showsVerticalScrollIndicator={false}>
-        <SafeAreaContainer enable>
-          <View className="flex-1 justify-between" style={[flex.flexCol]}>
-            <View className="flex-1" style={[flex.flexCol]}>
-              <HorizontalPadding>
-                <View className="w-full" style={[flex.flexCol, gap.xlarge]}>
-                  <View
-                    className="items-center"
-                    style={[flex.flexRow, gap.large]}>
-                    <View className="relative">
-                      <View
-                        className="w-20 h-20 overflow-hidden"
-                        style={[rounded.max]}>
-                        <MediaUploader
-                          targetFolder="profile-pictures"
-                          options={{
-                            width: 400,
-                            height: 400,
-                            cropping: true,
-                            includeBase64: true,
-                          }}
-                          showUploadProgress
-                          onUploadSuccess={onProfilePictureChanged}>
-                          <FastImage
-                            style={[dimension.full]}
-                            source={getSourceOrDefaultAvatar({
-                              uri: activeData?.profilePicture,
-                            })}
-                          />
-                        </MediaUploader>
-                      </View>
-                      <View
-                        className="absolute bottom-0 right-1 p-2 rounded-full"
-                        style={[background(COLOR.background.green.med)]}>
-                        <Edit width={13} height={13} color={'white'} />
-                      </View>
-                    </View>
-
-                    <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
-                      <Text
-                        className="font-bold"
-                        style={[
-                          font.size[30],
-                          textColor(COLOR.text.neutral.high),
-                        ]}
-                        numberOfLines={1}>
-                        {activeData?.fullname}
-                      </Text>
-                      <Text
-                        style={[
-                          font.size[20],
-                          textColor(COLOR.text.neutral.high),
-                        ]}
-                        numberOfLines={1}>
-                        {user?.email}
-                      </Text>
-                      <Text
-                        style={[
-                          font.size[20],
-                          textColor(COLOR.text.neutral.med),
-                        ]}
-                        numberOfLines={1}>
-                        {activeRole}
-                      </Text>
-                    </View>
-                    <Pressable
-                      onPress={() => {
-                        User.signOut()
-                          .then(() => dispatch(disableAccess()))
-                          .catch(err => console.log('logout error', err));
-                      }}
-                      className="justify-center"
-                      style={[flex.flexCol, padding.default]}>
-                      <LogoutIcon
-                        width={25}
-                        height={25}
-                        stroke={COLOR.red[50]}
-                        strokeWidth={3}
-                      />
-                    </Pressable>
-                  </View>
-                </View>
-                {/* TODO: bikin komponen tab samain sama cc detail*/}
-                <View style={flex.flexRow} className="py-3 ">
-                  <Pressable
-                    style={flex.flexRow}
-                    className={`${
-                      selectedTab === 0
-                        ? 'bg-primary'
-                        : 'border border-zinc-200'
-                    } rounded-l-md p-2 justify-center items-center text-center w-1/2`}
-                    onPress={goToInfoTab}>
-                    <Text style={[textColor(COLOR.text.neutral.high)]}>
-                      Info
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    style={flex.flexRow}
-                    className={`${
-                      selectedTab === 1
-                        ? 'bg-primary'
-                        : 'border border-zinc-200'
-                    } rounded-r-md p-2 justify-center items-center text-center w-1/2`}
-                    onPress={goToPortfolioTab}>
-                    <Text style={[textColor(COLOR.text.neutral.high)]}>
-                      Portfolio
-                    </Text>
-                  </Pressable>
-                </View>
-
-                <PagerView
-                  ref={pagerViewRef}
-                  className="w-full h-full"
-                  style={[flex.flexCol]}
-                  initialPage={selectedTab}
-                  onPageSelected={e => {
-                    setSelectedTab(e.nativeEvent.position);
-                  }}>
-                  <View key="1">
-                    <View
-                      style={[
-                        flex.flexRow,
-                        flex.wrap,
-                        justify.between,
-                        items.center,
-                      ]}>
-                      {activeRole !== UserRole.Admin && (
-                        <ProfileMenuCard
-                          handleOnClick={() => {
-                            navigation.navigate(
-                              AuthenticatedNavigation.MyTransactions,
-                              {userId: uid || '', role: activeRole},
-                            );
-                          }}
-                          icon={
-                            <TransactionIcon
-                              fill={'#72B3FF'}
-                              height={80}
-                              width={80}
-                            />
-                          }
-                          title="My Transactions"
-                          subtitle={`${ongoingTransactionsCount} Ongoing\n${
-                            transactions.length - ongoingTransactionsCount
-                          } Finished`}
-                        />
-                      )}
-                      <ProfileMenuCard
-                        handleOnClick={() => {
-                          navigation.navigate(AuthenticatedNavigation.AboutMe);
-                        }}
-                        icon={
-                          <AboutIcon fill={'#FB8A2E'} height={80} width={80} />
-                        }
-                        title="About Me"
-                        subtitle={'Edit Information people see on your profile'}
-                      />
-                      {/* TODO: ini kayaknya ga perlu lagi */}
-                      {activeRole === UserRole.BusinessPeople && (
-                        <ProfileMenuCard
-                          handleOnClick={() => {
-                            navigation.navigate(
-                              AuthenticatedNavigation.PayContentCreator,
-                            );
-                          }}
-                          icon={
-                            <MoneyIcon
-                              fill={COLOR.green[50]}
-                              height={80}
-                              width={80}
-                            />
-                          }
-                          title={'Pay Content Creator'}
-                          subtitle={'0 Pending Payment'}
-                        />
-                      )}
-                      {activeRole === UserRole.ContentCreator && (
-                        <ProfileMenuCard
-                          handleOnClick={() => {
-                            navigation.navigate(
-                              AuthenticatedNavigation.WithdrawMoney,
-                            );
-                          }}
-                          icon={
-                            <MoneyIcon
-                              fill={COLOR.green[50]}
-                              height={80}
-                              width={80}
-                            />
-                          }
-                          title={'Withdraw Money'}
-                          subtitle={'2 Transactions ready to be withdrawn'}
-                        />
-                      )}
-                      {activeRole === UserRole.ContentCreator && (
-                        <ProfileMenuCard
-                          handleOnClick={() => {
-                            navigation.navigate(
-                              AuthenticatedNavigation.UploadVideo,
-                            );
-                          }}
-                          icon={
-                            <AddIcon
-                              fill={COLOR.red[40]}
-                              height={80}
-                              width={80}
-                            />
-                          }
-                          title="Upload Video"
-                          subtitle={'Add more videos to promote yourself.'}
-                        />
-                      )}
-
-                      {activeRole === UserRole.BusinessPeople && (
-                        <ProfileMenuCard
-                          handleOnClick={() => {
-                            navigation.navigate(
-                              AuthenticatedNavigation.MyCampaigns,
-                            );
-                          }}
-                          icon={
-                            <CampaignIcon
-                              fill={'#72B3FF'}
-                              height={80}
-                              width={80}
-                            />
-                          }
-                          title="My Campaigns"
-                          subtitle={`${publicCampaignsCount} Public\n${
-                            campaigns.length - publicCampaignsCount
-                          } Private`}
-                        />
-                      )}
-                    </View>
-                  </View>
-                  <View key="2">
-                    <View style={[flex.flexRow, gap.default]}>
-                      <View
-                        style={[
-                          flex.flex1,
-                          flex.growShrink,
-                          flex.flexCol,
-                          gap.default,
-                        ]}>
-                        {contents?.map(
-                          (content, idx) =>
-                            idx % 2 === 0 && (
-                              <Pressable
-                                key={content.id}
-                                onPress={() => {
-                                  navigation.navigate(
-                                    AuthenticatedNavigation.SpecificExploreModal,
-                                    {
-                                      contentCreatorId: uid || '',
-                                      targetContentId: content.id,
-                                    },
-                                  );
-                                }}>
-                                <FastImage
-                                  source={{uri: content.thumbnail}}
-                                  style={{
-                                    height: 200,
-                                    borderRadius: 10,
-                                  }}
-                                />
-                              </Pressable>
-                            ),
-                        )}
-                      </View>
-                      <View
-                        style={[
-                          flex.flex1,
-                          flex.growShrink,
-                          flex.flexCol,
-                          gap.default,
-                        ]}>
-                        {contents?.map(
-                          (content, idx) =>
-                            idx % 2 !== 0 && (
-                              <Pressable
-                                key={content.id}
-                                onPress={() => {
-                                  navigation.navigate(
-                                    AuthenticatedNavigation.SpecificExploreModal,
-                                    {
-                                      contentCreatorId: uid || '',
-                                      targetContentId: content.id,
-                                    },
-                                  );
-                                }}>
-                                <FastImage
-                                  source={{uri: content.thumbnail}}
-                                  style={{
-                                    height: 200,
-                                    borderRadius: 10,
-                                  }}
-                                />
-                              </Pressable>
-                            ),
-                        )}
-                      </View>
-                    </View>
-                  </View>
-                </PagerView>
-              </HorizontalPadding>
-            </View>
+    <View
+      style={[
+        flex.flex1,
+        flex.flexCol,
+        background(COLOR.background.neutral.default),
+        {
+          paddingTop: Math.max(safeAreaInsets.top, size.default),
+        },
+      ]}>
+      <View
+        style={[
+          flex.flexRow,
+          gap.large,
+          items.center,
+          padding.horizontal.default,
+        ]}>
+        <View className="relative">
+          <View
+            style={[dimension.square.xlarge4, rounded.max, overflow.hidden]}>
+            <MediaUploader
+              targetFolder="profile-pictures"
+              options={{
+                width: 400,
+                height: 400,
+                cropping: true,
+                includeBase64: true,
+              }}
+              showUploadProgress
+              onUploadSuccess={onProfilePictureChanged}>
+              <FastImage
+                style={[dimension.full]}
+                source={getSourceOrDefaultAvatar({
+                  uri: activeData?.profilePicture,
+                })}
+              />
+            </MediaUploader>
           </View>
-        </SafeAreaContainer>
-      </ScrollView>
+          <View
+            className="absolute bottom-0 right-1 p-2 rounded-full"
+            style={[background(COLOR.background.green.med)]}>
+            <Edit width={13} height={13} color={'white'} />
+          </View>
+        </View>
+
+        <View style={[flex.flex1, flex.flexCol, gap.xsmall2]}>
+          <Text
+            className="font-bold"
+            style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+            numberOfLines={1}>
+            {activeData?.fullname}
+          </Text>
+          <Text
+            style={[font.size[20], textColor(COLOR.text.neutral.high)]}
+            numberOfLines={1}>
+            {user?.email}
+          </Text>
+          <Text
+            style={[font.size[20], textColor(COLOR.text.neutral.med)]}
+            numberOfLines={1}>
+            {activeRole}
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => {
+            User.signOut()
+              .then(() => dispatch(disableAccess()))
+              .catch(err => console.log('logout error', err));
+          }}
+          className="justify-center"
+          style={[flex.flexCol, padding.default]}>
+          <LogoutIcon
+            width={25}
+            height={25}
+            stroke={COLOR.red[50]}
+            strokeWidth={3}
+          />
+        </Pressable>
+      </View>
+      <View
+        style={[
+          flex.flexRow,
+          gap.default,
+          padding.horizontal.default,
+          padding.top.default,
+        ]}>
+        {user?.instagram?.username && (
+          <SocialCard
+            type="detail"
+            platform={SocialPlatform.Instagram}
+            data={user?.instagram}
+          />
+        )}
+        {user?.tiktok?.username && (
+          <SocialCard
+            type="detail"
+            platform={SocialPlatform.Tiktok}
+            data={user?.tiktok}
+          />
+        )}
+      </View>
+      {/* TODO: tab labels sesuai role */}
+      {!isAdmin && (
+        <TabView
+          labels={
+            isContentCreator
+              ? ['Home', 'Portfolio', 'Reviews']
+              : ['Home', 'Reviews']
+          }>
+          <ScrollView
+            contentContainerStyle={[
+              flex.flexRow,
+              flex.wrap,
+              justify.between,
+              items.center,
+              padding.default,
+            ]}>
+            {!isAdmin && (
+              <ProfileMenuCard
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyTransactions, {
+                    userId: uid || '',
+                    role: activeRole,
+                  });
+                }}
+                icon={
+                  <TransactionIcon fill={'#72B3FF'} height={80} width={80} />
+                }
+                title="My Transactions"
+                subtitle={`${ongoingTransactionsCount} Ongoing\n${completedTransactionsCount} Finished`}
+              />
+            )}
+            <ProfileMenuCard
+              handleOnClick={() => {
+                navigation.navigate(AuthenticatedNavigation.AboutMe);
+              }}
+              icon={<AboutIcon fill={'#FB8A2E'} height={80} width={80} />}
+              title="About Me"
+              subtitle={'Edit Information people see on your profile'}
+            />
+
+            {isContentCreator && [
+              <ProfileMenuCard
+                key={'Withdraw Money'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.WithdrawMoney);
+                }}
+                icon={
+                  <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
+                }
+                title={'Withdraw Money'}
+                subtitle={`${withdrawableTransactionsCount} Transactions ready to be withdrawn`}
+              />,
+              <ProfileMenuCard
+                key={'Upload Video'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.UploadVideo);
+                }}
+                icon={<AddIcon fill={COLOR.red[40]} height={80} width={80} />}
+                title="Upload Video"
+                subtitle={'Add more videos to promote yourself.'}
+              />,
+            ]}
+            {isBusinessPeople && [
+              <ProfileMenuCard
+                key={'My Campaigns'}
+                handleOnClick={() => {
+                  navigation.navigate(AuthenticatedNavigation.MyCampaigns, {
+                    userId: uid || '',
+                  });
+                }}
+                icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
+                title="My Campaigns"
+                subtitle={`${publicCampaignsCount} Public\n${
+                  campaigns.length - publicCampaignsCount
+                } Private`}
+              />,
+              // TODO: ini kayaknya ga perlu lagi
+              // <ProfileMenuCard
+              //   key={'Pay Content Creator'}
+              //   handleOnClick={() => {
+              //     navigation.navigate(
+              //       AuthenticatedNavigation.PayContentCreator,
+              //     );
+              //   }}
+              //   icon={
+              //     <MoneyIcon fill={COLOR.green[50]} height={80} width={80} />
+              //   }
+              //   title={'Pay Content Creator'}
+              //   subtitle={'0 Pending Payment'}
+              // />,
+            ]}
+            <ProfileMenuCard
+              handleOnClick={() => {
+                navigation.navigate(AuthenticatedNavigation.ReportList);
+              }}
+              icon={<ReportIssueIcon size="xlarge5" />}
+              title="My Reports"
+              subtitle="See the status of your submitted reports"
+            />
+          </ScrollView>
+          {isContentCreator && (
+            <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
+              <PortfolioList portfolios={portfolios} />
+            </ScrollView>
+          )}
+          <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
+            <ReviewList reviews={reviews} />
+          </ScrollView>
+        </TabView>
+      )}
     </View>
   );
 };

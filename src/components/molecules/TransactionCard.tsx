@@ -3,8 +3,6 @@ import {Text} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
-  BasicStatus,
-  PaymentStatus,
   Transaction,
   TransactionStatus,
   transactionStatusTypeMap,
@@ -14,11 +12,9 @@ import {ReactNode, useEffect, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
-import {shadow} from '../../styles/Shadow';
 import {Campaign, CampaignType} from '../../model/Campaign';
 import {textColor} from '../../styles/Text';
 import {font} from '../../styles/Font';
-import ChevronRight from '../../assets/vectors/chevron-right.svg';
 import Private from '../../assets/vectors/private.svg';
 import Public from '../../assets/vectors/public.svg';
 import Business from '../../assets/vectors/business.svg';
@@ -28,7 +24,6 @@ import {
   AuthenticatedNavigation,
   NavigationStackProps,
 } from '../../navigation/StackNavigation';
-import {getTimeAgo} from '../../utils/date';
 import {gap} from '../../styles/Gap';
 import FastImage, {Source} from 'react-native-fast-image';
 import {ImageRequireSource} from 'react-native';
@@ -43,47 +38,44 @@ import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {SkeletonPlaceholder} from './SkeletonPlaceholder';
 import ReviewSheetModal from './ReviewSheetModal';
 import {Review} from '../../model/Review';
+import {overflow} from '../../styles/Overflow';
+import {ChevronRight} from '../atoms/Icon';
 
 type Props = {
   transaction: Transaction;
   role?: UserRole;
 };
-const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
+const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [review, setReview] = useState<Review | null>();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [campaign, setCampaign] = useState<Campaign>();
-  useEffect(() => {
-    User.getById(transaction.contentCreatorId || '').then(setContentCreator);
-  }, [transaction]);
+  const [campaign, setCampaign] = useState<Campaign | null>();
+  const doesNeedApproval =
+    transaction.status === TransactionStatus.registrationPending &&
+    transaction.payment === undefined;
+
+  const isWaitingAction =
+    transaction.isWaitingBusinessPeopleAction() && !doesNeedApproval;
+  const actionText =
+    TransactionStatus.offerWaitingForPayment === transaction.status
+      ? 'Make Payment'
+      : 'Review Submission';
 
   useEffect(() => {
-    Campaign.getById(transaction.campaignId || '').then(setCampaign);
+    if (transaction.contentCreatorId) {
+      User.getById(transaction.contentCreatorId)
+        .then(setContentCreator)
+        .catch(() => setContentCreator(null));
+    }
+    if (transaction.campaignId) {
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => setCampaign(null));
+    }
   }, [transaction]);
 
   const [isPaymentModalOpened, setIsPaymentModalOpened] = useState(false);
-
-  // TODO: redundant, kalo sempet refactor
-  const onProofUploaded = (url: string) => {
-    console.log('url: ' + url);
-    //TODO: hmm method2 .update() harus disamain deh antar model (campaign sama ini aja beda)
-    transaction
-      .update({
-        payment: {
-          proofImage: url,
-          status: PaymentStatus.proofWaitingForVerification,
-        },
-      })
-      .then(() => {
-        console.log('updated proof!');
-        showToast({
-          message:
-            'Registration Approved! Your payment is being reviewed by our Admin',
-          type: ToastType.success,
-        });
-      });
-  };
 
   useEffect(() => {
     if (transaction.id && transaction.businessPeopleId) {
@@ -95,7 +87,13 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
-  console.log('review', review);
+  const navigateToTransactionDetail = () => {
+    if (transaction.id) {
+      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+        transactionId: transaction.id,
+      });
+    }
+  };
 
   return (
     <>
@@ -158,16 +156,21 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
             transaction.status || TransactionStatus.terminated
           ]
         }
-        doesNeedApproval={
-          transaction.status === TransactionStatus.registrationPending &&
-          transaction.payment === undefined
-        }
+        doesNeedApproval={doesNeedApproval}
+        handleAction={isWaitingAction ? navigateToTransactionDetail : undefined}
+        actionText={actionText}
         handleClickReject={() => {
           transaction
-            .updateStatus(TransactionStatus.registrationRejected)
+            .rejectRegistration()
             .then(() => {
               showToast({
                 message: 'Registration Rejected!',
+                type: ToastType.success,
+              });
+            })
+            .catch(() => {
+              showToast({
+                message: 'Failed to reject registration!',
                 type: ToastType.danger,
               });
             });
@@ -184,11 +187,7 @@ const BusinessPeopleTransactionsCard = ({transaction}: Props) => {
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
           onModalDismiss={() => setIsPaymentModalOpened(false)}
-          // amount={campaign?.fee || -1}
-          amount={transaction.transactionAmount || -1}
-          onProofUploaded={onProofUploaded}
-          defaultImage={transaction.payment?.proofImage}
-          paymentStatus={transaction.payment?.status}
+          transaction={transaction}
         />
       )}
     </>
@@ -201,6 +200,8 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const [review, setReview] = useState<Review | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
+  const isReviewable = review === null && transaction.isCompleted();
+  const [isWaitingAction, setIsWaitingAction] = useState<boolean>();
 
   useEffect(() => {
     if (transaction.campaignId) {
@@ -209,6 +210,15 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         .catch(() => {
           setCampaign(null);
         });
+    }
+  }, [transaction]);
+
+  useEffect(() => {
+    if (transaction) {
+      transaction
+        .isWaitingContentCreatorAction()
+        .then(setIsWaitingAction)
+        .catch(() => setIsWaitingAction(false));
     }
   }, [transaction]);
 
@@ -232,6 +242,14 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
+  const navigateToCampaignTimeline = () => {
+    if (campaign?.id) {
+      navigation.navigate(AuthenticatedNavigation.CampaignTimeline, {
+        campaignId: campaign.id,
+      });
+    }
+  };
+
   return (
     <BaseCard
       handleClickHeader={() => {
@@ -254,24 +272,35 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       })}
       // bodyText={campaign?.title}
       bodyText={campaign?.title}
+      handleAction={isWaitingAction ? navigateToCampaignTimeline : undefined}
+      actionText="Make Submission"
       bodyContent={
-        review === null &&
-        transaction.isCompleted() && (
+        (isReviewable || isWaitingAction) && (
           <>
-            <View style={[flex.flex1, flex.flexRow, justify.end]}>
-              <CustomButton
-                text="Review"
-                verticalPadding="xsmall"
-                onPress={() => {
-                  setIsReviewModalOpen(true);
-                }}
-              />
+            <View
+              style={[
+                flex.flex1,
+                flex.flexRow,
+                justify.end,
+                padding.top.small,
+              ]}>
+              {isReviewable && (
+                <CustomButton
+                  text="Review"
+                  verticalPadding="xsmall"
+                  onPress={() => {
+                    setIsReviewModalOpen(true);
+                  }}
+                />
+              )}
             </View>
-            <ReviewSheetModal
-              isModalOpened={isReviewModalOpen}
-              onModalDismiss={() => setIsReviewModalOpen(false)}
-              transaction={transaction}
-            />
+            {isReviewable && (
+              <ReviewSheetModal
+                isModalOpened={isReviewModalOpen}
+                onModalDismiss={() => setIsReviewModalOpen(false)}
+                transaction={transaction}
+              />
+            )}
           </>
         )
       }
@@ -304,6 +333,8 @@ type BaseCardProps = {
   doesNeedApproval?: boolean;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
+  actionText?: string;
+  handleAction?: () => void;
 };
 export const BaseCard = ({
   handleClickHeader,
@@ -320,12 +351,14 @@ export const BaseCard = ({
   handleClickReject,
   handleClickAccept,
   bodyContent,
+  actionText = 'Action Needed',
+  handleAction,
 }: BaseCardProps) => {
   const isLoading = !headerTextLeading || !bodyText;
   return (
     <View
-      className="overflow-hidden"
       style={[
+        overflow.hidden,
         flex.flexCol,
         rounded.medium,
         background(COLOR.background.neutral.default),
@@ -359,8 +392,18 @@ export const BaseCard = ({
                   handleClickHeader ? COLOR.green[50] : COLOR.text.neutral.med,
                 ),
                 font.size[20],
+                headerTextTrailing
+                  ? [
+                      {
+                        width: '60%',
+                      },
+                    ]
+                  : [
+                      {
+                        width: '91.67%',
+                      },
+                    ],
               ]}
-              className={headerTextTrailing ? 'w-[60%]' : 'w-11/12'}
               numberOfLines={1}>
               {headerTextLeading}
             </Text>
@@ -384,16 +427,25 @@ export const BaseCard = ({
         <View style={[flex.flex1, flex.flexRow, gap.default, items.center]}>
           <SkeletonPlaceholder isLoading={isLoading}>
             <View
-              className="items-center justify-center overflow-hidden"
-              style={[flex.flexRow, rounded.default, imageDimension]}>
+              style={[
+                flex.flexRow,
+                items.center,
+                justify.center,
+                overflow.hidden,
+                rounded.default,
+                imageDimension,
+              ]}>
               <FastImage style={[dimension.full]} source={imageSource} />
             </View>
           </SkeletonPlaceholder>
           <SkeletonPlaceholder style={[flex.flex1]} isLoading={isLoading}>
             <View style={[flex.flex1, flex.flexCol, gap.xsmall]}>
               <Text
-                className="font-semibold"
-                style={[font.size[30], textColor(COLOR.text.neutral.high)]}
+                style={[
+                  font.size[30],
+                  textColor(COLOR.text.neutral.high),
+                  font.weight.semibold,
+                ]}
                 numberOfLines={1}>
                 {bodyText}
               </Text>
@@ -437,20 +489,50 @@ export const BaseCard = ({
           </View>
         </View>
       )}
+      {handleAction && (
+        <Pressable
+          style={[
+            flex.flex1,
+            padding.default,
+            flex.flexRow,
+            gap.small,
+            justify.center,
+            items.center,
+            {
+              borderTopColor: COLOR.black[20],
+              borderTopWidth: 1,
+            },
+          ]}
+          onPress={handleAction}>
+          <Text
+            style={[
+              font.size[30],
+              font.weight.bold,
+              textColor(COLOR.green[50]),
+            ]}>
+            {actionText}
+          </Text>
+          <ChevronRight
+            color={COLOR.green[50]}
+            size="medium"
+            strokeWidth={1.5}
+          />
+        </Pressable>
+      )}
     </View>
   );
 };
 // END MARK
 
-const RegisteredUserListCard = ({transaction, role}: Props) => {
+const TransactionCard = ({transaction, role}: Props) => {
   if (role === UserRole.BusinessPeople) {
-    return <BusinessPeopleTransactionsCard transaction={transaction} />;
+    return <BusinessPeopleTransactionCard transaction={transaction} />;
   } else {
     return <ContentCreatorTransactionCard transaction={transaction} />;
   }
 };
 
-export default RegisteredUserListCard;
+export default TransactionCard;
 
 const styles = StyleSheet.create({
   bottomBorder: {

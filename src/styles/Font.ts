@@ -83,4 +83,45 @@ export const font = {
       };
     }, {} as LineHeightStyle),
   ),
+  weight: StyleSheet.create({
+    thin: {
+      fontWeight: '100',
+    },
+    ultralight: {
+      fontWeight: '200',
+    },
+    light: {
+      fontWeight: '300',
+    },
+    normal: {
+      fontWeight: '400',
+    },
+    medium: {
+      fontWeight: '500',
+    },
+    semibold: {
+      fontWeight: '600',
+    },
+    bold: {
+      fontWeight: '700',
+    },
+    heavy: {
+      fontWeight: '800',
+    },
+    black: {
+      fontWeight: '900',
+    },
+  }),
 };
+
+export const text = StyleSheet.create({
+  center: {
+    textAlign: 'center',
+  },
+  left: {
+    textAlign: 'left',
+  },
+  right: {
+    textAlign: 'right',
+  },
+});

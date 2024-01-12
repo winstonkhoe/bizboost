@@ -18,12 +18,16 @@ import PhotoRevision from '../../assets/vectors/photo-revision.svg';
 import Upload from '../../assets/vectors/upload.svg';
 import MissingDocument from '../../assets/vectors/document-missing.svg';
 import Report from '../../assets/vectors/report.svg';
+import ReportIssue from '../../assets/vectors/report-issue.svg';
 import Dashboard from '../../assets/vectors/dashboard.svg';
 import RatingStar from '../../assets/vectors/rating-star.svg';
 import Campaign from '../../assets/vectors/campaign.svg';
 import Cooperation from '../../assets/vectors/cooperation.svg';
 import Search from '../../assets/vectors/search.svg';
 import Date from '../../assets/vectors/date.svg';
+import Card from '../../assets/vectors/card.svg';
+import CrossMark from '../../assets/vectors/cross-mark-thin.svg';
+import Sync from '../../assets/vectors/sync.svg';
 import {SocialPlatform} from '../../model/User';
 import Svg, {Path, SvgProps} from 'react-native-svg';
 import {gap} from '../../styles/Gap';
@@ -363,6 +367,21 @@ export const ReportIcon = ({
   );
 };
 
+export const ReportIssueIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.red[60],
+  ...props
+}: IconProps) => {
+  return (
+    <ReportIssue
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
+};
+
 export const DashboardIcon = ({
   size: sizeType = 'default',
   color = COLOR.red[60],
@@ -453,6 +472,51 @@ export const DateIcon = ({
 }: IconProps) => {
   return (
     <Date
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
+};
+
+export const CardIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.green[60],
+  ...props
+}: IconProps) => {
+  return (
+    <Card
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
+};
+
+export const CrossMarkIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.black[100],
+  ...props
+}: IconProps) => {
+  return (
+    <CrossMark
+      width={size[sizeType]}
+      height={size[sizeType]}
+      color={color}
+      {...props}
+    />
+  );
+};
+
+export const SyncIcon = ({
+  size: sizeType = 'default',
+  color = COLOR.green[50],
+  ...props
+}: IconProps) => {
+  return (
+    <Sync
       width={size[sizeType]}
       height={size[sizeType]}
       color={color}

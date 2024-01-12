@@ -49,7 +49,11 @@ import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrain
 import ReportListScreen from '../screens/report/ReportListScreen';
 import ReportDetailScreen from '../screens/report/ReportDetailScreen';
 import {OfferDetailScreen} from '../screens/OfferDetailScreen';
-import {UserRole} from '../model/User';
+import {SocialData, User, UserRole} from '../model/User';
+import {Providers} from '../model/AuthMethod';
+import ModalSubmitContentCreation from '../screens/campaign/timeline/ModalSubmitContentCreation';
+import EditBiodataScreen from '../screens/profile/edit/EditBiodataScreen';
+import EditSocialPlatformScreen from '../screens/profile/edit/EditSocialPlatformScreen';
 
 export enum GuestNavigation {
   Welcome = 'Welcome',
@@ -73,16 +77,19 @@ export enum AuthenticatedNavigation {
   CampaignTimeline = 'Campaign Timeline',
   SubmitResult = 'Submit Result',
   SubmitBrainstorm = 'Submit Brainstorm',
+  SubmitContentCreation = 'Submit Content Creation',
   UserDetail = 'User Detail',
   ContentCreatorDetail = 'Content Creator Detail',
   MyTransactions = 'Transactions',
   MyCampaigns = 'My Campaigns',
   AboutMe = 'About Me',
   ChangePassword = 'Change Password',
+  EditBiodata = 'Edit Biodata',
+  EditSocialPlatform = 'Edit Social Platform',
   EditMaxContentRevision = 'Edit Max Content Revision',
   EditPostingSchedule = 'Edit Posting Schedule',
   EditPreferences = 'Edit Preferences',
-  EditBankAccountInformationScreen = 'Edit Bank Account Information',
+  EditBankAccountInformation = 'Edit Bank Account Information',
   PayContentCreator = 'Pay Content Creator',
   UploadVideo = 'Upload Video',
   WithdrawMoney = 'Withdraw Money',
@@ -103,8 +110,17 @@ export enum GeneralNavigation {
 
 export type GuestStack = {
   [GuestNavigation.Welcome]: undefined;
-  [GuestNavigation.Login]: undefined;
-  [GuestNavigation.Signup]: undefined;
+  [GuestNavigation.Login]: {
+    user?: User;
+  };
+  [GuestNavigation.Signup]: {
+    name?: string;
+    profilePicture?: string;
+    user?: User;
+    provider?: Providers;
+    providerId?: string;
+    token?: string;
+  };
   [GuestNavigation.Authenticated]: undefined;
 };
 
@@ -116,8 +132,6 @@ interface CampaignModalProps {
 
 interface NegotiateModalProps {
   offer: Offer;
-  eventType: string;
-  campaign: Campaign;
 }
 
 export type AuthenticatedStack = {
@@ -130,7 +144,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CreateAdditionalAccount]: undefined;
   [AuthenticatedNavigation.CreateCampaign]: undefined;
 
-  [AuthenticatedNavigation.ChatDetail]: {chat: Chat; recipient: Recipient};
+  [AuthenticatedNavigation.ChatDetail]: {chatId: string};
   [AuthenticatedNavigation.ChatList]: undefined;
   [AuthenticatedNavigation.CampaignRegistrants]: {
     campaignId: string;
@@ -139,6 +153,7 @@ export type AuthenticatedStack = {
   [AuthenticatedNavigation.CampaignTimeline]: {campaignId: string};
   [AuthenticatedNavigation.SubmitResult]: {transactionId: string};
   [AuthenticatedNavigation.SubmitBrainstorm]: {transactionId: string};
+  [AuthenticatedNavigation.SubmitContentCreation]: {transactionId: string};
   [AuthenticatedNavigation.UserDetail]: {userId: string};
   [AuthenticatedNavigation.ContentCreatorDetail]: {contentCreatorId: string};
   [AuthenticatedNavigation.MakeOffer]: {
@@ -147,13 +162,15 @@ export type AuthenticatedStack = {
   };
   [AuthenticatedNavigation.CampaignModal]: CampaignModalProps;
   [AuthenticatedNavigation.MyTransactions]: {userId?: string; role?: UserRole};
-  [AuthenticatedNavigation.MyCampaigns]: undefined;
+  [AuthenticatedNavigation.MyCampaigns]: {userId?: string};
   [AuthenticatedNavigation.AboutMe]: undefined;
   [AuthenticatedNavigation.ChangePassword]: undefined;
+  [AuthenticatedNavigation.EditBiodata]: undefined;
+  [AuthenticatedNavigation.EditSocialPlatform]: undefined;
   [AuthenticatedNavigation.EditMaxContentRevision]: undefined;
   [AuthenticatedNavigation.EditPostingSchedule]: undefined;
   [AuthenticatedNavigation.EditPreferences]: undefined;
-  [AuthenticatedNavigation.EditBankAccountInformationScreen]: undefined;
+  [AuthenticatedNavigation.EditBankAccountInformation]: undefined;
   [AuthenticatedNavigation.PayContentCreator]: undefined;
   [AuthenticatedNavigation.UploadVideo]: undefined;
   [AuthenticatedNavigation.WithdrawMoney]: undefined;
@@ -266,6 +283,10 @@ const StackNavigator = () => {
                   component={ChatListScreen}
                 />
                 <Stack.Screen
+                  name={AuthenticatedNavigation.ChatDetail}
+                  component={ChatScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.CampaignDetail}
                   component={CampaignDetailScreen}
                 />
@@ -322,10 +343,6 @@ const StackNavigator = () => {
                   component={MakeOfferScreen}
                 />
                 <Stack.Screen
-                  name={AuthenticatedNavigation.ChatDetail}
-                  component={ChatScreen}
-                />
-                <Stack.Screen
                   name={AuthenticatedNavigation.ContentCreatorDetail}
                   component={ContentCreatorDetailScreen}
                 />
@@ -336,6 +353,10 @@ const StackNavigator = () => {
                 <Stack.Screen
                   name={AuthenticatedNavigation.SubmitBrainstorm}
                   component={ModalSubmitBrainstorm}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.SubmitContentCreation}
+                  component={ModalSubmitContentCreation}
                 />
                 <Stack.Screen
                   name={AuthenticatedNavigation.SubmitResult}
@@ -367,6 +388,14 @@ const StackNavigator = () => {
                   component={ChangePasswordScreen}
                 />
                 <Stack.Screen
+                  name={AuthenticatedNavigation.EditBiodata}
+                  component={EditBiodataScreen}
+                />
+                <Stack.Screen
+                  name={AuthenticatedNavigation.EditSocialPlatform}
+                  component={EditSocialPlatformScreen}
+                />
+                <Stack.Screen
                   name={AuthenticatedNavigation.EditMaxContentRevision}
                   component={EditMaxContentRevisionScreen}
                 />
@@ -379,9 +408,7 @@ const StackNavigator = () => {
                   component={EditPreferencesScreen}
                 />
                 <Stack.Screen
-                  name={
-                    AuthenticatedNavigation.EditBankAccountInformationScreen
-                  }
+                  name={AuthenticatedNavigation.EditBankAccountInformation}
                   component={EditBankAccountInformationScreen}
                 />
                 <Stack.Screen

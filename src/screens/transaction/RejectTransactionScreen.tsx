@@ -314,83 +314,88 @@ const RejectTransactionScreen = ({route}: Props) => {
           <View
             key={RejectTransactionPage.RejectReason}
             style={[flex.flex1, flex.flexCol]}>
-            <KeyboardAvoidingContainer>
-              <ScrollView
-                bounces={true}
-                showsVerticalScrollIndicator={false}
-                alwaysBounceVertical
-                style={[flex.flex1]}
-                contentContainerStyle={[
-                  flex.flex1,
-                  flex.flexCol,
-                  {paddingTop: safeAreaInsets.top + size.xlarge5},
-                  {
-                    paddingBottom: Math.max(
-                      safeAreaInsets.bottom,
-                      size.default,
-                    ),
-                  },
-                  gap.large,
-                ]}>
+            <ScrollView
+              bounces={true}
+              showsVerticalScrollIndicator={false}
+              alwaysBounceVertical
+              style={[flex.flex1]}>
+              <KeyboardAvoidingContainer>
                 <View
                   style={[
+                    flex.flex1,
                     flex.flexCol,
-                    gap.default,
-                    padding.horizontal.default,
+                    {paddingTop: safeAreaInsets.top + size.xlarge5},
+                    {
+                      paddingBottom: Math.max(
+                        safeAreaInsets.bottom,
+                        size.default,
+                      ),
+                    },
+                    gap.large,
                   ]}>
-                  <Text
-                    className="font-bold"
-                    style={[font.size[40], textColor(COLOR.text.neutral.high)]}>
-                    {selectedRejectionType}
-                  </Text>
-                  {transaction.status &&
-                    transaction.status ===
-                      TransactionStatus.brainstormSubmitted && (
-                      <BrainstormSubmissionCard
-                        hideStatus
-                        transaction={transaction}
-                        content={transaction.getLatestBrainstorm()!!}
-                      />
-                    )}
-                  {transaction.status &&
-                    transaction.status ===
-                      TransactionStatus.contentSubmitted && (
-                      <ContentSubmissionCard
-                        hideStatus
-                        transaction={transaction}
-                        content={transaction.getLatestContentSubmission()!!}
-                      />
-                    )}
-                  {transaction.status &&
-                    transaction.status ===
-                      TransactionStatus.engagementSubmitted && (
-                      <EngagementSubmissionCard
-                        hideStatus
-                        transaction={transaction}
-                        engagement={
-                          transaction.getLatestEngagementSubmission()!!
-                        }
-                      />
-                    )}
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.default,
+                      padding.horizontal.default,
+                    ]}>
+                    <Text
+                      className="font-bold"
+                      style={[
+                        font.size[40],
+                        textColor(COLOR.text.neutral.high),
+                      ]}>
+                      {selectedRejectionType}
+                    </Text>
+                    {transaction.status &&
+                      transaction.status ===
+                        TransactionStatus.brainstormSubmitted && (
+                        <BrainstormSubmissionCard
+                          hideStatus
+                          transaction={transaction}
+                          content={transaction.getLatestBrainstorm()!!}
+                        />
+                      )}
+                    {transaction.status &&
+                      transaction.status ===
+                        TransactionStatus.contentSubmitted && (
+                        <ContentSubmissionCard
+                          hideStatus
+                          transaction={transaction}
+                          content={transaction.getLatestContentSubmission()!!}
+                        />
+                      )}
+                    {transaction.status &&
+                      transaction.status ===
+                        TransactionStatus.engagementSubmitted && (
+                        <EngagementSubmissionCard
+                          hideStatus
+                          transaction={transaction}
+                          engagement={
+                            transaction.getLatestEngagementSubmission()!!
+                          }
+                        />
+                      )}
+                  </View>
+                  <Seperator />
+                  <View
+                    style={[
+                      flex.flexCol,
+                      gap.default,
+                      padding.horizontal.default,
+                    ]}>
+                    <FormFieldHelper title="Reject reason" />
+                    <FormlessCustomTextInput
+                      type="textarea"
+                      description={`Min. ${rules.rejectReason.min}, Max. ${rules.rejectReason.max} characters. `}
+                      max={rules.rejectReason.max}
+                      counter
+                      onChange={setRejectReason}
+                    />
+                  </View>
                 </View>
-                <Seperator />
-                <View
-                  style={[
-                    flex.flexCol,
-                    gap.default,
-                    padding.horizontal.default,
-                  ]}>
-                  <FormFieldHelper title="Reject reason" />
-                  <FormlessCustomTextInput
-                    type="textarea"
-                    description={`Min. ${rules.rejectReason.min}, Max. ${rules.rejectReason.max} characters. `}
-                    max={rules.rejectReason.max}
-                    counter
-                    onChange={setRejectReason}
-                  />
-                </View>
-              </ScrollView>
-            </KeyboardAvoidingContainer>
+              </KeyboardAvoidingContainer>
+            </ScrollView>
             <View
               style={[
                 flex.flexRow,
@@ -437,12 +442,11 @@ const RejectTypeCard = ({
         flex.flexCol,
         padding.default,
         rounded.default,
-        shadow.default,
         dimension.width.xlarge9,
         !isSelected && [
           {
-            borderWidth: 1,
-            borderColor: 'transparent',
+            borderWidth: 0.5,
+            borderColor: COLOR.black[25],
           },
         ],
         isSelected && [
@@ -450,7 +454,7 @@ const RejectTypeCard = ({
             borderWidth: 1,
             color: COLOR.green[50],
           }),
-          background(COLOR.green[1]),
+          background(COLOR.green[5]),
         ],
       ]}
       {...props}>
