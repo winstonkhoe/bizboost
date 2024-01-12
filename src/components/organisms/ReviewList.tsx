@@ -6,10 +6,10 @@ import {ReviewCard} from '../molecules/ReviewCard';
 import {EmptyPlaceholder} from '../templates/EmptyPlaceholder';
 
 interface ReviewListProps {
-  reviews: Review[];
+  reviews?: Review[];
 }
 export const ReviewList = ({reviews}: ReviewListProps) => {
-  if (reviews.length === 0) {
+  if (!reviews || reviews.length === 0) {
     return <EmptyPlaceholder />;
   }
   return (

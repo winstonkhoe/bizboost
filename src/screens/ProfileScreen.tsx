@@ -219,8 +219,13 @@ const ProfileScreen = () => {
         )}
       </View>
       {/* TODO: tab labels sesuai role */}
-      {activeRole !== UserRole.Admin && (
-        <TabView labels={['Home', 'Portfolio', 'Reviews']}>
+      {!isAdmin && (
+        <TabView
+          labels={
+            isContentCreator
+              ? ['Home', 'Portfolio', 'Reviews']
+              : ['Home', 'Reviews']
+          }>
           <ScrollView
             contentContainerStyle={[
               flex.flexRow,
@@ -313,7 +318,7 @@ const ProfileScreen = () => {
               subtitle="See the status of your submitted reports"
             />
           </ScrollView>
-          {activeRole === UserRole.ContentCreator && (
+          {isContentCreator && (
             <ScrollView contentContainerStyle={[flex.grow, padding.default]}>
               <PortfolioList portfolios={portfolios} />
             </ScrollView>

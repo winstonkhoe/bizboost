@@ -23,18 +23,19 @@ interface TabViewProps {
   children: ReactNode[];
 }
 
-export const TabView = ({labels, children}: TabViewProps) => {
+export const TabView = ({labels, children: rawChildren}: TabViewProps) => {
   const pagerViewRef = useRef<PagerView>(null);
   const windowDimension = useWindowDimensions();
   const [activeIndexTab, setActiveIndexTab] = useState(0);
-  const indicatorPosition = useSharedValue(0); // Add this line
+  const indicatorPosition = useSharedValue(0);
   const paddingSizeType: SizeType = 'default';
   const labelGapSizeType: SizeType = 'small';
+  const filteredChildren = rawChildren.filter(child => child); // Child not undefined / false / null
   const tabWidth =
     (windowDimension.width -
       size[paddingSizeType] * 2 -
-      size[labelGapSizeType] * (children.length - 1)) /
-    Math.max(children.length, 1);
+      size[labelGapSizeType] * (filteredChildren.length - 1)) /
+    Math.max(filteredChildren.length, 1);
   const tabWidthStyle = StyleSheet.create({
     tabWidth: {
       width: tabWidth,
@@ -79,7 +80,7 @@ export const TabView = ({labels, children}: TabViewProps) => {
               position: 'relative',
             },
           ]}>
-          {children.map((child, childIndex) => (
+          {filteredChildren.map((child, childIndex) => (
             <Pressable
               key={childIndex}
               style={[tabWidthStyle, padding.vertical.default]}
@@ -123,7 +124,7 @@ export const TabView = ({labels, children}: TabViewProps) => {
         onPageSelected={e => {
           setActiveIndexTab(e.nativeEvent.position);
         }}>
-        {children.map((child, childIndex) => (
+        {filteredChildren.map((child, childIndex) => (
           <View key={childIndex} style={[flex.flex1]}>
             {child}
           </View>
