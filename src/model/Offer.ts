@@ -24,7 +24,6 @@ export interface Negotiation {
   notes?: string;
   negotiatedBy?: UserRole;
   createdAt?: number;
-  updatedAt?: number;
 }
 
 export class Offer extends BaseModel {
