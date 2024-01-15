@@ -332,6 +332,13 @@ export class Offer extends BaseModel {
       if (!id || !contentCreatorId || !businessPeopleId) {
         throw Error('Missing id');
       }
+      tasks.forEach(t => {
+        t.tasks.forEach(task => {
+          if (typeof task.type === 'undefined') {
+            delete task.type;
+          }
+        });
+      });
       const negotiation = {
         fee: fee,
         notes: note,
