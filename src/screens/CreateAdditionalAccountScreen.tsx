@@ -1,17 +1,13 @@
-import {Text, View} from 'react-native';
+import {ScrollView, Text, View} from 'react-native';
 import {flex, items} from '../styles/Flex';
 import {background} from '../styles/BackgroundColor';
 import {COLOR} from '../styles/Color';
 import {gap} from '../styles/Gap';
 import {FormProvider, useForm} from 'react-hook-form';
 import {CustomButton} from '../components/atoms/Button';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../components/atoms/ViewPadding';
 import {CustomTextInput} from '../components/atoms/Input';
 import {rounded} from '../styles/BorderRadius';
-import {horizontalPadding, padding, verticalPadding} from '../styles/Padding';
+import {padding} from '../styles/Padding';
 import UserIcon from '../assets/vectors/user.svg';
 import {border} from '../styles/Border';
 import {isValidField} from '../utils/form';
@@ -50,7 +46,6 @@ import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 import {font} from '../styles/Font';
 import {textColor} from '../styles/Text';
-import { dimension } from '../styles/Dimension';
 
 type FormData = {
   fullname: string;
@@ -202,6 +197,7 @@ export const CreateAdditionalAccountScreen = () => {
             data.contentCreatorPreference?.contentRevisionLimit || 0,
           rating: 0,
           ratedCount: 0,
+          biodata: '',
         },
       });
       newAccountUser
@@ -325,14 +321,14 @@ export const CreateAdditionalAccountScreen = () => {
           }
           disableDefaultOnPress={activePosition > 0}>
           <View style={[flex.flex1, flex.flexCol, padding.top.xlarge3]}>
-            <HorizontalPadding paddingSize="large">
+            <View style={[padding.horizontal.large]}>
               <FadeInOut visible={true}>
                 <Stepper
                   currentPosition={activePosition + 1}
                   maxPosition={steps.length}
                 />
               </FadeInOut>
-            </HorizontalPadding>
+            </View>
             <PagerView
               ref={pagerViewRef}
               className="flex-1"
@@ -342,31 +338,27 @@ export const CreateAdditionalAccountScreen = () => {
                 const position = e.nativeEvent.position;
                 setActivePosition(steps.findIndex(step => step === position));
               }}>
-              <View key={CreateAccountStep.NAME_PHONE}>
-                <VerticalPadding paddingSize="large">
-                  <HorizontalPadding paddingSize="large">
-                    <View style={[flex.flexCol, gap.xlarge]}>
-                      <CustomTextInput
-                        label="Full name"
-                        name="fullname"
-                        rules={{
-                          required: 'Fullname is required',
-                        }}
-                      />
-                      <CustomButton
-                        text={actionText}
-                        rounded="max"
-                        minimumWidth
-                        disabled={
-                          !isValidField(getFieldState('fullname', formState))
-                        }
-                        onPress={nextPage}
-                      />
-                    </View>
-                  </HorizontalPadding>
-                </VerticalPadding>
-              </View>
-              <View key={CreateAccountStep.SOCIAL_PLATFORM}>
+              <ScrollView key={CreateAccountStep.NAME_PHONE}>
+                <View style={[flex.flexCol, gap.xlarge, padding.large]}>
+                  <CustomTextInput
+                    label="Full name"
+                    name="fullname"
+                    rules={{
+                      required: 'Fullname is required',
+                    }}
+                  />
+                  <CustomButton
+                    text={actionText}
+                    rounded="max"
+                    minimumWidth
+                    disabled={
+                      !isValidField(getFieldState('fullname', formState))
+                    }
+                    onPress={nextPage}
+                  />
+                </View>
+              </ScrollView>
+              <ScrollView key={CreateAccountStep.SOCIAL_PLATFORM}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge3]}>
                     <RegisterSocialPlatform
@@ -387,8 +379,8 @@ export const CreateAdditionalAccountScreen = () => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
-              <View key={CreateAccountStep.FAVORITE_CATEGORY}>
+              </ScrollView>
+              <ScrollView key={CreateAccountStep.FAVORITE_CATEGORY}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterFocusCategory
@@ -406,8 +398,8 @@ export const CreateAdditionalAccountScreen = () => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
-              <View key={CreateAccountStep.LOCATION}>
+              </ScrollView>
+              <ScrollView key={CreateAccountStep.LOCATION}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterLocation onLocationsChange={onLocationChange} />
@@ -423,8 +415,8 @@ export const CreateAdditionalAccountScreen = () => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
-              <View key={CreateAccountStep.CONTENT_CREATOR_PREFERENCES}>
+              </ScrollView>
+              <ScrollView key={CreateAccountStep.CONTENT_CREATOR_PREFERENCES}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterContentCreatorPreferences
@@ -443,8 +435,8 @@ export const CreateAdditionalAccountScreen = () => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
-              <View key={CreateAccountStep.PROFILE_PICTURE}>
+              </ScrollView>
+              <ScrollView key={CreateAccountStep.PROFILE_PICTURE}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterProfilePicture
@@ -458,7 +450,7 @@ export const CreateAdditionalAccountScreen = () => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
+              </ScrollView>
             </PagerView>
           </View>
         </PageWithBackButton>

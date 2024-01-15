@@ -211,6 +211,7 @@ const SignUpScreen = ({route}: Props) => {
           rest.contentCreatorPreference?.contentRevisionLimit || 0,
         rating: 0,
         ratedCount: 0,
+        biodata: '',
       };
     }
 
@@ -352,9 +353,10 @@ const SignUpScreen = ({route}: Props) => {
           fullHeight
           enableSafeAreaContainer
           onPress={previousPage}
+          threshold={0}
           backButtonPlaceholder={<BackButtonLabel text="Sign Up" />}
           disableDefaultOnPress={activePosition > 0}>
-          <View style={[flex.flex1, flex.flexCol, verticalPadding.default]}>
+          <View style={[flex.flex1, flex.flexCol, padding.top.medium]}>
             <View style={[padding.horizontal.large]}>
               <FadeInOut visible={activePosition > 0}>
                 <Stepper
@@ -372,7 +374,7 @@ const SignUpScreen = ({route}: Props) => {
                 const position = e.nativeEvent.position;
                 setActivePosition(steps.findIndex(step => step === position));
               }}>
-              <View key={SignupStep.ROLE}>
+              <ScrollView key={SignupStep.ROLE}>
                 <View style={[flex.flexCol, gap.small, items.center]}>
                   <ChooseRole onChangeRole={onChangeRole} />
                   <CustomButton
@@ -382,8 +384,8 @@ const SignUpScreen = ({route}: Props) => {
                     onPress={nextPage}
                   />
                 </View>
-              </View>
-              <View
+              </ScrollView>
+              <ScrollView
                 key={SignupStep.EMAIL}
                 style={[flex.flexCol, gap.xlarge, padding.large]}>
                 <CustomTextInput
@@ -433,8 +435,8 @@ const SignUpScreen = ({route}: Props) => {
                     </View>
                   </View>
                 </CustomModal>
-              </View>
-              <View
+              </ScrollView>
+              <ScrollView
                 key={SignupStep.PASSWORD}
                 style={[flex.flexCol, gap.xlarge, padding.large]}>
                 <CustomTextInput
@@ -471,8 +473,8 @@ const SignUpScreen = ({route}: Props) => {
                   }
                   onPress={nextPage}
                 />
-              </View>
-              <View
+              </ScrollView>
+              <ScrollView
                 key={SignupStep.NAME_PHONE}
                 style={[padding.large, flex.flexCol, gap.xlarge]}>
                 <CustomTextInput
@@ -504,8 +506,8 @@ const SignUpScreen = ({route}: Props) => {
                   }
                   onPress={nextPage}
                 />
-              </View>
-              <View key={SignupStep.SOCIAL_PLATFORM}>
+              </ScrollView>
+              <ScrollView key={SignupStep.SOCIAL_PLATFORM}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge3]}>
                     <RegisterSocialPlatform
@@ -526,7 +528,7 @@ const SignUpScreen = ({route}: Props) => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
+              </ScrollView>
               <ScrollView key={SignupStep.FAVORITE_CATEGORY}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
@@ -546,7 +548,7 @@ const SignUpScreen = ({route}: Props) => {
                   </View>
                 </KeyboardAvoidingContainer>
               </ScrollView>
-              <View key={SignupStep.LOCATION}>
+              <ScrollView key={SignupStep.LOCATION}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterLocation onLocationsChange={onLocationChange} />
@@ -562,8 +564,8 @@ const SignUpScreen = ({route}: Props) => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
-              <View key={SignupStep.CONTENT_CREATOR_PREFERENCES}>
+              </ScrollView>
+              <ScrollView key={SignupStep.CONTENT_CREATOR_PREFERENCES}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterContentCreatorPreferences
@@ -582,8 +584,8 @@ const SignUpScreen = ({route}: Props) => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
-              <View key={SignupStep.PROFILE_PICTURE}>
+              </ScrollView>
+              <ScrollView key={SignupStep.PROFILE_PICTURE}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterProfilePicture
@@ -598,7 +600,7 @@ const SignUpScreen = ({route}: Props) => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
+              </ScrollView>
             </PagerView>
           </View>
         </PageWithBackButton>
