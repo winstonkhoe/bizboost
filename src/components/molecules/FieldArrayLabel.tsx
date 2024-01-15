@@ -56,9 +56,10 @@ export const FieldArrayLabel = ({
               color: COLOR.black[20],
             }),
           ],
-        ]}>
+        ]}
+        className="max-w-[95vw]">
         <Text
-          className="font-semibold"
+          className="font-semibold max-w-[80vw]"
           style={[
             type === 'add' && textColor(COLOR.text.neutral.med),
             type === 'field' && textColor(COLOR.green[60]),

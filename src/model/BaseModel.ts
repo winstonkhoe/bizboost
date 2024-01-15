@@ -7,6 +7,10 @@ export abstract class BaseModel {
     return Object.assign({}, this);
   }
 
+  constructor() {
+    BaseModel.setFirestoreSettings();
+  }
+
   static setFirestoreSettings() {
     firestore().settings({
       ignoreUndefinedProperties: true,

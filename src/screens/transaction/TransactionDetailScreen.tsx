@@ -965,7 +965,7 @@ export const CampaignDetailSection = ({
   }, [props.transaction]);
   const latestNegotiation = offer?.getLatestNegotiation();
   const fee =
-    props.transaction?.transactionAmount || latestNegotiation?.fee || 0;
+    props.transaction?.transactionAmount || latestNegotiation?.fee || -1;
   // TODO: fee should use transaction fee rather than campaign fee/price
   // TODO: show transaction important notes for private campaign
   return (
@@ -1072,17 +1072,19 @@ export const CampaignDetailSection = ({
                 numberOfLines={2}>
                 {props.campaign.title}
               </Text>
-              <SkeletonPlaceholder isLoading={offer === undefined}>
-                <Text
-                  style={[
-                    font.size[40],
-                    font.weight.semibold,
-                    textColor(COLOR.text.neutral.high),
-                  ]}
-                  numberOfLines={1}>
-                  {formatToRupiah(fee)}
-                </Text>
-              </SkeletonPlaceholder>
+              {fee > -1 && (
+                <SkeletonPlaceholder isLoading={offer === undefined}>
+                  <Text
+                    style={[
+                      font.size[40],
+                      font.weight.semibold,
+                      textColor(COLOR.text.neutral.high),
+                    ]}
+                    numberOfLines={1}>
+                    {formatToRupiah(fee)}
+                  </Text>
+                </SkeletonPlaceholder>
+              )}
               <SkeletonPlaceholder isLoading={offer === undefined}>
                 {latestNegotiation?.notes && (
                   <View
