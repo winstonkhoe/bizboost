@@ -49,23 +49,25 @@ const EditSocialPlatformScreen = () => {
   }, [user?.instagram, user?.tiktok]);
   const onSubmit = () => {
     const temp = new User({...user});
-    temp.tiktok = {
-      isSynchronized: temp.tiktok?.isSynchronized,
-      // platformDatas below might be undefined when user tries to 'delete' their social media, which won't update the firestore. The isSynchronized assigning above is the workaround for it
-      ...platformDatas?.find(
-        platform => platform.platform === SocialPlatform.Tiktok,
-      )?.data,
-    };
-    temp.instagram = {
-      isSynchronized: temp.instagram?.isSynchronized,
-      ...platformDatas?.find(
-        platform => platform.platform === SocialPlatform.Instagram,
-      )?.data,
-    };
-
-    temp.updateUserData().then(() => {
-      navigation.goBack();
-    });
+    temp
+      .update({
+        tiktok: {
+          isSynchronized: temp.tiktok?.isSynchronized,
+          // platformDatas below might be undefined when user tries to 'delete' their social media, which won't update the firestore. The isSynchronized assigning above is the workaround for it
+          ...platformDatas?.find(
+            platform => platform.platform === SocialPlatform.Tiktok,
+          )?.data,
+        },
+        instagram: {
+          isSynchronized: temp.instagram?.isSynchronized,
+          ...platformDatas?.find(
+            platform => platform.platform === SocialPlatform.Instagram,
+          )?.data,
+        },
+      })
+      .then(() => {
+        navigation.goBack();
+      });
   };
   return (
     <SafeAreaContainer enable>

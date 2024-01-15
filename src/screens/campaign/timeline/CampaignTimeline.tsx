@@ -301,7 +301,10 @@ const CampaignTimelineScreen = ({route}: Props) => {
       return;
     }
     const getNavigation = () => {
-      if (transaction?.isWaitingBrainstormSubmission()) {
+      if (
+        campaign?.isTimelineAvailable(CampaignStep.Brainstorming) &&
+        transaction?.isWaitingBrainstormSubmission()
+      ) {
         return AuthenticatedNavigation.SubmitBrainstorm;
       }
       if (transaction?.isWaitingContentSubmission()) {

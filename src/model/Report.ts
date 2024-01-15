@@ -3,7 +3,7 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
-import {Transaction, TransactionStatus} from './Transaction';
+import {Transaction} from './Transaction';
 import {StatusType} from '../components/atoms/StatusTag';
 
 export const REPORT_COLLECTION = 'reports';
@@ -97,7 +97,6 @@ export const reportStatusPrecendence = {
 export class Report extends BaseModel {
   id?: string;
   transactionId?: string;
-  transactionStatus?: TransactionStatus;
   type?: ReportType;
   status: ReportStatus;
   reason?: string;
@@ -113,7 +112,6 @@ export class Report extends BaseModel {
   constructor({
     id,
     transactionId,
-    transactionStatus,
     type,
     status,
     reason,
@@ -129,7 +127,6 @@ export class Report extends BaseModel {
     super();
     this.id = id;
     this.transactionId = transactionId;
-    this.transactionStatus = transactionStatus;
     this.type = type;
     this.status = status || ReportStatus.pending;
     this.reason = reason;
@@ -153,7 +150,6 @@ export class Report extends BaseModel {
       return new Report({
         id: doc.id,
         transactionId: data.transactionId.id,
-        transactionStatus: data.transactionStatus,
         type: data.type,
         status: data.status,
         reason: data.reason,

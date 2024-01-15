@@ -1,9 +1,5 @@
 import {useEffect, useState} from 'react';
 import {Category} from '../../model/Category';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../../components/atoms/ViewPadding';
 import {Pressable, View} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
@@ -48,78 +44,74 @@ export const RegisterFocusCategory = ({
   }, [focusCategories, onCategoriesChange]);
 
   return (
-    <VerticalPadding paddingSize="large">
-      <HorizontalPadding paddingSize="large">
-        <View style={[flex.flexCol, gap.xlarge2]}>
-          <View style={[flex.flexRow, items.center]}>
-            <View style={[flex.flex1]}>
-              <FormFieldHelper
-                title="Category"
-                description="Category that you are focusing on"
-                type="optional"
-              />
-            </View>
-            <InternalLink text="Add" onPress={openModalCategory} />
-          </View>
-          <View style={[flex.flexRow, flex.wrap, justify.around, gap.default]}>
-            {focusCategories.map((category: Category, index: number) => {
-              return (
-                <View
-                  key={index}
-                  className="relative"
-                  style={[dimension.square.xlarge5]}>
-                  <Pressable
-                    onPress={() => {
-                      removeFromFocusCategory(category);
-                    }}
-                    className="absolute z-10 top-0 right-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
-                    style={[
-                      dimension.square.xlarge,
-                      rounded.max,
-                      padding.xsmall2,
-                      background(COLOR.black[0]),
-                      {
-                        transform: [
-                          {
-                            translateX: 10,
-                          },
-                          {
-                            translateY: -10,
-                          },
-                        ],
-                      },
-                    ]}>
-                    <View
-                      className="rotate-45"
-                      style={[
-                        flex.flexRow,
-                        justify.center,
-                        items.center,
-                        dimension.full,
-                        rounded.max,
-                        background(COLOR.background.danger.high),
-                      ]}>
-                      <AddIcon color={COLOR.black[0]} />
-                    </View>
-                  </Pressable>
-                  <View
-                    className="overflow-hidden"
-                    style={[dimension.full, rounded.default]}>
-                    <FastImage
-                      style={[dimension.full]}
-                      source={{
-                        uri: category.image,
-                        priority: FastImage.priority.high,
-                      }}
-                      resizeMode={'cover'}
-                    />
-                  </View>
-                </View>
-              );
-            })}
-          </View>
+    <View style={[flex.flex1, flex.flexCol, gap.xlarge2, padding.large]}>
+      <View style={[flex.flex1, flex.flexRow, items.center]}>
+        <View style={[flex.flex1]}>
+          <FormFieldHelper
+            title="Category"
+            description="Category that you are focusing on"
+            type="optional"
+          />
         </View>
-      </HorizontalPadding>
-    </VerticalPadding>
+        <InternalLink text="Add" onPress={openModalCategory} />
+      </View>
+      <View style={[flex.flexRow, flex.wrap, justify.around, gap.default]}>
+        {focusCategories.map((category: Category, index: number) => {
+          return (
+            <View
+              key={index}
+              className="relative"
+              style={[dimension.square.xlarge5]}>
+              <Pressable
+                onPress={() => {
+                  removeFromFocusCategory(category);
+                }}
+                className="absolute z-10 top-0 right-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
+                style={[
+                  dimension.square.xlarge,
+                  rounded.max,
+                  padding.xsmall2,
+                  background(COLOR.black[0]),
+                  {
+                    transform: [
+                      {
+                        translateX: 10,
+                      },
+                      {
+                        translateY: -10,
+                      },
+                    ],
+                  },
+                ]}>
+                <View
+                  className="rotate-45"
+                  style={[
+                    flex.flexRow,
+                    justify.center,
+                    items.center,
+                    dimension.full,
+                    rounded.max,
+                    background(COLOR.background.danger.high),
+                  ]}>
+                  <AddIcon color={COLOR.black[0]} />
+                </View>
+              </Pressable>
+              <View
+                className="overflow-hidden"
+                style={[dimension.full, rounded.default]}>
+                <FastImage
+                  style={[dimension.full]}
+                  source={{
+                    uri: category.image,
+                    priority: FastImage.priority.high,
+                  }}
+                  resizeMode={'cover'}
+                />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </View>
   );
 };

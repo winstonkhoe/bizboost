@@ -326,22 +326,6 @@ export class User extends BaseModel {
       throw Error(`${formattedCode}! Update Password failed!`);
     }
   }
-  // static async getAll(): Promise<User[]> {
-  //   try {
-  //     const users = await firestore()
-  //       .collection(USER_COLLECTION)
-  //       // TODO: kayaknya ga usah pake field lagi deh nanti cek admin pake emailnya aja?
-  //       // .where('isAdmin', '!=', true)
-  //       .get();
-  //     if (users.empty) {
-  //       throw Error('No Users!');
-  //     }
-  //     return users.docs.map(doc => User.fromSnapshot(doc));
-  //   } catch (error) {
-  //     console.log(error);
-  //     throw Error('Error!');
-  //   }
-  // }
 
   static getAll(onComplete: (users: User[]) => void) {
     const unsubscribe = firestore()
@@ -428,22 +412,10 @@ export class User extends BaseModel {
 
   static async login(email: string, password: string) {
     try {
-      const credential = await auth().signInWithEmailAndPassword(
-        email,
-        password,
-      );
-
-      // const user = await User.getById(credential.user.uid);
-
-      // if (user?.status === UserStatus.Suspended) {
-      //   auth().signOut();
-      //   handleError(ErrorCode.AUTH_USER_SUSPENDED, ErrorMessage.USER_SUSPENDED);
-      // } else {
-      return true;
-      // }
+      await auth().signInWithEmailAndPassword(email, password);
     } catch (error: any) {
       console.log('err: ' + error);
-      handleError(error.code, ErrorMessage.LOGIN_FAILED);
+      throw Error('User.login error: ' + error);
     }
   }
 

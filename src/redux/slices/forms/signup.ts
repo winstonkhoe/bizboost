@@ -1,6 +1,6 @@
 import {createAction, createSlice} from '@reduxjs/toolkit';
 import {User} from '../../../model/User';
-import {Providers} from '../../../model/AuthMethod';
+import {Provider} from '../../../model/AuthMethod';
 
 export interface TemporarySignupData {
   profilePicture?: string;
@@ -10,7 +10,7 @@ export interface TemporarySignupData {
 
 interface CreateAdditionalAccountState {
   data?: User;
-  provider?: Providers;
+  provider?: Provider;
   providerId?: string;
   temporaryData?: TemporarySignupData;
 }
@@ -22,7 +22,7 @@ const initialState = {
   providerId: undefined,
 } as CreateAdditionalAccountState;
 
-export const setSignupProvider = createAction<Providers>('setSignupProvider');
+export const setSignupProvider = createAction<Provider>('setSignupProvider');
 export const updateSignupData = createAction<User>('updateSignupData');
 export const updateTemporarySignupData = createAction<TemporarySignupData>(
   'updateTemporarySignupData',

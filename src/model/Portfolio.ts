@@ -27,7 +27,6 @@ export class Portfolio extends BaseModel {
     this.thumbnail = thumbnail;
   }
 
-  //todo: GATAU namanya yang bagus apa
   toFirestore() {
     // const {thumbnail, uri, description, userId, ...rest} = this;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -42,14 +42,13 @@ const EditBiodataScreen = () => {
 
   const onSubmit = (d: FormData) => {
     const temp = new User({...user});
-    temp.contentCreator = {
-      ...temp.contentCreator!,
-      biodata: d.biodata,
-    };
-
-    temp.updateUserData().then(() => {
-      navigation.goBack();
-    });
+    temp
+      .update({
+        'contentCreator.biodata': d.biodata,
+      })
+      .then(() => {
+        navigation.goBack();
+      });
   };
   return (
     <SafeAreaContainer enable>

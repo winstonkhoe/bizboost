@@ -100,6 +100,8 @@ const ModalNegotiateScreen = ({route}: Props) => {
       });
       return;
     }
+    console.log(data.platforms[0].tasks);
+    console.log('role ' + activeRole);
     offer
       .negotiate(data.fee, data.notes, data.platforms, activeRole)
       .then(() => {
