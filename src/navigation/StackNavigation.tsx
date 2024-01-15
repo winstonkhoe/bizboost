@@ -49,8 +49,8 @@ import ModalSubmitBrainstorm from '../screens/campaign/timeline/ModalSubmitBrain
 import ReportListScreen from '../screens/report/ReportListScreen';
 import ReportDetailScreen from '../screens/report/ReportDetailScreen';
 import {OfferDetailScreen} from '../screens/OfferDetailScreen';
-import {SocialData, User, UserRole} from '../model/User';
-import {Providers} from '../model/AuthMethod';
+import {User, UserRole} from '../model/User';
+import {Provider} from '../model/AuthMethod';
 import ModalSubmitContentCreation from '../screens/campaign/timeline/ModalSubmitContentCreation';
 import EditBiodataScreen from '../screens/profile/edit/EditBiodataScreen';
 import EditSocialPlatformScreen from '../screens/profile/edit/EditSocialPlatformScreen';
@@ -117,7 +117,7 @@ export type GuestStack = {
     name?: string;
     profilePicture?: string;
     user?: User;
-    provider?: Providers;
+    provider?: Provider;
     providerId?: string;
     token?: string;
   };

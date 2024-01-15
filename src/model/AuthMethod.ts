@@ -14,10 +14,8 @@ export enum Provider {
   FACEBOOK = 'Facebook',
 }
 
-export type Providers = Provider.EMAIL | Provider.GOOGLE | Provider.FACEBOOK;
-
 interface GetUserCredentialByProviderProps {
-  provider: Providers;
+  provider: Provider;
   token: string | null;
   email?: string;
   password?: string;
@@ -27,7 +25,7 @@ export class AuthMethod extends BaseModel {
   id?: string;
   providerId?: string;
   email?: string;
-  method?: Providers;
+  method?: Provider;
 
   constructor({id, email, method, providerId}: Partial<AuthMethod>) {
     super();

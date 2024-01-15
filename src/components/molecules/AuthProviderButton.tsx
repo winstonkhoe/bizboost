@@ -1,11 +1,11 @@
-import {Provider, Providers} from '../../model/AuthMethod';
+import {Provider} from '../../model/AuthMethod';
 import {CustomButton, CustomButtonProps} from '../atoms/Button';
 import GoogleLogo from '../../assets/vectors/google-color-logo.svg';
 import FacebookLogo from '../../assets/vectors/facebook-logo.svg';
 import {View} from 'react-native';
 
 interface AuthProviderButtonProps extends Partial<CustomButtonProps> {
-  provider: Providers;
+  provider: Provider;
 }
 
 export const AuthProviderButton = ({
