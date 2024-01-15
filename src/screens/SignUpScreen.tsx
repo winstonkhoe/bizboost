@@ -1,4 +1,4 @@
-import {Text, View} from 'react-native';
+import {ScrollView, Text, View} from 'react-native';
 import {
   ContentCreatorPreference,
   SocialPlatform,
@@ -527,7 +527,7 @@ const SignUpScreen = ({route}: Props) => {
                   </View>
                 </KeyboardAvoidingContainer>
               </View>
-              <View key={SignupStep.FAVORITE_CATEGORY}>
+              <ScrollView key={SignupStep.FAVORITE_CATEGORY}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
                     <RegisterFocusCategory
@@ -545,7 +545,7 @@ const SignUpScreen = ({route}: Props) => {
                     />
                   </View>
                 </KeyboardAvoidingContainer>
-              </View>
+              </ScrollView>
               <View key={SignupStep.LOCATION}>
                 <KeyboardAvoidingContainer>
                   <View style={[flex.flexCol, gap.xlarge2]}>
