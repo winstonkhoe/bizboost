@@ -3,7 +3,7 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {BaseModel} from './BaseModel';
 import {User, UserRole} from './User';
-import {Campaign, CampaignPlatform, CampaignTask} from './Campaign';
+import {Campaign, CampaignPlatform} from './Campaign';
 import {Chat, MessageType} from './Chat';
 import {ErrorMessage} from '../constants/errorMessage';
 import {Transaction, TransactionStatus} from './Transaction';
@@ -15,7 +15,6 @@ export enum OfferStatus {
   approved = 'Approved',
   rejected = 'Rejected',
   negotiate = 'Negotiate',
-  negotiateRejected = 'Negotiate Rejected',
 }
 
 export interface Negotiation {
@@ -169,11 +168,7 @@ export class Offer extends BaseModel {
           '==',
           firestore().collection('users').doc(contentCreatorId),
         )
-        .where('status', 'in', [
-          OfferStatus.pending,
-          OfferStatus.negotiate,
-          OfferStatus.negotiateRejected,
-        ])
+        .where('status', 'in', [OfferStatus.pending, OfferStatus.negotiate])
         .onSnapshot(
           querySnapshot =>
             onComplete(querySnapshot.docs.map(Offer.fromSnapshot)),
