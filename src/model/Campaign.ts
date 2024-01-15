@@ -16,7 +16,6 @@ export interface CampaignTask {
 export type CampaignPlatform = {name: SocialPlatform; tasks: CampaignTask[]};
 
 export enum CampaignStep {
-  // PendingPayment = 'Pending Payment'
   Registration = 'Registration',
   Brainstorming = 'Brainstorming',
   ContentCreation = 'Content Creation',
