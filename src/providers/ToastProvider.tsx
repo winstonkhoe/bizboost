@@ -128,6 +128,7 @@ const ToastProvider = () => {
           style={[
             background(
               colorToastTypeMap[currentToast.type || ToastType.info].background,
+              0.92,
             ),
             padding.default,
             rounded.max,
