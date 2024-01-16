@@ -17,7 +17,7 @@ import PhotosIcon from '../../assets/vectors/photos.svg';
 import ImageView from 'react-native-image-viewing';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useUser} from '../../hooks/user';
-import {User} from '../../model/User';
+import {User, UserRole} from '../../model/User';
 import {
   PaymentStatus,
   Transaction,
@@ -50,7 +50,7 @@ const PaymentSheetModal = ({
   onModalDismiss,
   transaction,
 }: Props) => {
-  const {isBusinessPeople, isAdmin, user} = useUser();
+  const {isBusinessPeople, isContentCreator, isAdmin, user} = useUser();
   const [uploadedImage, setUploadedImage] = useState<string | undefined>(
     transaction.payment?.proofImage,
   );
@@ -264,70 +264,73 @@ const PaymentSheetModal = ({
             </Text>
           </View>
 
-          <View style={[flex.flexCol, items.center]}>
+          <View style={[flex.flexCol, gap.default]}>
             {uploadedImage && (
-              <TouchableOpacity onPress={() => setIsImageViewOpened(true)}>
-                <View
-                  style={[
-                    dimension.square.xlarge15,
-                    rounded.medium,
-                    overflow.hidden,
-                  ]}>
-                  <FastImage
-                    style={[dimension.full]}
-                    source={{uri: uploadedImage}}
-                  />
-                </View>
-              </TouchableOpacity>
+              <View style={[flex.flexRow, justify.center]}>
+                <TouchableOpacity onPress={() => setIsImageViewOpened(true)}>
+                  <View
+                    style={[
+                      dimension.square.xlarge15,
+                      rounded.medium,
+                      overflow.hidden,
+                    ]}>
+                    <FastImage
+                      style={[dimension.full]}
+                      source={{uri: uploadedImage}}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </View>
             )}
             {isBusinessPeople && transaction.isPaymentProofSubmitable() && (
-              <View style={[dimension.square.xlarge12]}>
-                <MediaUploader
-                  targetFolder="payment"
-                  showUploadProgress
-                  options={{
-                    //   width: 400,
-                    //   height: 400,
-                    compressImageQuality: 0.5,
-                    //   cropping: true,
-                  }}
-                  onUploadSuccess={onUploadSuccess}
-                  onMediaSelected={imageOrVideo => console.log(imageOrVideo)}>
-                  {uploadedImage ? (
-                    <Text
-                      style={[
-                        self.center,
-                        padding.top.default,
-                        textColor(COLOR.text.green.default),
-                        font.size[30],
-                      ]}>
-                      Reupload
-                    </Text>
-                  ) : (
-                    <View
-                      style={[
-                        flex.flex1,
-                        rounded.medium,
-                        flex.flexRow,
-                        justify.center,
-                        items.center,
-                        {
-                          borderStyle: 'dashed',
-                        },
-                        border({
-                          borderWidth: 1,
-                          color: COLOR.black[20],
-                        }),
-                        background(COLOR.black[5]),
-                      ]}>
-                      <PhotosIcon
-                        width={30}
-                        height={30}
-                        color={COLOR.text.neutral.high}
-                      />
-                    </View>
-                  )}
-                </MediaUploader>
+              <View style={[flex.flexRow, justify.center]}>
+                <View style={[dimension.square.xlarge12]}>
+                  <MediaUploader
+                    targetFolder="payment"
+                    showUploadProgress
+                    options={{
+                      //   width: 400,
+                      //   height: 400,
+                      compressImageQuality: 0.5,
+                      //   cropping: true,
+                    }}
+                    onUploadSuccess={onUploadSuccess}>
+                    {uploadedImage ? (
+                      <Text
+                        style={[
+                          self.center,
+                          padding.top.default,
+                          textColor(COLOR.text.green.default),
+                          font.size[30],
+                        ]}>
+                        Reupload
+                      </Text>
+                    ) : (
+                      <View
+                        style={[
+                          flex.flex1,
+                          rounded.medium,
+                          flex.flexRow,
+                          justify.center,
+                          items.center,
+                          {
+                            borderStyle: 'dashed',
+                          },
+                          border({
+                            borderWidth: 1,
+                            color: COLOR.black[20],
+                          }),
+                          background(COLOR.black[5]),
+                        ]}>
+                        <PhotosIcon
+                          width={30}
+                          height={30}
+                          color={COLOR.text.neutral.high}
+                        />
+                      </View>
+                    )}
+                  </MediaUploader>
+                </View>
               </View>
             )}
             {isAdmin && (
@@ -373,39 +376,33 @@ const PaymentSheetModal = ({
               </View>
             )}
 
-            {isBusinessPeople &&
-              transaction.status === TransactionStatus.terminated &&
-              transaction.payment?.status === PaymentStatus.proofApproved && (
-                <View style={[flex.flexRow]}>
-                  <View style={[flex.flex1]}>
-                    <CustomAlert
-                      text="Withdraw"
-                      rejectButtonText="Cancel"
-                      approveButtonText="OK"
-                      confirmationText={
-                        <Text
-                          className="text-center"
-                          style={[
-                            font.size[30],
-                            textColor(COLOR.text.neutral.med),
-                          ]}>
-                          {user?.bankAccountInformation
-                            ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
-                            : 'You have not set your payment information yet, do you want to set it now?'}
-                        </Text>
-                      }
-                      onApprove={
-                        user?.bankAccountInformation
-                          ? onRequestWithdraw
-                          : () =>
-                              navigation.navigate(
-                                AuthenticatedNavigation.EditBankAccountInformation,
-                              )
-                      }
-                    />
-                  </View>
-                </View>
-              )}
+            {((isBusinessPeople &&
+              transaction.isWithdrawable(UserRole.BusinessPeople)) ||
+              (isContentCreator &&
+                transaction.isWithdrawable(UserRole.ContentCreator))) && (
+              <CustomAlert
+                text="Withdraw"
+                rejectButtonText="Cancel"
+                approveButtonText="OK"
+                confirmationText={
+                  <Text
+                    className="text-center"
+                    style={[font.size[30], textColor(COLOR.text.neutral.med)]}>
+                    {user?.bankAccountInformation
+                      ? `You are about to request money withdrawal from Admin, and the money will be sent to the following bank account: ${user?.bankAccountInformation?.bankName} - ${user?.bankAccountInformation?.accountNumber} (${user?.bankAccountInformation?.accountHolderName}). Do you wish to continue?`
+                      : 'You have not set your payment information yet, do you want to set it now?'}
+                  </Text>
+                }
+                onApprove={
+                  user?.bankAccountInformation
+                    ? onRequestWithdraw
+                    : () =>
+                        navigation.navigate(
+                          AuthenticatedNavigation.EditBankAccountInformation,
+                        )
+                }
+              />
+            )}
           </View>
         </View>
       </SheetModal>
