@@ -8,7 +8,7 @@ import {
   transactionStatusTypeMap,
 } from '../../model/Transaction';
 import {User, UserRole} from '../../model/User';
-import {ReactNode, useEffect, useState} from 'react';
+import {ReactNode, useCallback, useEffect, useMemo, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
@@ -40,6 +40,7 @@ import ReviewSheetModal from './ReviewSheetModal';
 import {Review} from '../../model/Review';
 import {overflow} from '../../styles/Overflow';
 import {ChevronRight} from '../atoms/Icon';
+import {useUser} from '../../hooks/user';
 
 type Props = {
   transaction: Transaction;
@@ -47,6 +48,7 @@ type Props = {
 };
 const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const {isBusinessPeople} = useUser();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [review, setReview] = useState<Review | null>();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -55,12 +57,61 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     transaction.status === TransactionStatus.registrationPending &&
     transaction.payment === undefined;
 
-  const isWaitingAction =
-    transaction.isWaitingBusinessPeopleAction() && !doesNeedApproval;
-  const actionText =
-    TransactionStatus.offerWaitingForPayment === transaction.status
-      ? 'Make Payment'
-      : 'Review Submission';
+  const isWaitingActionOnTransactionDetail =
+    transaction.isWaitingBusinessPeopleAction() &&
+    !doesNeedApproval &&
+    isBusinessPeople;
+  const isWithdrawable =
+    transaction.isWithdrawable(UserRole.BusinessPeople) && isBusinessPeople;
+  console.log('isWithdrawable', isWithdrawable, 'transaction', transaction.id);
+  const isReviewable =
+    review === null && transaction.isCompleted() && isBusinessPeople;
+
+  const navigateToTransactionDetail = useCallback(() => {
+    if (transaction.id) {
+      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+        transactionId: transaction.id,
+      });
+    }
+  }, [navigation, transaction.id]);
+
+  const actionText = useMemo(() => {
+    if (isWaitingActionOnTransactionDetail) {
+      return 'Review Submission';
+    }
+    if (TransactionStatus.offerWaitingForPayment === transaction.status) {
+      return 'Make Payment';
+    }
+    if (isWithdrawable) {
+      return 'Withdraw';
+    }
+    if (isReviewable) {
+      return 'Review';
+    }
+    return undefined;
+  }, [
+    isWaitingActionOnTransactionDetail,
+    transaction,
+    isWithdrawable,
+    isReviewable,
+  ]);
+
+  const handleAction = useMemo(() => {
+    if (isWaitingActionOnTransactionDetail || isWithdrawable) {
+      return navigateToTransactionDetail;
+    }
+    if (isReviewable) {
+      return () => {
+        setIsReviewModalOpen(true);
+      };
+    }
+    return undefined;
+  }, [
+    isWaitingActionOnTransactionDetail,
+    isWithdrawable,
+    isReviewable,
+    navigateToTransactionDetail,
+  ]);
 
   useEffect(() => {
     if (transaction.contentCreatorId) {
@@ -86,14 +137,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       );
     }
   }, [transaction]);
-
-  const navigateToTransactionDetail = () => {
-    if (transaction.id) {
-      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
-        transactionId: transaction.id,
-      });
-    }
-  };
 
   return (
     <>
@@ -130,24 +173,12 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         }
         bodyText={contentCreator?.contentCreator?.fullname || ''}
         bodyContent={
-          review === null &&
-          transaction.isCompleted() && (
-            <>
-              <View style={[flex.flex1, flex.flexRow, justify.end]}>
-                <CustomButton
-                  text="Review"
-                  verticalPadding="xsmall"
-                  onPress={() => {
-                    setIsReviewModalOpen(true);
-                  }}
-                />
-              </View>
-              <ReviewSheetModal
-                isModalOpened={isReviewModalOpen}
-                onModalDismiss={() => setIsReviewModalOpen(false)}
-                transaction={transaction}
-              />
-            </>
+          isReviewable && (
+            <ReviewSheetModal
+              isModalOpened={isReviewModalOpen}
+              onModalDismiss={() => setIsReviewModalOpen(false)}
+              transaction={transaction}
+            />
           )
         }
         statusText={transaction.status}
@@ -157,7 +188,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
           ]
         }
         doesNeedApproval={doesNeedApproval}
-        handleAction={isWaitingAction ? navigateToTransactionDetail : undefined}
+        handleAction={handleAction}
         actionText={actionText}
         handleClickReject={() => {
           transaction
@@ -196,12 +227,19 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
 
 const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const {isContentCreator} = useUser();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [review, setReview] = useState<Review | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
-  const isReviewable = review === null && transaction.isCompleted();
-  const [isWaitingAction, setIsWaitingAction] = useState<boolean>();
+  const isReviewable =
+    review === null && transaction.isCompleted() && isContentCreator;
+  const isWithdrawable =
+    transaction.isWithdrawable(UserRole.ContentCreator) && isContentCreator;
+  const [
+    isWaitingActionOnCampaignTimeline,
+    setIsWaitingActionOnCampaignTimeline,
+  ] = useState<boolean>();
 
   useEffect(() => {
     if (transaction.campaignId) {
@@ -217,8 +255,10 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     if (transaction) {
       transaction
         .isWaitingContentCreatorAction()
-        .then(setIsWaitingAction)
-        .catch(() => setIsWaitingAction(false));
+        .then(waitingContentCreatorAction => {
+          setIsWaitingActionOnCampaignTimeline(waitingContentCreatorAction);
+        })
+        .catch(() => setIsWaitingActionOnCampaignTimeline(false));
     }
   }, [transaction]);
 
@@ -242,13 +282,55 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
-  const navigateToCampaignTimeline = () => {
+  const navigateToTransactionDetail = useCallback(() => {
+    if (transaction.id) {
+      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+        transactionId: transaction.id,
+      });
+    }
+  }, [navigation, transaction.id]);
+
+  const navigateToCampaignTimeline = useCallback(() => {
     if (campaign?.id) {
       navigation.navigate(AuthenticatedNavigation.CampaignTimeline, {
         campaignId: campaign.id,
       });
     }
-  };
+  }, [navigation, campaign?.id]);
+
+  const actionText = useMemo(() => {
+    if (isWaitingActionOnCampaignTimeline) {
+      return 'Make Submission';
+    }
+    if (isWithdrawable) {
+      return 'Withdraw';
+    }
+    if (isReviewable) {
+      return 'Review';
+    }
+    return undefined;
+  }, [isWaitingActionOnCampaignTimeline, isWithdrawable, isReviewable]);
+
+  const handleAction = useMemo(() => {
+    if (isWaitingActionOnCampaignTimeline) {
+      return navigateToCampaignTimeline;
+    }
+    if (isWithdrawable) {
+      return navigateToTransactionDetail;
+    }
+    if (isReviewable) {
+      return () => {
+        setIsReviewModalOpen(true);
+      };
+    }
+    return undefined;
+  }, [
+    isWaitingActionOnCampaignTimeline,
+    isWithdrawable,
+    isReviewable,
+    navigateToCampaignTimeline,
+    navigateToTransactionDetail,
+  ]);
 
   return (
     <BaseCard
@@ -272,36 +354,15 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       })}
       // bodyText={campaign?.title}
       bodyText={campaign?.title}
-      handleAction={isWaitingAction ? navigateToCampaignTimeline : undefined}
-      actionText="Make Submission"
+      handleAction={handleAction}
+      actionText={actionText}
       bodyContent={
-        (isReviewable || isWaitingAction) && (
-          <>
-            <View
-              style={[
-                flex.flex1,
-                flex.flexRow,
-                justify.end,
-                padding.top.small,
-              ]}>
-              {isReviewable && (
-                <CustomButton
-                  text="Review"
-                  verticalPadding="xsmall"
-                  onPress={() => {
-                    setIsReviewModalOpen(true);
-                  }}
-                />
-              )}
-            </View>
-            {isReviewable && (
-              <ReviewSheetModal
-                isModalOpened={isReviewModalOpen}
-                onModalDismiss={() => setIsReviewModalOpen(false)}
-                transaction={transaction}
-              />
-            )}
-          </>
+        isReviewable && (
+          <ReviewSheetModal
+            isModalOpened={isReviewModalOpen}
+            onModalDismiss={() => setIsReviewModalOpen(false)}
+            transaction={transaction}
+          />
         )
       }
       statusText={transaction.status}

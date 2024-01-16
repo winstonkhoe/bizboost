@@ -1234,6 +1234,21 @@ export class Transaction extends BaseModel {
     );
   }
 
+  isWithdrawable(role: UserRole) {
+    const {payment} = this;
+    if (
+      [PaymentStatus.withdrawalRequested, PaymentStatus.withdrawn].findIndex(
+        paymentStatus => paymentStatus === payment?.status,
+      ) >= 0
+    ) {
+      return false;
+    }
+    if (role === UserRole.BusinessPeople) {
+      return this.isTerminated();
+    }
+    return this.isCompleted();
+  }
+
   isPaymentProofSubmitable() {
     const {status, payment} = this;
     if (
