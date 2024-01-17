@@ -996,8 +996,9 @@ const EmptySection = ({
       style={[
         flex.flexCol,
         gap.default,
-        rounded.default,
-        padding.default,
+        rounded.medium,
+        padding.horizontal.default,
+        padding.vertical.medium,
         border({
           borderWidth: 1,
           color: COLOR.black[20],
