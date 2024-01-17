@@ -269,6 +269,10 @@ const HomeScreen = () => {
     }
   }, [isAdmin]);
 
+  const navigateToCreateCampaign = () => {
+    navigation.navigate(AuthenticatedNavigation.CreateCampaign);
+  };
+
   if (isAdmin) {
     console.log('admin transactions', transactions);
   }
@@ -305,55 +309,74 @@ const HomeScreen = () => {
           ]}>
           {!isAdmin && <DashboardPanel transactions={transactions} />}
           {/* New This Week */}
-          {isContentCreator && (
-            <View style={[flex.flexCol, gap.default]}>
-              <HorizontalPadding>
-                <HomeSectionHeader header="New This Week" link="See All" />
-              </HorizontalPadding>
-              <ScrollView
-                showsHorizontalScrollIndicator={false}
-                horizontal
-                contentContainerStyle={[
-                  flex.flexRow,
-                  gap.default,
-                  padding.horizontal.default,
-                  padding.bottom.xsmall,
-                ]}>
-                {thisWeekCampaign
-                  .slice(0, 5)
-                  .map((campaign: Campaign, index: number) => (
-                    <NewThisWeekCard campaign={campaign} key={index} />
-                  ))}
-              </ScrollView>
-            </View>
-          )}
+          {isContentCreator &&
+            (thisWeekCampaign.length > 0 ? (
+              <View style={[flex.flexCol, gap.default]}>
+                <HorizontalPadding>
+                  <HomeSectionHeader header="New This Week" link="See All" />
+                </HorizontalPadding>
+
+                <ScrollView
+                  showsHorizontalScrollIndicator={false}
+                  horizontal
+                  contentContainerStyle={[
+                    flex.flexRow,
+                    gap.default,
+                    padding.horizontal.default,
+                    padding.bottom.xsmall,
+                  ]}>
+                  {thisWeekCampaign
+                    .slice(0, 5)
+                    .map((campaign: Campaign, index: number) => (
+                      <NewThisWeekCard campaign={campaign} key={index} />
+                    ))}
+                </ScrollView>
+              </View>
+            ) : (
+              <View style={[padding.horizontal.default]}>
+                <EmptySection
+                  title="New This Week"
+                  description="No new campaigns have opened for registration this week. Check back soon for exciting new opportunities!"
+                />
+              </View>
+            ))}
 
           {/* Your Upcoming Campaigns */}
-          {isBusinessPeople && (
-            <View style={[flex.flexCol, gap.default]}>
-              <HorizontalPadding>
-                <HomeSectionHeader
-                  header="Your Upcoming Campaigns"
-                  link="See All"
+          {isBusinessPeople &&
+            (upcomingCampaigns.length > 0 ? (
+              <View style={[flex.flexCol, gap.default]}>
+                <HorizontalPadding>
+                  <HomeSectionHeader
+                    header="Your Upcoming Campaigns"
+                    link="See All"
+                  />
+                </HorizontalPadding>
+                <ScrollView
+                  showsHorizontalScrollIndicator={false}
+                  horizontal
+                  contentContainerStyle={[
+                    flex.flexRow,
+                    gap.default,
+                    padding.horizontal.default,
+                    padding.bottom.xsmall,
+                  ]}>
+                  {upcomingCampaigns
+                    .slice(0, 5)
+                    .map((campaign: Campaign, index: number) => (
+                      <NewThisWeekCard campaign={campaign} key={index} />
+                    ))}
+                </ScrollView>
+              </View>
+            ) : (
+              <View style={[padding.horizontal.default]}>
+                <EmptySection
+                  title="Your Upcoming Campaigns"
+                  description="You don’t have any upcoming campaigns at the moment."
+                  actionText="Create Now"
+                  handleAction={navigateToCreateCampaign}
                 />
-              </HorizontalPadding>
-              <ScrollView
-                showsHorizontalScrollIndicator={false}
-                horizontal
-                contentContainerStyle={[
-                  flex.flexRow,
-                  gap.default,
-                  padding.horizontal.default,
-                  padding.bottom.xsmall,
-                ]}>
-                {upcomingCampaigns
-                  .slice(0, 5)
-                  .map((campaign: Campaign, index: number) => (
-                    <NewThisWeekCard campaign={campaign} key={index} />
-                  ))}
-              </ScrollView>
-            </View>
-          )}
+              </View>
+            ))}
           <View
             style={[
               flex.flexCol,
@@ -502,10 +525,7 @@ const HomeScreen = () => {
                 right: 20,
               },
             ]}>
-            <AnimatedPressable
-              onPress={() =>
-                navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-              }>
+            <AnimatedPressable onPress={navigateToCreateCampaign}>
               <View
                 style={[
                   shadow.large,
@@ -779,20 +799,15 @@ interface DashboardPanelProps {
 }
 
 const DashboardPanel = ({transactions}: DashboardPanelProps) => {
-  const {user, isContentCreator} = useUser();
+  const {user, isContentCreator, activeRole} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
 
   const calculateBalance = () => {
-    if (isContentCreator) {
-      return transactions
-        .filter(transaction => transaction.isCompleted())
-        .reduce(
-          (acc, transaction) => acc + (transaction.transactionAmount || 0),
-          0,
-        );
+    if (!activeRole) {
+      return 0;
     }
     return transactions
-      .filter(transaction => transaction.isTerminated())
+      .filter(transaction => transaction.isWithdrawable(activeRole))
       .reduce(
         (acc, transaction) => acc + (transaction.transactionAmount || 0),
         0,
@@ -960,6 +975,63 @@ const VerticalSeparator = () => {
         },
       ]}
     />
+  );
+};
+
+interface EmptySectionProps {
+  title: string;
+  description: string;
+  handleAction?: () => void;
+  actionText?: string;
+}
+
+const EmptySection = ({
+  title,
+  description,
+  actionText = 'Submit',
+  handleAction,
+}: EmptySectionProps) => {
+  return (
+    <View
+      style={[
+        flex.flexCol,
+        gap.default,
+        rounded.default,
+        padding.default,
+        border({
+          borderWidth: 1,
+          color: COLOR.black[20],
+        }),
+      ]}>
+      <View style={[flex.flexCol, gap.xsmall, items.center]}>
+        <Text
+          style={[
+            font.size[30],
+            font.weight.bold,
+            textColor(COLOR.text.neutral.high),
+          ]}>
+          {title}
+        </Text>
+        <Text
+          style={[
+            text.center,
+            font.size[20],
+            font.weight.semibold,
+            textColor(COLOR.text.neutral.med),
+          ]}>
+          {description}
+        </Text>
+      </View>
+      {handleAction && (
+        <View style={[flex.flexRow, justify.center]}>
+          <CustomButton
+            text={actionText}
+            onPress={handleAction}
+            rounded="max"
+          />
+        </View>
+      )}
+    </View>
   );
 };
 
