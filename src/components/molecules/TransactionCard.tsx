@@ -63,7 +63,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     isBusinessPeople;
   const isWithdrawable =
     transaction.isWithdrawable(UserRole.BusinessPeople) && isBusinessPeople;
-  console.log('isWithdrawable', isWithdrawable, 'transaction', transaction.id);
   const isReviewable =
     review === null && transaction.isCompleted() && isBusinessPeople;
 
@@ -142,7 +141,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     <>
       <BaseCard
         handleClickHeader={() => {
-          console.log('open campaign detail / BP detail');
           navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
             campaignId: campaign?.id || '',
           });
@@ -157,7 +155,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         headerTextLeading={campaign?.title || ''}
         // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
         handleClickBody={() => {
-          console.log('open transaction ', transaction.id, ' detail');
           if (transaction.id) {
             navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
               transactionId: transaction.id,
@@ -207,13 +204,9 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
             });
         }}
         handleClickAccept={() => {
-          console.log(transaction.payment?.proofImage);
           setIsPaymentModalOpened(true); // TODO: abis klik ini, ganti status? (at least dari pov bp, kalo cc biarin Pending aja trs?)
-          //TODO: move approval to admin (approve payment first)
-          // transaction.approveRegistration();
         }}
       />
-      {/* TODO: kalo gaada kondisi isPaymentModalOpened di awal, gatau kenapa ngebug fotonya pake yang lama trs  */}
       {isPaymentModalOpened && (
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}

@@ -41,7 +41,6 @@ const ChatBubble = ({
   const isPhotoMessage = data.type === MessageType.Photo;
   const isOfferMessage = data.type === MessageType.Offer;
   const isNegotiationMessage = data.type === MessageType.Negotiation;
-  console.log(data);
   return (
     <View
       style={[

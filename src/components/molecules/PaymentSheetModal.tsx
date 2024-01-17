@@ -75,7 +75,6 @@ const PaymentSheetModal = ({
     transaction
       .submitProof(url)
       .then(() => {
-        console.log('updated proof!');
         showToast({
           message:
             'Registration Approved! Your payment is being reviewed by our Admin',
