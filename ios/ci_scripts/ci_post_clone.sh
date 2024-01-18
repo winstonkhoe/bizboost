@@ -11,7 +11,7 @@
  # Install dependencies using Homebrew. This is MUST! Do not delete.
  brew install node yarn cocoapods fastlane
 
- ls && cd .. && yarn && pod install --repo-update
+ ls && cd .. && yarn && rm Podfile.lock && pod install --repo-update
 
  echo "🎯 Stage: Post-clone is done .... "
 
