@@ -240,6 +240,7 @@ export class Offer extends BaseModel {
         contentCreatorId: contentCreatorId,
         businessPeopleId: businessPeopleId,
         campaignId: campaignId,
+        importantNotes: latestNegotiation.notes,
       });
       await transaction.insert(TransactionStatus.offerWaitingForPayment);
       const campaign = await Campaign.getById(campaignId);

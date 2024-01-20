@@ -301,7 +301,7 @@ export class Transaction extends BaseModel {
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   transactionAmount?: number;
-  importantNotes?: string[];
+  importantNotes?: string;
   brainstorms?: Brainstorm[];
   contents?: Content[];
   engagements?: Engagement[];
