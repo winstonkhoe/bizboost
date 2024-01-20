@@ -108,7 +108,7 @@ type Props = NativeStackScreenProps<
 const TransactionDetailScreen = ({route}: Props) => {
   // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
-  const {uid, user, activeRole} = useUser();
+  const {uid, user, activeRole, isAdmin} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const {transactionId} = route.params;
@@ -570,7 +570,7 @@ const TransactionDetailScreen = ({route}: Props) => {
             businessPeople={businessPeople}
             campaign={campaign}
           />
-          {isCampaignOwner && (
+          {(isCampaignOwner || isAdmin) && (
             <ContentCreatorSection contentCreator={contentCreator} />
           )}
           {campaign.isTimelineAvailable(CampaignStep.Brainstorming) && (
