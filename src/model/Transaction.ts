@@ -15,6 +15,7 @@ import {StepperState} from '../components/atoms/Stepper';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 import {ErrorMessage} from '../constants/errorMessage';
+import {Offer} from './Offer';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -1185,6 +1186,14 @@ export class Transaction extends BaseModel {
     );
   }
 
+  isRegistered() {
+    const {status} = this;
+    return (
+      transactionStatusIndexMap[status] >=
+      transactionStatusIndexMap[TransactionStatus.registrationApproved]
+    );
+  }
+
   isApprovable() {
     const {status, payment} = this;
     return (
@@ -1269,10 +1278,18 @@ export class Transaction extends BaseModel {
     return false;
   }
 
-  isWaitingBusinessPeopleAction() {
-    const {status, payment} = this;
+  async isWaitingBusinessPeopleAction() {
+    const {id, status, payment} = this;
     if (this.isTerminated() || this.isCompleted()) {
       return false;
+    }
+    if (TransactionStatus.offering === status) {
+      if (!id) {
+        return false;
+      }
+      const offer = await Offer.getById(id);
+      const latestNegotiation = offer?.getLatestNegotiation();
+      return latestNegotiation?.negotiatedBy === UserRole.ContentCreator;
     }
     if (
       [
@@ -1299,9 +1316,17 @@ export class Transaction extends BaseModel {
   }
 
   async isWaitingContentCreatorAction() {
-    const {status, campaignId} = this;
+    const {id, status, campaignId} = this;
     if (this.isTerminated() || this.isCompleted()) {
       return false;
+    }
+    if (TransactionStatus.offering === status) {
+      if (!id) {
+        return false;
+      }
+      const offer = await Offer.getById(id);
+      const latestNegotiation = offer?.getLatestNegotiation();
+      return latestNegotiation?.negotiatedBy === UserRole.BusinessPeople;
     }
     if (
       [

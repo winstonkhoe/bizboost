@@ -1,19 +1,10 @@
 import {useEffect, useMemo} from 'react';
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {Campaign} from '../model/Campaign';
+import {Campaign, CampaignType} from '../model/Campaign';
 import {
   setNonUserCampaigns,
   setUserCampaigns,
 } from '../redux/slices/campaignSlice';
-
-export const fetchNonUserCampaigns = async (currentUserId: string) => {
-  const campaigns = await Campaign.getAll();
-  return campaigns
-    .filter(c => c.userId !== currentUserId)
-    .filter(c => c.isPublic() && c.isRegisterable())
-    .sort(Campaign.sortByTimelineStart)
-    .map(c => c.toJSON());
-};
 
 export const useOngoingCampaign = () => {
   const {uid} = useAppSelector(state => state.user);
@@ -25,30 +16,39 @@ export const useOngoingCampaign = () => {
 
   useEffect(() => {
     if (uid) {
-      fetchNonUserCampaigns(uid).then(cs => dispatch(setNonUserCampaigns(cs)));
+      return Campaign.getAll(campaigns => {
+        Promise.all(
+          campaigns.map(async campaign =>
+            (await campaign.isRegisterable()) ? campaign : null,
+          ),
+        )
+          .then(registerableCampaigns => {
+            dispatch(
+              setNonUserCampaigns(
+                registerableCampaigns
+                  .filter((campaign): campaign is Campaign => campaign !== null)
+                  .filter(c => c.userId !== uid)
+                  .sort(Campaign.sortByTimelineStart)
+                  .map(c => c.toJSON()),
+              ),
+            );
+          })
+          .catch(() => {
+            dispatch(setNonUserCampaigns([]));
+          });
+      }, CampaignType.Public);
     }
   }, [now, uid, dispatch]);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
     if (uid) {
       console.log('hook:useOngoingCampaign');
-      unsubscribe = Campaign.getUserCampaignsReactive(
-        uid,
-        (campaigns: Campaign[]) => {
-          dispatch(
-            setUserCampaigns(campaigns.map(campaign => campaign.toJSON())),
-          );
-        },
-      );
-
-      return unsubscribe;
+      return Campaign.getUserCampaignsReactive(uid, (campaigns: Campaign[]) => {
+        dispatch(
+          setUserCampaigns(campaigns.map(campaign => campaign.toJSON())),
+        );
+      });
     }
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
   }, [uid, dispatch]);
   return {userCampaigns, nonUserCampaigns};
 };

@@ -109,23 +109,9 @@ const HomeScreen = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
-
-  const pendingReports = useMemo(
-    () =>
-      reports
-        .filter(report => report.isPending())
-        .sort(
-          (a, b) =>
-            reportStatusPrecendence[a.status] -
-            reportStatusPrecendence[b.status],
-        )
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
-    [reports],
-  );
 
   const upcomingCampaigns = useMemo(
-    () => userCampaigns.filter(c => new Campaign(c).isUpcoming()),
+    () => userCampaigns.filter(c => new Campaign(c).isUpcomingOrRegistration()),
     [userCampaigns],
   );
 
@@ -196,7 +182,9 @@ const HomeScreen = () => {
     const getActionNeededTransactions = async () => {
       const results = await Promise.all(
         transactions.map(async transaction =>
-          (await transaction.isWaitingContentCreatorAction())
+          (await (isContentCreator
+            ? transaction.isWaitingContentCreatorAction()
+            : transaction.isWaitingBusinessPeopleAction()))
             ? transaction
             : null,
         ),
@@ -211,14 +199,7 @@ const HomeScreen = () => {
           ),
         );
       }
-      if (isBusinessPeople) {
-        setActionNeededTransactions(
-          transactions.filter(transaction =>
-            transaction.isWaitingBusinessPeopleAction(),
-          ),
-        );
-      }
-      if (isContentCreator) {
+      if (isContentCreator || isBusinessPeople) {
         getActionNeededTransactions()
           .then(setActionNeededTransactions)
           .catch(() => setActionNeededTransactions([]));
@@ -312,10 +293,9 @@ const HomeScreen = () => {
           {isContentCreator &&
             (thisWeekCampaign.length > 0 ? (
               <View style={[flex.flexCol, gap.default]}>
-                <HorizontalPadding>
-                  <HomeSectionHeader header="New This Week" link="See All" />
-                </HorizontalPadding>
-
+                <View style={[padding.horizontal.default]}>
+                  <HomeSectionHeader header="New This Week" />
+                </View>
                 <ScrollView
                   showsHorizontalScrollIndicator={false}
                   horizontal
@@ -325,11 +305,9 @@ const HomeScreen = () => {
                     padding.horizontal.default,
                     padding.bottom.xsmall,
                   ]}>
-                  {thisWeekCampaign
-                    .slice(0, 5)
-                    .map((campaign: Campaign, index: number) => (
-                      <NewThisWeekCard campaign={campaign} key={index} />
-                    ))}
+                  {thisWeekCampaign.map((campaign: Campaign, index: number) => (
+                    <NewThisWeekCard campaign={campaign} key={index} />
+                  ))}
                 </ScrollView>
               </View>
             ) : (
@@ -345,12 +323,9 @@ const HomeScreen = () => {
           {isBusinessPeople &&
             (upcomingCampaigns.length > 0 ? (
               <View style={[flex.flexCol, gap.default]}>
-                <HorizontalPadding>
-                  <HomeSectionHeader
-                    header="Your Upcoming Campaigns"
-                    link="See All"
-                  />
-                </HorizontalPadding>
+                <View style={[padding.horizontal.default]}>
+                  <HomeSectionHeader header="Your Upcoming Campaigns" />
+                </View>
                 <ScrollView
                   showsHorizontalScrollIndicator={false}
                   horizontal
@@ -360,11 +335,11 @@ const HomeScreen = () => {
                     padding.horizontal.default,
                     padding.bottom.xsmall,
                   ]}>
-                  {upcomingCampaigns
-                    .slice(0, 5)
-                    .map((campaign: Campaign, index: number) => (
+                  {upcomingCampaigns.map(
+                    (campaign: Campaign, index: number) => (
                       <NewThisWeekCard campaign={campaign} key={index} />
-                    ))}
+                    ),
+                  )}
                 </ScrollView>
               </View>
             ) : (

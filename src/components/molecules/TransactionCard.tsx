@@ -41,6 +41,7 @@ import {Review} from '../../model/Review';
 import {overflow} from '../../styles/Overflow';
 import {ChevronRight} from '../atoms/Icon';
 import {useUser} from '../../hooks/user';
+import {Offer} from '../../model/Offer';
 
 type Props = {
   transaction: Transaction;
@@ -53,14 +54,15 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const [review, setReview] = useState<Review | null>();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [offer, setOffer] = useState<Offer | null>();
+  const [isWaitingBusinessPeopleAction, setIsWaitingBusinessPeopleAction] =
+    useState<boolean>();
   const doesNeedApproval =
     transaction.status === TransactionStatus.registrationPending &&
     transaction.payment === undefined;
 
   const isWaitingActionOnTransactionDetail =
-    transaction.isWaitingBusinessPeopleAction() &&
-    !doesNeedApproval &&
-    isBusinessPeople;
+    isWaitingBusinessPeopleAction && !doesNeedApproval && isBusinessPeople;
   const isWithdrawable =
     transaction.isWithdrawable(UserRole.BusinessPeople) && isBusinessPeople;
   const isReviewable =
@@ -74,8 +76,19 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     }
   }, [navigation, transaction.id]);
 
+  const navigateToOfferDetail = useCallback(() => {
+    if (offer?.id) {
+      navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+        offerId: offer.id,
+      });
+    }
+  }, [navigation, offer]);
+
   const actionText = useMemo(() => {
     if (isWaitingActionOnTransactionDetail) {
+      if (TransactionStatus.offering === transaction.status) {
+        return 'Check Offer';
+      }
       return 'Review Submission';
     }
     if (TransactionStatus.offerWaitingForPayment === transaction.status) {
@@ -96,7 +109,13 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   ]);
 
   const handleAction = useMemo(() => {
-    if (isWaitingActionOnTransactionDetail || isWithdrawable) {
+    if (isWaitingActionOnTransactionDetail) {
+      if (TransactionStatus.offering === transaction.status) {
+        return navigateToOfferDetail;
+      }
+      return navigateToTransactionDetail;
+    }
+    if (isWithdrawable) {
       return navigateToTransactionDetail;
     }
     if (isReviewable) {
@@ -106,9 +125,11 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     }
     return undefined;
   }, [
+    transaction,
     isWaitingActionOnTransactionDetail,
     isWithdrawable,
     isReviewable,
+    navigateToOfferDetail,
     navigateToTransactionDetail,
   ]);
 
@@ -122,6 +143,17 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       Campaign.getById(transaction.campaignId)
         .then(setCampaign)
         .catch(() => setCampaign(null));
+    }
+    if (transaction.id) {
+      Offer.getById(transaction.id)
+        .then(setOffer)
+        .catch(() => setOffer(null));
+    }
+    if (transaction) {
+      transaction
+        .isWaitingBusinessPeopleAction()
+        .then(setIsWaitingBusinessPeopleAction)
+        .catch(() => setIsWaitingBusinessPeopleAction(false));
     }
   }, [transaction]);
 
@@ -224,11 +256,17 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [review, setReview] = useState<Review | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [offer, setOffer] = useState<Offer | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   const isReviewable =
     review === null && transaction.isCompleted() && isContentCreator;
   const isWithdrawable =
     transaction.isWithdrawable(UserRole.ContentCreator) && isContentCreator;
+  const latestNegotiation = offer?.getLatestNegotiation();
+  const isWaitingOfferAction =
+    (offer?.isPending() || offer?.isNegotiating()) &&
+    latestNegotiation?.negotiatedBy === UserRole.BusinessPeople;
+
   const [
     isWaitingActionOnCampaignTimeline,
     setIsWaitingActionOnCampaignTimeline,
@@ -241,6 +279,11 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
         .catch(() => {
           setCampaign(null);
         });
+    }
+    if (transaction.id) {
+      Offer.getById(transaction.id)
+        .then(setOffer)
+        .catch(() => setOffer(null));
     }
   }, [transaction]);
 
@@ -291,7 +334,18 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     }
   }, [navigation, campaign?.id]);
 
+  const navigateToOfferDetail = useCallback(() => {
+    if (offer?.id) {
+      navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+        offerId: offer.id,
+      });
+    }
+  }, [navigation, offer]);
+
   const actionText = useMemo(() => {
+    if (isWaitingOfferAction) {
+      return 'Check Offer';
+    }
     if (isWaitingActionOnCampaignTimeline) {
       return 'Make Submission';
     }
@@ -302,9 +356,17 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       return 'Review';
     }
     return undefined;
-  }, [isWaitingActionOnCampaignTimeline, isWithdrawable, isReviewable]);
+  }, [
+    isWaitingActionOnCampaignTimeline,
+    isWithdrawable,
+    isReviewable,
+    isWaitingOfferAction,
+  ]);
 
   const handleAction = useMemo(() => {
+    if (isWaitingOfferAction) {
+      return navigateToOfferDetail;
+    }
     if (isWaitingActionOnCampaignTimeline) {
       return navigateToCampaignTimeline;
     }
@@ -318,9 +380,11 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     }
     return undefined;
   }, [
+    isWaitingOfferAction,
     isWaitingActionOnCampaignTimeline,
     isWithdrawable,
     isReviewable,
+    navigateToOfferDetail,
     navigateToCampaignTimeline,
     navigateToTransactionDetail,
   ]);

@@ -17,6 +17,7 @@ export const useCategory = () => {
         .then(c => dispatch(setCategories(c.map(_ => _.toJSON()))))
         .catch(() => {
           isFirst.current = true;
+          dispatch(setCategories([]));
         });
     }
   }, [categories, dispatch]);

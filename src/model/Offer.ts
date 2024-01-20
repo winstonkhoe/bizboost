@@ -91,18 +91,17 @@ export class Offer extends BaseModel {
     return Offer.getCollectionReference().doc(documentId);
   }
 
-  static async getById(id: string): Promise<Offer> {
+  static async getById(id: string): Promise<Offer | null> {
     try {
       const snapshot = await Offer.getDocumentReference(id).get();
       if (!snapshot.exists) {
-        throw Error('Transaction not found!');
+        return null;
       }
-
       return Offer.fromSnapshot(snapshot);
     } catch (error) {
       console.error('Error in getById:', error);
+      throw Error('Error!');
     }
-    throw Error('Error!');
   }
 
   async insert() {
@@ -305,7 +304,8 @@ export class Offer extends BaseModel {
       return;
     }
     const campaign = await Campaign.getById(campaignId);
-    if (campaign?.isRegisterable()) {
+    const isRegisterableCampaign = await campaign?.isRegisterable();
+    if (isRegisterableCampaign) {
       return;
     }
     if (this.isPending() || this.isNegotiating()) {
