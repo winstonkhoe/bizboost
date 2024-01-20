@@ -155,7 +155,8 @@ export const ContentCreatorCard = ({...props}: ContentCreatorCardProps) => {
           </View>
         </View>
       </View>
-      {(props.contentCreator?.instagram || props.contentCreator?.tiktok) && (
+      {(props.contentCreator?.instagram?.username ||
+        props.contentCreator?.tiktok?.username) && (
         <>
           <View style={[styles.bottomBorder]} />
           <View style={[flex.flexRow, flex.wrap, gap.small, justify.around]}>
