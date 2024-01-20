@@ -214,15 +214,6 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    console.log('homeScreen:Offer.getPendingOffersbyUser');
-    try {
-      if (uid && activeRole) {
-        return Offer.getPendingOffersbyUser(uid, activeRole, setOffers);
-      }
-    } catch (error) {}
-  }, [uid, activeRole]);
-
-  useEffect(() => {
     if (isAdmin) {
       return Report.getAll(setReports);
     }
