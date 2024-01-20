@@ -23,18 +23,22 @@ const RecentNegotiationCard = ({
   navigation,
 }: RecentNegotiationCardProps) => {
   const [campaign, setCampaign] = useState<Campaign>();
-  const [businessPeople, setBusinessPeople] = useState<User>();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
+  const latestNegotiation = offer.getLatestNegotiation();
 
   useEffect(() => {
     if (offer.campaignId) {
-      Campaign.getByIdReactive(offer.campaignId, c => setCampaign(c));
+      return Campaign.getByIdReactive(offer.campaignId, setCampaign);
     }
+  }, [offer.campaignId, offer.businessPeopleId]);
+
+  useEffect(() => {
     if (offer.businessPeopleId) {
-      User.getById(offer.businessPeopleId).then(
-        u => u !== null && setBusinessPeople(u),
-      );
+      User.getById(offer.businessPeopleId)
+        .then(setBusinessPeople)
+        .catch(() => setBusinessPeople(null));
     }
-  }, []);
+  }, [offer.businessPeopleId]);
 
   return (
     <Pressable
@@ -57,9 +61,7 @@ const RecentNegotiationCard = ({
         <View className="flex-1 flex flex-col items-end justify-between">
           <Label text="Offered You" />
           <Text className="font-bold text-base">
-            {offer.negotiatedPrice
-              ? currencyFormat(offer.negotiatedPrice)
-              : currencyFormat(offer.offeredPrice)}
+            {currencyFormat(latestNegotiation?.fee ?? 0)}
           </Text>
         </View>
       </View>
