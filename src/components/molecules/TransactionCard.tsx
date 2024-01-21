@@ -42,6 +42,7 @@ import {overflow} from '../../styles/Overflow';
 import {ChevronRight} from '../atoms/Icon';
 import {useUser} from '../../hooks/user';
 import {Offer} from '../../model/Offer';
+import {ErrorMessage} from '../../constants/errorMessage';
 
 type Props = {
   transaction: Transaction;
@@ -55,6 +56,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [campaign, setCampaign] = useState<Campaign | null>();
   const [offer, setOffer] = useState<Offer | null>();
+  const [isCampaignRegisterable, setIsCampaignRegisterable] = useState(false);
   const [isWaitingBusinessPeopleAction, setIsWaitingBusinessPeopleAction] =
     useState<boolean>();
   const doesNeedApproval =
@@ -67,6 +69,22 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     transaction.isWithdrawable(UserRole.BusinessPeople) && isBusinessPeople;
   const isReviewable =
     review === null && transaction.isCompleted() && isBusinessPeople;
+
+  const disableAcceptToastMessage = useMemo(() => {
+    if (doesNeedApproval && !isCampaignRegisterable) {
+      return ErrorMessage.CAMPAIGN_SLOT_FULL;
+    }
+    return undefined;
+  }, [doesNeedApproval, isCampaignRegisterable]);
+
+  useEffect(() => {
+    if (campaign) {
+      campaign
+        .isRegisterable()
+        .then(setIsCampaignRegisterable)
+        .catch(() => setIsCampaignRegisterable(false));
+    }
+  }, [campaign]);
 
   const navigateToTransactionDetail = useCallback(() => {
     if (transaction.id) {
@@ -89,7 +107,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       if (TransactionStatus.offering === transaction.status) {
         return 'Check Offer';
       }
-      if (TransactionStatus.offerWaitingForPayment === transaction.status) {
+      if (transaction.isWaitingBusinessPeoplePayment()) {
         return 'Make Payment';
       }
       return 'Review Submission';
@@ -113,7 +131,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       if (TransactionStatus.offering === transaction.status) {
         return navigateToOfferDetail;
       }
-      if (TransactionStatus.offerWaitingForPayment === transaction.status) {
+      if (transaction.isWaitingBusinessPeoplePayment()) {
         return () => {
           setIsPaymentModalOpened(true);
         };
@@ -240,6 +258,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
               });
             });
         }}
+        disableAcceptToastMessage={disableAcceptToastMessage}
         handleClickAccept={() => {
           setIsPaymentModalOpened(true); // TODO: abis klik ini, ganti status? (at least dari pov bp, kalo cc biarin Pending aja trs?)
         }}
@@ -454,6 +473,7 @@ type BaseCardProps = {
   statusType?: StatusType;
 
   doesNeedApproval?: boolean;
+  disableAcceptToastMessage?: string;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
   actionText?: string;
@@ -471,6 +491,7 @@ export const BaseCard = ({
   statusText,
   statusType,
   doesNeedApproval = false,
+  disableAcceptToastMessage,
   handleClickReject,
   handleClickAccept,
   bodyContent,
@@ -605,7 +626,24 @@ export const BaseCard = ({
             <CustomButton
               text="Accept"
               scale={1}
-              onPress={handleClickAccept}
+              customBackgroundColor={
+                disableAcceptToastMessage
+                  ? {
+                      default: COLOR.background.green.disabled,
+                      disabled: COLOR.background.green.disabled,
+                    }
+                  : undefined
+              }
+              onPress={
+                disableAcceptToastMessage
+                  ? () => {
+                      showToast({
+                        type: ToastType.info,
+                        message: disableAcceptToastMessage,
+                      });
+                    }
+                  : handleClickAccept
+              }
               rounded="none"
               customTextSize={20}
             />

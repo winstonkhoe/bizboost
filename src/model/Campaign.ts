@@ -355,6 +355,15 @@ export class Campaign extends BaseModel {
     if (!id) {
       return false;
     }
+    const now = new Date().getTime();
+    if (now >= this.getTimelineStart()?.end) {
+      return false;
+    }
+
+    if (this.isPrivate()) {
+      return true;
+    }
+
     const registeredSlot = await new Promise<number>((resolve, reject) => {
       try {
         const unsubscribe = Transaction.getAllTransactionsByCampaign(
@@ -370,9 +379,7 @@ export class Campaign extends BaseModel {
       }
     });
     const isSlotAvailable = registeredSlot !== -1 && registeredSlot < slot;
-
-    const now = new Date().getTime();
-    return this.getTimelineStart()?.end >= now && isSlotAvailable;
+    return isSlotAvailable;
   }
 
   isUpcomingOrRegistration() {

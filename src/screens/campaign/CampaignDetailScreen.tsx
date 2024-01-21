@@ -68,11 +68,7 @@ const CampaignDetailScreen = ({route}: Props) => {
   useEffect(() => {
     return Transaction.getAllTransactionsByCampaign(campaignId, transactions =>
       setApprovedTransactionsCount(
-        transactions.filter(
-          t =>
-            transactionStatusIndexMap[t.status] >=
-            transactionStatusIndexMap[TransactionStatus.registrationApproved],
-        ).length,
+        transactions.filter(t => t.isRegistered()).length,
       ),
     );
   }, [campaignId]);

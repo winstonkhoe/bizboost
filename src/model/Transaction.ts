@@ -1187,10 +1187,12 @@ export class Transaction extends BaseModel {
   }
 
   isRegistered() {
-    const {status} = this;
+    const {status, payment} = this;
     return (
       transactionStatusIndexMap[status] >=
-      transactionStatusIndexMap[TransactionStatus.registrationApproved]
+        transactionStatusIndexMap[TransactionStatus.registrationPending] &&
+      payment?.status &&
+      payment.status !== PaymentStatus.proofRejected
     );
   }
 
@@ -1245,11 +1247,7 @@ export class Transaction extends BaseModel {
 
   isWithdrawable(role: UserRole) {
     const {payment} = this;
-    if (
-      [PaymentStatus.withdrawalRequested, PaymentStatus.withdrawn].findIndex(
-        paymentStatus => paymentStatus === payment?.status,
-      ) >= 0
-    ) {
+    if (payment?.status !== PaymentStatus.proofApproved) {
       return false;
     }
     if (role === UserRole.BusinessPeople) {
@@ -1276,6 +1274,26 @@ export class Transaction extends BaseModel {
       );
     }
     return false;
+  }
+
+  isWaitingBusinessPeoplePayment() {
+    const {status, payment} = this;
+    if (
+      [
+        TransactionStatus.registrationPending,
+        TransactionStatus.offerWaitingForPayment,
+      ].findIndex(transactionStatus => transactionStatus === status) < 0
+    ) {
+      return false;
+    }
+    if (!payment?.status) {
+      return true;
+    }
+    return (
+      [PaymentStatus.proofRejected].findIndex(
+        paymentStatus => paymentStatus === payment?.status,
+      ) >= 0
+    );
   }
 
   async isWaitingBusinessPeopleAction() {
@@ -1306,6 +1324,7 @@ export class Transaction extends BaseModel {
         ) >= 0
       );
     }
+    console.log(this.id, 'sampe akhir');
     return (
       [
         TransactionStatus.brainstormSubmitted,

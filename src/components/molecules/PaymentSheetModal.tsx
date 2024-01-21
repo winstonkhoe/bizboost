@@ -1,4 +1,4 @@
-import {Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {SheetModal} from '../../containers/SheetModal';
 import {flex, items, justify, self} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
@@ -38,6 +38,7 @@ import {
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
 import {overflow} from '../../styles/Overflow';
+import {ErrorMessage} from '../../constants/errorMessage';
 
 type Props = {
   isModalOpened: boolean;
@@ -56,6 +57,8 @@ const PaymentSheetModal = ({
   );
   const [withdrawer, setWithdrawer] = useState<User | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [isCampaignRegisterable, setIsCampaignRegisterable] =
+    useState<boolean>(false);
   const withdrawerBankAccount = withdrawer?.bankAccountInformation;
   const amount = transaction.transactionAmount || campaign?.fee || 0; //TODO: cek kalo approve offer negotiate pricenya udh update ke transactionAmountnya blm
   const [isImageViewOpened, setIsImageViewOpened] = useState(false);
@@ -124,7 +127,7 @@ const PaymentSheetModal = ({
       .then(() => {
         showToast({
           message: 'Payment Rejected!',
-          type: ToastType.danger,
+          type: ToastType.success,
         });
       })
       .catch(() => {
@@ -190,6 +193,15 @@ const PaymentSheetModal = ({
         });
     }
   }, [transaction]);
+
+  useEffect(() => {
+    if (campaign) {
+      campaign
+        .isRegisterable()
+        .then(setIsCampaignRegisterable)
+        .catch(() => setIsCampaignRegisterable(false));
+    }
+  }, [campaign]);
 
   // TODO: kalo reupload, apus yang lama
   return (
@@ -283,53 +295,78 @@ const PaymentSheetModal = ({
             )}
             {isBusinessPeople && transaction.isPaymentProofSubmitable() && (
               <View style={[flex.flexRow, justify.center]}>
-                <View style={[dimension.square.xlarge12]}>
-                  <MediaUploader
-                    targetFolder="payment"
-                    showUploadProgress
-                    options={{
-                      //   width: 400,
-                      //   height: 400,
-                      compressImageQuality: 0.5,
-                      //   cropping: true,
-                    }}
-                    onUploadSuccess={onUploadSuccess}>
-                    {uploadedImage ? (
-                      <Text
-                        style={[
-                          self.center,
-                          padding.top.default,
-                          textColor(COLOR.text.green.default),
-                          font.size[30],
-                        ]}>
-                        Reupload
-                      </Text>
-                    ) : (
-                      <View
-                        style={[
-                          flex.flex1,
-                          rounded.medium,
-                          flex.flexRow,
-                          justify.center,
-                          items.center,
-                          {
-                            borderStyle: 'dashed',
-                          },
-                          border({
-                            borderWidth: 1,
-                            color: COLOR.black[20],
-                          }),
-                          background(COLOR.black[5]),
-                        ]}>
-                        <PhotosIcon
-                          width={30}
-                          height={30}
-                          color={COLOR.text.neutral.high}
-                        />
-                      </View>
-                    )}
-                  </MediaUploader>
-                </View>
+                {transaction.isPaymentProofSubmitable() &&
+                isCampaignRegisterable ? (
+                  <View
+                    style={[
+                      !!uploadedImage && [dimension.height.xlarge],
+                      !uploadedImage && [dimension.square.xlarge12],
+                    ]}>
+                    <MediaUploader
+                      targetFolder="payment"
+                      showUploadProgress
+                      options={{
+                        //   width: 400,
+                        //   height: 400,
+                        compressImageQuality: 0.5,
+                        //   cropping: true,
+                      }}
+                      onUploadSuccess={onUploadSuccess}>
+                      {uploadedImage ? (
+                        <Text
+                          style={[
+                            self.center,
+                            padding.top.default,
+                            textColor(COLOR.text.green.default),
+                            font.size[30],
+                          ]}>
+                          Reupload
+                        </Text>
+                      ) : (
+                        <View
+                          style={[
+                            flex.flex1,
+                            rounded.medium,
+                            flex.flexRow,
+                            justify.center,
+                            items.center,
+                            {
+                              borderStyle: 'dashed',
+                            },
+                            border({
+                              borderWidth: 1,
+                              color: COLOR.black[20],
+                            }),
+                            background(COLOR.black[5]),
+                          ]}>
+                          <PhotosIcon
+                            width={30}
+                            height={30}
+                            color={COLOR.text.neutral.high}
+                          />
+                        </View>
+                      )}
+                    </MediaUploader>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => {
+                      showToast({
+                        type: ToastType.info,
+                        message: ErrorMessage.CAMPAIGN_SLOT_FULL,
+                      });
+                    }}>
+                    <Text
+                      style={[
+                        self.center,
+                        padding.top.default,
+                        textColor(COLOR.text.green.default),
+                        font.size[30],
+                      ]}>
+                      {uploadedImage ? 'Reupload' : 'Upload Proof'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
             {isAdmin && (

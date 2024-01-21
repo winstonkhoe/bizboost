@@ -99,6 +99,7 @@ import {overflow} from '../../styles/Overflow';
 import {position} from '../../styles/Position';
 import {Offer} from '../../model/Offer';
 import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
+import {ErrorMessage} from '../../constants/errorMessage';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -122,6 +123,7 @@ const TransactionDetailScreen = ({route}: Props) => {
   const [transactionReports, setTransactionReports] = useState<Report[]>([]);
   const [selectedReportType, setSelectedReportType] = useState<ReportType>();
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [isRegisterableCampaign, setIsRegisterableCampaign] = useState(false);
   const [transaction, setTransaction] = useState<Transaction | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   const [contentCreator, setContentCreator] = useState<User | null>();
@@ -151,6 +153,15 @@ const TransactionDetailScreen = ({route}: Props) => {
     }
   }, [transaction]);
 
+  useEffect(() => {
+    if (campaign) {
+      campaign
+        .isRegisterable()
+        .then(setIsRegisterableCampaign)
+        .catch(() => setIsRegisterableCampaign(false));
+    }
+  }, [campaign]);
+
   const updateReportDescription = useCallback((description: string) => {
     setReportDescription(description);
   }, []);
@@ -178,7 +189,9 @@ const TransactionDetailScreen = ({route}: Props) => {
       .approve()
       .then(() => {
         showToast({
-          message: 'Transaction Approved!',
+          message: `${
+            transactionStatusCampaignStepMap[transaction.status]
+          } Approved!`,
           type: ToastType.success,
         });
       })
@@ -197,6 +210,23 @@ const TransactionDetailScreen = ({route}: Props) => {
   const handleReject = () => {
     if (transaction && transaction.id) {
       setIsOthersSheetModalOpen(false);
+      if (transaction.status === TransactionStatus.registrationPending) {
+        transaction
+          .rejectRegistration()
+          .then(() => {
+            showToast({
+              message: 'Registration Rejected!',
+              type: ToastType.success,
+            });
+          })
+          .catch(() => {
+            showToast({
+              message: 'Failed to reject registration!',
+              type: ToastType.danger,
+            });
+          });
+        return;
+      }
       navigation.navigate(AuthenticatedNavigation.RejectTransaction, {
         transactionId: transaction.id,
       });
@@ -618,30 +648,49 @@ const TransactionDetailScreen = ({route}: Props) => {
                 <MeatballMenuIcon size="xsmall" />
               </AnimatedPressable>
               <View style={[flex.flex1]}>
-                <CustomAlert
-                  text={`Approve ${
-                    transactionStatusCampaignStepMap[transaction.status]
-                  }`}
-                  rejectButtonText="Cancel"
-                  approveButtonText="Approve"
-                  confirmationText={
-                    <Text
-                      className="text-center"
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.neutral.med),
-                      ]}>
-                      Are you sure you want to approve{' '}
+                {transactionStatusCampaignStepMap[transaction.status] ===
+                  CampaignStep.Registration && !isRegisterableCampaign ? (
+                  <CustomButton
+                    text={`Approve ${
+                      transactionStatusCampaignStepMap[transaction.status]
+                    }`}
+                    customBackgroundColor={{
+                      default: COLOR.background.green.disabled,
+                      disabled: COLOR.background.green.disabled,
+                    }}
+                    onPress={() => {
+                      showToast({
+                        type: ToastType.info,
+                        message: ErrorMessage.CAMPAIGN_SLOT_FULL,
+                      });
+                    }}
+                  />
+                ) : (
+                  <CustomAlert
+                    text={`Approve ${
+                      transactionStatusCampaignStepMap[transaction.status]
+                    }`}
+                    rejectButtonText="Cancel"
+                    approveButtonText="Approve"
+                    confirmationText={
                       <Text
-                        className="font-bold"
-                        style={[textColor(COLOR.text.neutral.high)]}>
-                        {contentCreator?.contentCreator?.fullname}
-                      </Text>{' '}
-                      {`${currentActiveTimeline?.step.toLocaleLowerCase()} ?`}
-                    </Text>
-                  }
-                  onApprove={handleApprove}
-                />
+                        className="text-center"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.med),
+                        ]}>
+                        Are you sure you want to approve{' '}
+                        <Text
+                          className="font-bold"
+                          style={[textColor(COLOR.text.neutral.high)]}>
+                          {contentCreator?.contentCreator?.fullname}
+                        </Text>{' '}
+                        {`${currentActiveTimeline?.step.toLocaleLowerCase()} ?`}
+                      </Text>
+                    }
+                    onApprove={handleApprove}
+                  />
+                )}
               </View>
             </View>
           )}
