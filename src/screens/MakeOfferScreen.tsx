@@ -201,7 +201,7 @@ const MakeOfferScreen = ({route}: Props) => {
                 </View>
               </KeyboardAvoidingContainer>
             </ScrollView>
-            <View style={[padding.horizontal.medium]}>
+            <View style={[padding.horizontal.medium, padding.vertical.small]}>
               <CustomButton
                 onPress={methods.handleSubmit(onSubmit)}
                 text={'Make Offer'}
