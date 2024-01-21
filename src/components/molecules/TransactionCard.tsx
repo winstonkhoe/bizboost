@@ -8,7 +8,7 @@ import {
   transactionStatusTypeMap,
 } from '../../model/Transaction';
 import {User, UserRole} from '../../model/User';
-import {ReactNode, useEffect, useState} from 'react';
+import {ReactNode, useCallback, useEffect, useMemo, useState} from 'react';
 import {border} from '../../styles/Border';
 import {COLOR} from '../../styles/Color';
 import {CustomButton} from '../atoms/Button';
@@ -40,6 +40,9 @@ import ReviewSheetModal from './ReviewSheetModal';
 import {Review} from '../../model/Review';
 import {overflow} from '../../styles/Overflow';
 import {ChevronRight} from '../atoms/Icon';
+import {useUser} from '../../hooks/user';
+import {Offer} from '../../model/Offer';
+import {ErrorMessage} from '../../constants/errorMessage';
 
 type Props = {
   transaction: Transaction;
@@ -47,20 +50,111 @@ type Props = {
 };
 const BusinessPeopleTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const {isBusinessPeople} = useUser();
   const [contentCreator, setContentCreator] = useState<User | null>();
   const [review, setReview] = useState<Review | null>();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [offer, setOffer] = useState<Offer | null>();
+  const [isCampaignRegisterable, setIsCampaignRegisterable] = useState(false);
+  const [isWaitingBusinessPeopleAction, setIsWaitingBusinessPeopleAction] =
+    useState<boolean>();
   const doesNeedApproval =
     transaction.status === TransactionStatus.registrationPending &&
     transaction.payment === undefined;
 
-  const isWaitingAction =
-    transaction.isWaitingBusinessPeopleAction() && !doesNeedApproval;
-  const actionText =
-    TransactionStatus.offerWaitingForPayment === transaction.status
-      ? 'Make Payment'
-      : 'Review Submission';
+  const isWaitingActionOnTransactionDetail =
+    isWaitingBusinessPeopleAction && !doesNeedApproval && isBusinessPeople;
+  const isWithdrawable =
+    transaction.isWithdrawable(UserRole.BusinessPeople) && isBusinessPeople;
+  const isReviewable =
+    review === null && transaction.isCompleted() && isBusinessPeople;
+
+  const disableAcceptToastMessage = useMemo(() => {
+    if (doesNeedApproval && !isCampaignRegisterable) {
+      return ErrorMessage.CAMPAIGN_SLOT_FULL;
+    }
+    return undefined;
+  }, [doesNeedApproval, isCampaignRegisterable]);
+
+  useEffect(() => {
+    if (campaign) {
+      campaign
+        .isRegisterable()
+        .then(setIsCampaignRegisterable)
+        .catch(() => setIsCampaignRegisterable(false));
+    }
+  }, [campaign]);
+
+  const navigateToTransactionDetail = useCallback(() => {
+    if (transaction.id) {
+      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+        transactionId: transaction.id,
+      });
+    }
+  }, [navigation, transaction.id]);
+
+  const navigateToOfferDetail = useCallback(() => {
+    if (offer?.id) {
+      navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+        offerId: offer.id,
+      });
+    }
+  }, [navigation, offer]);
+
+  const actionText = useMemo(() => {
+    if (isWaitingActionOnTransactionDetail) {
+      if (TransactionStatus.offering === transaction.status) {
+        return 'Check Offer';
+      }
+      if (transaction.isWaitingBusinessPeoplePayment()) {
+        return 'Make Payment';
+      }
+      return 'Review Submission';
+    }
+    if (isWithdrawable) {
+      return 'Withdraw';
+    }
+    if (isReviewable) {
+      return 'Review';
+    }
+    return undefined;
+  }, [
+    isWaitingActionOnTransactionDetail,
+    transaction,
+    isWithdrawable,
+    isReviewable,
+  ]);
+
+  const handleAction = useMemo(() => {
+    if (isWaitingActionOnTransactionDetail) {
+      if (TransactionStatus.offering === transaction.status) {
+        return navigateToOfferDetail;
+      }
+      if (transaction.isWaitingBusinessPeoplePayment()) {
+        return () => {
+          setIsPaymentModalOpened(true);
+        };
+      }
+      return navigateToTransactionDetail;
+    }
+    if (isWithdrawable) {
+      return navigateToTransactionDetail;
+    }
+    if (isReviewable) {
+      return () => {
+        setIsReviewModalOpen(true);
+      };
+    }
+    return undefined;
+  }, [
+    transaction,
+    isWaitingActionOnTransactionDetail,
+    isWithdrawable,
+    isReviewable,
+    navigateToOfferDetail,
+    navigateToTransactionDetail,
+  ]);
 
   useEffect(() => {
     if (transaction.contentCreatorId) {
@@ -72,6 +166,17 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       Campaign.getById(transaction.campaignId)
         .then(setCampaign)
         .catch(() => setCampaign(null));
+    }
+    if (transaction.id) {
+      Offer.getById(transaction.id)
+        .then(setOffer)
+        .catch(() => setOffer(null));
+    }
+    if (transaction) {
+      transaction
+        .isWaitingBusinessPeopleAction()
+        .then(setIsWaitingBusinessPeopleAction)
+        .catch(() => setIsWaitingBusinessPeopleAction(false));
     }
   }, [transaction]);
 
@@ -87,19 +192,10 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
-  const navigateToTransactionDetail = () => {
-    if (transaction.id) {
-      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
-        transactionId: transaction.id,
-      });
-    }
-  };
-
   return (
     <>
       <BaseCard
         handleClickHeader={() => {
-          console.log('open campaign detail / BP detail');
           navigation.navigate(AuthenticatedNavigation.CampaignDetail, {
             campaignId: campaign?.id || '',
           });
@@ -114,7 +210,6 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         headerTextLeading={campaign?.title || ''}
         // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
         handleClickBody={() => {
-          console.log('open transaction ', transaction.id, ' detail');
           if (transaction.id) {
             navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
               transactionId: transaction.id,
@@ -130,24 +225,12 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
         }
         bodyText={contentCreator?.contentCreator?.fullname || ''}
         bodyContent={
-          review === null &&
-          transaction.isCompleted() && (
-            <>
-              <View style={[flex.flex1, flex.flexRow, justify.end]}>
-                <CustomButton
-                  text="Review"
-                  verticalPadding="xsmall"
-                  onPress={() => {
-                    setIsReviewModalOpen(true);
-                  }}
-                />
-              </View>
-              <ReviewSheetModal
-                isModalOpened={isReviewModalOpen}
-                onModalDismiss={() => setIsReviewModalOpen(false)}
-                transaction={transaction}
-              />
-            </>
+          isReviewable && (
+            <ReviewSheetModal
+              isModalOpened={isReviewModalOpen}
+              onModalDismiss={() => setIsReviewModalOpen(false)}
+              transaction={transaction}
+            />
           )
         }
         statusText={transaction.status}
@@ -157,7 +240,7 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
           ]
         }
         doesNeedApproval={doesNeedApproval}
-        handleAction={isWaitingAction ? navigateToTransactionDetail : undefined}
+        handleAction={handleAction}
         actionText={actionText}
         handleClickReject={() => {
           transaction
@@ -175,14 +258,11 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
               });
             });
         }}
+        disableAcceptToastMessage={disableAcceptToastMessage}
         handleClickAccept={() => {
-          console.log(transaction.payment?.proofImage);
           setIsPaymentModalOpened(true); // TODO: abis klik ini, ganti status? (at least dari pov bp, kalo cc biarin Pending aja trs?)
-          //TODO: move approval to admin (approve payment first)
-          // transaction.approveRegistration();
         }}
       />
-      {/* TODO: kalo gaada kondisi isPaymentModalOpened di awal, gatau kenapa ngebug fotonya pake yang lama trs  */}
       {isPaymentModalOpened && (
         <PaymentSheetModal
           isModalOpened={isPaymentModalOpened}
@@ -196,12 +276,25 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
 
 const ContentCreatorTransactionCard = ({transaction}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
+  const {isContentCreator} = useUser();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [review, setReview] = useState<Review | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [offer, setOffer] = useState<Offer | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
-  const isReviewable = review === null && transaction.isCompleted();
-  const [isWaitingAction, setIsWaitingAction] = useState<boolean>();
+  const isReviewable =
+    review === null && transaction.isCompleted() && isContentCreator;
+  const isWithdrawable =
+    transaction.isWithdrawable(UserRole.ContentCreator) && isContentCreator;
+  const latestNegotiation = offer?.getLatestNegotiation();
+  const isWaitingOfferAction =
+    (offer?.isPending() || offer?.isNegotiating()) &&
+    latestNegotiation?.negotiatedBy === UserRole.BusinessPeople;
+
+  const [
+    isWaitingActionOnCampaignTimeline,
+    setIsWaitingActionOnCampaignTimeline,
+  ] = useState<boolean>();
 
   useEffect(() => {
     if (transaction.campaignId) {
@@ -211,14 +304,21 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
           setCampaign(null);
         });
     }
+    if (transaction.id) {
+      Offer.getById(transaction.id)
+        .then(setOffer)
+        .catch(() => setOffer(null));
+    }
   }, [transaction]);
 
   useEffect(() => {
     if (transaction) {
       transaction
         .isWaitingContentCreatorAction()
-        .then(setIsWaitingAction)
-        .catch(() => setIsWaitingAction(false));
+        .then(waitingContentCreatorAction => {
+          setIsWaitingActionOnCampaignTimeline(waitingContentCreatorAction);
+        })
+        .catch(() => setIsWaitingActionOnCampaignTimeline(false));
     }
   }, [transaction]);
 
@@ -242,13 +342,76 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     }
   }, [transaction]);
 
-  const navigateToCampaignTimeline = () => {
+  const navigateToTransactionDetail = useCallback(() => {
+    if (transaction.id) {
+      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+        transactionId: transaction.id,
+      });
+    }
+  }, [navigation, transaction.id]);
+
+  const navigateToCampaignTimeline = useCallback(() => {
     if (campaign?.id) {
       navigation.navigate(AuthenticatedNavigation.CampaignTimeline, {
         campaignId: campaign.id,
       });
     }
-  };
+  }, [navigation, campaign?.id]);
+
+  const navigateToOfferDetail = useCallback(() => {
+    if (offer?.id) {
+      navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+        offerId: offer.id,
+      });
+    }
+  }, [navigation, offer]);
+
+  const actionText = useMemo(() => {
+    if (isWaitingOfferAction) {
+      return 'Check Offer';
+    }
+    if (isWaitingActionOnCampaignTimeline) {
+      return 'Make Submission';
+    }
+    if (isWithdrawable) {
+      return 'Withdraw';
+    }
+    if (isReviewable) {
+      return 'Review';
+    }
+    return undefined;
+  }, [
+    isWaitingActionOnCampaignTimeline,
+    isWithdrawable,
+    isReviewable,
+    isWaitingOfferAction,
+  ]);
+
+  const handleAction = useMemo(() => {
+    if (isWaitingOfferAction) {
+      return navigateToOfferDetail;
+    }
+    if (isWaitingActionOnCampaignTimeline) {
+      return navigateToCampaignTimeline;
+    }
+    if (isWithdrawable) {
+      return navigateToTransactionDetail;
+    }
+    if (isReviewable) {
+      return () => {
+        setIsReviewModalOpen(true);
+      };
+    }
+    return undefined;
+  }, [
+    isWaitingOfferAction,
+    isWaitingActionOnCampaignTimeline,
+    isWithdrawable,
+    isReviewable,
+    navigateToOfferDetail,
+    navigateToCampaignTimeline,
+    navigateToTransactionDetail,
+  ]);
 
   return (
     <BaseCard
@@ -272,36 +435,15 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
       })}
       // bodyText={campaign?.title}
       bodyText={campaign?.title}
-      handleAction={isWaitingAction ? navigateToCampaignTimeline : undefined}
-      actionText="Make Submission"
+      handleAction={handleAction}
+      actionText={actionText}
       bodyContent={
-        (isReviewable || isWaitingAction) && (
-          <>
-            <View
-              style={[
-                flex.flex1,
-                flex.flexRow,
-                justify.end,
-                padding.top.small,
-              ]}>
-              {isReviewable && (
-                <CustomButton
-                  text="Review"
-                  verticalPadding="xsmall"
-                  onPress={() => {
-                    setIsReviewModalOpen(true);
-                  }}
-                />
-              )}
-            </View>
-            {isReviewable && (
-              <ReviewSheetModal
-                isModalOpened={isReviewModalOpen}
-                onModalDismiss={() => setIsReviewModalOpen(false)}
-                transaction={transaction}
-              />
-            )}
-          </>
+        isReviewable && (
+          <ReviewSheetModal
+            isModalOpened={isReviewModalOpen}
+            onModalDismiss={() => setIsReviewModalOpen(false)}
+            transaction={transaction}
+          />
         )
       }
       statusText={transaction.status}
@@ -331,6 +473,7 @@ type BaseCardProps = {
   statusType?: StatusType;
 
   doesNeedApproval?: boolean;
+  disableAcceptToastMessage?: string;
   handleClickAccept?: () => void;
   handleClickReject?: () => void;
   actionText?: string;
@@ -348,6 +491,7 @@ export const BaseCard = ({
   statusText,
   statusType,
   doesNeedApproval = false,
+  disableAcceptToastMessage,
   handleClickReject,
   handleClickAccept,
   bodyContent,
@@ -482,7 +626,24 @@ export const BaseCard = ({
             <CustomButton
               text="Accept"
               scale={1}
-              onPress={handleClickAccept}
+              customBackgroundColor={
+                disableAcceptToastMessage
+                  ? {
+                      default: COLOR.background.green.disabled,
+                      disabled: COLOR.background.green.disabled,
+                    }
+                  : undefined
+              }
+              onPress={
+                disableAcceptToastMessage
+                  ? () => {
+                      showToast({
+                        type: ToastType.info,
+                        message: disableAcceptToastMessage,
+                      });
+                    }
+                  : handleClickAccept
+              }
               rounded="none"
               customTextSize={20}
             />

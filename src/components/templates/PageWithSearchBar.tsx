@@ -13,32 +13,12 @@ import {getSimilarCampaigns} from '../../validations/campaign';
 import {getSimilarContentCreators} from '../../validations/user';
 import {User, UserRole} from '../../model/User';
 import {useUser} from '../../hooks/user';
-import { useOngoingCampaign } from '../../hooks/campaign';
+import {useOngoingCampaign} from '../../hooks/campaign';
 
 interface Props {}
 
 export const PageWithSearchBar = ({}: Props) => {
-  const {activeRole} = useUser();
-
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [contentCreators, setContentCreators] = useState<User[]>([]);
-  const {isOnSearchPage, searchTerm} = useAppSelector(state => state.search);
-
-  useEffect(() => {
-    console.log(
-      'page with search bar, fetch campaign get all, user get content creators',
-    );
-    Campaign.getAll().then(setCampaigns);
-    User.getContentCreators().then(setContentCreators);
-  }, []);
-
-  return (
-    <SearchBar />
-    // <View style={[flex.flex1, flex.flexCol, gap.default]}>
-    //   <HorizontalPadding>
-    //   </HorizontalPadding>
-    // </View>
-  );
+  return <SearchBar />;
 };
 
 interface SearchAutocompletePlaceholderProps {

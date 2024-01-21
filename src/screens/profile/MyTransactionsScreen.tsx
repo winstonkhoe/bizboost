@@ -1,10 +1,7 @@
 import {ScrollView, Text, View} from 'react-native';
-import {CloseModal} from '../../components/atoms/Close';
-import SafeAreaContainer from '../../containers/SafeAreaContainer';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import TransactionCard from '../../components/molecules/TransactionCard';
-import {useUser} from '../../hooks/user';
 import {useEffect, useState} from 'react';
 import {Transaction} from '../../model/Transaction';
 import {padding} from '../../styles/Padding';
@@ -13,9 +10,6 @@ import {
   AuthenticatedNavigation,
   AuthenticatedStack,
 } from '../../navigation/StackNavigation';
-import {font} from '../../styles/Font';
-import {textColor} from '../../styles/Text';
-import {COLOR} from '../../styles/Color';
 import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
 import {BackButtonLabel} from '../../components/atoms/Header';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';

@@ -776,18 +776,20 @@ const DateCell = ({
           !disabled &&
             (active.start || active.end) &&
             background(COLOR.green[10]),
-          active.end && [
-            {
-              borderTopLeftRadius: size.default,
-              borderBottomLeftRadius: size.default,
-            },
-          ],
-          active.start && [
-            {
-              borderTopRightRadius: size.default,
-              borderBottomRightRadius: size.default,
-            },
-          ],
+          active.end &&
+            !active.start && [
+              {
+                borderTopLeftRadius: size.default,
+                borderBottomLeftRadius: size.default,
+              },
+            ],
+          active.start &&
+            !active.end && [
+              {
+                borderTopRightRadius: size.default,
+                borderBottomRightRadius: size.default,
+              },
+            ],
         ]}>
         <View
           className="overflow-hidden"

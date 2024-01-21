@@ -1,7 +1,7 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import {BaseModel} from './BaseModel';
+import {BaseModel, UpdateFields} from './BaseModel';
 import {User, UserRole} from './User';
 import {Campaign, CampaignPlatform} from './Campaign';
 import {Chat, MessageType} from './Chat';
@@ -61,7 +61,7 @@ export class Offer extends BaseModel {
   ): Offer {
     const data = doc.data();
     if (data && doc.exists) {
-      return new Offer({
+      const offer = new Offer({
         id: doc.id,
         contentCreatorId: data.contentCreatorId?.id,
         businessPeopleId: data.businessPeopleId?.id,
@@ -70,6 +70,8 @@ export class Offer extends BaseModel {
         status: data.status,
         createdAt: data.createdAt,
       });
+      offer.rejectNonOfferableCampaign();
+      return offer;
     }
 
     throw Error("Error, document doesn't exist!");
@@ -89,18 +91,17 @@ export class Offer extends BaseModel {
     return Offer.getCollectionReference().doc(documentId);
   }
 
-  static async getById(id: string): Promise<Offer> {
+  static async getById(id: string): Promise<Offer | null> {
     try {
       const snapshot = await Offer.getDocumentReference(id).get();
       if (!snapshot.exists) {
-        throw Error('Transaction not found!');
+        return null;
       }
-
       return Offer.fromSnapshot(snapshot);
     } catch (error) {
       console.error('Error in getById:', error);
+      throw Error('Error!');
     }
-    throw Error('Error!');
   }
 
   async insert() {
@@ -156,8 +157,7 @@ export class Offer extends BaseModel {
     onComplete: (offers: Offer[]) => void,
   ) {
     try {
-      const unsubscribe = firestore()
-        .collection(OFFER_COLLECTION)
+      const unsubscribe = Offer.getCollectionReference()
         .where(
           'businessPeopleId',
           '==',
@@ -240,6 +240,7 @@ export class Offer extends BaseModel {
         contentCreatorId: contentCreatorId,
         businessPeopleId: businessPeopleId,
         campaignId: campaignId,
+        importantNotes: latestNegotiation.notes,
       });
       await transaction.insert(TransactionStatus.offerWaitingForPayment);
       const campaign = await Campaign.getById(campaignId);
@@ -298,7 +299,38 @@ export class Offer extends BaseModel {
     }
   }
 
-  async update(fields: Partial<Offer>) {
+  async rejectNonOfferableCampaign() {
+    const {businessPeopleId, contentCreatorId, campaignId} = this;
+    if (!businessPeopleId || !contentCreatorId || !campaignId) {
+      return;
+    }
+    const campaign = await Campaign.getById(campaignId);
+    const isRegisterableCampaign = await campaign?.isRegisterable();
+    if (isRegisterableCampaign) {
+      return;
+    }
+    if (this.isPending() || this.isNegotiating()) {
+      await this.update({
+        status: OfferStatus.rejected,
+      });
+      this.status = OfferStatus.rejected;
+      const text = `Offer for ${campaign?.title} has been rejected because the campaign has already started.`;
+      const existingChat =
+        await Chat.findOrCreateByContentCreatorIdAndBusinessPeopleId(
+          contentCreatorId,
+          businessPeopleId,
+        );
+      await existingChat.addMessage(
+        MessageType.System,
+        UserRole.BusinessPeople,
+        {
+          content: text,
+        },
+      );
+    }
+  }
+
+  async update(fields: Partial<Offer> | UpdateFields) {
     try {
       const {id} = this;
 
@@ -342,7 +374,7 @@ export class Offer extends BaseModel {
         createdAt: new Date().getTime(),
       };
 
-      await Offer.getDocumentReference(id).update({
+      await this.update({
         negotiations: firestore.FieldValue.arrayUnion(negotiation),
         status: OfferStatus.negotiate,
       });
@@ -367,8 +399,7 @@ export class Offer extends BaseModel {
     campaignId: string,
   ): Promise<boolean> {
     try {
-      const querySnapshot = await firestore()
-        .collection(OFFER_COLLECTION)
+      const querySnapshot = await Offer.getCollectionReference()
         .where(
           'contentCreatorId',
           '==',
@@ -394,8 +425,7 @@ export class Offer extends BaseModel {
     contentCreatorId: string,
   ) {
     try {
-      const querySnapshot = await firestore()
-        .collection(OFFER_COLLECTION)
+      const querySnapshot = await Offer.getCollectionReference()
         .where(
           'businessPeopleId',
           '==',

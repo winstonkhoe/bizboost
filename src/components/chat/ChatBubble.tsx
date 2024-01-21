@@ -1,5 +1,5 @@
 import React, {ReactNode, useEffect, useState} from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, Pressable} from 'react-native';
 import {textColor} from '../../styles/Text';
 import {COLOR} from '../../styles/Color';
 import {flex, items, justify, self} from '../../styles/Flex';
@@ -14,14 +14,19 @@ import {dimension} from '../../styles/Dimension';
 import {formatDateToHourMinute} from '../../utils/date';
 import {gap} from '../../styles/Gap';
 import {SizeType, size} from '../../styles/Size';
-import {Negotiation, Offer} from '../../model/Offer';
-import {SkeletonPlaceholder} from '../molecules/SkeletonPlaceholder';
+import {Offer} from '../../model/Offer';
 import {currencyFormat} from '../../utils/currency';
 import {LoadingSpinner} from '../atoms/LoadingSpinner';
 import {getSourceOrDefaultAvatar} from '../../utils/asset';
 import {Campaign} from '../../model/Campaign';
 import {useUser} from '../../hooks/user';
 import {User, UserRole} from '../../model/User';
+import {useNavigation} from '@react-navigation/native';
+import {
+  AuthenticatedNavigation,
+  NavigationStackProps,
+} from '../../navigation/StackNavigation';
+import {EmptyPlaceholder} from '../templates/EmptyPlaceholder';
 
 interface ChatBubbleProps {
   data: Message;
@@ -41,7 +46,6 @@ const ChatBubble = ({
   const isPhotoMessage = data.type === MessageType.Photo;
   const isOfferMessage = data.type === MessageType.Offer;
   const isNegotiationMessage = data.type === MessageType.Negotiation;
-  console.log(data);
   return (
     <View
       style={[
@@ -205,13 +209,15 @@ interface OfferBubbleContentProps {
 }
 
 const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
+  const navigation = useNavigation<NavigationStackProps>();
   const offerId = data.message.offer?.offerId;
   const offerAt = data.message.offer?.offerAt;
   const {activeRole, isContentCreator} = useUser();
   const [offer, setOffer] = useState<Offer | null>();
   const [campaign, setCampaign] = useState<Campaign | null>();
   const [opponent, setOpponent] = useState<User | null>();
-  const negotiate = offer?.negotiations.find(n => n.createdAt === offerAt) || null;
+  const negotiate =
+    offer?.negotiations.find(n => n.createdAt === offerAt) || null;
   const isFirstNegotiate =
     offer?.negotiations.findIndex(n => n.createdAt === offerAt) === 0;
 
@@ -255,7 +261,7 @@ const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
   }
 
   if (negotiate === null) {
-    return <Text>Offer not found</Text>;
+    return <EmptyPlaceholder title="Offer not found" />;
   }
 
   const getOpponentData = () => {
@@ -270,6 +276,14 @@ const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
 
   const opponentData = getOpponentData();
 
+  const navigateToOfferDetail = () => {
+    if (offer?.id) {
+      navigation.navigate(AuthenticatedNavigation.OfferDetail, {
+        offerId: offer.id,
+      });
+    }
+  };
+
   return (
     <View style={[flex.flexCol, gap.small]}>
       <Text
@@ -283,7 +297,8 @@ const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
         {isFirstNegotiate ? 'made an offer' : 'made a negotiation'}
       </Text>
       {campaign && (
-        <View
+        <Pressable
+          onPress={navigateToOfferDetail}
           style={[
             flex.flexRow,
             gap.small,
@@ -326,7 +341,7 @@ const OfferBubbleContent = ({data}: OfferBubbleContentProps) => {
               {currencyFormat(negotiate.fee || 0)}
             </Text>
           </View>
-        </View>
+        </Pressable>
       )}
     </View>
   );

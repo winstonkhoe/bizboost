@@ -61,21 +61,26 @@ const CampaignDetailScreen = ({route}: Props) => {
   const [campaign, setCampaign] = useState<Campaign>();
   const [transaction, setTransaction] = useState<Transaction>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
-  // TODO: move to another screen? For Campaign's owner (business people), to check registered CC
   const [isLoading, setIsLoading] = useState(false);
   const [approvedTransactionsCount, setApprovedTransactionsCount] = useState(0);
+  const [isRegisterable, setIsRegisterable] = useState<boolean>(false);
 
   useEffect(() => {
-    Transaction.getAllTransactionsByCampaign(campaignId, transactions =>
+    return Transaction.getAllTransactionsByCampaign(campaignId, transactions =>
       setApprovedTransactionsCount(
-        transactions.filter(
-          t =>
-            transactionStatusIndexMap[t.status] >=
-            transactionStatusIndexMap[TransactionStatus.registrationApproved],
-        ).length,
+        transactions.filter(t => t.isRegistered()).length,
       ),
     );
   }, [campaignId]);
+
+  useEffect(() => {
+    if (campaign) {
+      campaign
+        .isRegisterable()
+        .then(setIsRegisterable)
+        .catch(() => setIsRegisterable(false));
+    }
+  }, [campaign]);
 
   useEffect(() => {
     return Campaign.getByIdReactive(campaignId, setCampaign);
@@ -215,7 +220,6 @@ const CampaignDetailScreen = ({route}: Props) => {
                   {`${formatDateToDayMonthYear(
                     new Date(new Campaign(campaign).getTimelineStart()?.start),
                   )} - ${formatDateToDayMonthYear(
-                    // TODO: @win ini tadinya gaada tandatanya, dia error krn undefined si getTimeLineEnd
                     new Date(new Campaign(campaign).getTimelineEnd()?.end),
                   )}`}
                 </Text>
@@ -394,42 +398,6 @@ const CampaignDetailScreen = ({route}: Props) => {
                   </View>
                 </View>
               </View>
-              {/* {activeRole === UserRole.BusinessPeople && isCampaignOwner && (
-              <View className="pb-2">
-                <CustomButton
-                  customBackgroundColor={
-                    campaign.paymentProofImage
-                      ? {
-                          default: COLOR.background.neutral.high,
-                          disabled: COLOR.background.neutral.disabled,
-                        }
-                      : {
-                          default: COLOR.background.danger.high,
-                          disabled: COLOR.background.danger.disabled,
-                        }
-                  }
-                  customTextColor={
-                    campaign.paymentProofImage
-                      ? {
-                          default: COLOR.text.neutral.high,
-                          disabled: COLOR.text.neutral.disabled,
-                        }
-                      : {
-                          default: COLOR.black[1],
-                          disabled: COLOR.text.danger.disabled,
-                        }
-                  }
-                  type="secondary"
-                  text={
-                    campaign.paymentProofImage
-                      ? 'View Payment Proof'
-                      : 'Complete Payment'
-                  }
-                  rounded="default"
-                  onPress={() => setIsPaymentModalOpened(true)}
-                />
-              </View>
-            )} */}
             </View>
           </View>
         </PageWithBackButton>
@@ -444,6 +412,7 @@ const CampaignDetailScreen = ({route}: Props) => {
             },
           ]}>
           {!isCampaignOwner &&
+            isRegisterable &&
             transaction?.status === TransactionStatus.notRegistered && (
               <CustomButton
                 text="Join Campaign"

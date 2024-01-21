@@ -101,7 +101,6 @@ export const TaskFieldArray = ({
     control: control,
   });
   useEffect(() => {
-    console.log('useeffecttaskfieldarray');
     const subscription = watch(data => {
       if (data?.platforms) {
         const platforms = data.platforms.filter(

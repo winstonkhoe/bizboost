@@ -15,6 +15,7 @@ import {StepperState} from '../components/atoms/Stepper';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
 import {ErrorMessage} from '../constants/errorMessage';
+import {Offer} from './Offer';
 
 export const TRANSACTION_COLLECTION = 'transactions';
 
@@ -300,7 +301,7 @@ export class Transaction extends BaseModel {
   campaignId?: string;
   businessPeopleId?: string; // buat mempermudah fetch all transaction BP
   transactionAmount?: number;
-  importantNotes?: string[];
+  importantNotes?: string;
   brainstorms?: Brainstorm[];
   contents?: Content[];
   engagements?: Engagement[];
@@ -1185,6 +1186,16 @@ export class Transaction extends BaseModel {
     );
   }
 
+  isRegistered() {
+    const {status, payment} = this;
+    return (
+      transactionStatusIndexMap[status] >=
+        transactionStatusIndexMap[TransactionStatus.registrationPending] &&
+      payment?.status &&
+      payment.status !== PaymentStatus.proofRejected
+    );
+  }
+
   isApprovable() {
     const {status, payment} = this;
     return (
@@ -1234,6 +1245,17 @@ export class Transaction extends BaseModel {
     );
   }
 
+  isWithdrawable(role: UserRole) {
+    const {payment} = this;
+    if (payment?.status !== PaymentStatus.proofApproved) {
+      return false;
+    }
+    if (role === UserRole.BusinessPeople) {
+      return this.isTerminated();
+    }
+    return this.isCompleted();
+  }
+
   isPaymentProofSubmitable() {
     const {status, payment} = this;
     if (
@@ -1254,10 +1276,38 @@ export class Transaction extends BaseModel {
     return false;
   }
 
-  isWaitingBusinessPeopleAction() {
+  isWaitingBusinessPeoplePayment() {
     const {status, payment} = this;
+    if (
+      [
+        TransactionStatus.registrationPending,
+        TransactionStatus.offerWaitingForPayment,
+      ].findIndex(transactionStatus => transactionStatus === status) < 0
+    ) {
+      return false;
+    }
+    if (!payment?.status) {
+      return true;
+    }
+    return (
+      [PaymentStatus.proofRejected].findIndex(
+        paymentStatus => paymentStatus === payment?.status,
+      ) >= 0
+    );
+  }
+
+  async isWaitingBusinessPeopleAction() {
+    const {id, status, payment} = this;
     if (this.isTerminated() || this.isCompleted()) {
       return false;
+    }
+    if (TransactionStatus.offering === status) {
+      if (!id) {
+        return false;
+      }
+      const offer = await Offer.getById(id);
+      const latestNegotiation = offer?.getLatestNegotiation();
+      return latestNegotiation?.negotiatedBy === UserRole.ContentCreator;
     }
     if (
       [
@@ -1274,6 +1324,7 @@ export class Transaction extends BaseModel {
         ) >= 0
       );
     }
+    console.log(this.id, 'sampe akhir');
     return (
       [
         TransactionStatus.brainstormSubmitted,
@@ -1284,9 +1335,17 @@ export class Transaction extends BaseModel {
   }
 
   async isWaitingContentCreatorAction() {
-    const {status, campaignId} = this;
+    const {id, status, campaignId} = this;
     if (this.isTerminated() || this.isCompleted()) {
       return false;
+    }
+    if (TransactionStatus.offering === status) {
+      if (!id) {
+        return false;
+      }
+      const offer = await Offer.getById(id);
+      const latestNegotiation = offer?.getLatestNegotiation();
+      return latestNegotiation?.negotiatedBy === UserRole.BusinessPeople;
     }
     if (
       [

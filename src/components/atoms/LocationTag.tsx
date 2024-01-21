@@ -30,7 +30,7 @@ const LocationTag = ({text}: Props) => {
           color: COLOR.red[80],
         }),
       ]}>
-      <LocationIcon width={16} height={16} fill={COLOR.red[80]} />
+      <LocationIcon width={16} height={16} color={COLOR.red[80]} />
       <Text
         className="font-semibold"
         style={[textColor(COLOR.red[80]), font.size[30]]}>

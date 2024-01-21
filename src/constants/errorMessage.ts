@@ -21,4 +21,5 @@ export enum ErrorMessage {
   PROVIDER_ERROR = 'Provider error!',
   DEFAULT = 'Error!',
   USER_SUSPENDED = 'Login failed! Your account has been suspended.',
+  CAMPAIGN_SLOT_FULL = 'Campaign slot is already full!',
 }

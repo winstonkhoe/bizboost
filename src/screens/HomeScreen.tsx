@@ -109,23 +109,9 @@ const HomeScreen = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
-
-  const pendingReports = useMemo(
-    () =>
-      reports
-        .filter(report => report.isPending())
-        .sort(
-          (a, b) =>
-            reportStatusPrecendence[a.status] -
-            reportStatusPrecendence[b.status],
-        )
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
-    [reports],
-  );
 
   const upcomingCampaigns = useMemo(
-    () => userCampaigns.filter(c => new Campaign(c).isUpcoming()),
+    () => userCampaigns.filter(c => new Campaign(c).isUpcomingOrRegistration()),
     [userCampaigns],
   );
 
@@ -196,7 +182,9 @@ const HomeScreen = () => {
     const getActionNeededTransactions = async () => {
       const results = await Promise.all(
         transactions.map(async transaction =>
-          (await transaction.isWaitingContentCreatorAction())
+          (await (isContentCreator
+            ? transaction.isWaitingContentCreatorAction()
+            : transaction.isWaitingBusinessPeopleAction()))
             ? transaction
             : null,
         ),
@@ -211,14 +199,7 @@ const HomeScreen = () => {
           ),
         );
       }
-      if (isBusinessPeople) {
-        setActionNeededTransactions(
-          transactions.filter(transaction =>
-            transaction.isWaitingBusinessPeopleAction(),
-          ),
-        );
-      }
-      if (isContentCreator) {
+      if (isContentCreator || isBusinessPeople) {
         getActionNeededTransactions()
           .then(setActionNeededTransactions)
           .catch(() => setActionNeededTransactions([]));
@@ -233,15 +214,6 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    console.log('homeScreen:Offer.getPendingOffersbyUser');
-    try {
-      if (uid && activeRole) {
-        return Offer.getPendingOffersbyUser(uid, activeRole, setOffers);
-      }
-    } catch (error) {}
-  }, [uid, activeRole]);
-
-  useEffect(() => {
     if (isAdmin) {
       return Report.getAll(setReports);
     }
@@ -253,13 +225,11 @@ const HomeScreen = () => {
   useEffect(() => {
     console.log('homeScreen:getAllTransactionsByRole');
     if (!isAdmin && uid && activeRole) {
-      const unsubscribe = Transaction.getAllTransactionsByRole(
+      return Transaction.getAllTransactionsByRole(
         uid,
         activeRole,
         setTransactions,
       );
-
-      return unsubscribe;
     }
   }, [isAdmin, uid, activeRole]);
 
@@ -268,6 +238,10 @@ const HomeScreen = () => {
       return Transaction.getAllTransactionsWithPayment(setTransactions);
     }
   }, [isAdmin]);
+
+  const navigateToCreateCampaign = () => {
+    navigation.navigate(AuthenticatedNavigation.CreateCampaign);
+  };
 
   if (isAdmin) {
     console.log('admin transactions', transactions);
@@ -305,55 +279,68 @@ const HomeScreen = () => {
           ]}>
           {!isAdmin && <DashboardPanel transactions={transactions} />}
           {/* New This Week */}
-          {isContentCreator && (
-            <View style={[flex.flexCol, gap.default]}>
-              <HorizontalPadding>
-                <HomeSectionHeader header="New This Week" link="See All" />
-              </HorizontalPadding>
-              <ScrollView
-                showsHorizontalScrollIndicator={false}
-                horizontal
-                contentContainerStyle={[
-                  flex.flexRow,
-                  gap.default,
-                  padding.horizontal.default,
-                  padding.bottom.xsmall,
-                ]}>
-                {thisWeekCampaign
-                  .slice(0, 5)
-                  .map((campaign: Campaign, index: number) => (
+          {isContentCreator &&
+            (thisWeekCampaign.length > 0 ? (
+              <View style={[flex.flexCol, gap.default]}>
+                <View style={[padding.horizontal.default]}>
+                  <HomeSectionHeader header="New This Week" />
+                </View>
+                <ScrollView
+                  showsHorizontalScrollIndicator={false}
+                  horizontal
+                  contentContainerStyle={[
+                    flex.flexRow,
+                    gap.default,
+                    padding.horizontal.default,
+                    padding.bottom.xsmall,
+                  ]}>
+                  {thisWeekCampaign.map((campaign: Campaign, index: number) => (
                     <NewThisWeekCard campaign={campaign} key={index} />
                   ))}
-              </ScrollView>
-            </View>
-          )}
+                </ScrollView>
+              </View>
+            ) : (
+              <View style={[padding.horizontal.default]}>
+                <EmptySection
+                  title="New This Week"
+                  description="No new campaigns have opened for registration this week. Check back soon for exciting new opportunities!"
+                />
+              </View>
+            ))}
 
           {/* Your Upcoming Campaigns */}
-          {isBusinessPeople && (
-            <View style={[flex.flexCol, gap.default]}>
-              <HorizontalPadding>
-                <HomeSectionHeader
-                  header="Your Upcoming Campaigns"
-                  link="See All"
+          {isBusinessPeople &&
+            (upcomingCampaigns.length > 0 ? (
+              <View style={[flex.flexCol, gap.default]}>
+                <View style={[padding.horizontal.default]}>
+                  <HomeSectionHeader header="Your Upcoming Campaigns" />
+                </View>
+                <ScrollView
+                  showsHorizontalScrollIndicator={false}
+                  horizontal
+                  contentContainerStyle={[
+                    flex.flexRow,
+                    gap.default,
+                    padding.horizontal.default,
+                    padding.bottom.xsmall,
+                  ]}>
+                  {upcomingCampaigns.map(
+                    (campaign: Campaign, index: number) => (
+                      <NewThisWeekCard campaign={campaign} key={index} />
+                    ),
+                  )}
+                </ScrollView>
+              </View>
+            ) : (
+              <View style={[padding.horizontal.default]}>
+                <EmptySection
+                  title="Your Upcoming Campaigns"
+                  description="You don’t have any upcoming campaigns at the moment."
+                  actionText="Create Now"
+                  handleAction={navigateToCreateCampaign}
                 />
-              </HorizontalPadding>
-              <ScrollView
-                showsHorizontalScrollIndicator={false}
-                horizontal
-                contentContainerStyle={[
-                  flex.flexRow,
-                  gap.default,
-                  padding.horizontal.default,
-                  padding.bottom.xsmall,
-                ]}>
-                {upcomingCampaigns
-                  .slice(0, 5)
-                  .map((campaign: Campaign, index: number) => (
-                    <NewThisWeekCard campaign={campaign} key={index} />
-                  ))}
-              </ScrollView>
-            </View>
-          )}
+              </View>
+            ))}
           <View
             style={[
               flex.flexCol,
@@ -502,10 +489,7 @@ const HomeScreen = () => {
                 right: 20,
               },
             ]}>
-            <AnimatedPressable
-              onPress={() =>
-                navigation.navigate(AuthenticatedNavigation.CreateCampaign)
-              }>
+            <AnimatedPressable onPress={navigateToCreateCampaign}>
               <View
                 style={[
                   shadow.large,
@@ -779,20 +763,15 @@ interface DashboardPanelProps {
 }
 
 const DashboardPanel = ({transactions}: DashboardPanelProps) => {
-  const {user, isContentCreator} = useUser();
+  const {user, isContentCreator, activeRole} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
 
   const calculateBalance = () => {
-    if (isContentCreator) {
-      return transactions
-        .filter(transaction => transaction.isCompleted())
-        .reduce(
-          (acc, transaction) => acc + (transaction.transactionAmount || 0),
-          0,
-        );
+    if (!activeRole) {
+      return 0;
     }
     return transactions
-      .filter(transaction => transaction.isTerminated())
+      .filter(transaction => transaction.isWithdrawable(activeRole))
       .reduce(
         (acc, transaction) => acc + (transaction.transactionAmount || 0),
         0,
@@ -960,6 +939,64 @@ const VerticalSeparator = () => {
         },
       ]}
     />
+  );
+};
+
+interface EmptySectionProps {
+  title: string;
+  description: string;
+  handleAction?: () => void;
+  actionText?: string;
+}
+
+const EmptySection = ({
+  title,
+  description,
+  actionText = 'Submit',
+  handleAction,
+}: EmptySectionProps) => {
+  return (
+    <View
+      style={[
+        flex.flexCol,
+        gap.default,
+        rounded.medium,
+        padding.horizontal.default,
+        padding.vertical.medium,
+        border({
+          borderWidth: 1,
+          color: COLOR.black[20],
+        }),
+      ]}>
+      <View style={[flex.flexCol, gap.xsmall, items.center]}>
+        <Text
+          style={[
+            font.size[30],
+            font.weight.bold,
+            textColor(COLOR.text.neutral.high),
+          ]}>
+          {title}
+        </Text>
+        <Text
+          style={[
+            text.center,
+            font.size[20],
+            font.weight.semibold,
+            textColor(COLOR.text.neutral.med),
+          ]}>
+          {description}
+        </Text>
+      </View>
+      {handleAction && (
+        <View style={[flex.flexRow, justify.center]}>
+          <CustomButton
+            text={actionText}
+            onPress={handleAction}
+            rounded="max"
+          />
+        </View>
+      )}
+    </View>
   );
 };
 

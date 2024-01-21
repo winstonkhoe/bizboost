@@ -694,7 +694,6 @@ export const MediaUploader = ({
     };
   }, [uploadProgress]);
   const handleImageUpload = () => {
-    console.log('masuk');
     ImagePicker.openPicker(options)
       .then((media: ImageOrVideo) => {
         onMediaSelected && onMediaSelected(media);

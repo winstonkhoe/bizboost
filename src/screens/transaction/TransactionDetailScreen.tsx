@@ -99,6 +99,7 @@ import {overflow} from '../../styles/Overflow';
 import {position} from '../../styles/Position';
 import {Offer} from '../../model/Offer';
 import {SkeletonPlaceholder} from '../../components/molecules/SkeletonPlaceholder';
+import {ErrorMessage} from '../../constants/errorMessage';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -108,7 +109,7 @@ type Props = NativeStackScreenProps<
 const TransactionDetailScreen = ({route}: Props) => {
   // TODO: mungkin bisa accept / reject dari sini juga (view payment proof & status jg bisa)
   // TODO: need to add expired validations (if cc still in previous step but the active step is ahead of it, should just show expired and remove all possibility of submission etc)
-  const {uid, user, activeRole} = useUser();
+  const {uid, user, activeRole, isAdmin} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const {transactionId} = route.params;
@@ -122,6 +123,7 @@ const TransactionDetailScreen = ({route}: Props) => {
   const [transactionReports, setTransactionReports] = useState<Report[]>([]);
   const [selectedReportType, setSelectedReportType] = useState<ReportType>();
   const [campaign, setCampaign] = useState<Campaign | null>();
+  const [isRegisterableCampaign, setIsRegisterableCampaign] = useState(false);
   const [transaction, setTransaction] = useState<Transaction | null>();
   const [businessPeople, setBusinessPeople] = useState<User | null>();
   const [contentCreator, setContentCreator] = useState<User | null>();
@@ -151,6 +153,15 @@ const TransactionDetailScreen = ({route}: Props) => {
     }
   }, [transaction]);
 
+  useEffect(() => {
+    if (campaign) {
+      campaign
+        .isRegisterable()
+        .then(setIsRegisterableCampaign)
+        .catch(() => setIsRegisterableCampaign(false));
+    }
+  }, [campaign]);
+
   const updateReportDescription = useCallback((description: string) => {
     setReportDescription(description);
   }, []);
@@ -178,7 +189,9 @@ const TransactionDetailScreen = ({route}: Props) => {
       .approve()
       .then(() => {
         showToast({
-          message: 'Transaction Approved!',
+          message: `${
+            transactionStatusCampaignStepMap[transaction.status]
+          } Approved!`,
           type: ToastType.success,
         });
       })
@@ -197,6 +210,23 @@ const TransactionDetailScreen = ({route}: Props) => {
   const handleReject = () => {
     if (transaction && transaction.id) {
       setIsOthersSheetModalOpen(false);
+      if (transaction.status === TransactionStatus.registrationPending) {
+        transaction
+          .rejectRegistration()
+          .then(() => {
+            showToast({
+              message: 'Registration Rejected!',
+              type: ToastType.success,
+            });
+          })
+          .catch(() => {
+            showToast({
+              message: 'Failed to reject registration!',
+              type: ToastType.danger,
+            });
+          });
+        return;
+      }
       navigation.navigate(AuthenticatedNavigation.RejectTransaction, {
         transactionId: transaction.id,
       });
@@ -570,7 +600,7 @@ const TransactionDetailScreen = ({route}: Props) => {
             businessPeople={businessPeople}
             campaign={campaign}
           />
-          {isCampaignOwner && (
+          {(isCampaignOwner || isAdmin) && (
             <ContentCreatorSection contentCreator={contentCreator} />
           )}
           {campaign.isTimelineAvailable(CampaignStep.Brainstorming) && (
@@ -618,30 +648,49 @@ const TransactionDetailScreen = ({route}: Props) => {
                 <MeatballMenuIcon size="xsmall" />
               </AnimatedPressable>
               <View style={[flex.flex1]}>
-                <CustomAlert
-                  text={`Approve ${
-                    transactionStatusCampaignStepMap[transaction.status]
-                  }`}
-                  rejectButtonText="Cancel"
-                  approveButtonText="Approve"
-                  confirmationText={
-                    <Text
-                      className="text-center"
-                      style={[
-                        font.size[30],
-                        textColor(COLOR.text.neutral.med),
-                      ]}>
-                      Are you sure you want to approve{' '}
+                {transactionStatusCampaignStepMap[transaction.status] ===
+                  CampaignStep.Registration && !isRegisterableCampaign ? (
+                  <CustomButton
+                    text={`Approve ${
+                      transactionStatusCampaignStepMap[transaction.status]
+                    }`}
+                    customBackgroundColor={{
+                      default: COLOR.background.green.disabled,
+                      disabled: COLOR.background.green.disabled,
+                    }}
+                    onPress={() => {
+                      showToast({
+                        type: ToastType.info,
+                        message: ErrorMessage.CAMPAIGN_SLOT_FULL,
+                      });
+                    }}
+                  />
+                ) : (
+                  <CustomAlert
+                    text={`Approve ${
+                      transactionStatusCampaignStepMap[transaction.status]
+                    }`}
+                    rejectButtonText="Cancel"
+                    approveButtonText="Approve"
+                    confirmationText={
                       <Text
-                        className="font-bold"
-                        style={[textColor(COLOR.text.neutral.high)]}>
-                        {contentCreator?.contentCreator?.fullname}
-                      </Text>{' '}
-                      {`${currentActiveTimeline?.step.toLocaleLowerCase()} ?`}
-                    </Text>
-                  }
-                  onApprove={handleApprove}
-                />
+                        className="text-center"
+                        style={[
+                          font.size[30],
+                          textColor(COLOR.text.neutral.med),
+                        ]}>
+                        Are you sure you want to approve{' '}
+                        <Text
+                          className="font-bold"
+                          style={[textColor(COLOR.text.neutral.high)]}>
+                          {contentCreator?.contentCreator?.fullname}
+                        </Text>{' '}
+                        {`${currentActiveTimeline?.step.toLocaleLowerCase()} ?`}
+                      </Text>
+                    }
+                    onApprove={handleApprove}
+                  />
+                )}
               </View>
             </View>
           )}
@@ -966,6 +1015,7 @@ export const CampaignDetailSection = ({
   const latestNegotiation = offer?.getLatestNegotiation();
   const fee =
     props.transaction?.transactionAmount || latestNegotiation?.fee || -1;
+  const notes = props.transaction?.importantNotes || latestNegotiation?.notes;
   // TODO: fee should use transaction fee rather than campaign fee/price
   // TODO: show transaction important notes for private campaign
   return (
@@ -1085,10 +1135,17 @@ export const CampaignDetailSection = ({
                   </Text>
                 </SkeletonPlaceholder>
               )}
-              <SkeletonPlaceholder isLoading={offer === undefined}>
-                {latestNegotiation?.notes && (
+              <SkeletonPlaceholder
+                isLoading={
+                  offer === undefined && props.transaction === undefined
+                }>
+                {notes && (
                   <View
                     style={[
+                      {
+                        maxWidth: '90%',
+                      },
+                      flex.flexCol,
                       padding.small,
                       background(COLOR.black[5]),
                       rounded.small,
@@ -1106,7 +1163,7 @@ export const CampaignDetailSection = ({
                         font.size[20],
                         textColor(COLOR.text.neutral.high),
                       ]}>
-                      {latestNegotiation.notes}
+                      {notes}
                     </Text>
                   </View>
                 )}

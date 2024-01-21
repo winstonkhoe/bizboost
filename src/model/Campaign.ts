@@ -5,6 +5,11 @@ import {SocialPlatform, User} from './User';
 import {BaseModel} from './BaseModel';
 import {Location} from './Location';
 import {Category} from './Category';
+import {
+  Transaction,
+  TransactionStatus,
+  transactionStatusIndexMap,
+} from './Transaction';
 
 export interface CampaignTask {
   name: string;
@@ -156,18 +161,25 @@ export class Campaign extends BaseModel {
     return a.getTimelineStart()?.start - b.getTimelineStart()?.start || 0;
   }
 
-  static async getAll(): Promise<Campaign[]> {
+  static getAll(
+    callback: (campaigns: Campaign[]) => void,
+    type: CampaignType = CampaignType.Public,
+  ) {
     try {
-      console.log('model:Campaign getAll');
-      const campaigns = await Campaign.getCollectionReference()
-        .where('type', '==', CampaignType.Public)
-        .get();
-      if (campaigns.empty) {
-        throw Error('No Campaigns!');
-      }
-      return campaigns.docs.map(Campaign.fromSnapshot);
+      return Campaign.getCollectionReference()
+        .where('type', '==', type)
+        .onSnapshot(
+          querySnapshots => {
+            callback(Campaign.fromQuerySnapshot(querySnapshots));
+          },
+          (error: Error) => {
+            console.log(error.message);
+            callback([]);
+          },
+        );
     } catch (error) {
-      throw Error('Error!');
+      console.log(error);
+      callback([]);
     }
   }
 
@@ -219,7 +231,7 @@ export class Campaign extends BaseModel {
   static getUserCampaignsReactive(
     userId: string,
     callback: (campaigns: Campaign[]) => void,
-  ): (() => void) | undefined {
+  ) {
     try {
       const userRef = User.getDocumentReference(userId);
       return Campaign.getCollectionReference()
@@ -236,6 +248,7 @@ export class Campaign extends BaseModel {
         );
     } catch (error) {
       console.log('getUserCampaignsReactive', error);
+      callback([]);
     }
   }
 
@@ -333,23 +346,59 @@ export class Campaign extends BaseModel {
     return this.type === CampaignType.Public;
   }
 
-  isRegisterable() {
-    const now = new Date().getTime();
-    return this.getTimelineStart()?.end >= now;
+  isPrivate() {
+    return this.type === CampaignType.Private;
   }
 
-  isUpcoming() {
+  async isRegisterable() {
+    const {id, slot} = this;
+    if (!id) {
+      return false;
+    }
     const now = new Date().getTime();
-    return this.getTimelineStart()?.start >= now;
+    if (now >= this.getTimelineStart()?.end) {
+      return false;
+    }
+
+    if (this.isPrivate()) {
+      return true;
+    }
+
+    const registeredSlot = await new Promise<number>((resolve, reject) => {
+      try {
+        const unsubscribe = Transaction.getAllTransactionsByCampaign(
+          id,
+          transactions => {
+            unsubscribe();
+            resolve(transactions.filter(t => t.isRegistered()).length);
+          },
+        );
+      } catch (error) {
+        console.log(error);
+        reject(-1);
+      }
+    });
+    const isSlotAvailable = registeredSlot !== -1 && registeredSlot < slot;
+    return isSlotAvailable;
+  }
+
+  isUpcomingOrRegistration() {
+    const now = new Date().getTime();
+    console.log(
+      'isUpcomingOrRegistration',
+      this.title,
+      now < this.getTimelineStart()?.end,
+    );
+    return now < this.getTimelineStart()?.end;
   }
 
   isOngoing() {
     const now = new Date().getTime();
-    return this.getTimelineEnd()?.end >= now;
+    return now < this.getTimelineEnd()?.end;
   }
 
   isCompleted() {
     const now = new Date().getTime();
-    return this.getTimelineEnd()?.end <= now;
+    return now > this.getTimelineEnd()?.end;
   }
 }
