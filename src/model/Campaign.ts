@@ -346,6 +346,10 @@ export class Campaign extends BaseModel {
     return this.type === CampaignType.Public;
   }
 
+  isPrivate() {
+    return this.type === CampaignType.Private;
+  }
+
   async isRegisterable() {
     const {id, slot} = this;
     if (!id) {
