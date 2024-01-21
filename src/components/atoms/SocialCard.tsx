@@ -1,4 +1,4 @@
-import {Text, View} from 'react-native';
+import {Linking, Pressable, PressableProps, Text, View} from 'react-native';
 import {SocialData, SocialPlatform} from '../../model/User';
 import {flex, items, justify, self} from '../../styles/Flex';
 import {PlatformIcon, SyncIcon} from './Icon';
@@ -19,6 +19,7 @@ import {size} from '../../styles/Size';
 import {gap} from '../../styles/Gap';
 import {position} from '../../styles/Position';
 import {formatDateToDayMonthYearHourMinuteShort} from '../../utils/date';
+import {useMemo} from 'react';
 
 interface SocialCardProps {
   platform: SocialPlatform;
@@ -33,22 +34,61 @@ export const SocialCard = ({
   data,
   inverted = false,
 }: SocialCardProps) => {
+  const socialUrl = useMemo(() => {
+    switch (platform) {
+      case SocialPlatform.Tiktok:
+        return `https://www.tiktok.com/@${data?.username}`;
+      case SocialPlatform.Instagram:
+        return `https://www.instagram.com/${data?.username}`;
+      default:
+        return '';
+    }
+  }, [platform, data]);
+
+  const openSocialUrl = () => {
+    if (socialUrl) {
+      Linking.openURL(socialUrl).catch(error => {
+        console.log('error open', socialUrl, error);
+      });
+    }
+  };
+
   if (type === 'summary') {
-    return <Summary data={data} platform={platform} inverted={inverted} />;
+    return (
+      <Summary
+        onPress={openSocialUrl}
+        data={data}
+        platform={platform}
+        inverted={inverted}
+      />
+    );
   }
+
   if (type === 'detail') {
-    return <Detail data={data} platform={platform} inverted={inverted} />;
+    return (
+      <Detail
+        onPress={openSocialUrl}
+        data={data}
+        platform={platform}
+        inverted={inverted}
+      />
+    );
   }
   return null;
 };
 
-interface SummaryProps {
+interface SummaryProps extends PressableProps {
   platform: SocialPlatform;
   data: SocialData;
   inverted?: boolean;
 }
 
-const Summary = ({platform, data, inverted}: SummaryProps) => {
+const Summary = ({
+  platform,
+  data,
+  inverted,
+  ...pressableProps
+}: SummaryProps) => {
   const textColorCode = inverted
     ? COLOR.absoluteBlack[0]
     : COLOR.absoluteBlack[90];
@@ -56,8 +96,9 @@ const Summary = ({platform, data, inverted}: SummaryProps) => {
     ? COLOR.absoluteBlack[90]
     : COLOR.absoluteBlack[0];
   return (
-    <View
-      style={[position.relative, data.isSynchronized && [padding.right.small]]}>
+    <Pressable
+      style={[position.relative, data.isSynchronized && [padding.right.small]]}
+      {...pressableProps}>
       <View
         style={[
           flex.flexRow,
@@ -119,19 +160,19 @@ const Summary = ({platform, data, inverted}: SummaryProps) => {
           </View>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 };
 
-interface DetailProps {
+interface DetailProps extends PressableProps {
   platform: SocialPlatform;
   data: SocialData;
   inverted?: boolean;
 }
 
-const Detail = ({data, platform, inverted}: DetailProps) => {
+const Detail = ({data, platform, inverted, ...pressableProps}: DetailProps) => {
   return (
-    <View
+    <Pressable
       style={[
         flex.flex1,
         flex.flexCol,
@@ -143,7 +184,8 @@ const Detail = ({data, platform, inverted}: DetailProps) => {
         gap.small,
         rounded.default,
         padding.small,
-      ]}>
+      ]}
+      {...pressableProps}>
       <View
         style={[
           flex.flexRow,
@@ -211,6 +253,6 @@ const Detail = ({data, platform, inverted}: DetailProps) => {
           </Text>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 };
