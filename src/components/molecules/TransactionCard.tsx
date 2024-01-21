@@ -89,10 +89,10 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
       if (TransactionStatus.offering === transaction.status) {
         return 'Check Offer';
       }
+      if (TransactionStatus.offerWaitingForPayment === transaction.status) {
+        return 'Make Payment';
+      }
       return 'Review Submission';
-    }
-    if (TransactionStatus.offerWaitingForPayment === transaction.status) {
-      return 'Make Payment';
     }
     if (isWithdrawable) {
       return 'Withdraw';
@@ -112,6 +112,11 @@ const BusinessPeopleTransactionCard = ({transaction}: Props) => {
     if (isWaitingActionOnTransactionDetail) {
       if (TransactionStatus.offering === transaction.status) {
         return navigateToOfferDetail;
+      }
+      if (TransactionStatus.offerWaitingForPayment === transaction.status) {
+        return () => {
+          setIsPaymentModalOpened(true);
+        };
       }
       return navigateToTransactionDetail;
     }
