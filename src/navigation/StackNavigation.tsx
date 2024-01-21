@@ -7,7 +7,6 @@ import {CreateAdditionalAccountScreen} from '../screens/CreateAdditionalAccountS
 import {NavigationProp} from '@react-navigation/native';
 import CreateCampaignScreen from '../screens/campaign/CreateCampaignScreen';
 import ChatScreen from '../screens/ChatScreen';
-import {Chat, Recipient} from '../model/Chat';
 import CampaignRegistrantsScreen from '../screens/campaign/CampaignRegistrantsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
