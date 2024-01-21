@@ -98,7 +98,7 @@ const ModalSubmitContentCreation = ({route}: Props) => {
       ?.submitContent(transactionContent)
       .then(() => {
         showToast({
-          message: 'Engagement result submitted',
+          message: 'Content submitted',
           type: ToastType.success,
         });
         setIsLoading(false);
