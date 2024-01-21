@@ -10,7 +10,7 @@ import {
   HorizontalPadding,
   VerticalPadding,
 } from '../../components/atoms/ViewPadding';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
@@ -36,6 +36,9 @@ import {useUser} from '../../hooks/user';
 import {Offer} from '../../model/Offer';
 import {showToast} from '../../helpers/toast';
 import {ToastType} from '../../providers/ToastProvider';
+import MasonryLayout from '../../components/layouts/MasonryLayout';
+import {useOngoingCampaign} from '../../hooks/campaign';
+import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 
 type Props = StackScreenProps<
   AuthenticatedStack,
@@ -49,13 +52,14 @@ const ModalCampaignScreen = ({route}: Props) => {
   const [selectedCampaign, setSelectedCampaign] = useState<
     Campaign | undefined
   >(initialSelectedCampaign);
-  const {uid} = useUser();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-
-  useEffect(() => {
-    Campaign.getRegistrationCampaignByUser(uid).then(setCampaigns);
-  }, [uid]);
-  console.log(campaigns);
+  const {userCampaigns} = useOngoingCampaign();
+  const campaigns = useMemo(
+    () =>
+      userCampaigns
+        .map(c => new Campaign(c))
+        .filter(c => c.isPrivate() && c.isUpcomingOrRegistration()) || [],
+    [userCampaigns],
+  );
 
   const toggleCampaignSelection = (campaign: Campaign) => {
     if (selectedCampaign && selectedCampaign.id === campaign.id) {
@@ -72,63 +76,66 @@ const ModalCampaignScreen = ({route}: Props) => {
     });
   };
 
-  const getFilteredCampaignsByParity = (parityType: 'odd' | 'even') => {
-    return campaigns
-      .filter((_, index) => index % 2 === (parityType === 'even' ? 0 : 1))
-      .map((campaign: Campaign, index) => {
-        return (
-          <CampaignItem
-            key={index}
-            campaign={campaign}
-            isReachLimit={selectedCampaign === null}
-            isSelected={
-              selectedCampaign ? campaign.id === selectedCampaign.id : false
-            }
-            contentCreatorToOfferId={contentCreatorToOfferId}
-            onPress={() => {
-              toggleCampaignSelection(campaign);
-            }}
-          />
-        );
-      });
+  const navigateToCreateCampaign = () => {
+    // closeModal({
+    //   navigation: navigation,
+    //   triggerEventOnClose: 'close.campaign',
+    // });
+    navigation.navigate(AuthenticatedNavigation.CreateCampaign);
   };
 
   return (
     <SafeAreaContainer enable>
-      {campaigns ? (
-        <View className="flex-1" style={[flex.flexCol, gap.small]}>
-          <View className="items-center" style={[flex.flexRow, gap.default]}>
-            <CloseModal closeEventType="campaign" />
-            <Text className="text-lg font-bold">Campaigns</Text>
-          </View>
-          <ScrollView contentContainerStyle={{flexGrow: 1}}>
-            <VerticalPadding paddingSize="xlarge">
-              <HorizontalPadding paddingSize="medium">
-                <View style={[flex.flexRow, gap.default]}>
-                  <View
-                    className="flex-1 justify-start"
-                    style={[flex.flexCol, gap.default]}>
-                    {getFilteredCampaignsByParity('even')}
-                  </View>
-                  <View
-                    className="flex-1 justify-start"
-                    style={[flex.flexCol, gap.default]}>
-                    {getFilteredCampaignsByParity('odd')}
-                  </View>
-                </View>
-              </HorizontalPadding>
-            </VerticalPadding>
+      <View className="flex-1" style={[flex.flexCol, gap.small]}>
+        <View className="items-center" style={[flex.flexRow, gap.default]}>
+          <CloseModal closeEventType="campaign" />
+          <Text className="text-lg font-bold">Campaigns</Text>
+        </View>
+        {campaigns.length > 0 ? (
+          <ScrollView contentContainerStyle={[padding.medium]}>
+            <MasonryLayout
+              data={campaigns}
+              renderItem={(item, itemIndex) => {
+                return (
+                  <CampaignItem
+                    key={itemIndex}
+                    campaign={item}
+                    isReachLimit={selectedCampaign === null}
+                    isSelected={
+                      selectedCampaign ? item.id === selectedCampaign.id : false
+                    }
+                    contentCreatorToOfferId={contentCreatorToOfferId}
+                    onPress={() => {
+                      toggleCampaignSelection(item);
+                    }}
+                  />
+                );
+              }}
+            />
           </ScrollView>
-          <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <HorizontalPadding>
-                <View style={[flex.flexRow, gap.default]}>
-                  {selectedCampaign && (
-                    <CampaignSelectedPreview campaign={selectedCampaign} />
-                  )}
-                </View>
-              </HorizontalPadding>
-            </ScrollView>
+        ) : (
+          <EmptyPlaceholder title="No Private Campaigns To Offer Yet">
+            <CustomButton
+              text="Create Now"
+              rounded="max"
+              onPress={navigateToCreateCampaign}
+            />
+          </EmptyPlaceholder>
+        )}
+        <View style={[flex.flexCol, gap.default, padding.bottom.default]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[
+              padding.horizontal.default,
+              flex.flexRow,
+              gap.default,
+            ]}>
+            {selectedCampaign && (
+              <CampaignSelectedPreview campaign={selectedCampaign} />
+            )}
+          </ScrollView>
+          {campaigns.length > 0 && (
             <View style={[padding.horizontal.default]}>
               <CustomButton
                 text="Choose"
@@ -136,11 +143,9 @@ const ModalCampaignScreen = ({route}: Props) => {
                 onPress={emitChangesAndClose}
               />
             </View>
-          </View>
+          )}
         </View>
-      ) : (
-        <Text>No campaigns yet</Text>
-      )}
+      </View>
     </SafeAreaContainer>
   );
 };
@@ -174,9 +179,11 @@ const CampaignItem = ({
         Offer.hasOfferForContentCreatorAndCampaign(
           contentCreatorToOfferId,
           campaign.id,
-        ).then(offer => {
-          setIsOffered(offer);
-        });
+        )
+          .then(setIsOffered)
+          .catch(() => {
+            setIsOffered(false);
+          });
       } catch (error) {
         console.error('Error fetching offer:', error);
         setIsOffered(false);
