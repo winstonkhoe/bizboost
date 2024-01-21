@@ -225,13 +225,11 @@ const HomeScreen = () => {
   useEffect(() => {
     console.log('homeScreen:getAllTransactionsByRole');
     if (!isAdmin && uid && activeRole) {
-      const unsubscribe = Transaction.getAllTransactionsByRole(
+      return Transaction.getAllTransactionsByRole(
         uid,
         activeRole,
         setTransactions,
       );
-
-      return unsubscribe;
     }
   }, [isAdmin, uid, activeRole]);
 
