@@ -301,9 +301,7 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
     if (transaction.campaignId) {
       Campaign.getById(transaction.campaignId)
         .then(setCampaign)
-        .catch(() => {
-          setCampaign(null);
-        });
+        .catch(() => setCampaign(null));
     }
     if (transaction.id) {
       Offer.getById(transaction.id)

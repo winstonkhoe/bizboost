@@ -1,6 +1,5 @@
 import {Pressable, PressableProps, StyleSheet, Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
@@ -54,7 +53,6 @@ import PagerView from 'react-native-pager-view';
 import {CustomButton} from '../components/atoms/Button';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
-import {Offer} from '../model/Offer';
 import {NewThisWeekCard} from '../components/molecules/NewThisWeekCard';
 import {round} from 'lodash';
 import {InternalLink} from '../components/atoms/Link';
@@ -217,8 +215,7 @@ const HomeScreen = () => {
 
   useEffect(() => {
     console.log('homeScreen:userGetall');
-    const unsubscribe = User.getAll(setUsers);
-    return unsubscribe;
+    return User.getAll(setUsers);
   }, []);
 
   useEffect(() => {
@@ -780,7 +777,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
   const {user, isContentCreator, activeRole} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
 
-  const calculateBalance = () => {
+  const calculateBalance = useMemo(() => {
     if (!activeRole) {
       return 0;
     }
@@ -790,7 +787,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
         (acc, transaction) => acc + (transaction.transactionAmount || 0),
         0,
       );
-  };
+  }, [activeRole, transactions]);
 
   const getRatingLabel = () => {
     if (isContentCreator) {
@@ -833,7 +830,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
                 textColor(COLOR.text.neutral.high),
               ]}
               numberOfLines={1}>
-              {currencyFormat(calculateBalance())}
+              {currencyFormat(calculateBalance)}
             </Text>
           </Pressable>
         </DashboardPanelItem>
