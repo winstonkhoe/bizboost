@@ -43,6 +43,8 @@ import {ReportIssueIcon} from '../components/atoms/Icon';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../styles/Size';
 import {SocialCard} from '../components/atoms/SocialCard';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -109,7 +111,21 @@ const ProfileScreen = () => {
     }
     const updatedUser: User = new User({...user});
 
-    updatedUser.updateProfilePicture(activeRole, url);
+    updatedUser
+      .updateProfilePicture(activeRole, url)
+      .then(() => {
+        showToast({
+          type: ToastType.success,
+          message: 'Profile picture updated successfully',
+        });
+      })
+      .catch(error => {
+        console.log('updateProfilePicture error' + error);
+        showToast({
+          type: ToastType.danger,
+          message: 'Failed to update profile picture',
+        });
+      });
   };
 
   // TODO: kondisi buat admin
