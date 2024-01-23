@@ -56,7 +56,10 @@ const SearchBar = () => {
 
   const search = () => {
     dispatch(closeSearchPage());
-    if (activeRole === UserRole.ContentCreator) {
+    if (
+      activeRole === UserRole.ContentCreator ||
+      activeRole === UserRole.Admin
+    ) {
       navigation.navigate(TabNavigation.Campaigns);
     } else {
       navigation.navigate(TabNavigation.ContentCreators);

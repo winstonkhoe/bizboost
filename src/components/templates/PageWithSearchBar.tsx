@@ -44,7 +44,8 @@ export const SearchAutocompletePlaceholder = ({
     <View style={[flex.flex1, flex.flexCol]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={[flex.flexCol, gap.default]}>
-          {activeRole === UserRole.ContentCreator
+          {activeRole === UserRole.ContentCreator ||
+          activeRole === UserRole.Admin
             ? searchTerm !== '' &&
               getSimilarCampaigns(nonUserCampaigns, searchTerm).map(
                 (campaign: Campaign) =>
