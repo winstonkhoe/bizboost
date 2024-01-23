@@ -3,6 +3,7 @@ import {Text} from 'react-native';
 import {flex, items, justify} from '../../styles/Flex';
 import {rounded} from '../../styles/BorderRadius';
 import {
+  PaymentStatus,
   Transaction,
   TransactionStatus,
   transactionStatusTypeMap,
@@ -456,6 +457,98 @@ const ContentCreatorTransactionCard = ({transaction}: Props) => {
   );
 };
 
+const AdminTransactionCard = ({transaction}: Props) => {
+  const navigation = useNavigation<NavigationStackProps>();
+  const {isAdmin} = useUser();
+  const [campaign, setCampaign] = useState<Campaign | null>();
+  const [businessPeople, setBusinessPeople] = useState<User | null>();
+  const isWaitingAdminAction = isAdmin && transaction.isWaitingAdminAction();
+  const isWaitingAdminProofValidation =
+    isWaitingAdminAction &&
+    transaction.payment?.status === PaymentStatus.proofWaitingForVerification;
+  const isWaitingAdminProcessWithdrawal =
+    isWaitingAdminAction &&
+    transaction.payment?.status === PaymentStatus.withdrawalRequested;
+
+  useEffect(() => {
+    if (transaction.campaignId) {
+      Campaign.getById(transaction.campaignId)
+        .then(setCampaign)
+        .catch(() => {
+          setCampaign(null);
+        });
+    }
+  }, [transaction]);
+
+  useEffect(() => {
+    if (transaction.businessPeopleId) {
+      User.getById(transaction.businessPeopleId)
+        .then(setBusinessPeople)
+        .catch(() => {
+          setBusinessPeople(null);
+        });
+    }
+  }, [transaction]);
+
+  const navigateToTransactionDetail = useCallback(() => {
+    if (transaction.id) {
+      navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+        transactionId: transaction.id,
+      });
+    }
+  }, [navigation, transaction.id]);
+
+  const actionText = useMemo(() => {
+    if (isWaitingAdminProofValidation) {
+      return 'Validate Payment Proof';
+    }
+    if (isWaitingAdminProcessWithdrawal) {
+      return 'Process Withdrawal';
+    }
+    return undefined;
+  }, [isWaitingAdminProofValidation, isWaitingAdminProcessWithdrawal]);
+
+  const handleAction = useMemo(() => {
+    if (isWaitingAdminAction) {
+      return navigateToTransactionDetail;
+    }
+    return undefined;
+  }, [isWaitingAdminAction, navigateToTransactionDetail]);
+
+  return (
+    <BaseCard
+      handleClickHeader={() => {
+        navigation.navigate(AuthenticatedNavigation.BusinessPeopleDetail, {
+          businessPeopleId: businessPeople?.id || '',
+        });
+      }}
+      icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
+      headerTextLeading={businessPeople?.businessPeople?.fullname}
+      // headerTextTrailing={getTimeAgo(transaction.updatedAt || 0)}
+      handleClickBody={() => {
+        if (transaction.id) {
+          navigation.navigate(AuthenticatedNavigation.TransactionDetail, {
+            transactionId: transaction.id,
+          });
+        }
+      }}
+      imageSource={getSourceOrDefaultAvatar({
+        uri: campaign?.image,
+      })}
+      // bodyText={campaign?.title}
+      bodyText={campaign?.title}
+      handleAction={handleAction}
+      actionText={actionText}
+      statusText={transaction.status}
+      statusType={
+        transactionStatusTypeMap[
+          transaction.status || TransactionStatus.terminated
+        ]
+      }
+    />
+  );
+};
+
 // MARK: kalo mau edit base card dari sini
 type BaseCardProps = {
   handleClickHeader?: () => void;
@@ -499,6 +592,7 @@ export const BaseCard = ({
   handleAction,
 }: BaseCardProps) => {
   const isLoading = !headerTextLeading || !bodyText;
+
   return (
     <View
       style={[
@@ -549,7 +643,7 @@ export const BaseCard = ({
                     ],
               ]}
               numberOfLines={1}>
-              {headerTextLeading}
+              {headerTextLeading || ''}
             </Text>
           </View>
         </SkeletonPlaceholder>
@@ -688,9 +782,14 @@ export const BaseCard = ({
 const TransactionCard = ({transaction, role}: Props) => {
   if (role === UserRole.BusinessPeople) {
     return <BusinessPeopleTransactionCard transaction={transaction} />;
-  } else {
+  }
+  if (role === UserRole.ContentCreator) {
     return <ContentCreatorTransactionCard transaction={transaction} />;
   }
+  if (role === UserRole.Admin) {
+    return <AdminTransactionCard transaction={transaction} />;
+  }
+  return null;
 };
 
 export default TransactionCard;
