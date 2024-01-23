@@ -24,7 +24,7 @@ import {
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {useEffect, useState} from 'react';
-import {PaymentStatus, Transaction} from '../model/Transaction';
+import {Transaction} from '../model/Transaction';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
 import {Campaign} from '../model/Campaign';
@@ -67,16 +67,9 @@ const ProfileScreen = () => {
     transactions?.filter(t => t.isOngoing()).length || 0;
   const completedTransactionsCount =
     transactions?.filter(t => t.isCompleted() || t.isTerminated()).length || 0;
-  const withdrawableTransactionsCount =
-    transactions?.filter(
-      t =>
-        t.isCompleted() &&
-        t.payment?.status &&
-        [
-          PaymentStatus.proofApproved,
-          PaymentStatus.withdrawalRequested,
-        ].includes(t.payment?.status),
-    ).length || 0;
+  const withdrawableTransactionsCount = activeRole
+    ? transactions?.filter(t => t.isWithdrawable(activeRole)).length || 0
+    : 0;
   const {portfolios} = usePortfolio(uid || '');
 
   useEffect(() => {
@@ -310,7 +303,7 @@ const ProfileScreen = () => {
                 icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
                 title="My Campaigns"
                 subtitle={`${publicCampaignsCount} Public\n${
-                  campaigns.length - publicCampaignsCount
+                  (campaigns?.length || 0) - publicCampaignsCount
                 } Private`}
               />,
               // TODO: ini kayaknya ga perlu lagi
