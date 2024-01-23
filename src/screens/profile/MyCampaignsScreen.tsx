@@ -4,49 +4,52 @@ import SafeAreaContainer from '../../containers/SafeAreaContainer';
 import {flex} from '../../styles/Flex';
 import {gap} from '../../styles/Gap';
 import {padding} from '../../styles/Padding';
-import {useEffect, useState} from 'react';
 import {Campaign} from '../../model/Campaign';
-import {useUser} from '../../hooks/user';
 import {CampaignCard} from '../../components/molecules/CampaignCard';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   AuthenticatedNavigation,
   AuthenticatedStack,
 } from '../../navigation/StackNavigation';
+import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
+import {useOngoingCampaign} from '../../hooks/campaign';
+import {PageWithBackButton} from '../../components/templates/PageWithBackButton';
+import {BackButtonLabel} from '../../components/atoms/Header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {size} from '../../styles/Size';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.MyCampaigns
 >;
 const MyCampaignsScreen = ({route}: Props) => {
-  const {userId} = route.params;
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  // const {uid} = useUser();
+  const {userCampaigns} = useOngoingCampaign();
+  const safeAreaInsets = useSafeAreaInsets();
 
-  useEffect(() => {
-    if (userId) {
-      const unsubscribe = Campaign.getUserCampaignsReactive(userId, c => {
-        setCampaigns(c);
-      });
-
-      return unsubscribe;
-    }
-  }, [userId]);
   return (
-    <SafeAreaContainer enable>
-      <CloseModal />
-      <ScrollView>
-        <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-          <Text className="text-lg font-bold">Campaigns</Text>
-          {campaigns.length <= 0 ? (
-            <Text>No campaigns yet!</Text>
-          ) : (
-            campaigns.map((c: Campaign, index: number) => (
-              <CampaignCard campaign={c} key={index} />
-            ))
-          )}
-        </View>
+    <PageWithBackButton
+      icon="close"
+      backButtonPlaceholder={<BackButtonLabel text="My Campaigns" />}
+      threshold={0}>
+      <ScrollView
+        style={[
+          {
+            paddingTop: Math.max(safeAreaInsets.top, size.default),
+          },
+        ]}>
+        <SafeAreaContainer enable>
+          <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
+            <Text className="text-lg font-bold">Campaigns</Text>
+            {userCampaigns.length <= 0 ? (
+              <EmptyPlaceholder />
+            ) : (
+              userCampaigns.map((c: Campaign, index: number) => (
+                <CampaignCard campaign={c} key={index} />
+              ))
+            )}
+          </View>
+        </SafeAreaContainer>
       </ScrollView>
-    </SafeAreaContainer>
+    </PageWithBackButton>
   );
 };
 
