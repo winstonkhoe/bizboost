@@ -275,7 +275,16 @@ export class User extends BaseModel {
 
       const {profilePicture} = businessPeople;
       if (profilePicture) {
-        await deleteFileByURL(profilePicture);
+        try {
+          await deleteFileByURL(profilePicture);
+        } catch (error) {
+          console.log(
+            'User.updateProfilePicture deleteFileByUrl',
+            profilePicture,
+            'BP error',
+            error,
+          );
+        }
       }
       await this.update({
         'businessPeople.profilePicture': profilePictureUrl,
@@ -291,7 +300,16 @@ export class User extends BaseModel {
 
       const {profilePicture} = contentCreator;
       if (profilePicture) {
-        await deleteFileByURL(profilePicture);
+        try {
+          await deleteFileByURL(profilePicture);
+        } catch (error) {
+          console.log(
+            'User.updateProfilePicture deleteFileByUrl',
+            profilePicture,
+            'CC error',
+            error,
+          );
+        }
       }
       await this.update({
         'contentCreator.profilePicture': profilePictureUrl,
