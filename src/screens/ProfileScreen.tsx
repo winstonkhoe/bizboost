@@ -212,28 +212,31 @@ const ProfileScreen = () => {
           />
         </Pressable>
       </View>
-      <View
-        style={[
-          flex.flexRow,
-          gap.default,
-          padding.horizontal.default,
-          padding.top.default,
-        ]}>
-        {user?.instagram?.username && (
-          <SocialCard
-            type="detail"
-            platform={SocialPlatform.Instagram}
-            data={user?.instagram}
-          />
+      {isContentCreator &&
+        (user?.instagram?.username || user?.tiktok?.username) && (
+          <View
+            style={[
+              flex.flexRow,
+              gap.default,
+              padding.horizontal.default,
+              padding.top.default,
+            ]}>
+            {user?.instagram?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Instagram}
+                data={user?.instagram}
+              />
+            )}
+            {user?.tiktok?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Tiktok}
+                data={user?.tiktok}
+              />
+            )}
+          </View>
         )}
-        {user?.tiktok?.username && (
-          <SocialCard
-            type="detail"
-            platform={SocialPlatform.Tiktok}
-            data={user?.tiktok}
-          />
-        )}
-      </View>
       {/* TODO: tab labels sesuai role */}
       {!isAdmin && (
         <TabView
