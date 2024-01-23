@@ -27,7 +27,7 @@ const MyCampaignsScreen = ({route}: Props) => {
 
   return (
     <PageWithBackButton
-      icon="close"
+      fullHeight
       backButtonPlaceholder={<BackButtonLabel text="My Campaigns" />}
       threshold={0}>
       <ScrollView
@@ -35,10 +35,16 @@ const MyCampaignsScreen = ({route}: Props) => {
           {
             paddingTop: Math.max(safeAreaInsets.top, size.default),
           },
-        ]}>
+        ]}
+        contentContainerStyle={[flex.flex1]}>
         <SafeAreaContainer enable>
-          <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-            <Text className="text-lg font-bold">Campaigns</Text>
+          <View
+            style={[
+              flex.flex1,
+              flex.flexCol,
+              gap.medium,
+              padding.horizontal.default,
+            ]}>
             {userCampaigns.length <= 0 ? (
               <EmptyPlaceholder />
             ) : (
