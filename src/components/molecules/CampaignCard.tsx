@@ -45,7 +45,9 @@ const CampaignCard = ({campaign}: Props) => {
 
   useEffect(() => {
     if (campaign.userId) {
-      User.getById(campaign.userId).then(setUser);
+      User.getById(campaign.userId)
+        .then(setUser)
+        .catch(() => setUser(null));
     }
   }, [campaign]);
 
