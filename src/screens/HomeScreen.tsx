@@ -193,11 +193,19 @@ const HomeScreen = () => {
     };
     if (transactions) {
       if (isAdmin) {
-        setActionNeededTransactions(
-          transactions.filter(transaction =>
-            transaction.isWaitingAdminAction(),
-          ),
-        );
+        const getTransactionPresedence = (neededAction: boolean) => {
+          return neededAction ? 0 : 1;
+        };
+        const sortAdminTransaction = (
+          firstTransaction: Transaction,
+          secondTransaction: Transaction,
+        ) => {
+          return (
+            getTransactionPresedence(firstTransaction.isWaitingAdminAction()) -
+            getTransactionPresedence(secondTransaction.isWaitingAdminAction())
+          );
+        };
+        setActionNeededTransactions(transactions.sort(sortAdminTransaction));
       }
       if (isContentCreator || isBusinessPeople) {
         getActionNeededTransactions()
@@ -361,7 +369,13 @@ const HomeScreen = () => {
                   isActive={activeFilterType === FilterCardType.ActionNeeded}
                   label={FilterCardType.ActionNeeded}
                   secondaryLabel={isAdmin ? 'Transactions' : undefined}
-                  count={actionNeededTransactions?.length || 0}
+                  count={
+                    (isAdmin
+                      ? actionNeededTransactions?.filter(t =>
+                          t.isWaitingAdminAction(),
+                        ).length
+                      : actionNeededTransactions?.length) || 0
+                  }
                   onPress={() =>
                     setActiveFilterType(FilterCardType.ActionNeeded)
                   }
