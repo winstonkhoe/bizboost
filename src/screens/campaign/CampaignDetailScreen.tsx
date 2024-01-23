@@ -54,7 +54,7 @@ type Props = NativeStackScreenProps<
 >;
 
 const CampaignDetailScreen = ({route}: Props) => {
-  const {uid} = useUser();
+  const {uid, isContentCreator} = useUser();
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationStackProps>();
   const {campaignId} = route.params;
@@ -412,6 +412,7 @@ const CampaignDetailScreen = ({route}: Props) => {
             },
           ]}>
           {!isCampaignOwner &&
+            isContentCreator &&
             isRegisterable &&
             transaction?.status === TransactionStatus.notRegistered && (
               <CustomButton
