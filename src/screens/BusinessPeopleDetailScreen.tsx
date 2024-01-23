@@ -38,7 +38,16 @@ const BusinessPeopleDetailScreen = ({route}: Props) => {
 
   useEffect(() => {
     Campaign.getUserCampaigns(businessPeopleId)
-      .then(setCampaigns)
+      .then(cs => {
+        const upcomingCampaigns = cs
+          .filter(c => c.isUpcomingOrRegistration())
+          .sort(Campaign.sortByTimelineStart);
+        const pastCampaigns = cs
+          .filter(c => !c.isUpcomingOrRegistration())
+          .sort(Campaign.sortByTimelineStart)
+          .reverse();
+        setCampaigns([...upcomingCampaigns, ...pastCampaigns]);
+      })
       .catch(() => setCampaigns([]));
     Review.getReviewsByRevieweeId(businessPeopleId, UserRole.BusinessPeople)
       .then(setReviews)
