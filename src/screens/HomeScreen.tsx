@@ -784,7 +784,8 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
     return transactions
       .filter(transaction => transaction.isWithdrawable(activeRole))
       .reduce(
-        (acc, transaction) => acc + (transaction.transactionAmount || 0),
+        (acc, transaction) =>
+          acc + (Number(transaction.transactionAmount) || 0),
         0,
       );
   }, [activeRole, transactions]);
