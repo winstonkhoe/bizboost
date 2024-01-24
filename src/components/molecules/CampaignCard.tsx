@@ -75,7 +75,7 @@ const CampaignCard = ({campaign}: Props) => {
           });
         }}
         headerTextTrailing={
-          !isCampaignUnderAWeek ? (
+          !isCampaignUnderAWeek && isUpcomingCampaign ? (
             `Until ${formatDateToDayMonthYear(
               new Date(new Campaign(campaign).getTimelineStart().end),
             )}`
@@ -84,7 +84,11 @@ const CampaignCard = ({campaign}: Props) => {
               radius="default"
               fontSize={20}
               text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
-              type="danger"
+              type={
+                isCampaignUnderAWeek && isUpcomingCampaign
+                  ? 'danger'
+                  : 'neutral'
+              }
             />
           )
         }
