@@ -271,11 +271,17 @@ export class Offer extends BaseModel {
       status: OfferStatus.rejected,
     });
     this.status = OfferStatus.rejected;
-    const {businessPeopleId, contentCreatorId, campaignId} = this;
-    if (!businessPeopleId || !contentCreatorId || !campaignId) {
+    const {id, businessPeopleId, contentCreatorId, campaignId} = this;
+    if (!id || !businessPeopleId || !contentCreatorId || !campaignId) {
       throw Error(ErrorMessage.GENERAL);
     }
     try {
+      const transaction = await new Promise<Transaction | null>(resolve => {
+        Transaction.getById(id, resolve);
+      });
+      if (transaction) {
+        await transaction.rejectRegistration();
+      }
       const campaign = await Campaign.getById(campaignId);
       const user = await User.getById(
         role === UserRole.BusinessPeople ? businessPeopleId : contentCreatorId,
