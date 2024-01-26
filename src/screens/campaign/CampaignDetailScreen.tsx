@@ -301,7 +301,7 @@ const CampaignDetailScreen = ({route}: Props) => {
                     </View>
                   </View>
 
-                  <ChevronRight color={COLOR.black[20]} />
+                  <ChevronRight color={COLOR.black[25]} size="large" />
                 </Pressable>
               )}
               <View className="flex flex-col">
