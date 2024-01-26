@@ -36,6 +36,7 @@ import {
 } from '../navigation/StackNavigation';
 import {LoadingScreen} from './LoadingScreen';
 import {useAppFocus} from '../hooks/app';
+import {getSourceOrDefaultAvatar} from '../utils/asset';
 
 const ExploreScreen = () => {
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
@@ -210,9 +211,9 @@ export const ExploreItem = ({
             style={[rounded.max, dimension.square.xlarge]}>
             <FastImage
               style={[dimension.full]}
-              source={{
+              source={getSourceOrDefaultAvatar({
                 uri: contentView?.user?.contentCreator?.profilePicture,
-              }}
+              })}
             />
           </View>
           <Text
