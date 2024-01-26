@@ -133,6 +133,7 @@ export const OfferDetailScreen = ({route}: Props) => {
             ))}
           </View>
           {offer &&
+            (offer.isPending() || offer.isNegotiating()) &&
             activeViewNegotiateIndex === offer.negotiations.length - 1 && (
               <OfferAction offer={offer} onSuccess={navigateBack} />
             )}
