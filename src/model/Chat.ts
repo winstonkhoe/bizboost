@@ -39,15 +39,15 @@ const CHAT_COLLECTION = 'chats';
 
 export class Chat extends BaseModel {
   id: string;
-  businessPeopleId: string;
-  contentCreatorId: string;
+  businessPeopleId?: string;
+  contentCreatorId?: string;
   messages: Message[];
 
   constructor(data: Partial<Chat>) {
     super();
     this.messages = data.messages || [];
-    this.businessPeopleId = data.businessPeopleId || '';
-    this.contentCreatorId = data.contentCreatorId || '';
+    this.businessPeopleId = data.businessPeopleId;
+    this.contentCreatorId = data.contentCreatorId;
     this.id = this.generateId();
   }
 

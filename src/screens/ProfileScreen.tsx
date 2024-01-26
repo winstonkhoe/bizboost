@@ -24,7 +24,7 @@ import {
   NavigationStackProps,
 } from '../navigation/StackNavigation';
 import {useEffect, useState} from 'react';
-import {PaymentStatus, Transaction} from '../model/Transaction';
+import {Transaction} from '../model/Transaction';
 import {background} from '../styles/BackgroundColor';
 import {MediaUploader} from '../components/atoms/Input';
 import {Campaign} from '../model/Campaign';
@@ -43,6 +43,8 @@ import {ReportIssueIcon} from '../components/atoms/Icon';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../styles/Size';
 import {SocialCard} from '../components/atoms/SocialCard';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 
 const ProfileScreen = () => {
   const dispatch = useAppDispatch();
@@ -65,16 +67,9 @@ const ProfileScreen = () => {
     transactions?.filter(t => t.isOngoing()).length || 0;
   const completedTransactionsCount =
     transactions?.filter(t => t.isCompleted() || t.isTerminated()).length || 0;
-  const withdrawableTransactionsCount =
-    transactions?.filter(
-      t =>
-        t.isCompleted() &&
-        t.payment?.status &&
-        [
-          PaymentStatus.proofApproved,
-          PaymentStatus.withdrawalRequested,
-        ].includes(t.payment?.status),
-    ).length || 0;
+  const withdrawableTransactionsCount = activeRole
+    ? transactions?.filter(t => t.isWithdrawable(activeRole)).length || 0
+    : 0;
   const {portfolios} = usePortfolio(uid || '');
 
   useEffect(() => {
@@ -109,7 +104,21 @@ const ProfileScreen = () => {
     }
     const updatedUser: User = new User({...user});
 
-    updatedUser.updateProfilePicture(activeRole, url);
+    updatedUser
+      .updateProfilePicture(activeRole, url)
+      .then(() => {
+        showToast({
+          type: ToastType.success,
+          message: 'Profile picture updated successfully',
+        });
+      })
+      .catch(error => {
+        console.log('updateProfilePicture error' + error);
+        showToast({
+          type: ToastType.danger,
+          message: 'Failed to update profile picture',
+        });
+      });
   };
 
   // TODO: kondisi buat admin
@@ -196,28 +205,31 @@ const ProfileScreen = () => {
           />
         </Pressable>
       </View>
-      <View
-        style={[
-          flex.flexRow,
-          gap.default,
-          padding.horizontal.default,
-          padding.top.default,
-        ]}>
-        {user?.instagram?.username && (
-          <SocialCard
-            type="detail"
-            platform={SocialPlatform.Instagram}
-            data={user?.instagram}
-          />
+      {isContentCreator &&
+        (user?.instagram?.username || user?.tiktok?.username) && (
+          <View
+            style={[
+              flex.flexRow,
+              gap.default,
+              padding.horizontal.default,
+              padding.top.default,
+            ]}>
+            {user?.instagram?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Instagram}
+                data={user?.instagram}
+              />
+            )}
+            {user?.tiktok?.username && (
+              <SocialCard
+                type="detail"
+                platform={SocialPlatform.Tiktok}
+                data={user?.tiktok}
+              />
+            )}
+          </View>
         )}
-        {user?.tiktok?.username && (
-          <SocialCard
-            type="detail"
-            platform={SocialPlatform.Tiktok}
-            data={user?.tiktok}
-          />
-        )}
-      </View>
       {/* TODO: tab labels sesuai role */}
       {!isAdmin && (
         <TabView
@@ -291,7 +303,7 @@ const ProfileScreen = () => {
                 icon={<CampaignIcon fill={'#72B3FF'} height={80} width={80} />}
                 title="My Campaigns"
                 subtitle={`${publicCampaignsCount} Public\n${
-                  campaigns.length - publicCampaignsCount
+                  (campaigns?.length || 0) - publicCampaignsCount
                 } Private`}
               />,
               // TODO: ini kayaknya ga perlu lagi

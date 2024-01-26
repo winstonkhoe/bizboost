@@ -5,11 +5,7 @@ import {SocialPlatform, User} from './User';
 import {BaseModel} from './BaseModel';
 import {Location} from './Location';
 import {Category} from './Category';
-import {
-  Transaction,
-  TransactionStatus,
-  transactionStatusIndexMap,
-} from './Transaction';
+import {Transaction} from './Transaction';
 
 export interface CampaignTask {
   name: string;

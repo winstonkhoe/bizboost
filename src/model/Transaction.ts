@@ -58,7 +58,6 @@ export enum TransactionStatus {
 
   completed = 'Completed',
 
-  reported = 'Reported', //reported by bp
   terminated = 'Terminated', //expired or timeline miss
 }
 
@@ -155,7 +154,6 @@ export const transactionStatusIndexMap: TransactionStatusIndexMap = {
 
   [TransactionStatus.completed]: campaignIndexMap[CampaignStep.Completed],
 
-  [TransactionStatus.reported]: campaignIndexMap[CampaignStep.Registration] - 1,
   [TransactionStatus.terminated]:
     campaignIndexMap[CampaignStep.Registration] - 1,
 };
@@ -183,7 +181,6 @@ export const transactionStatusTypeMap: TransactionStatusMap = {
 
   [TransactionStatus.completed]: StatusType.success,
 
-  [TransactionStatus.reported]: StatusType.danger,
   [TransactionStatus.terminated]: StatusType.terminated,
 };
 
@@ -211,7 +208,6 @@ export const transactionStatusStepperStateMap: TransactionStatusStepperStateMap 
 
     [TransactionStatus.completed]: StepperState.success,
 
-    [TransactionStatus.reported]: StepperState.danger,
     [TransactionStatus.terminated]: StepperState.terminated,
   };
 
@@ -579,11 +575,9 @@ export class Transaction extends BaseModel {
     const {campaignId, lastCheckedAt, status} = this;
     if (
       !campaignId ||
-      [
-        TransactionStatus.completed,
-        TransactionStatus.terminated,
-        TransactionStatus.reported,
-      ].find(s => s === status)
+      [TransactionStatus.completed, TransactionStatus.terminated].find(
+        s => s === status,
+      )
     ) {
       return false;
     }
@@ -1222,11 +1216,9 @@ export class Transaction extends BaseModel {
     const {status} = this;
     return (
       status &&
-      [
-        TransactionStatus.terminated,
-        TransactionStatus.reported,
-        TransactionStatus.completed,
-      ].findIndex(transactionStatus => transactionStatus === status) === -1
+      [TransactionStatus.terminated, TransactionStatus.completed].findIndex(
+        transactionStatus => transactionStatus === status,
+      ) === -1
     );
   }
 

@@ -1,10 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
 import {Pressable, Text, View} from 'react-native';
-import {
-  HorizontalPadding,
-  VerticalPadding,
-} from '../components/atoms/ViewPadding';
 import {flex, items} from '../styles/Flex';
 import {gap} from '../styles/Gap';
 import {rounded} from '../styles/BorderRadius';
@@ -18,10 +13,7 @@ import {
 import {SocialPlatform, User, UserRole, UserStatus} from '../model/User';
 import {COLOR} from '../styles/Color';
 import {PageWithBackButton} from '../components/templates/PageWithBackButton';
-import {ProfileItem} from '../components/molecules/ProfileItem';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
-import InstagramLogo from '../assets/vectors/instagram.svg';
-import TikTokLogo from '../assets/vectors/tiktok.svg';
 import FastImage from 'react-native-fast-image';
 import {getSourceOrDefaultAvatar} from '../utils/asset';
 import {font, fontSize} from '../styles/Font';
@@ -35,6 +27,8 @@ import {CampaignCard} from '../components/molecules/CampaignCard';
 import {Transaction, TransactionStatus} from '../model/Transaction';
 import {useNavigation} from '@react-navigation/native';
 import {SocialCard} from '../components/atoms/SocialCard';
+import {showToast} from '../helpers/toast';
+import {ToastType} from '../providers/ToastProvider';
 
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
@@ -84,9 +78,35 @@ const UserDetailScreen = ({route}: Props) => {
   // TODO: show success message
   const onSuspendButtonClick = async () => {
     if (user.status === UserStatus.Active) {
-      await user.suspend();
+      await user
+        .suspend()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'User has been suspended',
+          });
+        })
+        .catch(() => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to suspend user',
+          });
+        });
     } else if (user.status === UserStatus.Suspended) {
-      await user.activate();
+      await user
+        .activate()
+        .then(() => {
+          showToast({
+            type: ToastType.success,
+            message: 'User has been reactivated',
+          });
+        })
+        .catch(() => {
+          showToast({
+            type: ToastType.danger,
+            message: 'Failed to reactivate user',
+          });
+        });
     }
   };
   return (

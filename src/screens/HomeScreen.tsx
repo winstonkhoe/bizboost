@@ -1,6 +1,5 @@
 import {Pressable, PressableProps, StyleSheet, Text, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {HorizontalPadding} from '../components/atoms/ViewPadding';
 import {HomeSectionHeader} from '../components/molecules/SectionHeader';
 import {flex, items, justify, self} from '../styles/Flex';
 import {gap} from '../styles/Gap';
@@ -54,7 +53,6 @@ import PagerView from 'react-native-pager-view';
 import {CustomButton} from '../components/atoms/Button';
 import {showToast} from '../helpers/toast';
 import {ToastType} from '../providers/ToastProvider';
-import {Offer} from '../model/Offer';
 import {NewThisWeekCard} from '../components/molecules/NewThisWeekCard';
 import {round} from 'lodash';
 import {InternalLink} from '../components/atoms/Link';
@@ -193,11 +191,19 @@ const HomeScreen = () => {
     };
     if (transactions) {
       if (isAdmin) {
-        setActionNeededTransactions(
-          transactions.filter(transaction =>
-            transaction.isWaitingAdminAction(),
-          ),
-        );
+        const getTransactionPresedence = (neededAction: boolean) => {
+          return neededAction ? 0 : 1;
+        };
+        const sortAdminTransaction = (
+          firstTransaction: Transaction,
+          secondTransaction: Transaction,
+        ) => {
+          return (
+            getTransactionPresedence(firstTransaction.isWaitingAdminAction()) -
+            getTransactionPresedence(secondTransaction.isWaitingAdminAction())
+          );
+        };
+        setActionNeededTransactions(transactions.sort(sortAdminTransaction));
       }
       if (isContentCreator || isBusinessPeople) {
         getActionNeededTransactions()
@@ -209,8 +215,7 @@ const HomeScreen = () => {
 
   useEffect(() => {
     console.log('homeScreen:userGetall');
-    const unsubscribe = User.getAll(setUsers);
-    return unsubscribe;
+    return User.getAll(setUsers);
   }, []);
 
   useEffect(() => {
@@ -361,7 +366,13 @@ const HomeScreen = () => {
                   isActive={activeFilterType === FilterCardType.ActionNeeded}
                   label={FilterCardType.ActionNeeded}
                   secondaryLabel={isAdmin ? 'Transactions' : undefined}
-                  count={actionNeededTransactions?.length || 0}
+                  count={
+                    (isAdmin
+                      ? actionNeededTransactions?.filter(t =>
+                          t.isWaitingAdminAction(),
+                        ).length
+                      : actionNeededTransactions?.length) || 0
+                  }
                   onPress={() =>
                     setActiveFilterType(FilterCardType.ActionNeeded)
                   }
@@ -766,17 +777,18 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
   const {user, isContentCreator, activeRole} = useUser();
   const navigation = useNavigation<NavigationStackProps>();
 
-  const calculateBalance = () => {
+  const calculateBalance = useMemo(() => {
     if (!activeRole) {
       return 0;
     }
     return transactions
       .filter(transaction => transaction.isWithdrawable(activeRole))
       .reduce(
-        (acc, transaction) => acc + (transaction.transactionAmount || 0),
+        (acc, transaction) =>
+          acc + (Number(transaction.transactionAmount) || 0),
         0,
       );
-  };
+  }, [activeRole, transactions]);
 
   const getRatingLabel = () => {
     if (isContentCreator) {
@@ -819,7 +831,7 @@ const DashboardPanel = ({transactions}: DashboardPanelProps) => {
                 textColor(COLOR.text.neutral.high),
               ]}
               numberOfLines={1}>
-              {currencyFormat(calculateBalance())}
+              {currencyFormat(calculateBalance)}
             </Text>
           </Pressable>
         </DashboardPanelItem>

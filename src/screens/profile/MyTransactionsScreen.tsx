@@ -14,6 +14,8 @@ import {PageWithBackButton} from '../../components/templates/PageWithBackButton'
 import {BackButtonLabel} from '../../components/atoms/Header';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {size} from '../../styles/Size';
+import SafeAreaContainer from '../../containers/SafeAreaContainer';
+import {EmptyPlaceholder} from '../../components/templates/EmptyPlaceholder';
 type Props = NativeStackScreenProps<
   AuthenticatedStack,
   AuthenticatedNavigation.MyTransactions
@@ -39,19 +41,28 @@ const MyTransactionsScreen = ({route}: Props) => {
       <ScrollView
         style={[flex.flex1]}
         contentContainerStyle={[
+          flex.flex1,
           {
-            paddingTop: safeAreaInsets.top + size.xlarge4,
+            paddingTop: Math.max(safeAreaInsets.top, size.small),
           },
         ]}>
-        <View style={[flex.flexCol, gap.medium, padding.horizontal.default]}>
-          {transactions.length <= 0 ? (
-            <Text>No transaction yet!</Text>
-          ) : (
-            transactions.map((t, index) => (
-              <TransactionCard key={index} transaction={t} role={role} />
-            ))
-          )}
-        </View>
+        <SafeAreaContainer enable>
+          <View
+            style={[
+              flex.flex1,
+              flex.flexCol,
+              gap.medium,
+              padding.horizontal.default,
+            ]}>
+            {transactions.length <= 0 ? (
+              <EmptyPlaceholder />
+            ) : (
+              transactions.map((t, index) => (
+                <TransactionCard key={index} transaction={t} role={role} />
+              ))
+            )}
+          </View>
+        </SafeAreaContainer>
       </ScrollView>
     </PageWithBackButton>
   );

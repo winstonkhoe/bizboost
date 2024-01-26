@@ -32,6 +32,7 @@ const CampaignCard = ({campaign}: Props) => {
   const navigation = useNavigation<NavigationStackProps>();
   const [user, setUser] = useState<User | null>();
   const {categories} = useCategory();
+  const isUpcomingCampaign = new Campaign(campaign).isUpcomingOrRegistration();
   const currentCategory = useMemo(() => {
     return categories.find(
       category => category.id === campaign?.categories?.[0],
@@ -44,7 +45,9 @@ const CampaignCard = ({campaign}: Props) => {
 
   useEffect(() => {
     if (campaign.userId) {
-      User.getById(campaign.userId).then(setUser);
+      User.getById(campaign.userId)
+        .then(setUser)
+        .catch(() => setUser(null));
     }
   }, [campaign]);
 
@@ -55,68 +58,81 @@ const CampaignCard = ({campaign}: Props) => {
   };
 
   return (
-    <BaseCard
-      icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
-      headerTextLeading={`${user?.businessPeople?.fullname}`}
-      handleClickHeader={() => {
-        navigation.navigate(AuthenticatedNavigation.BusinessPeopleDetail, {
-          businessPeopleId: user?.id || '',
-        });
-      }}
-      headerTextTrailing={
-        !isCampaignUnderAWeek ? (
-          `Until ${formatDateToDayMonthYear(
-            new Date(new Campaign(campaign).getTimelineStart().end),
-          )}`
-        ) : (
-          <Label
-            radius="default"
-            fontSize={20}
-            text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
-            type="danger"
-          />
-        )
-      }
-      imageSource={{uri: campaign.image}}
-      imageDimension={dimension.square.xlarge4}
-      bodyText={`${campaign.title}`}
-      handleClickBody={onViewCampaignDetailButtonClicked}
-      bodyContent={
-        <>
-          {campaign.categories?.slice(0, 1).map(category => (
-            <View key={category} style={[flex.flexRow]}>
-              <Label
-                key={category}
-                radius="default"
-                fontSize={10}
-                text={`${
-                  currentCategory?.alias || currentCategory?.id || category
-                }`}
-              />
-            </View>
-          ))}
-          <View style={[flex.flexRow, gap.small]}>
-            {campaign?.platformTasks?.map(platform => (
-              <Label
-                key={platform.name}
-                type="neutral"
-                radius="default"
-                text={platform.name}
-              />
+    <View
+      style={[
+        !isUpcomingCampaign && [
+          {
+            opacity: 0.6,
+          },
+        ],
+      ]}>
+      <BaseCard
+        icon={<Business width={15} height={15} stroke={COLOR.green[50]} />}
+        headerTextLeading={user?.businessPeople?.fullname}
+        handleClickHeader={() => {
+          navigation.navigate(AuthenticatedNavigation.BusinessPeopleDetail, {
+            businessPeopleId: user?.id || '',
+          });
+        }}
+        headerTextTrailing={
+          !isCampaignUnderAWeek && isUpcomingCampaign ? (
+            `Until ${formatDateToDayMonthYear(
+              new Date(new Campaign(campaign).getTimelineStart().end),
+            )}`
+          ) : (
+            <Label
+              radius="default"
+              fontSize={20}
+              text={getTimeAgo(new Campaign(campaign).getTimelineStart().end)}
+              type={
+                isCampaignUnderAWeek && isUpcomingCampaign
+                  ? 'danger'
+                  : 'neutral'
+              }
+            />
+          )
+        }
+        imageSource={{uri: campaign.image}}
+        imageDimension={dimension.square.xlarge4}
+        bodyText={`${campaign.title}`}
+        handleClickBody={onViewCampaignDetailButtonClicked}
+        bodyContent={
+          <>
+            {campaign.categories?.slice(0, 1).map(category => (
+              <View key={category} style={[flex.flexRow]}>
+                <Label
+                  key={category}
+                  radius="default"
+                  fontSize={10}
+                  text={`${
+                    currentCategory?.alias || currentCategory?.id || category
+                  }`}
+                />
+              </View>
             ))}
-          </View>
-          <View style={[flex.flexCol, gap.small]}>
-            {campaign.fee && (
-              <Text
-                className="font-semibold"
-                style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
-                {formatToRupiah(campaign.fee)}
-              </Text>
-            )}
-          </View>
-        </>
-      }
-    />
+            <View style={[flex.flexRow, gap.small]}>
+              {campaign?.platformTasks?.map(platform => (
+                <Label
+                  key={platform.name}
+                  type="neutral"
+                  radius="default"
+                  text={platform.name}
+                />
+              ))}
+            </View>
+            <View style={[flex.flexCol, gap.small]}>
+              {campaign.fee && (
+                <Text
+                  className="font-semibold"
+                  style={[font.size[30], textColor(COLOR.text.neutral.high)]}>
+                  {formatToRupiah(campaign.fee)}
+                </Text>
+              )}
+            </View>
+          </>
+        }
+      />
+    </View>
   );
 };
 

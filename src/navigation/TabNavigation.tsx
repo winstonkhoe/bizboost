@@ -345,7 +345,7 @@ export const TabNavigator = () => {
               },
             }}
             options={{
-              tabBarIcon: profileIcon,
+              tabBarIcon: ({focused}) => profileIcon(focused),
             }}
           />
         </Tab.Group>
@@ -365,10 +365,22 @@ export const TabNavigator = () => {
             }}
           />
           <Tab.Screen
+            name={TabNavigation.Campaigns}
+            component={CampaignsScreen}
+            listeners={{
+              tabPress: () => {
+                resetSearchState();
+              },
+            }}
+            options={{
+              tabBarIcon: ({focused}) => campaignIcon(focused),
+            }}
+          />
+          <Tab.Screen
             name={TabNavigation.Profile}
             component={ProfileScreen}
             options={{
-              tabBarIcon: profileIcon,
+              tabBarIcon: ({focused}) => profileIcon(focused),
             }}
           />
         </Tab.Group>

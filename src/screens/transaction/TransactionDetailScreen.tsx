@@ -303,19 +303,6 @@ const TransactionDetailScreen = ({route}: Props) => {
           message: 'Report submitted!',
           type: ToastType.success,
         });
-        // TODO: confirm if we will update the transaction to reported or not
-        // transaction
-        //   .updateStatus(TransactionStatus.reported)
-        //   .then(() => {
-        //     setIsReportSheetModalOpen(false);
-        //     showToast({
-        //       message: 'Report submitted!',
-        //       type: ToastType.success,
-        //     });
-        //   })
-        //   .catch(() => {
-        //     throw Error('Update transaction status failed');
-        //   });
       })
       .catch(err => {
         showToast({
