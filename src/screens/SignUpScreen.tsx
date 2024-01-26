@@ -356,7 +356,7 @@ const SignUpScreen = ({route}: Props) => {
           threshold={0}
           backButtonPlaceholder={<BackButtonLabel text="Sign Up" />}
           disableDefaultOnPress={activePosition > 0}>
-          <View style={[flex.flex1, flex.flexCol, padding.top.medium]}>
+          <View style={[flex.flex1, flex.flexCol, padding.top.large]}>
             <View style={[padding.horizontal.large]}>
               <FadeInOut visible={activePosition > 0}>
                 <Stepper
