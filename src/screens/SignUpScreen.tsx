@@ -119,6 +119,7 @@ const SignUpScreen = ({route}: Props) => {
   const methods = useForm<FormData>({
     mode: 'all',
     defaultValues: {
+      email: user.email,
       fullname: name || '',
       profilePicture: profilePicture,
       provider: provider,
