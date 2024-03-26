@@ -19,3 +19,7 @@ cd ios
 pod install
 npm run ios
 ```
+
+#### Download Aplikasi
+- iOS: https://testflight.apple.com/join/Dc7AlV4o
+- Android: https://bit.ly/bizboost-apk
