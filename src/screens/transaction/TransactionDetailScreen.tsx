@@ -194,6 +194,19 @@ const TransactionDetailScreen = ({route}: Props) => {
           } Approved!`,
           type: ToastType.success,
         });
+
+        if (transaction.status === TransactionStatus.completed) {
+          // Automatically request withdrawal if content creator hasn't request for 24 hours.
+          setTimeout(() => {
+            if (
+              transaction.payment?.status !==
+                PaymentStatus.withdrawalRequested &&
+              transaction.payment?.status !== PaymentStatus.withdrawn
+            ) {
+              transaction.requestWithdrawal();
+            }
+          }, 24 * 60 * 60 * 1000);
+        }
       })
       .catch(err => {
         showToast({
